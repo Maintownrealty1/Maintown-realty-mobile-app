@@ -553,6 +553,13 @@
   .clause-block p { margin: 0; font-size: 12px; color: #94a3b8; line-height: 1.55; }
 
   .rent-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); color: #34d399; font-size: 12px; font-weight: 600; padding: 8px 12px; border-radius: 10px; margin: 0 0 16px; }
+  .doc-action-btn {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 13px; border-radius: 12px; font-weight: 600; font-size: 13px;
+    background: #131b2e; border: 1px solid #1e293b; color: #fff; cursor: pointer; margin-bottom: 14px;
+    transition: border-color 0.15s ease;
+  }
+  .doc-action-btn:hover { border-color: #a855f7; }
   .fee-preview-box { background: rgba(15,23,42,0.9); border: 1px solid #1e293b; border-radius: 14px; padding: 14px 16px; margin: 4px 0 18px; }
   .fee-preview-box .row { display: flex; justify-content: space-between; font-size: 12.5px; color: #94a3b8; padding: 4px 0; }
   .fee-preview-box .row strong { color: #c084fc; font-weight: 600; }
@@ -1248,6 +1255,20 @@
       <p>Funds are held securely in escrow and only released to the landlord after digital handover sign-off.</p>
     </div>
 
+    <!-- Tenancy Agreement Execution (mandatory pre-payment) -->
+    <p class="s5-section-label"><i data-lucide="file-signature" class="w-4 h-4 text-purple-400"></i>Tenancy Agreement Execution</p>
+    <button type="button" id="s6-download-agreement-btn" class="doc-action-btn">
+      <i data-lucide="download" class="w-4 h-4"></i> Download Agreement PDF
+    </button>
+    <div class="s5-upload-box" id="s6-agreement-upload">
+      <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+      <span id="s6-agreement-upload-label">Upload Signed Tenancy Agreement (PDF/Image)</span>
+      <input type="file" id="s6-agreement-file" hidden accept="image/*,.pdf">
+    </div>
+    <div class="rent-badge" id="s6-agreement-confirmed" style="display:none;">
+      <i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>Agreement Signed &amp; Uploaded</span>
+    </div>
+
     <button type="button" id="s6-authorize-btn" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
       <i data-lucide="shield-check" class="w-4 h-4"></i> Authorize &amp; Pay
     </button>
@@ -1298,6 +1319,19 @@
   <div class="s5-hold-preview">
     <div class="s5-hold-row"><span>Linked Auto-Debit Card</span><strong id="s7-lease-card">—</strong></div>
     <div class="s5-hold-row"><span>Status</span><strong id="s7-lease-status" style="color:#34d399;">Active</strong></div>
+  </div>
+
+  <!-- Move-In Date Scheduler -->
+  <p class="s5-section-label"><i data-lucide="calendar-check" class="w-4 h-4 text-purple-400"></i>Schedule Move-In Date</p>
+  <div class="field">
+    <label class="field-label">Move-In Date</label>
+    <input class="field-input" id="s7-movein-date" type="date">
+  </div>
+  <button type="button" id="s7-movein-confirm-btn" class="s5-add-btn">
+    <i data-lucide="calendar-check" class="w-4 h-4"></i> Confirm Move-In Date
+  </button>
+  <div class="rent-badge" id="s7-movein-confirmed" style="display:none;">
+    <i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span id="s7-movein-confirmed-text"></span>
   </div>
 
   <!-- Section 8 Default & Grace Period Tracker -->
@@ -1353,16 +1387,16 @@
   <button type="button" id="s7-ticket-submit-btn" class="btn-primary" style="margin-bottom: 20px;">Submit Ticket</button>
   <div id="s7-ticket-list"></div>
 
-  <!-- Digital Tenancy Agreement Vault -->
+  <!-- Digital Tenancy Agreement Vault (read-only — signed pre-payment during Checkout) -->
   <p class="s5-section-label"><i data-lucide="file-text" class="w-4 h-4 text-purple-400"></i>Digital Tenancy Agreement Vault</p>
   <div class="s5-list-item" style="margin-bottom: 20px;">
     <div class="s5-list-icon"><i data-lucide="file-text" class="w-5 h-5"></i></div>
     <div class="s5-list-text">
-      <p class="s5-list-title">Signed Tenancy Agreement.pdf</p>
+      <p class="s5-list-title" id="s7-vault-filename">Signed Tenancy Agreement.pdf</p>
       <p class="s5-list-sub" id="s7-vault-timestamp">Digitally signed —</p>
     </div>
-    <button type="button" id="s7-vault-download-btn" class="s5-back-btn" title="Download">
-      <i data-lucide="download" class="w-4 h-4"></i>
+    <button type="button" id="s7-vault-download-btn" class="s5-back-btn" title="View Signed Agreement PDF" style="width:auto; padding:0 14px; gap:6px; display:flex; align-items:center; white-space:nowrap;">
+      <i data-lucide="eye" class="w-4 h-4"></i><span style="font-size:11.5px; font-weight:600;">View PDF</span>
     </button>
   </div>
 
@@ -2545,6 +2579,8 @@
   let checkoutSource = 'wallet';
   let checkoutOtpTimer = null;
   let checkoutLandPayment = null; // { mode, months, downPayment, monthly, totalPrice, processingFee }
+  let checkoutAgreementUploaded = false;
+  let checkoutAgreementFile = null;
 
   function formatMoney(amount, currency) {
     const symbol = currency === 'usd' ? '$' : '₦';
@@ -2559,19 +2595,28 @@
 
   function updateAuthorizeState() {
     const btn = document.getElementById('s6-authorize-btn');
-    if (!checkoutListing || checkoutListing.type !== 'land') { btn.disabled = false; return; }
-    const box = document.getElementById('s6-signoff-box');
-    const scrolledToBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 6;
-    const signInput = document.getElementById('s6-landsign-input');
-    signInput.disabled = !scrolledToBottom;
-    const signed = signInput.value.trim() === 'I agree to the Land Allocation & Milestone Terms';
-    btn.disabled = !(scrolledToBottom && signed);
+    let landOk = true;
+    if (checkoutListing && checkoutListing.type === 'land') {
+      const box = document.getElementById('s6-signoff-box');
+      const scrolledToBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 6;
+      const signInput = document.getElementById('s6-landsign-input');
+      signInput.disabled = !scrolledToBottom;
+      const signed = signInput.value.trim() === 'I agree to the Land Allocation & Milestone Terms';
+      landOk = scrolledToBottom && signed;
+    }
+    btn.disabled = !(landOk && checkoutAgreementUploaded);
   }
 
   function openCheckout(listing, landPayment) {
     checkoutListing = listing;
     checkoutLandPayment = landPayment || null;
     selectPaySource('wallet');
+
+    checkoutAgreementUploaded = false;
+    checkoutAgreementFile = null;
+    document.getElementById('s6-agreement-upload').classList.remove('has-file');
+    document.getElementById('s6-agreement-upload-label').textContent = 'Upload Signed Tenancy Agreement (PDF/Image)';
+    document.getElementById('s6-agreement-confirmed').style.display = 'none';
 
     document.getElementById('s6-property-img').src = listing.img;
     document.getElementById('s6-property-img').alt = listing.title;
@@ -2635,6 +2680,21 @@
 
   document.getElementById('s6-signoff-box').addEventListener('scroll', updateAuthorizeState);
   document.getElementById('s6-landsign-input').addEventListener('input', updateAuthorizeState);
+
+  document.getElementById('s6-download-agreement-btn').addEventListener('click', () => {
+    showToast('Downloading Tenancy Agreement PDF…');
+  });
+  document.getElementById('s6-agreement-upload').addEventListener('click', () => document.getElementById('s6-agreement-file').click());
+  document.getElementById('s6-agreement-file').addEventListener('change', (e) => {
+    if (!e.target.files.length) return;
+    checkoutAgreementFile = e.target.files[0];
+    checkoutAgreementUploaded = true;
+    document.getElementById('s6-agreement-upload').classList.add('has-file');
+    document.getElementById('s6-agreement-upload-label').textContent = checkoutAgreementFile.name;
+    document.getElementById('s6-agreement-confirmed').style.display = 'inline-flex';
+    if (window.lucide) lucide.createIcons();
+    updateAuthorizeState();
+  });
 
   document.getElementById('s6-back-btn').addEventListener('click', () => navigateTo('screen-5'));
   document.getElementById('s6-pay-wallet').addEventListener('click', () => selectPaySource('wallet'));
@@ -2776,6 +2836,7 @@
         };
       }
     }
+    showToast('Handover executed — escrow funds released to landlord');
     navigateTo('screen-7');
   });
   document.getElementById('s7-back-btn').addEventListener('click', () => navigateTo('screen-6'));
@@ -3798,7 +3859,27 @@
   });
 
   document.getElementById('s7-vault-download-btn').addEventListener('click', () => {
-    showToast('Downloading Signed Tenancy Agreement.pdf');
+    const name = checkoutAgreementFile ? checkoutAgreementFile.name : 'Signed Tenancy Agreement.pdf';
+    showToast(`Opening ${name} (read-only)`);
+  });
+
+  document.getElementById('s7-movein-confirm-btn').addEventListener('click', () => {
+    const dateVal = document.getElementById('s7-movein-date').value;
+    if (!dateVal) { showToast('Please select a move-in date'); return; }
+    const formatted = new Date(dateVal + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const propertyTitle = checkoutListing ? checkoutListing.title : 'this property';
+    const listedByAgent = checkoutListing && checkoutListing.listedBy === 'agent';
+
+    document.getElementById('s7-movein-confirmed-text').textContent = `Move-in scheduled for ${formatted}`;
+    document.getElementById('s7-movein-confirmed').style.display = 'inline-flex';
+    if (window.lucide) lucide.createIcons();
+
+    // Uploader-based notification routing: Landlord-listed → Landlord only; Agent-listed → Agent + Landlord
+    if (listedByAgent) {
+      showToast(`Move-in date sent to the Agent & Landlord for "${propertyTitle}"`);
+    } else {
+      showToast(`Move-in date sent to the Landlord for "${propertyTitle}"`);
+    }
   });
 
   function populateScreen7() {
@@ -3808,7 +3889,10 @@
     document.getElementById('s7-lease-amount').textContent = lease.amountLabel;
     document.getElementById('s7-lease-due').textContent = lease.dueLabel;
     document.getElementById('s7-lease-card').textContent = lease.card;
+    document.getElementById('s7-vault-filename').textContent = checkoutAgreementFile ? checkoutAgreementFile.name : 'Signed Tenancy Agreement.pdf';
     document.getElementById('s7-vault-timestamp').textContent = `Digitally signed — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    document.getElementById('s7-movein-date').value = '';
+    document.getElementById('s7-movein-confirmed').style.display = 'none';
     renderStageTracker();
     renderTicketList();
     if (window.lucide) lucide.createIcons();
