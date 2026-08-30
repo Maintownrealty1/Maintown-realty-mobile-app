@@ -7,22 +7,35 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
+  /* ---- Global viewport / box-sizing reset (applies across every screen) ---- */
+  *, ::before, ::after {
+    box-sizing: border-box !important;
+  }
+  html, body {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
   /* ---- Standalone fallback styles (render correctly even if Tailwind CDN is blocked) ---- */
-  * { box-sizing: border-box; }
   body {
-    margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
     background: #0B0F19;
     color: #ffffff;
     min-height: 100vh;
   }
   .app-shell {
+    width: 100%;
     max-width: 420px;
-    margin: 0 auto;
     min-height: 100vh;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     padding: 32px 20px 40px;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    position: relative;
   }
   /* Header */
   .brand-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
@@ -116,6 +129,8 @@
   .modal-card {
     background: #0f172a; border: 1px solid #1e293b; border-radius: 20px;
     width: 100%; max-width: 380px; padding: 24px;
+    max-height: 90vh; max-height: 90dvh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
   }
   .modal-icon-wrap {
     width: 48px; height: 48px; border-radius: 999px; background: rgba(59,7,100,0.5);
@@ -312,19 +327,6 @@
   .dash-summary-title { font-size: 13px; font-weight: 600; color: #fbbf24; margin: 0 0 1px; }
   .dash-summary-sub { font-size: 11px; color: #94a3b8; margin: 0; }
 
-  /* ---- Dev Role Switcher (floating pill, all screens) ---- */
-  .dev-role-switcher {
-    position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 9999;
-    display: flex; gap: 4px; padding: 4px; border-radius: 999px;
-    background: rgba(11,15,25,0.92); border: 1px solid #334155; backdrop-filter: blur(8px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-  }
-  .dev-role-btn {
-    border: none; background: transparent; color: #94a3b8; font-size: 10.5px; font-weight: 600;
-    padding: 6px 9px; border-radius: 999px; cursor: pointer; white-space: nowrap; transition: all 0.15s ease;
-  }
-  .dev-role-btn.active { background: linear-gradient(90deg, #9333ea, #7e22ce); color: #fff; }
-
   /* ---- Inspections Manager (Landlord / Agent cross-role actions) ---- */
   .insp-status-pending { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); }
   .insp-status-confirmed { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
@@ -338,7 +340,11 @@
   .insp-mgr-decline { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.35); }
   .insp-mgr-conduct { background: rgba(147,51,234,0.15); color: #c084fc; border: 1px solid rgba(147,51,234,0.4); }
   /* ---- Fixed bottom navigation bar (lives OUTSIDE #screen-4 / #screen-5) ---- */
-  #app-bottom-nav { display: flex; justify-content: center; padding: 0 20px 16px; pointer-events: none; }
+  #app-bottom-nav {
+    display: flex; justify-content: center; padding: 0 20px 16px; pointer-events: none;
+    left: 50% !important; right: auto !important; transform: translateX(-50%);
+    width: 100%; max-width: 420px; box-sizing: border-box;
+  }
   #app-bottom-nav.hidden { display: none; } /* higher specificity than a plain .hidden rule, so this always wins */
   #app-bottom-nav .dash-nav { pointer-events: auto; }
   .dash-nav {
@@ -459,6 +465,15 @@
   }
   .s5-upload-box:hover { border-color: #a855f7; color: #c084fc; }
   .s5-upload-box.has-file { border-color: #10b981; color: #34d399; border-style: solid; }
+  .s5-upload-meta { font-size: 10.5px; color: #64748b; margin-top: -2px; }
+  .s5-upload-box.has-file .s5-upload-meta { color: #6ee7b7; }
+  .s5-photo-thumbs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; justify-content: center; }
+  .s5-photo-thumbs img { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; border: 1px solid #1e293b; }
+  .doc-verify-badge {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600;
+    color: #34d399; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35);
+    padding: 3px 9px; border-radius: 999px; margin-top: 6px;
+  }
 
   .s5-section-label {
     display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: #e2e8f0;
@@ -609,7 +624,9 @@
 
   /* Sticky/fixed glass CTA container pinned to the bottom of the viewport */
   .sticky-cta-wrap {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    position: fixed; left: 50%; right: auto; bottom: 0; z-index: 40;
+    transform: translateX(-50%);
+    width: 100%; max-width: 420px; box-sizing: border-box;
     display: flex; justify-content: center;
     padding: 14px 20px calc(16px + env(safe-area-inset-bottom, 0px));
     background: rgba(11,15,25,0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
@@ -715,19 +732,9 @@
   .app-shell, .screen-view {
     overflow: visible !important; /* never let an ancestor clip the scrollable form */
   }
-  /* Push content down so it never sits underneath the fixed Dev Role Switcher pill */
-  .app-shell { padding-top: 68px; }
 </style>
 </head>
 <body>
-
-<!-- ===================== DEV ROLE SWITCHER (floating, persists across all screens) ===================== -->
-<div id="dev-role-switcher" class="dev-role-switcher">
-  <button type="button" class="dev-role-btn" id="dev-role-tenant" data-role="tenant">👤 Tenant</button>
-  <button type="button" class="dev-role-btn" id="dev-role-agent" data-role="agent">🏢 Agent</button>
-  <button type="button" class="dev-role-btn" id="dev-role-landlord" data-role="landlord">🏠 Landlord</button>
-</div>
-<!-- ===================== END DEV ROLE SWITCHER ===================== -->
 
 <div class="app-shell">
 
@@ -1514,11 +1521,13 @@
       <div class="s5-upload-box" id="tv-photo-upload">
         <i data-lucide="image" class="w-5 h-5"></i>
         <span id="tv-photo-upload-label">Property Photos</span>
+        <div class="s5-photo-thumbs" id="tv-photo-thumbs"></div>
         <input type="file" id="tv-photo-file" hidden multiple accept="image/*">
       </div>
       <div class="s5-upload-box" id="tv-video-upload">
         <i data-lucide="video" class="w-5 h-5"></i>
         <span id="tv-video-upload-label">Video Walkthrough</span>
+        <span class="s5-upload-meta" id="tv-video-upload-meta"></span>
         <input type="file" id="tv-video-file" hidden accept="video/*">
       </div>
     </div>
@@ -1526,6 +1535,8 @@
     <div class="s5-upload-box" id="tv-upload-box">
       <i data-lucide="upload-cloud" class="w-6 h-6"></i>
       <span id="tv-upload-label">Upload C of O / Title Document</span>
+      <span class="s5-upload-meta" id="tv-upload-meta">Certificate of Ownership · Governor's Consent · Deed of Assignment</span>
+      <span class="doc-verify-badge" id="tv-verify-badge" style="display:none;"><i data-lucide="badge-check" class="w-3 h-3"></i>Queued for verification</span>
       <input type="file" id="tv-file" hidden accept="image/*,.pdf">
     </div>
 
@@ -2864,24 +2875,48 @@
     document.getElementById('tv-fee-legal').textContent = '₦0';
     document.getElementById('tv-photo-upload').classList.remove('has-file');
     document.getElementById('tv-photo-upload-label').textContent = 'Property Photos';
+    document.getElementById('tv-photo-thumbs').innerHTML = '';
     document.getElementById('tv-video-upload').classList.remove('has-file');
     document.getElementById('tv-video-upload-label').textContent = 'Video Walkthrough';
+    document.getElementById('tv-video-upload-meta').textContent = '';
     document.getElementById('tv-upload-box').classList.remove('has-file');
     document.getElementById('tv-upload-label').textContent = 'Upload C of O / Title Document';
+    document.getElementById('tv-verify-badge').style.display = 'none';
     titleVerifyModal.classList.add('open');
   });
+
+  function formatFileSize(bytes) {
+    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    if (bytes >= 1024) return `${Math.round(bytes / 1024)} KB`;
+    return `${bytes} B`;
+  }
 
   document.getElementById('tv-photo-upload').addEventListener('click', () => document.getElementById('tv-photo-file').click());
   document.getElementById('tv-photo-file').addEventListener('change', (e) => {
     const box = document.getElementById('tv-photo-upload');
     const label = document.getElementById('tv-photo-upload-label');
-    if (e.target.files.length) { box.classList.add('has-file'); label.textContent = `${e.target.files.length} photo(s) selected`; }
+    const thumbs = document.getElementById('tv-photo-thumbs');
+    thumbs.innerHTML = '';
+    if (e.target.files.length) {
+      box.classList.add('has-file');
+      label.textContent = `${e.target.files.length} photo(s) selected`;
+      Array.from(e.target.files).slice(0, 6).forEach(file => {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        thumbs.appendChild(img);
+      });
+    }
   });
   document.getElementById('tv-video-upload').addEventListener('click', () => document.getElementById('tv-video-file').click());
   document.getElementById('tv-video-file').addEventListener('change', (e) => {
     const box = document.getElementById('tv-video-upload');
     const label = document.getElementById('tv-video-upload-label');
-    if (e.target.files.length) { box.classList.add('has-file'); label.textContent = e.target.files[0].name; }
+    const meta = document.getElementById('tv-video-upload-meta');
+    if (e.target.files.length) {
+      box.classList.add('has-file');
+      label.textContent = e.target.files[0].name;
+      meta.textContent = formatFileSize(e.target.files[0].size);
+    }
   });
 
   document.getElementById('tv-upload-box').addEventListener('click', () => document.getElementById('tv-file').click());
@@ -2889,6 +2924,8 @@
     if (e.target.files.length) {
       document.getElementById('tv-upload-box').classList.add('has-file');
       document.getElementById('tv-upload-label').textContent = e.target.files[0].name;
+      document.getElementById('tv-verify-badge').style.display = 'inline-flex';
+      if (window.lucide) lucide.createIcons();
     }
   });
 
@@ -3772,30 +3809,6 @@
     renderTicketList();
     if (window.lucide) lucide.createIcons();
   }
-
-  // ==================================================================
-  // ---- Dev Role Switcher: instantly hop between Tenant / Agent / Landlord ----
-  //      views to test the 2-way inspection sync from both ends.
-  // ==================================================================
-  function setActiveRoleSwitcherBtn() {
-    const role = currentUserRole || 'tenant';
-    document.querySelectorAll('.dev-role-btn').forEach(b => b.classList.toggle('active', b.dataset.role === role));
-  }
-  document.querySelectorAll('.dev-role-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentUserRole = btn.dataset.role;
-      setActiveRoleSwitcherBtn();
-      showToast(`Dev Role Switcher — now viewing as ${roleDisplayNames[currentUserRole]}`);
-
-      // Refresh whichever screen is currently visible so the switch feels instant
-      const activeScreen = document.querySelector('.screen-view:not(.hidden)');
-      const activeId = activeScreen ? activeScreen.id : null;
-      if (activeId === 'screen-4') navigateTo('screen-4');
-      else if (activeId === 'screen-5') navigateTo('screen-5');
-      else navigateTo('screen-5'); // default to the Listing/Inspection Hub — most useful for testing
-    });
-  });
-  setActiveRoleSwitcherBtn();
 
   // ---- Initial icon render (Screen 1 role cards, OTP modal, etc.) ----
   if (window.lucide) lucide.createIcons();
