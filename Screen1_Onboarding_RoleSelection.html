@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MainTown Realty — Onboarding</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* ---- Standalone fallback styles (render correctly even if Tailwind CDN is blocked) ---- */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+    background: #0B0F19;
+    color: #ffffff;
+    min-height: 100vh;
+  }
+  .app-shell {
+    max-width: 420px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 32px 20px 40px;
+  }
+  /* Header */
+  .brand-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .brand-logo {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: #9333ea;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 18px; color: #fff;
+    box-shadow: 0 8px 20px rgba(147,51,234,0.35);
+    flex-shrink: 0;
+  }
+  .brand-name { font-weight: 600; color: #fff; font-size: 15px; line-height: 1.3; margin: 0; }
+  .brand-tag { font-size: 12px; color: #64748b; line-height: 1.3; margin: 0; }
+
+  /* Progress */
+  .progress-wrap { margin-bottom: 28px; }
+  .progress-labels { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .progress-step { font-size: 12px; font-weight: 500; color: #94a3b8; }
+  .progress-pct { font-size: 12px; font-weight: 500; color: #c084fc; }
+  .progress-track { width: 100%; height: 6px; background: #1e293b; border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 33%; background: #9333ea; border-radius: 999px; }
+
+  h1.title { font-size: 20px; font-weight: 600; color: #fff; margin: 0 0 4px; }
+  p.subtitle { font-size: 14px; color: #94a3b8; margin: 0 0 24px; }
+
+  /* Role cards */
+  .role-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+  .role-card {
+    width: 100%; text-align: left; padding: 16px; border-radius: 16px;
+    border: 1px solid #1e293b; background: rgba(15,23,42,0.8);
+    display: flex; align-items: center; gap: 16px; cursor: pointer;
+    transition: all 0.15s ease; color: inherit; font: inherit;
+  }
+  .role-card:hover { border-color: #334155; }
+  .role-card.selected { border-color: #a855f7; background: rgba(59,7,100,0.3); }
+  .role-icon { font-size: 24px; line-height: 1; }
+  .role-text { flex: 1; }
+  .role-name { font-weight: 500; color: #fff; font-size: 14px; margin: 0 0 2px; }
+  .role-sub { font-size: 12px; color: #64748b; margin: 0; }
+  .check-mark {
+    display: none; width: 20px; height: 20px; border-radius: 999px;
+    background: #9333ea; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .role-card.selected .check-mark { display: flex; }
+  .check-mark svg { width: 12px; height: 12px; color: #fff; }
+
+  /* Form */
+  .field { margin-bottom: 16px; }
+  .field-label { display: block; font-size: 12px; font-weight: 500; color: #94a3b8; margin-bottom: 6px; }
+  .field-input {
+    width: 100%; background: rgba(15,23,42,0.8); border: 1px solid #1e293b;
+    border-radius: 12px; padding: 13px 16px; font-size: 14px; color: #fff;
+    outline: none; transition: all 0.15s ease;
+  }
+  .field-input::placeholder { color: #475569; }
+  .field-input:focus { border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168,85,247,0.25); }
+  .phone-row { display: flex; gap: 8px; }
+  .country-select {
+    background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 12px;
+    padding: 13px 8px; font-size: 14px; color: #fff; outline: none; flex-shrink: 0;
+  }
+  .country-select:focus { border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168,85,247,0.25); }
+  .phone-input { flex: 1; min-width: 0; }
+  .password-wrap { position: relative; }
+  .password-wrap .field-input { padding-right: 44px; }
+  .eye-btn {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: #64748b; cursor: pointer; padding: 4px;
+    display: flex; align-items: center;
+  }
+  .eye-btn:hover { color: #cbd5e1; }
+  .eye-btn svg { width: 20px; height: 20px; }
+
+  .btn-primary {
+    width: 100%; margin-top: 8px; padding: 14px; border-radius: 12px;
+    font-weight: 600; font-size: 14px; color: #fff; border: none; cursor: pointer;
+    background: linear-gradient(90deg, #9333ea, #7e22ce);
+    box-shadow: 0 8px 20px rgba(147,51,234,0.25);
+    transition: all 0.15s ease;
+  }
+  .btn-primary:hover:not(:disabled) { background: linear-gradient(90deg, #a855f7, #9333ea); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .role-hint { font-size: 12px; text-align: center; color: #64748b; margin-top: 10px; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px); z-index: 50; align-items: center; justify-content: center; padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-card {
+    background: #0f172a; border: 1px solid #1e293b; border-radius: 20px;
+    width: 100%; max-width: 380px; padding: 24px;
+  }
+  .modal-icon-wrap {
+    width: 48px; height: 48px; border-radius: 999px; background: rgba(59,7,100,0.5);
+    border: 1px solid #6b21a8; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .modal-icon-wrap svg { width: 24px; height: 24px; color: #c084fc; }
+  .modal-title { font-size: 17px; font-weight: 600; color: #fff; text-align: center; margin: 0 0 4px; }
+  .modal-sub { font-size: 13px; color: #94a3b8; text-align: center; margin: 0 0 24px; }
+  .otp-boxes { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 24px; }
+  .otp-input {
+    width: 44px; height: 48px; text-align: center; font-size: 18px; font-weight: 600;
+    background: rgba(30,41,59,0.8); border: 1px solid #334155; border-radius: 12px;
+    color: #fff; outline: none;
+  }
+  .otp-input:focus { border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168,85,247,0.25); }
+  .btn-secondary {
+    width: 100%; text-align: center; font-size: 12px; color: #64748b;
+    background: none; border: none; cursor: pointer; padding: 8px;
+  }
+  .btn-secondary:hover { color: #cbd5e1; }
+  .resend-line { font-size: 12px; text-align: center; color: #64748b; margin-top: 12px; }
+  .resend-link { color: #c084fc; cursor: pointer; }
+  .resend-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- Brand Header -->
+  <div class="brand-row">
+    <div class="brand-logo">M</div>
+    <div>
+      <p class="brand-name">MainTown Realty</p>
+      <p class="brand-tag">Rent, restructured.</p>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="progress-labels">
+      <span class="progress-step">Step 1 of 3: Account Setup</span>
+      <span class="progress-pct">33%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill"></div></div>
+  </div>
+
+  <h1 class="title">Create your account</h1>
+  <p class="subtitle">Tell us who you are so we can tailor your experience.</p>
+
+  <!-- Role Selection -->
+  <div class="role-group" id="role-group">
+
+    <button type="button" class="role-card" data-role="tenant">
+      <span class="role-icon">🏠</span>
+      <div class="role-text">
+        <p class="role-name">Tenant / Renter</p>
+        <p class="role-sub">Local & Diaspora</p>
+      </div>
+      <span class="check-mark">
+        <svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </span>
+    </button>
+
+    <button type="button" class="role-card" data-role="landlord">
+      <span class="role-icon">🔑</span>
+      <div class="role-text">
+        <p class="role-name">Landlord / Property Owner</p>
+        <p class="role-sub">List & manage properties</p>
+      </div>
+      <span class="check-mark">
+        <svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </span>
+    </button>
+
+    <button type="button" class="role-card" data-role="agent">
+      <span class="role-icon">🏢</span>
+      <div class="role-text">
+        <p class="role-name">Real Estate Agent / Broker</p>
+        <p class="role-sub">Represent listings & clients</p>
+      </div>
+      <span class="check-mark">
+        <svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </span>
+    </button>
+
+  </div>
+
+  <!-- Registration Form -->
+  <form id="reg-form">
+
+    <div class="field">
+      <label class="field-label">Full Name</label>
+      <input class="field-input" type="text" required placeholder="e.g. Onwochei Precious Ebuka">
+    </div>
+
+    <div class="field">
+      <label class="field-label">Email Address</label>
+      <input class="field-input" type="email" required placeholder="you@example.com">
+    </div>
+
+    <div class="field">
+      <label class="field-label">Phone Number</label>
+      <div class="phone-row">
+        <select class="country-select" id="country-code">
+          <option value="+234">🇳🇬 +234</option>
+          <option value="+1">🇨🇦 +1</option>
+          <option value="+44">🇬🇧 +44</option>
+        </select>
+        <input class="field-input phone-input" type="tel" required placeholder="801 234 5678">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Password</label>
+      <div class="password-wrap">
+        <input class="field-input" id="password-input" type="password" required placeholder="Create a password">
+        <button type="button" class="eye-btn" id="toggle-password">
+          <svg id="eye-open" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          <svg id="eye-closed" style="display:none" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12c1.292 4.338 5.31 7.5 10.066 7.5.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <button type="submit" id="continue-btn" class="btn-primary" disabled>
+      Continue to Verification
+    </button>
+    <p id="role-hint" class="role-hint">Select a role above to continue</p>
+  </form>
+
+</div>
+
+<!-- OTP Modal -->
+<div id="otp-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+      </svg>
+    </div>
+    <h2 class="modal-title">Verify your identity</h2>
+    <p class="modal-sub">Enter the 6-digit verification code sent to your Phone & Email</p>
+
+    <div class="otp-boxes" id="otp-boxes">
+      <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+      <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+      <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+      <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+      <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+      <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+    </div>
+
+    <button id="verify-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Verify & Proceed to KYC</button>
+    <button id="close-modal" type="button" class="btn-secondary">Cancel</button>
+    <p class="resend-line">Didn't get a code? <span class="resend-link">Resend</span></p>
+  </div>
+</div>
+
+<script>
+  // Role selection state
+  let selectedRole = null;
+  const roleCards = document.querySelectorAll('.role-card');
+  const continueBtn = document.getElementById('continue-btn');
+  const roleHint = document.getElementById('role-hint');
+
+  function updateContinueState() {
+    continueBtn.disabled = !selectedRole;
+    roleHint.style.display = selectedRole ? 'none' : 'block';
+  }
+
+  roleCards.forEach(card => {
+    card.addEventListener('click', () => {
+      roleCards.forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedRole = card.dataset.role;
+      updateContinueState();
+    });
+  });
+
+  // Password toggle
+  const passwordInput = document.getElementById('password-input');
+  const togglePassword = document.getElementById('toggle-password');
+  const eyeOpen = document.getElementById('eye-open');
+  const eyeClosed = document.getElementById('eye-closed');
+
+  togglePassword.addEventListener('click', () => {
+    const isPassword = passwordInput.type === 'password';
+    passwordInput.type = isPassword ? 'text' : 'password';
+    eyeOpen.style.display = isPassword ? 'none' : 'block';
+    eyeClosed.style.display = isPassword ? 'block' : 'none';
+  });
+
+  // Form submit -> open OTP modal
+  const form = document.getElementById('reg-form');
+  const otpModal = document.getElementById('otp-modal');
+  const closeModal = document.getElementById('close-modal');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!selectedRole) return;
+    otpModal.classList.add('open');
+    document.querySelector('.otp-input').focus();
+  });
+
+  closeModal.addEventListener('click', () => otpModal.classList.remove('open'));
+
+  // OTP auto-focus behavior
+  const otpInputs = document.querySelectorAll('.otp-input');
+  otpInputs.forEach((input, index) => {
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/[^0-9]/g, '');
+      if (input.value && index < otpInputs.length - 1) {
+        otpInputs[index + 1].focus();
+      }
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !input.value && index > 0) {
+        otpInputs[index - 1].focus();
+      }
+    });
+  });
+
+  document.getElementById('verify-btn').addEventListener('click', () => {
+    const code = Array.from(otpInputs).map(i => i.value).join('');
+    if (code.length === 6) {
+      alert('Code verified: ' + code + '\n(Proceeding to KYC screen — next build step)');
+      otpModal.classList.remove('open');
+    } else {
+      alert('Please enter all 6 digits.');
+    }
+  });
+</script>
+
+</body>
+</html>
