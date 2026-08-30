@@ -446,6 +446,46 @@
   .s5-hold-row { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: #94a3b8; padding: 4px 0; }
   .s5-hold-row strong { color: #fff; font-weight: 600; }
   .s5-hold-divider { height: 1px; background: #1e293b; margin: 8px 0; }
+
+  /* ===== Screen 6: Property Checkout, OTP Payment & Commission Split ===== */
+  .pay-option {
+    width: 100%; text-align: left; padding: 14px; border-radius: 14px;
+    border: 1px solid #1e293b; background: rgba(15,23,42,0.8);
+    display: flex; align-items: center; gap: 12px; cursor: pointer;
+    transition: all 0.15s ease; color: inherit; font: inherit;
+  }
+  .pay-option:hover { border-color: #334155; }
+  .pay-option.selected { border-color: #a855f7; background: rgba(59,7,100,0.3); }
+  .pay-option-icon-wrap {
+    width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0;
+  }
+  .pay-option-text { flex: 1; min-width: 0; }
+  .pay-option-label { font-weight: 600; color: #fff; font-size: 13px; margin: 0 0 2px; }
+  .pay-option-detail { font-size: 11.5px; color: #94a3b8; margin: 0; }
+  .pay-option-check {
+    display: none; width: 20px; height: 20px; border-radius: 999px;
+    background: #9333ea; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .pay-option.selected .pay-option-check { display: flex; }
+  .pay-option-check svg { width: 12px; height: 12px; color: #fff; }
+
+  .split-list { display: flex; flex-direction: column; gap: 10px; margin: 0 0 20px; }
+  .split-item {
+    display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px;
+    background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 14px;
+  }
+  .split-icon {
+    width: 34px; height: 34px; border-radius: 10px; background: rgba(147,51,234,0.15);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #c084fc; margin-top: 1px;
+  }
+  .split-text { flex: 1; min-width: 0; }
+  .split-text p { margin: 0; font-size: 12px; color: #cbd5e1; line-height: 1.55; }
+  .split-text p strong { color: #fff; }
+
+  .s5-status-success { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.35); }
+
+  .resend-link.disabled { color: #475569; cursor: not-allowed; pointer-events: none; text-decoration: none; }
 </style>
 </head>
 <body>
@@ -817,6 +857,118 @@
 </div>
 <!-- ===================== END SCREEN 5 ===================== -->
 
+<!-- ===================== SCREEN 6: Property Checkout, OTP Payment & Commission Split ===================== -->
+<div id="screen-6" class="screen-view hidden pb-24">
+
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="s6-back-btn">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="lock" class="w-3.5 h-3.5"></i><span>Secure Checkout</span></p>
+    </div>
+  </div>
+
+  <h1 class="s5-role-title" style="margin-bottom: 18px;">Confirm &amp; Pay</h1>
+
+  <!-- Property Summary Card -->
+  <div class="s5-card" style="margin-bottom: 20px;">
+    <div class="s5-card-img-wrap">
+      <img id="s6-property-img" src="" alt="">
+      <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Inspection Verified</span>
+    </div>
+    <div class="s5-card-body">
+      <p class="s5-card-title" id="s6-property-title">—</p>
+      <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span id="s6-property-location">—</span></p>
+    </div>
+  </div>
+
+  <!-- ---- Payment section: breakdown + source + authorize (hidden after successful payment) ---- -->
+  <div id="s6-payment-section">
+
+    <p class="s5-section-label" style="margin-top: 0;"><i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Rent Breakdown</p>
+    <div class="s5-hold-preview">
+      <div class="s5-hold-row"><span>Rent Amount</span><strong id="s6-rent-amount">—</strong></div>
+      <div class="s5-hold-row"><span>Caution Deposit</span><strong id="s6-deposit-amount">—</strong></div>
+      <div class="s5-hold-row"><span>Service / Escrow Fee</span><strong id="s6-fee-amount">—</strong></div>
+      <div class="s5-hold-divider"></div>
+      <div class="s5-hold-row"><span>Total Amount Due</span><strong id="s6-total-amount" style="color: #c084fc; font-size: 15px;">—</strong></div>
+    </div>
+
+    <p class="s5-section-label"><i data-lucide="wallet" class="w-4 h-4 text-purple-400"></i>Payment Source</p>
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+      <button type="button" class="pay-option selected" id="s6-pay-wallet" data-source="wallet">
+        <div class="pay-option-icon-wrap bg-purple-500/10"><i data-lucide="wallet" class="w-5 h-5 text-purple-400"></i></div>
+        <div class="pay-option-text">
+          <p class="pay-option-label">Funded MainTown Wallet</p>
+          <p class="pay-option-detail">Available balance: <span id="s6-wallet-balance">₦2,500,000</span></p>
+        </div>
+        <div class="pay-option-check"><i data-lucide="check" class="w-3 h-3"></i></div>
+      </button>
+      <button type="button" class="pay-option" id="s6-pay-card" data-source="card">
+        <div class="pay-option-icon-wrap bg-blue-500/10"><i data-lucide="credit-card" class="w-5 h-5 text-blue-400"></i></div>
+        <div class="pay-option-text">
+          <p class="pay-option-label">Saved Debit/Credit Card</p>
+          <p class="pay-option-detail">Card ending in <span id="s6-card-last4">4321</span></p>
+        </div>
+        <div class="pay-option-check"><i data-lucide="check" class="w-3 h-3"></i></div>
+      </button>
+    </div>
+
+    <div class="s5-notice-box">
+      <i data-lucide="lock" class="w-5 h-5"></i>
+      <p>Funds are held securely in escrow and only released to the landlord after digital handover sign-off.</p>
+    </div>
+
+    <button type="button" id="s6-authorize-btn" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+      <i data-lucide="shield-check" class="w-4 h-4"></i> Authorize &amp; Pay
+    </button>
+  </div>
+
+  <!-- ---- Success state: shown after OTP verification ---- -->
+  <div id="s6-success-panel" class="hidden">
+    <div class="dash-card" style="background: linear-gradient(135deg, #059669, #065f46); margin-bottom: 20px;">
+      <p class="dash-card-label" style="display: flex; align-items: center; gap: 5px;"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i>Status</p>
+      <p class="dash-card-value">Payment Successful</p>
+      <p class="dash-card-sub" id="s6-status-code">PAYMENT_SUCCESSFUL / FUNDS_IN_ESCROW</p>
+    </div>
+
+    <p class="s5-section-label" style="margin-top: 0;"><i data-lucide="key-round" class="w-4 h-4 text-amber-400"></i>Escrow &amp; Commission Split</p>
+    <div class="split-list" id="s6-split-list">
+      <!-- populated dynamically -->
+    </div>
+
+    <button type="button" id="s6-handover-btn" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+      <i data-lucide="key-round" class="w-4 h-4"></i> Proceed to Digital Handover &amp; Key Release
+    </button>
+  </div>
+
+</div>
+<!-- ===================== END SCREEN 6 ===================== -->
+
+<!-- ===================== SCREEN 7: Digital Handover & Key Release (placeholder) ===================== -->
+<div id="screen-7" class="screen-view hidden pb-24">
+
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="s7-back-btn">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="key-round" class="w-3.5 h-3.5"></i><span>Digital Handover</span></p>
+    </div>
+  </div>
+
+  <h1 class="s5-role-title" style="margin-bottom: 8px;">Key Release</h1>
+  <p class="s5-role-sub" style="margin-bottom: 20px;">This step is coming in the next update.</p>
+
+  <div class="s5-notice-box">
+    <i data-lucide="lock" class="w-5 h-5"></i>
+    <p>Your funds remain safely in escrow until the digital handover and key release flow is complete.</p>
+  </div>
+
+</div>
+<!-- ===================== END SCREEN 7 ===================== -->
+
 </div>
 <!-- ===================== FIXED BOTTOM NAVIGATION (outside #screen-4 and #screen-5) ===================== -->
 <nav id="app-bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 hidden">
@@ -910,6 +1062,33 @@
   </div>
 </div>
 
+<!-- Checkout OTP / Payment Authorization Modal (Screen 6) -->
+<div id="checkout-otp-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <i data-lucide="shield-check" class="w-8 h-8 text-purple-400"></i>
+    </div>
+    <h2 class="modal-title">Authorize Payment</h2>
+    <p class="modal-sub">Enter the 6-digit code sent via SMS to your registered phone number to release funds to escrow</p>
+
+    <div class="otp-boxes" id="checkout-otp-boxes">
+      <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+      <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+      <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+      <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+      <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+      <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+    </div>
+
+    <button type="button" id="checkout-verify-btn" class="btn-primary" style="margin-top:0; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:6px;">
+      <i data-lucide="check-circle" class="w-4 h-4"></i> Verify &amp; Release Payment
+    </button>
+    <button type="button" id="checkout-simulate-btn" class="btn-secondary" style="margin-bottom: 0;">Simulate Verification</button>
+    <button type="button" id="checkout-otp-close" class="btn-secondary">Cancel</button>
+    <p class="resend-line">Didn't get a code? <span class="resend-link" id="checkout-resend-btn">Resend OTP</span></p>
+  </div>
+</div>
+
 <!-- Toast Notification -->
 <div id="toast" class="toast">
   <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -959,13 +1138,13 @@
     e.preventDefault();
     if (!currentUserRole) return;
     otpModal.classList.add('open');
-    document.querySelector('.otp-input').focus();
+    document.querySelector('#otp-modal .otp-input').focus();
   });
 
   closeModal.addEventListener('click', () => otpModal.classList.remove('open'));
 
   // OTP auto-focus behavior (typing a digit shifts focus to next box)
-  const otpInputs = document.querySelectorAll('.otp-input');
+  const otpInputs = document.querySelectorAll('#otp-modal .otp-input');
   otpInputs.forEach((input, index) => {
     input.addEventListener('input', () => {
       input.value = input.value.replace(/[^0-9]/g, '');
@@ -1434,9 +1613,9 @@
   let currentCurrency = 'ngn';
 
   const tenantListings = [
-    { id: 1, title: '2-Bed Flat, Lekki Phase 1', location: 'Lekki Phase 1, Lagos', ngn: '₦180,000 / mo', usd: '$220 / mo', img: 'https://picsum.photos/seed/mtr-lekki/400/240' },
-    { id: 2, title: 'Studio Apartment, Yaba', location: 'Yaba, Lagos', ngn: '₦95,000 / mo', usd: '$115 / mo', img: 'https://picsum.photos/seed/mtr-yaba/400/240' },
-    { id: 3, title: '3-Bed Duplex, Ikeja GRA', location: 'Ikeja GRA, Lagos', ngn: '₦350,000 / mo', usd: '$430 / mo', img: 'https://picsum.photos/seed/mtr-ikeja/400/240' }
+    { id: 1, title: '2-Bed Flat, Lekki Phase 1', location: 'Lekki Phase 1, Lagos', ngn: '₦180,000 / mo', usd: '$220 / mo', img: 'https://picsum.photos/seed/mtr-lekki/400/240', listedBy: 'agent' },
+    { id: 2, title: 'Studio Apartment, Yaba', location: 'Yaba, Lagos', ngn: '₦95,000 / mo', usd: '$115 / mo', img: 'https://picsum.photos/seed/mtr-yaba/400/240', listedBy: 'landlord' },
+    { id: 3, title: '3-Bed Duplex, Ikeja GRA', location: 'Ikeja GRA, Lagos', ngn: '₦350,000 / mo', usd: '$430 / mo', img: 'https://picsum.photos/seed/mtr-ikeja/400/240', listedBy: 'agent' }
   ];
 
   let landlordProperties = [
@@ -1537,9 +1716,11 @@
   // ---- Virtual Walkthrough modal ----
   const walkthroughModal = document.getElementById('walkthrough-modal');
   const wtConfirmBtn = document.getElementById('wt-confirm-btn');
+  let walkthroughListing = null;
 
   function openWalkthroughModal(title) {
     selectedTimeslot = null;
+    walkthroughListing = tenantListings.find(p => p.title === title) || null;
     document.getElementById('wt-property-name').textContent = `Select a time slot for ${title}`;
     document.getElementById('wt-hold-amount').textContent = currentCurrency === 'usd' ? '$60' : '₦50,000';
     document.querySelectorAll('.s5-timeslot').forEach(s => s.classList.remove('selected'));
@@ -1560,8 +1741,162 @@
   wtConfirmBtn.addEventListener('click', () => {
     if (wtConfirmBtn.disabled) return;
     walkthroughModal.classList.remove('open');
-    showToast('Walkthrough booked — Escrow Checkout (Screen 6) is coming in the next update!');
+    showToast(`Inspection confirmed — ${selectedTimeslot}`);
+    openCheckout(walkthroughListing || tenantListings[0]);
+    navigateTo('screen-6');
   });
+
+  // ==================================================================
+  // ---- SCREEN 6: Property Checkout, OTP Payment & Commission Split ----
+  // ==================================================================
+
+  let checkoutListing = null;
+  let checkoutSource = 'wallet';
+  let checkoutOtpTimer = null;
+
+  function formatMoney(amount, currency) {
+    const symbol = currency === 'usd' ? '$' : '₦';
+    return symbol + Math.round(amount).toLocaleString('en-US');
+  }
+
+  function selectPaySource(source) {
+    checkoutSource = source;
+    document.getElementById('s6-pay-wallet').classList.toggle('selected', source === 'wallet');
+    document.getElementById('s6-pay-card').classList.toggle('selected', source === 'card');
+  }
+
+  function openCheckout(listing) {
+    checkoutListing = listing;
+    selectPaySource('wallet');
+
+    document.getElementById('s6-property-img').src = listing.img;
+    document.getElementById('s6-property-img').alt = listing.title;
+    document.getElementById('s6-property-title').textContent = listing.title;
+    document.getElementById('s6-property-location').textContent = listing.location;
+
+    const rentRaw = currentCurrency === 'usd' ? listing.usd : listing.ngn;
+    const rentValue = parseFloat(rentRaw.replace(/[^0-9.]/g, '')) || 0;
+    const deposit = rentValue;
+    const fee = Math.round(rentValue * 0.05);
+    const total = rentValue + deposit + fee;
+
+    document.getElementById('s6-rent-amount').textContent = formatMoney(rentValue, currentCurrency);
+    document.getElementById('s6-deposit-amount').textContent = formatMoney(deposit, currentCurrency);
+    document.getElementById('s6-fee-amount').textContent = formatMoney(fee, currentCurrency);
+    document.getElementById('s6-total-amount').textContent = formatMoney(total, currentCurrency);
+
+    document.getElementById('s6-payment-section').classList.remove('hidden');
+    document.getElementById('s6-success-panel').classList.add('hidden');
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('s6-back-btn').addEventListener('click', () => navigateTo('screen-5'));
+  document.getElementById('s6-pay-wallet').addEventListener('click', () => selectPaySource('wallet'));
+  document.getElementById('s6-pay-card').addEventListener('click', () => selectPaySource('card'));
+
+  // ---- Checkout OTP modal ----
+  const checkoutOtpModal = document.getElementById('checkout-otp-modal');
+  const checkoutOtpInputs = document.querySelectorAll('#checkout-otp-modal .otp-input');
+  const checkoutVerifyBtn = document.getElementById('checkout-verify-btn');
+  const checkoutResendBtn = document.getElementById('checkout-resend-btn');
+  const checkoutSimulateBtn = document.getElementById('checkout-simulate-btn');
+
+  function startCheckoutResendTimer() {
+    let seconds = 30;
+    clearInterval(checkoutOtpTimer);
+    checkoutResendBtn.classList.add('disabled');
+    checkoutResendBtn.textContent = `Resend in ${seconds}s`;
+    checkoutOtpTimer = setInterval(() => {
+      seconds -= 1;
+      if (seconds <= 0) {
+        clearInterval(checkoutOtpTimer);
+        checkoutResendBtn.classList.remove('disabled');
+        checkoutResendBtn.textContent = 'Resend OTP';
+      } else {
+        checkoutResendBtn.textContent = `Resend in ${seconds}s`;
+      }
+    }, 1000);
+  }
+
+  document.getElementById('s6-authorize-btn').addEventListener('click', () => {
+    checkoutOtpInputs.forEach(i => (i.value = ''));
+    checkoutOtpModal.classList.add('open');
+    startCheckoutResendTimer();
+    checkoutOtpInputs[0].focus();
+  });
+
+  checkoutOtpInputs.forEach((input, index) => {
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/[^0-9]/g, '');
+      if (input.value && index < checkoutOtpInputs.length - 1) {
+        checkoutOtpInputs[index + 1].focus();
+      }
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !input.value && index > 0) {
+        checkoutOtpInputs[index - 1].focus();
+      }
+    });
+  });
+
+  document.getElementById('checkout-otp-close').addEventListener('click', () => {
+    checkoutOtpModal.classList.remove('open');
+    clearInterval(checkoutOtpTimer);
+  });
+
+  checkoutResendBtn.addEventListener('click', () => {
+    if (checkoutResendBtn.classList.contains('disabled')) return;
+    showToast('OTP resent to your registered phone number');
+    startCheckoutResendTimer();
+  });
+
+  function renderCommissionSplit() {
+    const listedByAgent = checkoutListing && checkoutListing.listedBy === 'agent';
+    const commissionRow = listedByAgent
+      ? { icon: 'briefcase', label: 'Agent Commission Split', detail: '60% to Agent, 40% retained by MainTown Realty' }
+      : { icon: 'building-2', label: 'Direct Listing Fee', detail: '100% commission retained by MainTown Realty' };
+    const rentHoldRow = { icon: 'key-round', label: 'Landlord Rent Hold', detail: '100% Net Rent held safely in Escrow pending key handover' };
+
+    document.getElementById('s6-split-list').innerHTML = [commissionRow, rentHoldRow].map(r => `
+      <div class="split-item">
+        <div class="split-icon"><i data-lucide="${r.icon}" class="w-4 h-4"></i></div>
+        <div class="split-text"><p><strong>${r.label}:</strong> ${r.detail}</p></div>
+      </div>`).join('');
+  }
+
+  function approveCheckoutPayment() {
+    clearInterval(checkoutOtpTimer);
+    checkoutOtpModal.classList.remove('open');
+    showToast('Payment authorized — funds moved to escrow');
+    renderCommissionSplit();
+    document.getElementById('s6-payment-section').classList.add('hidden');
+    document.getElementById('s6-success-panel').classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  checkoutVerifyBtn.addEventListener('click', () => {
+    const code = Array.from(checkoutOtpInputs).map(i => i.value).join('');
+    if (code.length < 6) {
+      showToast('Enter the full 6-digit code');
+      return;
+    }
+    if (code !== '123456') {
+      showToast('Incorrect code — for this demo, use 123456');
+      checkoutOtpInputs.forEach(i => (i.value = ''));
+      checkoutOtpInputs[0].focus();
+      return;
+    }
+    approveCheckoutPayment();
+  });
+
+  checkoutSimulateBtn.addEventListener('click', () => {
+    '123456'.split('').forEach((digit, idx) => (checkoutOtpInputs[idx].value = digit));
+    approveCheckoutPayment();
+  });
+
+  document.getElementById('s6-handover-btn').addEventListener('click', () => navigateTo('screen-7'));
+  document.getElementById('s7-back-btn').addEventListener('click', () => navigateTo('screen-6'));
 
   // ---- Landlord view: property list + deferred title verification ----
   function renderLandlordList() {
