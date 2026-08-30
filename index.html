@@ -177,6 +177,89 @@
     background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 14px; font-size: 13px; color: #cbd5e1;
   }
   .kyc-item svg { width: 18px; height: 18px; color: #64748b; flex-shrink: 0; }
+
+  /* Screen 3: Legal Terms */
+  .legal-box {
+    max-height: 320px; overflow-y: auto; padding: 16px; border-radius: 14px;
+    background: rgba(15,23,42,0.9); border: 1px solid #1e293b; font-size: 12px;
+    color: #cbd5e1; line-height: 1.6;
+  }
+  .legal-box::-webkit-scrollbar { width: 6px; }
+  .legal-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
+  .legal-box h3 {
+    font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin: 18px 0 6px;
+  }
+  .legal-box h3:first-child { margin-top: 0; }
+  .legal-box p { margin: 0 0 4px; color: #94a3b8; }
+  .legal-box .critical-section h3 { color: #f87171; }
+  .legal-box .critical-section p { color: #fca5a5; }
+  .legal-box .critical-section {
+    background: rgba(127,29,29,0.15); border: 1px solid rgba(248,113,113,0.3);
+    border-radius: 10px; padding: 10px 12px; margin-top: 10px;
+  }
+  .scroll-hint { font-size: 11px; color: #64748b; text-align: center; margin: 8px 0 20px; }
+
+  .agree-row {
+    display: flex; align-items: flex-start; gap: 10px; margin: 20px 0 16px;
+    font-size: 12.5px; color: #cbd5e1; line-height: 1.5; cursor: pointer;
+  }
+  .agree-checkbox {
+    width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; accent-color: #9333ea; cursor: pointer;
+  }
+
+  .signature-input {
+    font-family: 'Brush Script MT', cursive, -apple-system, sans-serif;
+    font-size: 18px;
+  }
+
+  /* Screen 4: Dashboard */
+  .dash-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;
+  }
+  .dash-greeting { font-size: 12px; color: #64748b; margin: 0 0 2px; }
+  .dash-name { font-size: 17px; font-weight: 600; color: #fff; margin: 0; }
+  .dash-avatar {
+    width: 40px; height: 40px; border-radius: 999px; background: #1e293b;
+    border: 1px solid #334155; display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 14px; color: #c084fc; flex-shrink: 0;
+  }
+  .dash-card {
+    background: linear-gradient(135deg, #9333ea, #581c87);
+    border-radius: 18px; padding: 20px; margin-bottom: 20px;
+    box-shadow: 0 12px 30px rgba(147,51,234,0.25);
+  }
+  .dash-card-label { font-size: 12px; color: rgba(255,255,255,0.75); margin: 0 0 6px; }
+  .dash-card-value { font-size: 24px; font-weight: 700; color: #fff; margin: 0 0 4px; }
+  .dash-card-sub { font-size: 12px; color: rgba(255,255,255,0.8); margin: 0; }
+  .dash-section-title { font-size: 13px; font-weight: 600; color: #e2e8f0; margin: 0 0 12px; }
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+  .dash-tile {
+    background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 14px;
+    padding: 14px; text-align: center; cursor: pointer; transition: border-color 0.15s ease;
+  }
+  .dash-tile:hover { border-color: #334155; }
+  .dash-tile-icon { font-size: 20px; margin-bottom: 6px; }
+  .dash-tile-label { font-size: 11.5px; color: #cbd5e1; font-weight: 500; }
+  .dash-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .dash-list-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 14px;
+  }
+  .dash-list-icon {
+    width: 34px; height: 34px; border-radius: 10px; background: rgba(147,51,234,0.15);
+    display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+  }
+  .dash-list-text { flex: 1; }
+  .dash-list-title { font-size: 13px; font-weight: 500; color: #fff; margin: 0 0 2px; }
+  .dash-list-sub { font-size: 11.5px; color: #64748b; margin: 0; }
+  .dash-nav {
+    display: flex; justify-content: space-around; align-items: center;
+    background: rgba(15,23,42,0.95); border: 1px solid #1e293b; border-radius: 18px;
+    padding: 10px 8px; margin-top: auto;
+  }
+  .dash-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #64748b; font-size: 10px; cursor: pointer; }
+  .dash-nav-item.active { color: #c084fc; }
+  .dash-nav-item span.nav-icon { font-size: 18px; }
 </style>
 </head>
 <body>
@@ -329,11 +412,98 @@
     <!-- populated dynamically based on role -->
   </div>
 
-  <button type="button" id="kyc-back-btn" class="btn-primary" style="background: rgba(15,23,42,0.8); border:1px solid #1e293b; box-shadow:none;">
+  <button type="button" id="kyc-continue-btn" class="btn-primary">
+    Continue to Legal Agreement →
+  </button>
+  <button type="button" id="kyc-back-btn" class="btn-primary" style="background: rgba(15,23,42,0.8); border:1px solid #1e293b; box-shadow:none; margin-top:10px;">
     ← Back to Account Setup
   </button>
 </div>
 <!-- ===================== END SCREEN 2 ===================== -->
+
+<!-- ===================== SCREEN 3: Legal Policy & Terms ===================== -->
+<div id="screen-3" class="screen hidden-screen">
+
+  <div class="brand-row">
+    <div class="brand-logo">M</div>
+    <div>
+      <p class="brand-name">MainTown Realty</p>
+      <p class="brand-tag">Rent, restructured.</p>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-labels">
+      <span class="progress-step">Step 3 of 3: Legal Policy & Terms</span>
+      <span class="progress-pct">100%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+  </div>
+
+  <div id="legal-role-badge" class="kyc-role-badge"></div>
+
+  <h1 class="title">Terms of Service</h1>
+  <p class="subtitle">Please review the full agreement below before signing.</p>
+
+  <div id="legal-box" class="legal-box">
+    <!-- populated dynamically based on role -->
+  </div>
+  <p class="scroll-hint">↕ Scroll to read the complete agreement</p>
+
+  <label class="agree-row">
+    <input type="checkbox" id="agree-checkbox" class="agree-checkbox">
+    <span>I have read and agree to the full MainTown Realty Terms of Service and Default Rules.</span>
+  </label>
+
+  <div class="field">
+    <label class="field-label">Digital Signature (type your full legal name)</label>
+    <input class="field-input signature-input" id="signature-input" type="text" placeholder="Your full name as signature">
+  </div>
+
+  <button type="button" id="sign-btn" class="btn-primary" disabled>
+    Sign Agreement & Launch App Dashboard
+  </button>
+  <button type="button" id="legal-back-btn" class="btn-primary" style="background: rgba(15,23,42,0.8); border:1px solid #1e293b; box-shadow:none; margin-top:10px;">
+    ← Back to KYC Verification
+  </button>
+</div>
+<!-- ===================== END SCREEN 3 ===================== -->
+
+<!-- ===================== SCREEN 4: Main App Dashboard ===================== -->
+<div id="screen-4" class="screen hidden-screen" style="display: none; flex-direction: column; min-height: calc(100vh - 72px);">
+
+  <div class="dash-header">
+    <div>
+      <p class="dash-greeting">Welcome back,</p>
+      <p class="dash-name" id="dash-user-name">User</p>
+    </div>
+    <div class="dash-avatar" id="dash-avatar">U</div>
+  </div>
+
+  <div class="dash-card">
+    <p class="dash-card-label" id="dash-card-label">Active Status</p>
+    <p class="dash-card-value" id="dash-card-value">—</p>
+    <p class="dash-card-sub" id="dash-card-sub">—</p>
+  </div>
+
+  <p class="dash-section-title">Quick Actions</p>
+  <div class="dash-grid" id="dash-grid">
+    <!-- populated dynamically based on role -->
+  </div>
+
+  <p class="dash-section-title">Recent Activity</p>
+  <div class="dash-list" id="dash-list">
+    <!-- populated dynamically based on role -->
+  </div>
+
+  <div class="dash-nav">
+    <div class="dash-nav-item active"><span class="nav-icon">🏠</span>Home</div>
+    <div class="dash-nav-item"><span class="nav-icon">🔍</span>Search</div>
+    <div class="dash-nav-item"><span class="nav-icon">💬</span>Messages</div>
+    <div class="dash-nav-item"><span class="nav-icon">👤</span>Profile</div>
+  </div>
+</div>
+<!-- ===================== END SCREEN 4 ===================== -->
 
 </div>
 
@@ -499,18 +669,188 @@
   // ---- Screen transition ----
   const screen1 = document.getElementById('screen-1');
   const screen2 = document.getElementById('screen-2');
+  const screen3 = document.getElementById('screen-3');
+  const screen4 = document.getElementById('screen-4');
 
-  function goToScreen2() {
-    populateScreen2();
-    screen1.classList.add('hidden-screen');
-    screen2.classList.remove('hidden-screen');
+  function showScreen(fromEl, toEl) {
+    fromEl.classList.add('hidden-screen');
+    toEl.classList.remove('hidden-screen');
+    toEl.style.display = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function goToScreen2() {
+    populateScreen2();
+    showScreen(screen1, screen2);
+  }
+
   document.getElementById('kyc-back-btn').addEventListener('click', () => {
-    screen2.classList.add('hidden-screen');
-    screen1.classList.remove('hidden-screen');
+    showScreen(screen2, screen1);
+  });
+
+  // ---- Legal terms content per role ----
+  const legalContent = {
+    tenant: {
+      label: '🏠 Tenant / Diaspora Renter',
+      sections: [
+        { title: 'Section 1: Rental & Escrow Terms', body: 'Full agreement on holding deposit schedules, flex-rent payments, and cross-border currency conversion rules.' },
+        { title: 'Section 2: Digital Handover & Inspection', body: 'Mandatory 24-hour post-inspection sign-off rules.' },
+        { title: 'Section 3: Property Maintenance & Tenant Obligations', body: 'Duty to report structural damage via in-app tickets.' },
+        { title: 'Section 4: Data & Identity Privacy', body: 'Agreement to biometric and NIN/Passport identity verification.' },
+        { title: 'Section 5: Subletting & Unauthorized Occupants', body: 'Strict ban on unauthorized third-party subletting.' },
+        { title: 'Section 6: Dispute Resolution & Arbitration', body: 'Platform mediation protocols prior to legal claims.' },
+        { title: 'Section 7: In-App Communication Compliance', body: 'Obligation to keep all lease interactions inside the app.' },
+        { title: 'Section 8: Payment Default, Eviction & Mandatory Revocation', body: 'Any un-remedied payment default leading to legal eviction results in immediate profile conversion to DEFAULTED / EVICTED state. Upon conversion: (a) all active chat, voice, and video lines with landlords/agents are instantly locked; (b) digital property access keys/tokens are automatically revoked; (c) profile access to property search, viewing, and rental bookings is permanently terminated; (d) record of default is stored on the platform ledger.', critical: true }
+      ]
+    },
+    landlord: {
+      label: '🔑 Landlord / Owner',
+      sections: [
+        { title: 'Section 1: Title & Ownership Warranties', body: 'Legal declaration that property title, CofO, or land consent documents provided are authentic and legally free of third-party encumbrances.' },
+        { title: 'Section 2: Escrow Disbursement Schedule', body: 'Strict agreement to 24-48 hour payout release following tenant digital handover sign-off.' },
+        { title: 'Section 3: Habitability Standards', body: 'Obligation to provide functional plumbing, electrical, and structural systems.' },
+        { title: 'Section 4: Fraud & Dual-Leasing Zero Tolerance', body: 'Account termination, escrow forfeit, and legal referral for listing fake properties or executing double-leases.', critical: true },
+        { title: 'Section 5: Inspection Access', body: 'Agreement to permit scheduled virtual or physical walkthroughs.' },
+        { title: 'Section 6: Non-Circumvention', body: 'Agreement not to bypass platform escrow for direct cash payments.' }
+      ]
+    },
+    agent: {
+      label: '🏢 Real Estate Agent',
+      sections: [
+        { title: 'Section 1: Inspection Integrity', body: 'Mandatory requirement to perform verified physical or live video walkthroughs prior to listing approval.' },
+        { title: 'Section 2: Commission Transparency', body: 'Agreement to adhere strictly to standardized platform commission fee caps.' },
+        { title: 'Section 3: Off-Platform Payment Ban', body: 'Permanent ban and legal action for soliciting direct off-platform cash transactions from tenants.', critical: true },
+        { title: 'Section 4: Business Verification', body: 'Requirement to maintain active CAC registration or recognized realtor membership credentials.' }
+      ]
+    }
+  };
+
+  function populateScreen3() {
+    const role = selectedRole || 'tenant';
+    const data = legalContent[role];
+
+    document.getElementById('legal-role-badge').textContent = data.label;
+
+    const box = document.getElementById('legal-box');
+    box.innerHTML = data.sections.map(s => {
+      if (s.critical) {
+        return `<div class="critical-section"><h3>${s.title}</h3><p>${s.body}</p></div>`;
+      }
+      return `<h3>${s.title}</h3><p>${s.body}</p>`;
+    }).join('');
+  }
+
+  document.getElementById('kyc-continue-btn').addEventListener('click', () => {
+    populateScreen3();
+    showScreen(screen2, screen3);
+  });
+
+  document.getElementById('legal-back-btn').addEventListener('click', () => {
+    showScreen(screen3, screen2);
+  });
+
+  // ---- Agreement checkbox + signature validation ----
+  const agreeCheckbox = document.getElementById('agree-checkbox');
+  const signatureInput = document.getElementById('signature-input');
+  const signBtn = document.getElementById('sign-btn');
+
+  function updateSignBtnState() {
+    signBtn.disabled = !(agreeCheckbox.checked && signatureInput.value.trim().length > 1);
+  }
+  agreeCheckbox.addEventListener('change', updateSignBtnState);
+  signatureInput.addEventListener('input', updateSignBtnState);
+
+  // ---- Dashboard content per role ----
+  const dashboardContent = {
+    tenant: {
+      initial: 'T',
+      cardLabel: 'Current Rent Plan',
+      cardValue: '₦180,000 / mo',
+      cardSub: 'Next payment due in 12 days',
+      actions: [
+        { icon: '🔍', label: 'Find a Home' },
+        { icon: '💳', label: 'Pay Rent' },
+        { icon: '🛠️', label: 'Report Issue' },
+        { icon: '📄', label: 'My Lease' }
+      ],
+      activity: [
+        { icon: '💳', title: 'Rent payment received', sub: 'Aug 1 · ₦180,000' },
+        { icon: '🏠', title: 'Inspection scheduled', sub: '2-bed flat, Lekki Phase 1' }
+      ]
+    },
+    landlord: {
+      initial: 'L',
+      cardLabel: 'Portfolio Earnings',
+      cardValue: '₦1,240,000',
+      cardSub: '3 active tenants across 2 properties',
+      actions: [
+        { icon: '➕', label: 'List Property' },
+        { icon: '💰', label: 'Payouts' },
+        { icon: '👥', label: 'Tenants' },
+        { icon: '📋', label: 'Inspections' }
+      ],
+      activity: [
+        { icon: '💰', title: 'Payout disbursed', sub: 'Aug 3 · ₦620,000' },
+        { icon: '✅', title: 'Handover sign-off completed', sub: 'Unit 4B, Ikeja' }
+      ]
+    },
+    agent: {
+      initial: 'A',
+      cardLabel: 'Commission Earned',
+      cardValue: '₦345,000',
+      cardSub: '5 listings under management',
+      actions: [
+        { icon: '➕', label: 'Add Listing' },
+        { icon: '📅', label: 'Walkthroughs' },
+        { icon: '💼', label: 'Clients' },
+        { icon: '📊', label: 'Commission' }
+      ],
+      activity: [
+        { icon: '📅', title: 'Walkthrough completed', sub: 'Duplex, Victoria Island' },
+        { icon: '💼', title: 'New client matched', sub: 'Diaspora tenant · Canada' }
+      ]
+    }
+  };
+
+  const roleDisplayNames = { tenant: 'Tenant', landlord: 'Landlord', agent: 'Agent' };
+
+  function populateScreen4() {
+    const role = selectedRole || 'tenant';
+    const data = dashboardContent[role];
+    const name = (document.querySelector('#reg-form input[type="text"]')?.value || '').trim() || roleDisplayNames[role];
+
+    document.getElementById('dash-user-name').textContent = name;
+    document.getElementById('dash-avatar').textContent = data.initial;
+    document.getElementById('dash-card-label').textContent = data.cardLabel;
+    document.getElementById('dash-card-value').textContent = data.cardValue;
+    document.getElementById('dash-card-sub').textContent = data.cardSub;
+
+    const grid = document.getElementById('dash-grid');
+    grid.innerHTML = data.actions.map(a => `
+      <div class="dash-tile">
+        <div class="dash-tile-icon">${a.icon}</div>
+        <div class="dash-tile-label">${a.label}</div>
+      </div>`).join('');
+
+    const list = document.getElementById('dash-list');
+    list.innerHTML = data.activity.map(item => `
+      <div class="dash-list-item">
+        <div class="dash-list-icon">${item.icon}</div>
+        <div class="dash-list-text">
+          <p class="dash-list-title">${item.title}</p>
+          <p class="dash-list-sub">${item.sub}</p>
+        </div>
+      </div>`).join('');
+  }
+
+  document.getElementById('sign-btn').addEventListener('click', () => {
+    if (signBtn.disabled) return;
+    populateScreen4();
+    screen3.classList.add('hidden-screen');
+    screen4.classList.remove('hidden-screen');
+    screen4.style.display = 'flex';
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    showToast('Agreement signed. Welcome to MainTown Realty!');
   });
 
   // ---- Verify & Proceed to KYC (demo mode: any 6-digit code, or even the button alone, passes) ----
