@@ -615,7 +615,11 @@
     -webkit-overflow-scrolling: touch;
     overflow-x: hidden;
   }
-  .app-shell { align-items: flex-start; } /* top-align content instead of any implicit vertical centering */
+  /* NOTE: top-alignment (no vertical centering) is already the flex default (justify-content: flex-start).
+     A previous `align-items: flex-start` rule here incorrectly targeted the horizontal cross-axis of this
+     column flex container, shrinking every screen to its content width and left-aligning it — that was the
+     cause of the large right-side gap on every screen. Removed; default `align-items: stretch` makes each
+     screen fill the full width correctly. */
   .pt-20 { padding-top: 80px !important; }
   .pb-36 { padding-bottom: 144px !important; }
   /* Give every tall scrollable screen room at the top (fixed header) and bottom (fixed nav / sticky CTA) */
