@@ -290,6 +290,143 @@
   .dash-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #64748b; font-size: 10px; cursor: pointer; }
   .dash-nav-item.active { color: #c084fc; }
   .dash-nav-item span.nav-icon { display: flex; align-items: center; justify-content: center; }
+
+  /* ===== Screen 5: Property Listing & Inspection Hub ===== */
+  .s5-topbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .s5-back-btn {
+    width: 38px; height: 38px; border-radius: 12px; background: rgba(15,23,42,0.8);
+    border: 1px solid #1e293b; display: flex; align-items: center; justify-content: center;
+    color: #cbd5e1; cursor: pointer; flex-shrink: 0; transition: border-color 0.15s ease;
+  }
+  .s5-back-btn:hover { border-color: #334155; }
+  .s5-search-wrap {
+    flex: 1; display: flex; align-items: center; gap: 8px; background: rgba(15,23,42,0.8);
+    border: 1px solid #1e293b; border-radius: 12px; padding: 0 12px; height: 38px;
+  }
+  .s5-search-wrap input {
+    flex: 1; background: none; border: none; outline: none; color: #fff; font-size: 13px; min-width: 0;
+  }
+  .s5-search-wrap input::placeholder { color: #475569; }
+  .s5-search-wrap svg { color: #64748b; flex-shrink: 0; }
+  .s5-filter-btn { background: none; border: none; color: #94a3b8; cursor: pointer; display: flex; padding: 0; }
+  .s5-filter-btn:hover { color: #c084fc; }
+
+  .s5-role-header { margin-bottom: 18px; }
+  .s5-role-eyebrow {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600;
+    color: #c084fc; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 4px;
+  }
+  .s5-role-title { font-size: 18px; font-weight: 600; color: #fff; margin: 0 0 2px; }
+  .s5-role-sub { font-size: 12.5px; color: #64748b; margin: 0; }
+
+  .s5-currency-toggle {
+    display: flex; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 12px;
+    padding: 4px; gap: 4px; margin-bottom: 18px;
+  }
+  .s5-currency-btn {
+    flex: 1; text-align: center; padding: 9px 8px; border-radius: 9px; font-size: 12px; font-weight: 500;
+    color: #94a3b8; background: none; border: none; cursor: pointer; transition: all 0.15s ease;
+  }
+  .s5-currency-btn.active { background: #9333ea; color: #fff; }
+
+  .s5-feed { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+  .s5-card {
+    background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 16px; overflow: hidden;
+  }
+  .s5-card-img-wrap { position: relative; width: 100%; height: 150px; background: #1e293b; }
+  .s5-card-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .s5-verified-badge {
+    position: absolute; top: 10px; right: 10px; display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(6,78,59,0.85); border: 1px solid rgba(52,211,153,0.5); color: #6ee7b7;
+    font-size: 10.5px; font-weight: 600; padding: 4px 8px; border-radius: 999px; backdrop-filter: blur(2px);
+  }
+  .s5-card-body { padding: 14px 16px 16px; }
+  .s5-card-title { font-size: 14px; font-weight: 600; color: #fff; margin: 0 0 4px; }
+  .s5-card-location {
+    display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: #64748b; margin: 0 0 10px;
+  }
+  .s5-card-location svg { flex-shrink: 0; }
+  .s5-card-price { font-size: 16px; font-weight: 700; color: #c084fc; margin: 0 0 14px; }
+  .s5-card-price span { font-size: 11px; font-weight: 500; color: #64748b; }
+  .s5-card-actions { display: flex; gap: 8px; }
+  .s5-action-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer;
+    border: 1px solid #1e293b; background: rgba(30,41,59,0.6); color: #e2e8f0; transition: border-color 0.15s ease;
+  }
+  .s5-action-btn:hover { border-color: #334155; }
+  .s5-action-btn.primary { background: linear-gradient(90deg, #9333ea, #7e22ce); border: none; color: #fff; }
+
+  .s5-status-badge {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600;
+    padding: 4px 9px; border-radius: 999px; flex-shrink: 0;
+  }
+  .s5-status-occupied { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.35); }
+  .s5-status-vacant { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.35); }
+  .s5-status-escrow { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.35); }
+  .s5-status-pending { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.35); }
+
+  .s5-list-item {
+    display: flex; align-items: center; gap: 12px; padding: 13px 14px; background: rgba(15,23,42,0.8);
+    border: 1px solid #1e293b; border-radius: 14px; margin-bottom: 10px;
+  }
+  .s5-list-icon {
+    width: 40px; height: 40px; border-radius: 10px; background: rgba(147,51,234,0.15);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #c084fc;
+  }
+  .s5-list-text { flex: 1; min-width: 0; }
+  .s5-list-title { font-size: 13px; font-weight: 500; color: #fff; margin: 0 0 2px; }
+  .s5-list-sub { font-size: 11.5px; color: #64748b; margin: 0; }
+
+  .s5-add-btn {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 13px; border-radius: 12px; font-weight: 600; font-size: 13px; color: #fff;
+    border: none; cursor: pointer; background: linear-gradient(90deg, #9333ea, #7e22ce);
+    box-shadow: 0 8px 20px rgba(147,51,234,0.25); margin-bottom: 20px;
+  }
+
+  .s5-tabs { display: flex; gap: 6px; margin-bottom: 18px; }
+  .s5-tab {
+    flex: 1; text-align: center; padding: 10px; border-radius: 10px; font-size: 12.5px; font-weight: 600;
+    color: #94a3b8; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; cursor: pointer; transition: all 0.15s ease;
+  }
+  .s5-tab.active { background: rgba(147,51,234,0.15); border-color: rgba(147,51,234,0.4); color: #c084fc; }
+
+  .s5-upload-box {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    padding: 24px 16px; border: 1.5px dashed #334155; border-radius: 14px; color: #64748b;
+    font-size: 12px; cursor: pointer; margin-bottom: 18px; text-align: center; transition: border-color 0.15s ease;
+  }
+  .s5-upload-box:hover { border-color: #a855f7; color: #c084fc; }
+  .s5-upload-box.has-file { border-color: #10b981; color: #34d399; border-style: solid; }
+
+  .s5-section-label {
+    display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: #e2e8f0;
+    margin: 22px 0 12px;
+  }
+
+  .s5-notice-box {
+    display: flex; gap: 10px; background: rgba(120,53,15,0.15); border: 1px solid rgba(245,158,11,0.35);
+    border-radius: 14px; padding: 14px; margin: 18px 0 22px;
+  }
+  .s5-notice-box svg { flex-shrink: 0; color: #fbbf24; margin-top: 1px; }
+  .s5-notice-box p { margin: 0; font-size: 12px; color: #fcd34d; line-height: 1.55; }
+
+  .s5-timeslot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+  .s5-timeslot {
+    display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 8px;
+    border-radius: 10px; border: 1px solid #1e293b; background: rgba(30,41,59,0.6); color: #cbd5e1;
+    font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s ease;
+  }
+  .s5-timeslot.selected { background: rgba(147,51,234,0.2); border-color: #a855f7; color: #fff; }
+
+  .s5-hold-preview {
+    background: rgba(15,23,42,0.9); border: 1px solid #1e293b; border-radius: 14px; padding: 14px 16px;
+    margin-bottom: 20px;
+  }
+  .s5-hold-row { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: #94a3b8; padding: 4px 0; }
+  .s5-hold-row strong { color: #fff; font-weight: 600; }
+  .s5-hold-divider { height: 1px; background: #1e293b; margin: 8px 0; }
 </style>
 </head>
 <body>
@@ -536,6 +673,116 @@
 </div>
 <!-- ===================== END SCREEN 4 ===================== -->
 
+<!-- ===================== SCREEN 5: Property Listing & Inspection Hub ===================== -->
+<div id="screen-5" class="screen hidden-screen" style="display: none; flex-direction: column;">
+
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="s5-back-btn">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="s5-search-wrap">
+      <i data-lucide="search" class="w-4 h-4"></i>
+      <input type="text" id="s5-search-input" placeholder="Search location, unit, or listing...">
+      <button type="button" class="s5-filter-btn" id="s5-filter-btn">
+        <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="s5-role-header">
+    <p class="s5-role-eyebrow" id="s5-role-eyebrow"><i data-lucide="building-2" class="w-3.5 h-3.5"></i><span>Tenant Search</span></p>
+    <h1 class="s5-role-title" id="s5-role-title">Find your next home</h1>
+    <p class="s5-role-sub" id="s5-role-sub">Verified listings, local & diaspora-friendly.</p>
+  </div>
+
+  <!-- ---- TENANT VIEW ---- -->
+  <div id="s5-tenant-view">
+    <div class="s5-currency-toggle">
+      <button type="button" class="s5-currency-btn active" data-currency="ngn">Local Rent (NGN)</button>
+      <button type="button" class="s5-currency-btn" data-currency="usd">Diaspora Flex-Rent (USD/EUR)</button>
+    </div>
+
+    <div class="s5-feed" id="s5-listing-feed">
+      <!-- populated dynamically -->
+    </div>
+  </div>
+
+  <!-- ---- LANDLORD VIEW ---- -->
+  <div id="s5-landlord-view" style="display:none;">
+    <button type="button" class="s5-add-btn" id="s5-add-property-btn">
+      <i data-lucide="plus-circle" class="w-4 h-4"></i> Add New Property
+    </button>
+
+    <p class="s5-section-label"><i data-lucide="building-2" class="w-4 h-4 text-purple-400"></i>My Properties</p>
+    <div id="s5-landlord-list">
+      <!-- populated dynamically -->
+    </div>
+  </div>
+
+  <!-- ---- AGENT VIEW ---- -->
+  <div id="s5-agent-view" style="display:none;">
+    <div class="s5-tabs">
+      <div class="s5-tab active" id="s5-tab-new" data-tab="new">Upload New Listing</div>
+      <div class="s5-tab" id="s5-tab-mine" data-tab="mine">My Listings</div>
+    </div>
+
+    <!-- New Listing form -->
+    <div id="s5-agent-new">
+      <form id="s5-listing-form">
+        <div class="field">
+          <label class="field-label">Listing Title</label>
+          <input class="field-input" id="s5-listing-title" type="text" required placeholder="e.g. 2-Bed Flat, Lekki Phase 1">
+        </div>
+        <div class="field">
+          <label class="field-label">Address</label>
+          <input class="field-input" id="s5-listing-address" type="text" required placeholder="Full property address">
+        </div>
+        <div class="field">
+          <label class="field-label">Rent Amount</label>
+          <input class="field-input" id="s5-listing-rent" type="text" required placeholder="e.g. ₦2,400,000 / year">
+        </div>
+
+        <div class="s5-upload-box" id="s5-media-upload">
+          <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+          <span id="s5-media-upload-label">Tap to upload photos or video</span>
+          <input type="file" id="s5-media-file" hidden multiple accept="image/*,video/*">
+        </div>
+
+        <p class="s5-section-label"><i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i>Landlord Contact (Mandatory)</p>
+        <div class="field">
+          <label class="field-label">Landlord Full Name</label>
+          <input class="field-input" id="s5-landlord-name" type="text" required placeholder="Landlord's full legal name">
+        </div>
+        <div class="field">
+          <label class="field-label">Landlord Phone Number</label>
+          <input class="field-input" id="s5-landlord-phone" type="tel" required placeholder="080X XXX XXXX">
+        </div>
+        <div class="field">
+          <label class="field-label">Landlord Email</label>
+          <input class="field-input" id="s5-landlord-email" type="email" required placeholder="landlord@example.com">
+        </div>
+
+        <div class="s5-notice-box">
+          <i data-lucide="lock" class="w-5 h-5"></i>
+          <p>Submitting this listing automatically sends an instant SMS &amp; WhatsApp invite to the landlord. Escrow funds are locked until the landlord joins and confirms ownership.</p>
+        </div>
+
+        <button type="submit" class="btn-primary">Submit Listing &amp; Notify Landlord</button>
+      </form>
+    </div>
+
+    <!-- My Listings (Inspection Manager) -->
+    <div id="s5-agent-mine" style="display:none;">
+      <p class="s5-section-label"><i data-lucide="calendar-check" class="w-4 h-4 text-amber-400"></i>Inspection Manager</p>
+      <div id="s5-agent-listings">
+        <!-- populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- ===================== END SCREEN 5 ===================== -->
+
 </div>
 
 <!-- OTP Modal -->
@@ -559,6 +806,63 @@
     <button id="verify-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Verify & Proceed to KYC</button>
     <button id="close-modal" type="button" class="btn-secondary">Cancel</button>
     <p class="resend-line">Didn't get a code? <span class="resend-link">Resend</span></p>
+  </div>
+</div>
+
+<!-- Deferred Title Verification Modal (Landlord: Add New Property) -->
+<div id="title-verify-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <i data-lucide="landmark" class="w-6 h-6 text-purple-400"></i>
+    </div>
+    <h2 class="modal-title">Verify Property Title</h2>
+    <p class="modal-sub">Required only when listing a property — keeps your onboarding friction-free.</p>
+
+    <div class="field">
+      <label class="field-label">Property Title / Nickname</label>
+      <input class="field-input" id="tv-title" type="text" placeholder="e.g. 3-Bed Duplex, Ikeja GRA">
+    </div>
+    <div class="field">
+      <label class="field-label">Address</label>
+      <input class="field-input" id="tv-address" type="text" placeholder="Full property address">
+    </div>
+
+    <div class="s5-upload-box" id="tv-upload-box">
+      <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+      <span id="tv-upload-label">Upload C of O / Title Document</span>
+      <input type="file" id="tv-file" hidden accept="image/*,.pdf">
+    </div>
+
+    <button type="button" id="tv-submit-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Submit for Verification</button>
+    <button type="button" id="tv-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
+<!-- Virtual Walkthrough Scheduling Modal (Tenant) -->
+<div id="walkthrough-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <i data-lucide="video" class="w-6 h-6 text-purple-400"></i>
+    </div>
+    <h2 class="modal-title">Schedule Virtual Walkthrough</h2>
+    <p class="modal-sub" id="wt-property-name">Select a time slot for your live video tour</p>
+
+    <div class="s5-timeslot-grid" id="wt-timeslot-grid">
+      <div class="s5-timeslot" data-slot="Today, 4:00 PM"><i data-lucide="clock" class="w-3.5 h-3.5"></i>Today, 4:00 PM</div>
+      <div class="s5-timeslot" data-slot="Today, 6:30 PM"><i data-lucide="clock" class="w-3.5 h-3.5"></i>Today, 6:30 PM</div>
+      <div class="s5-timeslot" data-slot="Tomorrow, 10:00 AM"><i data-lucide="clock" class="w-3.5 h-3.5"></i>Tomorrow, 10:00 AM</div>
+      <div class="s5-timeslot" data-slot="Tomorrow, 2:00 PM"><i data-lucide="clock" class="w-3.5 h-3.5"></i>Tomorrow, 2:00 PM</div>
+    </div>
+
+    <div class="s5-hold-preview">
+      <div class="s5-hold-row"><span>Holding deposit</span><strong id="wt-hold-amount">₦50,000</strong></div>
+      <div class="s5-hold-divider"></div>
+      <div class="s5-hold-row"><span>Held in escrow</span><strong>Yes, refundable</strong></div>
+      <div class="s5-hold-row"><span>Released to landlord</span><strong>On sign-off only</strong></div>
+    </div>
+
+    <button type="button" id="wt-confirm-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;" disabled>Confirm & Proceed to Escrow</button>
+    <button type="button" id="wt-cancel-btn" class="btn-secondary">Cancel</button>
   </div>
 </div>
 
@@ -761,6 +1065,7 @@
   const screen2 = document.getElementById('screen-2');
   const screen3 = document.getElementById('screen-3');
   const screen4 = document.getElementById('screen-4');
+  const screen5 = document.getElementById('screen-5');
 
   function showScreen(fromEl, toEl) {
     fromEl.classList.add('hidden-screen');
@@ -872,10 +1177,10 @@
       cardValue: '₦180,000 / mo',
       cardSub: 'Next payment due in 12 days',
       actions: [
-        { icon: 'search', label: 'Find a Home', bg: 'bg-purple-500/10', color: 'text-purple-400' },
-        { icon: 'wallet', label: 'Pay Rent', bg: 'bg-emerald-500/10', color: 'text-emerald-400' },
-        { icon: 'wrench', label: 'Report Issue', bg: 'bg-amber-500/10', color: 'text-amber-400' },
-        { icon: 'file-text', label: 'My Lease', bg: 'bg-blue-500/10', color: 'text-blue-400' }
+        { icon: 'search', label: 'Find a Home', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
+        { icon: 'wallet', label: 'Pay Rent', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'toast' },
+        { icon: 'wrench', label: 'Report Issue', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'toast' },
+        { icon: 'file-text', label: 'My Lease', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'toast' }
       ],
       activity: [
         { icon: 'receipt', color: 'text-emerald-400', title: 'Rent payment received', sub: 'Aug 1 · ₦180,000' },
@@ -888,10 +1193,10 @@
       cardValue: '₦1,240,000',
       cardSub: '3 active tenants across 2 properties',
       actions: [
-        { icon: 'plus-circle', label: 'List Property', bg: 'bg-purple-500/10', color: 'text-purple-400' },
-        { icon: 'wallet', label: 'Payouts', bg: 'bg-emerald-500/10', color: 'text-emerald-400' },
-        { icon: 'users', label: 'Tenants', bg: 'bg-blue-500/10', color: 'text-blue-400' },
-        { icon: 'calendar-check', label: 'Inspections', bg: 'bg-amber-500/10', color: 'text-amber-400' }
+        { icon: 'plus-circle', label: 'List Property', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
+        { icon: 'wallet', label: 'Payouts', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'toast' },
+        { icon: 'users', label: 'Tenants', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'toast' },
+        { icon: 'calendar-check', label: 'Inspections', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'browse' }
       ],
       activity: [
         { icon: 'wallet', color: 'text-emerald-400', title: 'Payout disbursed', sub: 'Aug 3 · ₦620,000' },
@@ -904,10 +1209,10 @@
       cardValue: '₦345,000',
       cardSub: '5 listings under management',
       actions: [
-        { icon: 'plus-circle', label: 'Add Listing', bg: 'bg-purple-500/10', color: 'text-purple-400' },
-        { icon: 'calendar-check', label: 'Walkthroughs', bg: 'bg-amber-500/10', color: 'text-amber-400' },
-        { icon: 'users', label: 'Clients', bg: 'bg-blue-500/10', color: 'text-blue-400' },
-        { icon: 'bar-chart-3', label: 'Commission', bg: 'bg-emerald-500/10', color: 'text-emerald-400' }
+        { icon: 'plus-circle', label: 'Add Listing', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
+        { icon: 'calendar-check', label: 'Walkthroughs', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'browse' },
+        { icon: 'users', label: 'Clients', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'toast' },
+        { icon: 'bar-chart-3', label: 'Commission', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'toast' }
       ],
       activity: [
         { icon: 'calendar-check', color: 'text-amber-400', title: 'Walkthrough completed', sub: 'Duplex, Victoria Island' },
@@ -931,7 +1236,7 @@
 
     const grid = document.getElementById('dash-grid');
     grid.innerHTML = data.actions.map(a => `
-      <div class="dash-tile">
+      <div class="dash-tile" data-action="${a.action}" data-label="${a.label}">
         <div class="dash-tile-icon-wrap ${a.bg}"><i data-lucide="${a.icon}" class="w-6 h-6 ${a.color}"></i></div>
         <div class="dash-tile-label">${a.label}</div>
       </div>`).join('');
@@ -948,6 +1253,281 @@
 
     if (window.lucide) lucide.createIcons();
   }
+
+  // ---- Dashboard tile routing: "browse" tiles open Screen 5, others show a coming-soon toast ----
+  document.getElementById('dash-grid').addEventListener('click', (e) => {
+    const tile = e.target.closest('.dash-tile');
+    if (!tile) return;
+    if (tile.dataset.action === 'browse') {
+      goToScreen5();
+    } else {
+      showToast(`${tile.dataset.label} — coming soon`);
+    }
+  });
+
+  // ==================================================================
+  // ---- SCREEN 5: Property Listing & Inspection Hub ----
+  // ==================================================================
+
+  const roleHeaderConfig = {
+    tenant: { icon: 'building-2', eyebrow: 'Tenant Search', title: 'Find your next home', sub: 'Verified listings, local & diaspora-friendly.' },
+    landlord: { icon: 'key-round', eyebrow: 'Landlord Inventory', title: 'Manage your properties', sub: 'Track occupancy, escrow status, and new listings.' },
+    agent: { icon: 'briefcase', eyebrow: 'Agent Portal', title: 'Upload & manage listings', sub: 'Every listing requires landlord verification before payout.' }
+  };
+
+  let currentCurrency = 'ngn';
+
+  const tenantListings = [
+    { id: 1, title: '2-Bed Flat, Lekki Phase 1', location: 'Lekki Phase 1, Lagos', ngn: '₦180,000 / mo', usd: '$220 / mo', img: 'https://picsum.photos/seed/mtr-lekki/400/240' },
+    { id: 2, title: 'Studio Apartment, Yaba', location: 'Yaba, Lagos', ngn: '₦95,000 / mo', usd: '$115 / mo', img: 'https://picsum.photos/seed/mtr-yaba/400/240' },
+    { id: 3, title: '3-Bed Duplex, Ikeja GRA', location: 'Ikeja GRA, Lagos', ngn: '₦350,000 / mo', usd: '$430 / mo', img: 'https://picsum.photos/seed/mtr-ikeja/400/240' }
+  ];
+
+  let landlordProperties = [
+    { id: 1, title: '2-Bed Flat, Lekki Phase 1', address: 'Lekki Phase 1, Lagos', status: 'occupied' },
+    { id: 2, title: 'Studio Apartment, Yaba', address: 'Yaba, Lagos', status: 'vacant' }
+  ];
+
+  let agentListings = [];
+  let selectedTimeslot = null;
+
+  function goToScreen5() {
+    populateScreen5();
+    showScreen(screen4, screen5);
+  }
+
+  document.getElementById('s5-back-btn').addEventListener('click', () => {
+    showScreen(screen5, screen4);
+  });
+
+  document.getElementById('s5-filter-btn').addEventListener('click', () => {
+    showToast('Filters — coming soon');
+  });
+
+  function populateScreen5() {
+    const role = selectedRole || 'tenant';
+    const cfg = roleHeaderConfig[role];
+
+    document.getElementById('s5-role-eyebrow').innerHTML = `<i data-lucide="${cfg.icon}" class="w-3.5 h-3.5"></i><span>${cfg.eyebrow}</span>`;
+    document.getElementById('s5-role-title').textContent = cfg.title;
+    document.getElementById('s5-role-sub').textContent = cfg.sub;
+
+    document.getElementById('s5-tenant-view').style.display = role === 'tenant' ? 'block' : 'none';
+    document.getElementById('s5-landlord-view').style.display = role === 'landlord' ? 'block' : 'none';
+    document.getElementById('s5-agent-view').style.display = role === 'agent' ? 'block' : 'none';
+
+    document.getElementById('s5-search-input').value = '';
+
+    if (role === 'tenant') {
+      renderTenantFeed(currentCurrency);
+    } else if (role === 'landlord') {
+      renderLandlordList();
+    } else {
+      document.getElementById('s5-tab-new').click();
+    }
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // ---- Tenant view: currency toggle + listing feed ----
+  document.querySelectorAll('.s5-currency-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.s5-currency-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCurrency = btn.dataset.currency;
+      renderTenantFeed(currentCurrency);
+    });
+  });
+
+  function renderTenantFeed(currency) {
+    const feed = document.getElementById('s5-listing-feed');
+    feed.innerHTML = tenantListings.map(p => `
+      <div class="s5-card" data-listing-id="${p.id}">
+        <div class="s5-card-img-wrap">
+          <img src="${p.img}" alt="${p.title}" loading="lazy">
+          <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Verified</span>
+        </div>
+        <div class="s5-card-body">
+          <p class="s5-card-title">${p.title}</p>
+          <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
+          <p class="s5-card-price">${currency === 'usd' ? p.usd : p.ngn} <span>rent</span></p>
+          <div class="s5-card-actions">
+            <button type="button" class="s5-action-btn wt-btn" data-title="${p.title}"><i data-lucide="video" class="w-4 h-4"></i>Virtual Walkthrough</button>
+            <button type="button" class="s5-action-btn primary bv-btn" data-title="${p.title}"><i data-lucide="calendar" class="w-4 h-4"></i>Book Visit</button>
+          </div>
+        </div>
+      </div>`).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('s5-listing-feed').addEventListener('click', (e) => {
+    const wtBtn = e.target.closest('.wt-btn');
+    const bvBtn = e.target.closest('.bv-btn');
+    if (wtBtn) {
+      openWalkthroughModal(wtBtn.dataset.title);
+    } else if (bvBtn) {
+      showToast(`Physical visit requested for ${bvBtn.dataset.title}`);
+    }
+  });
+
+  document.getElementById('s5-search-input').addEventListener('input', (e) => {
+    if ((selectedRole || 'tenant') !== 'tenant') return;
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('#s5-listing-feed .s5-card').forEach(card => {
+      const p = tenantListings.find(x => String(x.id) === card.dataset.listingId);
+      const match = !q || p.title.toLowerCase().includes(q) || p.location.toLowerCase().includes(q);
+      card.style.display = match ? '' : 'none';
+    });
+  });
+
+  // ---- Virtual Walkthrough modal ----
+  const walkthroughModal = document.getElementById('walkthrough-modal');
+  const wtConfirmBtn = document.getElementById('wt-confirm-btn');
+
+  function openWalkthroughModal(title) {
+    selectedTimeslot = null;
+    document.getElementById('wt-property-name').textContent = `Select a time slot for ${title}`;
+    document.getElementById('wt-hold-amount').textContent = currentCurrency === 'usd' ? '$60' : '₦50,000';
+    document.querySelectorAll('.s5-timeslot').forEach(s => s.classList.remove('selected'));
+    wtConfirmBtn.disabled = true;
+    walkthroughModal.classList.add('open');
+  }
+
+  document.querySelectorAll('.s5-timeslot').forEach(slot => {
+    slot.addEventListener('click', () => {
+      document.querySelectorAll('.s5-timeslot').forEach(s => s.classList.remove('selected'));
+      slot.classList.add('selected');
+      selectedTimeslot = slot.dataset.slot;
+      wtConfirmBtn.disabled = false;
+    });
+  });
+
+  document.getElementById('wt-cancel-btn').addEventListener('click', () => walkthroughModal.classList.remove('open'));
+  wtConfirmBtn.addEventListener('click', () => {
+    if (wtConfirmBtn.disabled) return;
+    walkthroughModal.classList.remove('open');
+    showToast('Walkthrough booked — Escrow Checkout (Screen 6) is coming in the next update!');
+  });
+
+  // ---- Landlord view: property list + deferred title verification ----
+  function renderLandlordList() {
+    const statusMap = {
+      occupied: { cls: 's5-status-occupied', label: 'Occupied' },
+      vacant: { cls: 's5-status-vacant', label: 'Vacant' },
+      escrow: { cls: 's5-status-escrow', label: 'Escrow Pending' }
+    };
+    const list = document.getElementById('s5-landlord-list');
+    list.innerHTML = landlordProperties.map(p => {
+      const s = statusMap[p.status];
+      return `
+        <div class="s5-list-item">
+          <div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+          <div class="s5-list-text">
+            <p class="s5-list-title">${p.title}</p>
+            <p class="s5-list-sub">${p.address}</p>
+          </div>
+          <span class="s5-status-badge ${s.cls}">${s.label}</span>
+        </div>`;
+    }).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  const titleVerifyModal = document.getElementById('title-verify-modal');
+
+  document.getElementById('s5-add-property-btn').addEventListener('click', () => {
+    document.getElementById('tv-title').value = '';
+    document.getElementById('tv-address').value = '';
+    document.getElementById('tv-upload-box').classList.remove('has-file');
+    document.getElementById('tv-upload-label').textContent = 'Upload C of O / Title Document';
+    titleVerifyModal.classList.add('open');
+  });
+
+  document.getElementById('tv-upload-box').addEventListener('click', () => document.getElementById('tv-file').click());
+  document.getElementById('tv-file').addEventListener('change', (e) => {
+    if (e.target.files.length) {
+      document.getElementById('tv-upload-box').classList.add('has-file');
+      document.getElementById('tv-upload-label').textContent = e.target.files[0].name;
+    }
+  });
+
+  document.getElementById('tv-cancel-btn').addEventListener('click', () => titleVerifyModal.classList.remove('open'));
+  document.getElementById('tv-submit-btn').addEventListener('click', () => {
+    const title = document.getElementById('tv-title').value.trim();
+    const address = document.getElementById('tv-address').value.trim();
+    if (!title || !address) {
+      showToast('Please fill in property title and address');
+      return;
+    }
+    landlordProperties.unshift({ id: Date.now(), title, address, status: 'escrow' });
+    renderLandlordList();
+    titleVerifyModal.classList.remove('open');
+    showToast('Property submitted — pending title verification');
+  });
+
+  // ---- Agent view: upload listing form + mandatory landlord mapping ----
+  document.querySelectorAll('.s5-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.s5-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.tab;
+      document.getElementById('s5-agent-new').style.display = target === 'new' ? 'block' : 'none';
+      document.getElementById('s5-agent-mine').style.display = target === 'mine' ? 'block' : 'none';
+      if (target === 'mine') renderAgentListings();
+      if (window.lucide) lucide.createIcons();
+    });
+  });
+
+  function renderAgentListings() {
+    const wrap = document.getElementById('s5-agent-listings');
+    if (!agentListings.length) {
+      wrap.innerHTML = `<p class="role-hint" style="text-align:left;">No listings submitted yet.</p>`;
+      return;
+    }
+    wrap.innerHTML = agentListings.map(l => `
+      <div class="s5-list-item">
+        <div class="s5-list-icon"><i data-lucide="lock" class="w-5 h-5"></i></div>
+        <div class="s5-list-text">
+          <p class="s5-list-title">${l.title}</p>
+          <p class="s5-list-sub">${l.address} · Landlord: ${l.landlordName}</p>
+        </div>
+        <span class="s5-status-badge s5-status-pending">Pending</span>
+      </div>`).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('s5-media-upload').addEventListener('click', () => document.getElementById('s5-media-file').click());
+  document.getElementById('s5-media-file').addEventListener('change', (e) => {
+    const box = document.getElementById('s5-media-upload');
+    const label = document.getElementById('s5-media-upload-label');
+    if (e.target.files.length) {
+      box.classList.add('has-file');
+      label.textContent = `${e.target.files.length} file(s) selected`;
+    }
+  });
+
+  document.getElementById('s5-listing-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const title = document.getElementById('s5-listing-title').value.trim();
+    const address = document.getElementById('s5-listing-address').value.trim();
+    const rent = document.getElementById('s5-listing-rent').value.trim();
+    const landlordName = document.getElementById('s5-landlord-name').value.trim();
+    const landlordPhone = document.getElementById('s5-landlord-phone').value.trim();
+    const landlordEmail = document.getElementById('s5-landlord-email').value.trim();
+
+    if (!title || !address || !rent || !landlordName || !landlordPhone || !landlordEmail) {
+      showToast('Please fill in all required fields');
+      return;
+    }
+
+    agentListings.unshift({ id: Date.now(), title, address, rent, landlordName, landlordPhone, landlordEmail });
+
+    e.target.reset();
+    document.getElementById('s5-media-upload').classList.remove('has-file');
+    document.getElementById('s5-media-upload-label').textContent = 'Tap to upload photos or video';
+
+    document.getElementById('s5-tab-mine').click();
+    showToast('Listing submitted — landlord notified via SMS & WhatsApp');
+  });
 
   document.getElementById('sign-btn').addEventListener('click', () => {
     if (signBtn.disabled) return;
