@@ -139,11 +139,52 @@
   .resend-line { font-size: 12px; text-align: center; color: #64748b; margin-top: 12px; }
   .resend-link { color: #c084fc; cursor: pointer; }
   .resend-link:hover { text-decoration: underline; }
+
+  /* Toast */
+  .toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
+    background: #0f172a; border: 1px solid #16a34a; color: #fff; font-size: 13px; font-weight: 500;
+    padding: 12px 18px; border-radius: 12px; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4); opacity: 0; z-index: 100; pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast svg { width: 18px; height: 18px; color: #22c55e; flex-shrink: 0; }
+
+  /* Screen transitions */
+  .screen { animation: fadeIn 0.35s ease; }
+  .screen.hidden-screen { display: none; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Screen 2 placeholder */
+  .kyc-icon-wrap {
+    width: 56px; height: 56px; border-radius: 999px; background: rgba(59,7,100,0.5);
+    border: 1px solid #6b21a8; display: flex; align-items: center; justify-content: center;
+    margin: 12px auto 20px;
+  }
+  .kyc-icon-wrap svg { width: 28px; height: 28px; color: #c084fc; }
+  .kyc-role-badge {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(147,51,234,0.15);
+    border: 1px solid rgba(147,51,234,0.4); color: #c084fc; font-size: 12px; font-weight: 500;
+    padding: 6px 12px; border-radius: 999px; margin: 0 auto 20px; width: fit-content;
+  }
+  .kyc-list { display: flex; flex-direction: column; gap: 10px; margin: 0 0 24px; }
+  .kyc-item {
+    display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+    background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 14px; font-size: 13px; color: #cbd5e1;
+  }
+  .kyc-item svg { width: 18px; height: 18px; color: #64748b; flex-shrink: 0; }
 </style>
 </head>
 <body>
 
 <div class="app-shell">
+
+<!-- ===================== SCREEN 1: Onboarding & Role Selection ===================== -->
+<div id="screen-1" class="screen">
 
   <!-- Brand Header -->
   <div class="brand-row">
@@ -252,6 +293,49 @@
   </form>
 
 </div>
+<!-- ===================== END SCREEN 1 ===================== -->
+
+<!-- ===================== SCREEN 2: KYC Verification (role-based) ===================== -->
+<div id="screen-2" class="screen hidden-screen">
+
+  <div class="brand-row">
+    <div class="brand-logo">M</div>
+    <div>
+      <p class="brand-name">MainTown Realty</p>
+      <p class="brand-tag">Rent, restructured.</p>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-labels">
+      <span class="progress-step">Step 2 of 3: KYC Verification</span>
+      <span class="progress-pct">66%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" style="width:66%"></div></div>
+  </div>
+
+  <div class="kyc-icon-wrap">
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 4.556-3.04 8.4-7.2 9.618a2.25 2.25 0 01-1.6 0C7.04 20.4 4 16.556 4 12V6.108c0-.53.24-1.024.657-1.35A11.99 11.99 0 0112 3c1.93 0 3.76.474 5.343 1.257.417.326.657.82.657 1.35V12z"/>
+    </svg>
+  </div>
+
+  <h1 class="title" style="text-align:center;">Verify your identity</h1>
+  <p class="subtitle" style="text-align:center;">We just need a few documents to activate your account.</p>
+
+  <div id="kyc-role-badge" class="kyc-role-badge" style="justify-content:center; margin-left:auto; margin-right:auto;"></div>
+
+  <div id="kyc-list" class="kyc-list">
+    <!-- populated dynamically based on role -->
+  </div>
+
+  <button type="button" id="kyc-back-btn" class="btn-primary" style="background: rgba(15,23,42,0.8); border:1px solid #1e293b; box-shadow:none;">
+    ← Back to Account Setup
+  </button>
+</div>
+<!-- ===================== END SCREEN 2 ===================== -->
+
+</div>
 
 <!-- OTP Modal -->
 <div id="otp-modal" class="modal-overlay">
@@ -277,6 +361,12 @@
     <button id="close-modal" type="button" class="btn-secondary">Cancel</button>
     <p class="resend-line">Didn't get a code? <span class="resend-link">Resend</span></p>
   </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast">
+  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+  <span id="toast-message">OTP Verified Successfully!</span>
 </div>
 
 <script>
@@ -327,7 +417,7 @@
 
   closeModal.addEventListener('click', () => otpModal.classList.remove('open'));
 
-  // OTP auto-focus behavior
+  // OTP auto-focus behavior (typing a digit shifts focus to next box)
   const otpInputs = document.querySelectorAll('.otp-input');
   otpInputs.forEach((input, index) => {
     input.addEventListener('input', () => {
@@ -343,14 +433,101 @@
     });
   });
 
+  // ---- Toast helper ----
+  const toast = document.getElementById('toast');
+  const toastMessage = document.getElementById('toast-message');
+  let toastTimer = null;
+
+  function showToast(message) {
+    toastMessage.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+  }
+
+  // ---- Role-based KYC content for Screen 2 ----
+  const kycContent = {
+    tenant: {
+      label: '🏠 Tenant / Renter',
+      items: [
+        'Government-issued ID (NIN, Driver\'s License, or Passport)',
+        'Proof of address (utility bill, not older than 3 months)',
+        'Employment or income verification',
+        'Next of kin / emergency contact details'
+      ]
+    },
+    landlord: {
+      label: '🔑 Landlord / Property Owner',
+      items: [
+        'Government-issued ID (NIN, Driver\'s License, or Passport)',
+        'Proof of property ownership (title document or C of O)',
+        'Bank account details for rent disbursement',
+        'Utility bill for property address verification'
+      ]
+    },
+    agent: {
+      label: '🏢 Real Estate Agent / Broker',
+      items: [
+        'Government-issued ID (NIN, Driver\'s License, or Passport)',
+        'Real estate license or agency registration',
+        'Proof of address (utility bill, not older than 3 months)',
+        'Bank account details for commission payout'
+      ]
+    }
+  };
+
+  function populateScreen2() {
+    const role = selectedRole || 'tenant';
+    const data = kycContent[role];
+
+    document.getElementById('kyc-role-badge').textContent = data.label;
+
+    const list = document.getElementById('kyc-list');
+    list.innerHTML = '';
+    data.items.forEach(text => {
+      const item = document.createElement('div');
+      item.className = 'kyc-item';
+      item.innerHTML = `
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3 3m0 0l-3-3m3 3V9"/>
+        </svg>
+        <span>${text}</span>`;
+      list.appendChild(item);
+    });
+  }
+
+  // ---- Screen transition ----
+  const screen1 = document.getElementById('screen-1');
+  const screen2 = document.getElementById('screen-2');
+
+  function goToScreen2() {
+    populateScreen2();
+    screen1.classList.add('hidden-screen');
+    screen2.classList.remove('hidden-screen');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  document.getElementById('kyc-back-btn').addEventListener('click', () => {
+    screen2.classList.add('hidden-screen');
+    screen1.classList.remove('hidden-screen');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ---- Verify & Proceed to KYC (demo mode: any 6-digit code, or even the button alone, passes) ----
   document.getElementById('verify-btn').addEventListener('click', () => {
     const code = Array.from(otpInputs).map(i => i.value).join('');
-    if (code.length === 6) {
-      alert('Code verified: ' + code + '\n(Proceeding to KYC screen — next build step)');
-      otpModal.classList.remove('open');
-    } else {
-      alert('Please enter all 6 digits.');
+
+    // Demo mode: accept any fully-typed 6-digit code, OR auto-fill remaining boxes so verification always proceeds
+    if (code.length < 6) {
+      otpInputs.forEach(input => { if (!input.value) input.value = String(Math.floor(Math.random() * 10)); });
     }
+
+    showToast('OTP Verified Successfully!');
+
+    setTimeout(() => {
+      otpModal.classList.remove('open');
+      goToScreen2();
+    }, 700);
   });
 </script>
 
