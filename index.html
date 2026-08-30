@@ -155,6 +155,13 @@
   /* Screen transitions */
   .screen { animation: fadeIn 0.35s ease; }
   .screen.hidden-screen { display: none; }
+
+  /* ---- Screen 4 / Screen 5 strict isolation (screen-view / role-view) ---- */
+  .screen-view { display: flex; flex-direction: column; animation: fadeIn 0.35s ease; }
+  .screen-view.hidden { display: none; }
+  .role-view.hidden { display: none; }
+  .pb-24 { padding-bottom: 96px; } /* keeps content clear of the fixed bottom nav; overridden by Tailwind if CDN loads */
+
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
@@ -289,10 +296,15 @@
   .dash-list-text { flex: 1; }
   .dash-list-title { font-size: 13px; font-weight: 500; color: #fff; margin: 0 0 2px; }
   .dash-list-sub { font-size: 11.5px; color: #64748b; margin: 0; }
+  /* ---- Fixed bottom navigation bar (lives OUTSIDE #screen-4 / #screen-5) ---- */
+  #app-bottom-nav { display: flex; justify-content: center; padding: 0 20px 16px; pointer-events: none; }
+  #app-bottom-nav.hidden { display: none; } /* higher specificity than a plain .hidden rule, so this always wins */
+  #app-bottom-nav .dash-nav { pointer-events: auto; }
   .dash-nav {
     display: flex; justify-content: space-around; align-items: center;
+    width: 100%; max-width: 420px;
     background: rgba(15,23,42,0.95); border: 1px solid #1e293b; border-radius: 18px;
-    padding: 10px 8px; margin-top: auto;
+    padding: 10px 8px; box-shadow: 0 12px 30px rgba(0,0,0,0.35);
   }
   .dash-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #64748b; font-size: 10px; cursor: pointer; }
   .dash-nav-item.active { color: #c084fc; }
@@ -666,7 +678,7 @@
 <!-- ===================== END SCREEN 3 ===================== -->
 
 <!-- ===================== SCREEN 4: Main App Dashboard ===================== -->
-<div id="screen-4" class="screen hidden-screen" style="display: none; flex-direction: column; min-height: calc(100vh - 72px);">
+<div id="screen-4" class="screen-view hidden pb-24" style="min-height: calc(100vh - 72px);">
 
   <div class="dash-header">
     <div>
@@ -692,17 +704,11 @@
     <!-- populated dynamically based on role -->
   </div>
 
-  <div class="dash-nav">
-    <div class="dash-nav-item active"><span class="nav-icon"><i data-lucide="home" class="w-[18px] h-[18px]"></i></span>Home</div>
-    <div class="dash-nav-item"><span class="nav-icon"><i data-lucide="search" class="w-[18px] h-[18px]"></i></span>Search</div>
-    <div class="dash-nav-item"><span class="nav-icon"><i data-lucide="message-square" class="w-[18px] h-[18px]"></i></span>Messages</div>
-    <div class="dash-nav-item"><span class="nav-icon"><i data-lucide="user" class="w-[18px] h-[18px]"></i></span>Profile</div>
-  </div>
 </div>
 <!-- ===================== END SCREEN 4 ===================== -->
 
 <!-- ===================== SCREEN 5: Property Listing & Inspection Hub ===================== -->
-<div id="screen-5" class="screen hidden-screen" style="display: none; flex-direction: column;">
+<div id="screen-5" class="screen-view hidden pb-24">
 
   <div class="s5-topbar">
     <button type="button" class="s5-back-btn" id="s5-back-btn">
@@ -723,8 +729,8 @@
     <p class="s5-role-sub" id="s5-role-sub">Verified listings, local & diaspora-friendly.</p>
   </div>
 
-  <!-- ---- TENANT VIEW ---- -->
-  <div id="s5-tenant-view">
+  <!-- ---- TENANT VIEW: Search & Book ---- -->
+  <div id="tenant-view" class="role-view hidden">
     <div class="s5-currency-toggle">
       <button type="button" class="s5-currency-btn active" data-currency="ngn">Local Rent (NGN)</button>
       <button type="button" class="s5-currency-btn" data-currency="usd">Diaspora Flex-Rent (USD/EUR)</button>
@@ -735,8 +741,8 @@
     </div>
   </div>
 
-  <!-- ---- LANDLORD VIEW ---- -->
-  <div id="s5-landlord-view" style="display:none;">
+  <!-- ---- LANDLORD VIEW: My Properties & Title KYC ---- -->
+  <div id="landlord-view" class="role-view hidden">
     <button type="button" class="s5-add-btn" id="s5-add-property-btn">
       <i data-lucide="plus-circle" class="w-4 h-4"></i> Add New Property
     </button>
@@ -747,8 +753,8 @@
     </div>
   </div>
 
-  <!-- ---- AGENT VIEW ---- -->
-  <div id="s5-agent-view" style="display:none;">
+  <!-- ---- AGENT VIEW: Upload Listing & Mandatory Landlord Mapping ---- -->
+  <div id="agent-view" class="role-view hidden">
     <div class="s5-tabs">
       <div class="s5-tab active" id="s5-tab-new" data-tab="new">Upload New Listing</div>
       <div class="s5-tab" id="s5-tab-mine" data-tab="mine">My Listings</div>
@@ -812,6 +818,16 @@
 <!-- ===================== END SCREEN 5 ===================== -->
 
 </div>
+<!-- ===================== FIXED BOTTOM NAVIGATION (outside #screen-4 and #screen-5) ===================== -->
+<nav id="app-bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 hidden">
+  <div class="dash-nav">
+    <div class="dash-nav-item active" id="nav-home"><span class="nav-icon"><i data-lucide="home" class="w-[18px] h-[18px]"></i></span>Home</div>
+    <div class="dash-nav-item" id="nav-search"><span class="nav-icon"><i data-lucide="search" class="w-[18px] h-[18px]"></i></span>Search</div>
+    <div class="dash-nav-item" id="nav-messages"><span class="nav-icon"><i data-lucide="message-square" class="w-[18px] h-[18px]"></i></span>Messages</div>
+    <div class="dash-nav-item" id="nav-profile"><span class="nav-icon"><i data-lucide="user" class="w-[18px] h-[18px]"></i></span>Profile</div>
+  </div>
+</nav>
+<!-- ===================== END FIXED BOTTOM NAVIGATION ===================== -->
 
 <!-- OTP Modal -->
 <div id="otp-modal" class="modal-overlay">
@@ -902,21 +918,21 @@
 
 <script>
   // Role selection state
-  let selectedRole = null;
+  let currentUserRole = null;
   const roleCards = document.querySelectorAll('.role-card');
   const continueBtn = document.getElementById('continue-btn');
   const roleHint = document.getElementById('role-hint');
 
   function updateContinueState() {
-    continueBtn.disabled = !selectedRole;
-    roleHint.style.display = selectedRole ? 'none' : 'block';
+    continueBtn.disabled = !currentUserRole;
+    roleHint.style.display = currentUserRole ? 'none' : 'block';
   }
 
   roleCards.forEach(card => {
     card.addEventListener('click', () => {
       roleCards.forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
-      selectedRole = card.dataset.role;
+      currentUserRole = card.dataset.role;
       updateContinueState();
     });
   });
@@ -941,7 +957,7 @@
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    if (!selectedRole) return;
+    if (!currentUserRole) return;
     otpModal.classList.add('open');
     document.querySelector('.otp-input').focus();
   });
@@ -1014,7 +1030,7 @@
     const docsDone = kycTotalDocs > 0 && kycUploadedCount >= kycTotalDocs;
 
     let guarantorDone = true;
-    if ((selectedRole || 'tenant') === 'tenant') {
+    if ((currentUserRole || 'tenant') === 'tenant') {
       const name = document.getElementById('guarantor-name').value.trim();
       const phone = document.getElementById('guarantor-phone').value.trim();
       guarantorDone = !!name && !!phone;
@@ -1102,7 +1118,7 @@
   }
 
   function populateScreen2() {
-    const role = selectedRole || 'tenant';
+    const role = currentUserRole || 'tenant';
     const data = kycContent[role];
 
     document.getElementById('kyc-role-badge').innerHTML =
@@ -1176,6 +1192,50 @@
     showScreen(screen1, screen2);
   }
 
+  // ==================================================================
+  // ---- Strict Screen Isolation: #screen-4 vs #screen-5 ----
+  // Only ONE .screen-view and (when on screen-5) only ONE .role-view
+  // may ever be visible (i.e. missing the "hidden" class) at once.
+  // ==================================================================
+  const appBottomNav = document.getElementById('app-bottom-nav');
+
+  function navigateTo(screenId) {
+    // Hide all main screens
+    document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+
+    // Show target screen
+    document.getElementById(screenId).classList.remove('hidden');
+
+    // If opening Screen 5, activate only the active user's role sub-view
+    if (screenId === 'screen-5') {
+      document.querySelectorAll('.role-view').forEach(el => el.classList.add('hidden'));
+      const role = currentUserRole || 'tenant';
+      if (role === 'tenant') document.getElementById('tenant-view').classList.remove('hidden');
+      if (role === 'landlord') document.getElementById('landlord-view').classList.remove('hidden');
+      if (role === 'agent') document.getElementById('agent-view').classList.remove('hidden');
+      populateScreen5();
+    }
+
+    if (screenId === 'screen-4') {
+      populateScreen4();
+    }
+
+    // Bottom nav: visible on screen-4 / screen-5 only, with the matching tab highlighted
+    appBottomNav.classList.remove('hidden');
+    document.getElementById('nav-home').classList.toggle('active', screenId === 'screen-4');
+    document.getElementById('nav-search').classList.toggle('active', screenId === 'screen-5');
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Refresh Lucide icons after DOM updates
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  document.getElementById('nav-home').addEventListener('click', () => navigateTo('screen-4'));
+  document.getElementById('nav-search').addEventListener('click', () => navigateTo('screen-5'));
+  document.getElementById('nav-messages').addEventListener('click', () => showToast('Messages — coming soon'));
+  document.getElementById('nav-profile').addEventListener('click', () => showToast('Profile — coming soon'));
+
   document.getElementById('kyc-back-btn').addEventListener('click', () => {
     showScreen(screen2, screen1);
   });
@@ -1224,7 +1284,7 @@
   };
 
   function populateScreen3() {
-    const role = selectedRole || 'tenant';
+    const role = currentUserRole || 'tenant';
     const data = legalContent[role];
 
     document.getElementById('legal-role-badge').innerHTML =
@@ -1320,7 +1380,7 @@
   const roleDisplayNames = { tenant: 'Tenant', landlord: 'Landlord', agent: 'Agent' };
 
   function populateScreen4() {
-    const role = selectedRole || 'tenant';
+    const role = currentUserRole || 'tenant';
     const data = dashboardContent[role];
     const name = (document.querySelector('#reg-form input[type="text"]')?.value || '').trim() || roleDisplayNames[role];
 
@@ -1355,7 +1415,7 @@
     const tile = e.target.closest('.dash-tile');
     if (!tile) return;
     if (tile.dataset.action === 'browse') {
-      goToScreen5();
+      navigateTo('screen-5');
     } else {
       showToast(`${tile.dataset.label} — coming soon`);
     }
@@ -1388,12 +1448,11 @@
   let selectedTimeslot = null;
 
   function goToScreen5() {
-    populateScreen5();
-    showScreen(screen4, screen5);
+    navigateTo('screen-5');
   }
 
   document.getElementById('s5-back-btn').addEventListener('click', () => {
-    showScreen(screen5, screen4);
+    navigateTo('screen-4');
   });
 
   document.getElementById('s5-filter-btn').addEventListener('click', () => {
@@ -1401,16 +1460,15 @@
   });
 
   function populateScreen5() {
-    const role = selectedRole || 'tenant';
+    const role = currentUserRole || 'tenant';
     const cfg = roleHeaderConfig[role];
 
     document.getElementById('s5-role-eyebrow').innerHTML = `<i data-lucide="${cfg.icon}" class="w-3.5 h-3.5"></i><span>${cfg.eyebrow}</span>`;
     document.getElementById('s5-role-title').textContent = cfg.title;
     document.getElementById('s5-role-sub').textContent = cfg.sub;
 
-    document.getElementById('s5-tenant-view').style.display = role === 'tenant' ? 'block' : 'none';
-    document.getElementById('s5-landlord-view').style.display = role === 'landlord' ? 'block' : 'none';
-    document.getElementById('s5-agent-view').style.display = role === 'agent' ? 'block' : 'none';
+    // Role sub-view visibility (tenant-view / landlord-view / agent-view) is owned
+    // exclusively by navigateTo() — populateScreen5() only fills in content.
 
     document.getElementById('s5-search-input').value = '';
 
@@ -1467,7 +1525,7 @@
   });
 
   document.getElementById('s5-search-input').addEventListener('input', (e) => {
-    if ((selectedRole || 'tenant') !== 'tenant') return;
+    if ((currentUserRole || 'tenant') !== 'tenant') return;
     const q = e.target.value.toLowerCase();
     document.querySelectorAll('#s5-listing-feed .s5-card').forEach(card => {
       const p = tenantListings.find(x => String(x.id) === card.dataset.listingId);
@@ -1627,11 +1685,8 @@
 
   document.getElementById('sign-btn').addEventListener('click', () => {
     if (signBtn.disabled) return;
-    populateScreen4();
     screen3.classList.add('hidden-screen');
-    screen4.classList.remove('hidden-screen');
-    screen4.style.display = 'flex';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigateTo('screen-4'); // populates the dashboard, shows the fixed bottom nav, refreshes icons
     showToast('Agreement signed. Welcome to MainTown Realty!');
   });
 
