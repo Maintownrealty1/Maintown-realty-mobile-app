@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MainTown Realty — Onboarding</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <style>
   /* ---- Standalone fallback styles (render correctly even if Tailwind CDN is blocked) ---- */
   * { box-sizing: border-box; }
@@ -57,7 +58,7 @@
   }
   .role-card:hover { border-color: #334155; }
   .role-card.selected { border-color: #a855f7; background: rgba(59,7,100,0.3); }
-  .role-icon { font-size: 24px; line-height: 1; }
+  .role-icon { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; }
   .role-text { flex: 1; }
   .role-name { font-weight: 500; color: #fff; font-size: 14px; margin: 0 0 2px; }
   .role-sub { font-size: 12px; color: #64748b; margin: 0; }
@@ -207,7 +208,14 @@
   .legal-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
   .legal-box h3 {
     font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin: 18px 0 6px;
+    display: flex; align-items: center; gap: 6px;
   }
+  .legal-box h3 svg { flex-shrink: 0; width: 14px; height: 14px; }
+  .critical-badge {
+    display: inline-flex; align-items: center; gap: 6px; color: #fbbf24; font-weight: 600;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; margin: 0 0 6px;
+  }
+  .critical-badge svg { width: 14px; height: 14px; flex-shrink: 0; }
   .legal-box h3:first-child { margin-top: 0; }
   .legal-box p { margin: 0 0 4px; color: #94a3b8; }
   .legal-box .critical-section h3 { color: #f87171; }
@@ -257,7 +265,10 @@
     padding: 14px; text-align: center; cursor: pointer; transition: border-color 0.15s ease;
   }
   .dash-tile:hover { border-color: #334155; }
-  .dash-tile-icon { font-size: 20px; margin-bottom: 6px; }
+  .dash-tile-icon-wrap {
+    width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center;
+    justify-content: center; margin: 0 auto 8px;
+  }
   .dash-tile-label { font-size: 11.5px; color: #cbd5e1; font-weight: 500; }
   .dash-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
   .dash-list-item {
@@ -266,7 +277,7 @@
   }
   .dash-list-icon {
     width: 34px; height: 34px; border-radius: 10px; background: rgba(147,51,234,0.15);
-    display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   .dash-list-text { flex: 1; }
   .dash-list-title { font-size: 13px; font-weight: 500; color: #fff; margin: 0 0 2px; }
@@ -278,7 +289,7 @@
   }
   .dash-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #64748b; font-size: 10px; cursor: pointer; }
   .dash-nav-item.active { color: #c084fc; }
-  .dash-nav-item span.nav-icon { font-size: 18px; }
+  .dash-nav-item span.nav-icon { display: flex; align-items: center; justify-content: center; }
 </style>
 </head>
 <body>
@@ -313,7 +324,7 @@
   <div class="role-group" id="role-group">
 
     <button type="button" class="role-card" data-role="tenant">
-      <span class="role-icon">🏠</span>
+      <span class="role-icon"><i data-lucide="building-2" class="w-6 h-6 text-purple-400"></i></span>
       <div class="role-text">
         <p class="role-name">Tenant / Renter</p>
         <p class="role-sub">Local & Diaspora</p>
@@ -324,7 +335,7 @@
     </button>
 
     <button type="button" class="role-card" data-role="landlord">
-      <span class="role-icon">🔑</span>
+      <span class="role-icon"><i data-lucide="key-round" class="w-6 h-6 text-purple-400"></i></span>
       <div class="role-text">
         <p class="role-name">Landlord / Property Owner</p>
         <p class="role-sub">List & manage properties</p>
@@ -335,7 +346,7 @@
     </button>
 
     <button type="button" class="role-card" data-role="agent">
-      <span class="role-icon">🏢</span>
+      <span class="role-icon"><i data-lucide="briefcase" class="w-6 h-6 text-purple-400"></i></span>
       <div class="role-text">
         <p class="role-name">Real Estate Agent / Broker</p>
         <p class="role-sub">Represent listings & clients</p>
@@ -364,9 +375,9 @@
       <label class="field-label">Phone Number</label>
       <div class="phone-row">
         <select class="country-select" id="country-code">
-          <option value="+234">🇳🇬 +234</option>
-          <option value="+1">🇨🇦 +1</option>
-          <option value="+44">🇬🇧 +44</option>
+          <option value="+234">NG +234</option>
+          <option value="+1">CA +1</option>
+          <option value="+44">UK +44</option>
         </select>
         <input class="field-input phone-input" type="tel" required placeholder="801 234 5678">
       </div>
@@ -435,8 +446,8 @@
   <button type="button" id="kyc-continue-btn" class="btn-primary" disabled>
     Proceed to Step 3: Legal Policy
   </button>
-  <button type="button" id="kyc-back-btn" class="btn-primary" style="background: rgba(15,23,42,0.8); border:1px solid #1e293b; box-shadow:none; margin-top:10px;">
-    ← Back to Account Setup
+  <button type="button" id="kyc-back-btn" class="btn-primary" style="background: rgba(15,23,42,0.8); border:1px solid #1e293b; box-shadow:none; margin-top:10px; display:flex; align-items:center; justify-content:center; gap:6px;">
+    <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Account Setup
   </button>
 </div>
 <!-- ===================== END SCREEN 2 ===================== -->
@@ -468,7 +479,7 @@
   <div id="legal-box" class="legal-box">
     <!-- populated dynamically based on role -->
   </div>
-  <p class="scroll-hint">↕ Scroll to read the complete agreement</p>
+  <p class="scroll-hint" style="display:flex; align-items:center; justify-content:center; gap:5px;"><i data-lucide="move-vertical" class="w-3.5 h-3.5"></i> Scroll to read the complete agreement</p>
 
   <label class="agree-row">
     <input type="checkbox" id="agree-checkbox" class="agree-checkbox">
@@ -483,8 +494,8 @@
   <button type="button" id="sign-btn" class="btn-primary" disabled>
     Sign Agreement & Launch App Dashboard
   </button>
-  <button type="button" id="legal-back-btn" class="btn-primary" style="background: rgba(15,23,42,0.8); border:1px solid #1e293b; box-shadow:none; margin-top:10px;">
-    ← Back to KYC Verification
+  <button type="button" id="legal-back-btn" class="btn-primary" style="background: rgba(15,23,42,0.8); border:1px solid #1e293b; box-shadow:none; margin-top:10px; display:flex; align-items:center; justify-content:center; gap:6px;">
+    <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to KYC Verification
   </button>
 </div>
 <!-- ===================== END SCREEN 3 ===================== -->
@@ -517,10 +528,10 @@
   </div>
 
   <div class="dash-nav">
-    <div class="dash-nav-item active"><span class="nav-icon">🏠</span>Home</div>
-    <div class="dash-nav-item"><span class="nav-icon">🔍</span>Search</div>
-    <div class="dash-nav-item"><span class="nav-icon">💬</span>Messages</div>
-    <div class="dash-nav-item"><span class="nav-icon">👤</span>Profile</div>
+    <div class="dash-nav-item active"><span class="nav-icon"><i data-lucide="home" class="w-[18px] h-[18px]"></i></span>Home</div>
+    <div class="dash-nav-item"><span class="nav-icon"><i data-lucide="search" class="w-[18px] h-[18px]"></i></span>Search</div>
+    <div class="dash-nav-item"><span class="nav-icon"><i data-lucide="message-square" class="w-[18px] h-[18px]"></i></span>Messages</div>
+    <div class="dash-nav-item"><span class="nav-icon"><i data-lucide="user" class="w-[18px] h-[18px]"></i></span>Profile</div>
   </div>
 </div>
 <!-- ===================== END SCREEN 4 ===================== -->
@@ -531,9 +542,7 @@
 <div id="otp-modal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-icon-wrap">
-      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
-      </svg>
+      <i data-lucide="shield-check" class="w-8 h-8 text-purple-400"></i>
     </div>
     <h2 class="modal-title">Verify your identity</h2>
     <p class="modal-sub">Enter the 6-digit verification code sent to your Phone & Email</p>
@@ -638,26 +647,29 @@
   // ---- Role-based KYC content for Screen 2 ----
   const kycContent = {
     tenant: {
-      label: '🏠 Tenant / Renter',
+      label: 'Tenant / Renter',
+      roleIcon: 'building-2',
       items: [
-        'Government-issued ID (NIN, Driver\'s License, or Passport)',
-        'Proof of address (utility bill, not older than 3 months)',
-        'Employment or income verification',
-        'Next of kin / emergency contact details'
+        { text: 'Government-issued ID (NIN, Driver\'s License, or Passport)', icon: 'id-card' },
+        { text: 'Proof of address (utility bill, not older than 3 months)', icon: 'landmark' },
+        { text: 'Employment or income verification', icon: 'file-text' },
+        { text: 'Next of kin / emergency contact details', icon: 'file-text' }
       ]
     },
     landlord: {
-      label: '🔑 Landlord / Property Owner',
+      label: 'Landlord / Property Owner',
+      roleIcon: 'key-round',
       items: [
-        'Personal Identification (NIN, Passport, or BVN)',
-        'Bank account details for rent disbursement'
+        { text: 'Personal Identification (NIN, Passport, or BVN)', icon: 'id-card' },
+        { text: 'Bank account details for rent disbursement', icon: 'landmark' }
       ]
     },
     agent: {
-      label: '🏢 Real Estate Agent / Broker',
+      label: 'Real Estate Agent / Broker',
+      roleIcon: 'briefcase',
       items: [
-        'Personal Identification (NIN, Passport, or BVN)',
-        'Bank account details for commission payout'
+        { text: 'Personal Identification (NIN, Passport, or BVN)', icon: 'id-card' },
+        { text: 'Bank account details for commission payout', icon: 'landmark' }
       ]
     }
   };
@@ -693,10 +705,8 @@
         itemEl.classList.remove('uploading');
         itemEl.classList.add('uploaded');
         statusEl.textContent = 'Uploaded successfully';
-        iconWrap.innerHTML = `
-          <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
-          </svg>`;
+        iconWrap.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400"></i>`;
+        if (window.lucide) lucide.createIcons();
         kycUploadedCount += 1;
         updateKycContinueState();
       }
@@ -707,24 +717,23 @@
     const role = selectedRole || 'tenant';
     const data = kycContent[role];
 
-    document.getElementById('kyc-role-badge').textContent = data.label;
+    document.getElementById('kyc-role-badge').innerHTML =
+      `<i data-lucide="${data.roleIcon}" class="w-4 h-4"></i><span>${data.label}</span>`;
 
     kycUploadedCount = 0;
     kycTotalDocs = data.items.length;
 
     const list = document.getElementById('kyc-list');
     list.innerHTML = '';
-    data.items.forEach((text, i) => {
+    data.items.forEach((docItem, i) => {
       const item = document.createElement('div');
       item.className = 'kyc-item';
       item.innerHTML = `
         <div class="kyc-item-icon-wrap">
-          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3 3m0 0l-3-3m3 3V9"/>
-          </svg>
+          <i data-lucide="${docItem.icon}" class="w-5 h-5 text-slate-400"></i>
         </div>
         <div class="kyc-item-text">
-          <p class="kyc-item-title">${text}</p>
+          <p class="kyc-item-title">${docItem.text}</p>
           <p class="kyc-item-status">Tap to upload</p>
         </div>
         <input type="file" hidden class="kyc-file-input" id="kyc-file-${i}">
@@ -744,6 +753,7 @@
     });
 
     updateKycContinueState();
+    if (window.lucide) lucide.createIcons();
   }
 
   // ---- Screen transition ----
@@ -757,6 +767,7 @@
     toEl.classList.remove('hidden-screen');
     toEl.style.display = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.lucide) lucide.createIcons();
   }
 
   function goToScreen2() {
@@ -771,7 +782,8 @@
   // ---- Legal terms content per role ----
   const legalContent = {
     tenant: {
-      label: '🏠 Tenant / Diaspora Renter',
+      label: 'Tenant / Diaspora Renter',
+      roleIcon: 'building-2',
       sections: [
         { title: 'Section 1: Rental & Escrow Terms', body: 'Full agreement on holding deposit schedules, flex-rent payments, and cross-border currency conversion rules.' },
         { title: 'Section 2: Digital Handover & Inspection', body: 'Mandatory 24-hour post-inspection sign-off rules.' },
@@ -784,7 +796,8 @@
       ]
     },
     landlord: {
-      label: '🔑 Landlord / Owner',
+      label: 'Landlord / Owner',
+      roleIcon: 'key-round',
       sections: [
         { title: 'Section 1: Title & Ownership Warranties', body: 'Legal declaration that property title, CofO, or land consent documents provided are authentic and legally free of third-party encumbrances.' },
         { title: 'Section 2: Escrow Disbursement Schedule', body: 'Strict agreement to 24-48 hour payout release following tenant digital handover sign-off.' },
@@ -795,7 +808,8 @@
       ]
     },
     agent: {
-      label: '🏢 Real Estate Agent',
+      label: 'Real Estate Agent',
+      roleIcon: 'briefcase',
       sections: [
         { title: 'Section 1: Inspection Integrity', body: 'Mandatory requirement to perform verified physical or live video walkthroughs prior to listing approval.' },
         { title: 'Section 2: Commission Transparency', body: 'Agreement to adhere strictly to standardized platform commission fee caps.' },
@@ -812,15 +826,22 @@
     const role = selectedRole || 'tenant';
     const data = legalContent[role];
 
-    document.getElementById('legal-role-badge').textContent = data.label;
+    document.getElementById('legal-role-badge').innerHTML =
+      `<i data-lucide="${data.roleIcon}" class="w-4 h-4"></i><span>${data.label}</span>`;
 
     const box = document.getElementById('legal-box');
     box.innerHTML = data.sections.map(s => {
+      const heading = `<h3><i data-lucide="scale" class="text-purple-400"></i>${s.title}</h3>`;
       if (s.critical) {
-        return `<div class="critical-section"><h3>${s.title}</h3><p>${s.body}</p></div>`;
+        return `<div class="critical-section">
+          <div class="critical-badge"><i data-lucide="alert-triangle" class="text-amber-400"></i>Eviction &amp; Compliance Warning</div>
+          ${heading}<p>${s.body}</p>
+        </div>`;
       }
-      return `<h3>${s.title}</h3><p>${s.body}</p>`;
+      return `${heading}<p>${s.body}</p>`;
     }).join('');
+
+    if (window.lucide) lucide.createIcons();
   }
 
   document.getElementById('kyc-continue-btn').addEventListener('click', () => {
@@ -851,14 +872,14 @@
       cardValue: '₦180,000 / mo',
       cardSub: 'Next payment due in 12 days',
       actions: [
-        { icon: '🔍', label: 'Find a Home' },
-        { icon: '💳', label: 'Pay Rent' },
-        { icon: '🛠️', label: 'Report Issue' },
-        { icon: '📄', label: 'My Lease' }
+        { icon: 'search', label: 'Find a Home', bg: 'bg-purple-500/10', color: 'text-purple-400' },
+        { icon: 'wallet', label: 'Pay Rent', bg: 'bg-emerald-500/10', color: 'text-emerald-400' },
+        { icon: 'wrench', label: 'Report Issue', bg: 'bg-amber-500/10', color: 'text-amber-400' },
+        { icon: 'file-text', label: 'My Lease', bg: 'bg-blue-500/10', color: 'text-blue-400' }
       ],
       activity: [
-        { icon: '💳', title: 'Rent payment received', sub: 'Aug 1 · ₦180,000' },
-        { icon: '🏠', title: 'Inspection scheduled', sub: '2-bed flat, Lekki Phase 1' }
+        { icon: 'receipt', color: 'text-emerald-400', title: 'Rent payment received', sub: 'Aug 1 · ₦180,000' },
+        { icon: 'calendar-check', color: 'text-amber-400', title: 'Inspection scheduled', sub: '2-bed flat, Lekki Phase 1' }
       ]
     },
     landlord: {
@@ -867,14 +888,14 @@
       cardValue: '₦1,240,000',
       cardSub: '3 active tenants across 2 properties',
       actions: [
-        { icon: '➕', label: 'List Property' },
-        { icon: '💰', label: 'Payouts' },
-        { icon: '👥', label: 'Tenants' },
-        { icon: '📋', label: 'Inspections' }
+        { icon: 'plus-circle', label: 'List Property', bg: 'bg-purple-500/10', color: 'text-purple-400' },
+        { icon: 'wallet', label: 'Payouts', bg: 'bg-emerald-500/10', color: 'text-emerald-400' },
+        { icon: 'users', label: 'Tenants', bg: 'bg-blue-500/10', color: 'text-blue-400' },
+        { icon: 'calendar-check', label: 'Inspections', bg: 'bg-amber-500/10', color: 'text-amber-400' }
       ],
       activity: [
-        { icon: '💰', title: 'Payout disbursed', sub: 'Aug 3 · ₦620,000' },
-        { icon: '✅', title: 'Handover sign-off completed', sub: 'Unit 4B, Ikeja' }
+        { icon: 'wallet', color: 'text-emerald-400', title: 'Payout disbursed', sub: 'Aug 3 · ₦620,000' },
+        { icon: 'check-circle-2', color: 'text-emerald-400', title: 'Handover sign-off completed', sub: 'Unit 4B, Ikeja' }
       ]
     },
     agent: {
@@ -883,14 +904,14 @@
       cardValue: '₦345,000',
       cardSub: '5 listings under management',
       actions: [
-        { icon: '➕', label: 'Add Listing' },
-        { icon: '📅', label: 'Walkthroughs' },
-        { icon: '💼', label: 'Clients' },
-        { icon: '📊', label: 'Commission' }
+        { icon: 'plus-circle', label: 'Add Listing', bg: 'bg-purple-500/10', color: 'text-purple-400' },
+        { icon: 'calendar-check', label: 'Walkthroughs', bg: 'bg-amber-500/10', color: 'text-amber-400' },
+        { icon: 'users', label: 'Clients', bg: 'bg-blue-500/10', color: 'text-blue-400' },
+        { icon: 'bar-chart-3', label: 'Commission', bg: 'bg-emerald-500/10', color: 'text-emerald-400' }
       ],
       activity: [
-        { icon: '📅', title: 'Walkthrough completed', sub: 'Duplex, Victoria Island' },
-        { icon: '💼', title: 'New client matched', sub: 'Diaspora tenant · Canada' }
+        { icon: 'calendar-check', color: 'text-amber-400', title: 'Walkthrough completed', sub: 'Duplex, Victoria Island' },
+        { icon: 'user-check', color: 'text-blue-400', title: 'New client matched', sub: 'Diaspora tenant · Canada' }
       ]
     }
   };
@@ -911,19 +932,21 @@
     const grid = document.getElementById('dash-grid');
     grid.innerHTML = data.actions.map(a => `
       <div class="dash-tile">
-        <div class="dash-tile-icon">${a.icon}</div>
+        <div class="dash-tile-icon-wrap ${a.bg}"><i data-lucide="${a.icon}" class="w-6 h-6 ${a.color}"></i></div>
         <div class="dash-tile-label">${a.label}</div>
       </div>`).join('');
 
     const list = document.getElementById('dash-list');
     list.innerHTML = data.activity.map(item => `
       <div class="dash-list-item">
-        <div class="dash-list-icon">${item.icon}</div>
+        <div class="dash-list-icon"><i data-lucide="${item.icon}" class="w-4 h-4 ${item.color}"></i></div>
         <div class="dash-list-text">
           <p class="dash-list-title">${item.title}</p>
           <p class="dash-list-sub">${item.sub}</p>
         </div>
       </div>`).join('');
+
+    if (window.lucide) lucide.createIcons();
   }
 
   document.getElementById('sign-btn').addEventListener('click', () => {
@@ -952,6 +975,9 @@
       goToScreen2();
     }, 700);
   });
+
+  // ---- Initial icon render (Screen 1 role cards, OTP modal, etc.) ----
+  if (window.lucide) lucide.createIcons();
 </script>
 
 </body>
