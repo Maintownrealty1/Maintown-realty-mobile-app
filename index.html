@@ -296,6 +296,47 @@
   .dash-list-text { flex: 1; }
   .dash-list-title { font-size: 13px; font-weight: 500; color: #fff; margin: 0 0 2px; }
   .dash-list-sub { font-size: 11.5px; color: #64748b; margin: 0; }
+
+  /* ---- Dashboard: sleek inspections summary action card ---- */
+  .dash-summary-card {
+    display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 20px;
+    background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.35); border-radius: 14px;
+    cursor: pointer; transition: border-color 0.15s ease;
+  }
+  .dash-summary-card:hover { border-color: rgba(245,158,11,0.6); }
+  .dash-summary-icon {
+    width: 34px; height: 34px; border-radius: 10px; background: rgba(245,158,11,0.18);
+    color: #fbbf24; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .dash-summary-text { flex: 1; }
+  .dash-summary-title { font-size: 13px; font-weight: 600; color: #fbbf24; margin: 0 0 1px; }
+  .dash-summary-sub { font-size: 11px; color: #94a3b8; margin: 0; }
+
+  /* ---- Dev Role Switcher (floating pill, all screens) ---- */
+  .dev-role-switcher {
+    position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 9999;
+    display: flex; gap: 4px; padding: 4px; border-radius: 999px;
+    background: rgba(11,15,25,0.92); border: 1px solid #334155; backdrop-filter: blur(8px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  }
+  .dev-role-btn {
+    border: none; background: transparent; color: #94a3b8; font-size: 10.5px; font-weight: 600;
+    padding: 6px 9px; border-radius: 999px; cursor: pointer; white-space: nowrap; transition: all 0.15s ease;
+  }
+  .dev-role-btn.active { background: linear-gradient(90deg, #9333ea, #7e22ce); color: #fff; }
+
+  /* ---- Inspections Manager (Landlord / Agent cross-role actions) ---- */
+  .insp-status-pending { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); }
+  .insp-status-confirmed { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+  .insp-status-conducted { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
+  .insp-mgmt-actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .insp-mgr-btn {
+    flex: 1; min-width: 120px; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px 10px; border-radius: 10px; font-size: 11.5px; font-weight: 600; cursor: pointer; border: none;
+  }
+  .insp-mgr-accept { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+  .insp-mgr-decline { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.35); }
+  .insp-mgr-conduct { background: rgba(147,51,234,0.15); color: #c084fc; border: 1px solid rgba(147,51,234,0.4); }
   /* ---- Fixed bottom navigation bar (lives OUTSIDE #screen-4 / #screen-5) ---- */
   #app-bottom-nav { display: flex; justify-content: center; padding: 0 20px 16px; pointer-events: none; }
   #app-bottom-nav.hidden { display: none; } /* higher specificity than a plain .hidden rule, so this always wins */
@@ -551,9 +592,142 @@
   .ticket-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
   .ticket-title { font-size: 13px; font-weight: 600; color: #fff; margin: 0; }
   .receipt-box { background: rgba(15,23,42,0.9); border: 1px solid #1e293b; border-radius: 14px; padding: 14px 16px; margin: 10px 0; }
+
+  /* ===================================================================
+     MOBILE SCROLL / LAYOUT FIXES
+     =================================================================== */
+  html, body {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+  }
+  .app-shell { align-items: flex-start; } /* top-align content instead of any implicit vertical centering */
+  .pt-20 { padding-top: 80px !important; }
+  .pb-36 { padding-bottom: 144px !important; }
+  /* Give every tall scrollable screen room at the top (fixed header) and bottom (fixed nav / sticky CTA) */
+  .screen-view.pb-24, #screen-1.screen { -webkit-overflow-scrolling: touch; }
+  .pb-24 { padding-bottom: 140px; } /* extra clearance above the fixed bottom nav */
+
+  /* Sticky/fixed glass CTA container pinned to the bottom of the viewport */
+  .sticky-cta-wrap {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    display: flex; justify-content: center;
+    padding: 14px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+    background: rgba(11,15,25,0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid #1e293b;
+  }
+  .sticky-cta-wrap .btn-primary { max-width: 380px; margin: 0; }
+  .sticky-cta-inner { width: 100%; max-width: 380px; }
+
+  /* ===================================================================
+     INSPECTION CART ENGINE
+     =================================================================== */
+  .cart-fab {
+    position: relative; width: 38px; height: 38px; border-radius: 12px; background: rgba(15,23,42,0.8);
+    border: 1px solid #1e293b; display: flex; align-items: center; justify-content: center;
+    color: #cbd5e1; cursor: pointer; flex-shrink: 0; transition: border-color 0.15s ease;
+  }
+  .cart-fab:hover { border-color: #334155; }
+  .cart-fab-badge {
+    position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 4px;
+    border-radius: 999px; background: #9333ea; color: #fff; font-size: 10px; font-weight: 700;
+    display: none; align-items: center; justify-content: center; border: 2px solid #0B0F19;
+  }
+  .cart-fab-badge.show { display: flex; }
+  .cart-item {
+    background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 16px; padding: 14px; margin-bottom: 14px;
+  }
+  .cart-item-top { display: flex; gap: 12px; margin-bottom: 12px; }
+  .cart-item-img { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: #1e293b; }
+  .cart-item-text { flex: 1; min-width: 0; }
+  .cart-item-title { font-size: 13.5px; font-weight: 600; color: #fff; margin: 0 0 2px; }
+  .cart-item-loc { font-size: 11.5px; color: #64748b; margin: 0 0 4px; display: flex; align-items: center; gap: 4px; }
+  .cart-item-fee { font-size: 12px; font-weight: 600; color: #c084fc; margin: 0; }
+  .cart-item-remove { background: none; border: none; color: #64748b; cursor: pointer; padding: 4px; flex-shrink: 0; }
+  .cart-item-remove:hover { color: #f87171; }
+  .cart-item-datetime { display: flex; gap: 8px; }
+  .cart-item-datetime .field-input { padding: 10px 12px; font-size: 12.5px; }
+  .cart-summary-card {
+    background: linear-gradient(135deg, #9333ea, #581c87); border-radius: 18px; padding: 18px;
+    margin-bottom: 20px; box-shadow: 0 12px 30px rgba(147,51,234,0.25);
+  }
+  .cart-summary-row { display: flex; justify-content: space-between; font-size: 12.5px; color: rgba(255,255,255,0.85); padding: 4px 0; }
+  .cart-summary-row strong { color: #fff; font-size: 15px; }
+  .cart-escrow-badge {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15);
+    color: #fff; font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 999px; margin-top: 10px;
+  }
+  .cart-empty-state { text-align: center; padding: 40px 16px; color: #64748b; }
+  .cart-empty-state svg { margin: 0 auto 12px; opacity: 0.5; }
+
+  /* ===================================================================
+     INSPECTION SCHEDULES VIEW
+     =================================================================== */
+  .insp-mgmt-card { background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 16px; padding: 14px; margin-bottom: 14px; }
+  .insp-mgmt-top { display: flex; gap: 12px; margin-bottom: 12px; }
+  .insp-mgmt-img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; flex-shrink: 0; background: #1e293b; }
+  .insp-mgmt-text { flex: 1; min-width: 0; }
+  .insp-mgmt-title { font-size: 13.5px; font-weight: 600; color: #fff; margin: 0 0 2px; }
+  .insp-mgmt-loc { font-size: 11.5px; color: #64748b; margin: 0 0 6px; display: flex; align-items: center; gap: 4px; }
+  .insp-mgmt-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+  .insp-date-badge {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600;
+    padding: 4px 8px; border-radius: 999px; background: rgba(147,51,234,0.15); color: #c084fc;
+    border: 1px solid rgba(147,51,234,0.35);
+  }
+  .insp-mgmt-actions { display: flex; gap: 8px; }
+
+  /* ===================================================================
+     DEV / ADMIN TESTING BYPASS
+     =================================================================== */
+  .s5-status-live { background: rgba(16,185,129,0.18); color: #34d399; border: 1px solid rgba(16,185,129,0.5); }
+  .dev-approve-btn {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700;
+    padding: 4px 9px; border-radius: 999px; background: rgba(245,158,11,0.15); color: #fbbf24;
+    border: 1px dashed rgba(245,158,11,0.5); cursor: pointer; margin-top: 6px; white-space: nowrap;
+  }
+  .dev-approve-btn:hover { background: rgba(245,158,11,0.25); }
+  .s5-list-status-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+  .auto-approve-row {
+    display: flex; align-items: center; gap: 8px; font-size: 12px; color: #94a3b8;
+    background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 12px; padding: 12px 14px; margin: 4px 0 16px;
+  }
+  .auto-approve-row input { width: 16px; height: 16px; accent-color: #9333ea; cursor: pointer; flex-shrink: 0; }
+
+  /* ===================================================================
+     MOBILE SCROLL FIX: Landlord / Agent Property Upload Form
+     Ensures the upload form scrolls fully on mobile webviews and is never
+     clipped by a parent's fixed height, and that the submit CTA + last
+     fields clear the fixed bottom nav.
+     =================================================================== */
+  #screen-5, #agent-view, #landlord-view {
+    overflow-y: visible;
+    max-height: none;
+  }
+  #s5-agent-new {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    max-height: 100vh;
+    max-height: 100dvh;
+  }
+  #s5-listing-form {
+    padding-bottom: 160px; /* generous clearance above the fixed bottom nav + submit button */
+  }
+  .app-shell, .screen-view {
+    overflow: visible !important; /* never let an ancestor clip the scrollable form */
+  }
+  /* Push content down so it never sits underneath the fixed Dev Role Switcher pill */
+  .app-shell { padding-top: 68px; }
 </style>
 </head>
 <body>
+
+<!-- ===================== DEV ROLE SWITCHER (floating, persists across all screens) ===================== -->
+<div id="dev-role-switcher" class="dev-role-switcher">
+  <button type="button" class="dev-role-btn" id="dev-role-tenant" data-role="tenant">👤 Tenant</button>
+  <button type="button" class="dev-role-btn" id="dev-role-agent" data-role="agent">🏢 Agent</button>
+  <button type="button" class="dev-role-btn" id="dev-role-landlord" data-role="landlord">🏠 Landlord</button>
+</div>
+<!-- ===================== END DEV ROLE SWITCHER ===================== -->
 
 <div class="app-shell">
 
@@ -620,7 +794,7 @@
   </div>
 
   <!-- Registration Form -->
-  <form id="reg-form">
+  <form id="reg-form" class="pb-36">
 
     <div class="field">
       <label class="field-label">Full Name</label>
@@ -660,11 +834,17 @@
       </div>
     </div>
 
-    <button type="submit" id="continue-btn" class="btn-primary" disabled>
-      Continue to Verification
-    </button>
-    <p id="role-hint" class="role-hint">Select a role above to continue</p>
   </form>
+
+  <!-- Pinned CTA: always visible/clickable regardless of form height on small screens -->
+  <div class="sticky-cta-wrap">
+    <div class="sticky-cta-inner">
+      <button type="submit" form="reg-form" id="continue-btn" class="btn-primary" disabled>
+        Continue to Verification
+      </button>
+      <p id="role-hint" class="role-hint">Select a role above to continue</p>
+    </div>
+  </div>
 
 </div>
 <!-- ===================== END SCREEN 1 ===================== -->
@@ -805,6 +985,8 @@
     <p class="dash-card-sub" id="dash-card-sub">—</p>
   </div>
 
+  <div id="dash-inspections-summary"><!-- populated dynamically --></div>
+
   <p class="dash-section-title">Quick Actions</p>
   <div class="dash-grid" id="dash-grid">
     <!-- populated dynamically based on role -->
@@ -832,6 +1014,10 @@
         <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
       </button>
     </div>
+    <button type="button" class="cart-fab" id="s5-cart-btn">
+      <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+      <span class="cart-fab-badge" id="s5-cart-badge">0</span>
+    </button>
   </div>
 
   <div class="s5-role-header">
@@ -846,8 +1032,6 @@
       <button type="button" class="toggle-pill active" id="s5-tab-rent" data-listing-type="rent">For Rent</button>
       <button type="button" class="toggle-pill" id="s5-tab-land" data-listing-type="land">Buy Land &amp; Properties</button>
     </div>
-
-    <div id="s5-inspection-banner"></div>
 
     <div class="s5-currency-toggle" id="s5-currency-toggle-wrap">
       <button type="button" class="s5-currency-btn active" data-currency="ngn">Local Rent (NGN)</button>
@@ -869,6 +1053,11 @@
     <div id="s5-landlord-list">
       <!-- populated dynamically -->
     </div>
+
+    <p class="s5-section-label"><i data-lucide="calendar-check" class="w-4 h-4 text-amber-400"></i>Inspections Manager</p>
+    <div id="s5-landlord-inspections">
+      <!-- populated dynamically: pending / confirmed inspection requests -->
+    </div>
   </div>
 
   <!-- ---- AGENT VIEW: Upload Listing & Mandatory Landlord Mapping ---- -->
@@ -880,7 +1069,7 @@
 
     <!-- New Listing form -->
     <div id="s5-agent-new">
-      <form id="s5-listing-form">
+      <form id="s5-listing-form" class="pb-36">
         <div class="field">
           <label class="field-label">Listing Title</label>
           <input class="field-input" id="s5-listing-title" type="text" required placeholder="e.g. 2-Bed Flat, Lekki Phase 1">
@@ -944,15 +1133,25 @@
           <p>Submitting this listing automatically sends an instant SMS &amp; WhatsApp invite to the landlord. Escrow funds are locked until the landlord joins and confirms ownership.</p>
         </div>
 
+        <label class="auto-approve-row" for="s5-auto-approve">
+          <input type="checkbox" id="s5-auto-approve">
+          <span>Auto-approve listing for testing (Skip Landlord/Admin Queue)</span>
+        </label>
+
         <button type="submit" class="btn-primary">Submit Listing &amp; Notify Landlord</button>
       </form>
     </div>
 
-    <!-- My Listings (Inspection Manager) -->
+    <!-- My Listings -->
     <div id="s5-agent-mine" style="display:none;">
-      <p class="s5-section-label"><i data-lucide="calendar-check" class="w-4 h-4 text-amber-400"></i>Inspection Manager</p>
+      <p class="s5-section-label"><i data-lucide="building-2" class="w-4 h-4 text-purple-400"></i>My Listings</p>
       <div id="s5-agent-listings">
         <!-- populated dynamically -->
+      </div>
+
+      <p class="s5-section-label"><i data-lucide="calendar-check" class="w-4 h-4 text-amber-400"></i>Inspections Manager</p>
+      <div id="s5-agent-inspections">
+        <!-- populated dynamically: pending / confirmed inspection requests -->
       </div>
     </div>
   </div>
@@ -1188,6 +1387,52 @@
 
 </div>
 <!-- ===================== END SCREEN MESSAGES ===================== -->
+
+<!-- ===================== SCREEN CART: Multi-Property Inspection Cart ===================== -->
+<div id="screen-cart" class="screen-view hidden pb-24">
+
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="cart-back-btn">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i><span>Inspection Cart</span></p>
+    </div>
+  </div>
+
+  <h1 class="s5-role-title" style="margin-bottom: 4px;">Your selected properties</h1>
+  <p class="s5-role-sub" style="margin-bottom: 18px;">Pick a date &amp; time for each inspection before checkout.</p>
+
+  <div id="cart-items-wrap"><!-- populated dynamically --></div>
+
+  <div id="cart-summary-wrap"><!-- populated dynamically --></div>
+
+  <button type="button" id="cart-confirm-btn" class="btn-primary" style="display:flex; align-items:center; justify-content:center; gap:6px;">
+    <i data-lucide="check-circle-2" class="w-4 h-4"></i> Confirm &amp; Pay Inspections
+  </button>
+
+</div>
+<!-- ===================== END SCREEN CART ===================== -->
+
+<!-- ===================== SCREEN INSPECTIONS: Dedicated Inspection Schedules View ===================== -->
+<div id="screen-inspections" class="screen-view hidden pb-24">
+
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="insp-back-btn">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="calendar" class="w-3.5 h-3.5"></i><span>Inspection Schedules</span></p>
+    </div>
+  </div>
+
+  <h1 class="s5-role-title" style="margin-bottom: 16px;">Scheduled Inspections</h1>
+
+  <div id="insp-schedule-list"><!-- populated dynamically --></div>
+  <p id="insp-empty-hint" class="role-hint" style="display:none;">No inspections scheduled yet. Add properties to your cart to get started.</p>
+
+</div>
+<!-- ===================== END SCREEN INSPECTIONS ===================== -->
 
 </div>
 <!-- ===================== FIXED BOTTOM NAVIGATION (outside #screen-4 and #screen-5) ===================== -->
@@ -1720,7 +1965,14 @@
   // ==================================================================
   const appBottomNav = document.getElementById('app-bottom-nav');
 
-  function navigateTo(screenId) {
+  // ---- Hash-based history stack: lets the phone's native back button / swipe-back
+  // navigate screen-by-screen instead of reloading or exiting the app on Vercel ----
+  let navigationHistory = ['screen-4'];
+  let isPopStateNav = false; // guards against re-pushing history while handling a popstate event
+
+  function navigateTo(screenId, opts) {
+    opts = opts || {};
+
     // Hide all main screens
     document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
 
@@ -1735,6 +1987,7 @@
       if (role === 'landlord') document.getElementById('landlord-view').classList.remove('hidden');
       if (role === 'agent') document.getElementById('agent-view').classList.remove('hidden');
       populateScreen5();
+      if (typeof updateCartBadge === 'function') updateCartBadge();
     }
 
     if (screenId === 'screen-4') {
@@ -1749,6 +2002,14 @@
       populateScreen7();
     }
 
+    if (screenId === 'screen-cart') {
+      renderCartScreen();
+    }
+
+    if (screenId === 'screen-inspections') {
+      renderSchedulesScreen();
+    }
+
     // Bottom nav: visible on screen-4 / screen-5 / screen-messages, with the matching tab highlighted
     appBottomNav.classList.remove('hidden');
     document.getElementById('nav-home').classList.toggle('active', screenId === 'screen-4');
@@ -1759,7 +2020,41 @@
 
     // Refresh Lucide icons after DOM updates
     if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    // ---- Browser/hash history sync ----
+    if (!isPopStateNav) {
+      if (navigationHistory[navigationHistory.length - 1] !== screenId) {
+        navigationHistory.push(screenId);
+      }
+      if (window.location.hash !== `#${screenId}`) {
+        window.location.hash = screenId;
+      }
+    }
   }
+
+  // Native back button / swipe-back gesture: read the hash and activate that screen
+  // without pushing a new history entry or reloading the app.
+  window.addEventListener('popstate', () => {
+    const hash = window.location.hash.replace('#', '');
+    isPopStateNav = true;
+    try {
+      if (hash && document.getElementById(hash) && document.getElementById(hash).classList.contains('screen-view')) {
+        navigateTo(hash);
+        // Keep the internal stack roughly in sync with the browser's own history
+        const existingIdx = navigationHistory.lastIndexOf(hash);
+        if (existingIdx !== -1) {
+          navigationHistory = navigationHistory.slice(0, existingIdx + 1);
+        } else {
+          navigationHistory.push(hash);
+        }
+      } else {
+        navigateTo('screen-4');
+        navigationHistory = ['screen-4'];
+      }
+    } finally {
+      isPopStateNav = false;
+    }
+  });
 
   document.getElementById('nav-home').addEventListener('click', () => navigateTo('screen-4'));
   document.getElementById('nav-search').addEventListener('click', () => navigateTo('screen-5'));
@@ -1903,7 +2198,7 @@
       ],
       activity: [
         { icon: 'receipt', color: 'text-emerald-400', title: 'Rent payment received', sub: 'Aug 1 · ₦180,000' },
-        { icon: 'calendar-check', color: 'text-amber-400', title: 'Inspection scheduled', sub: '2-bed flat, Lekki Phase 1' }
+        { icon: 'calendar-check', color: 'text-amber-400', title: 'Inspection scheduled', sub: '2-bed flat, Lekki Phase 1', action: 'inspections' }
       ]
     },
     landlord: {
@@ -1962,7 +2257,7 @@
 
     const list = document.getElementById('dash-list');
     list.innerHTML = data.activity.map(item => `
-      <div class="dash-list-item">
+      <div class="dash-list-item" ${item.action ? `data-action="${item.action}" style="cursor:pointer;"` : ''}>
         <div class="dash-list-icon"><i data-lucide="${item.icon}" class="w-4 h-4 ${item.color}"></i></div>
         <div class="dash-list-text">
           <p class="dash-list-title">${item.title}</p>
@@ -1970,7 +2265,37 @@
         </div>
       </div>`).join('');
 
+    renderInspectionsSummaryCard();
     if (window.lucide) lucide.createIcons();
+  }
+
+  // ---- Clean single summary action card: "Active Inspections (N Pending)" ----
+  // Replaces bulky inline booking cards — routes straight to the Inspection Schedules Hub.
+  function renderInspectionsSummaryCard() {
+    const wrap = document.getElementById('dash-inspections-summary');
+    if (!wrap) return;
+    const role = currentUserRole || 'tenant';
+    let pendingCount = 0, confirmedCount = 0;
+    if (typeof schedules !== 'undefined') {
+      pendingCount = schedules.filter(s => s.status === 'Pending Approval').length;
+      confirmedCount = schedules.filter(s => s.status === 'Confirmed' || s.status === 'Conducted').length;
+    }
+    const total = pendingCount + confirmedCount;
+    if (!total) { wrap.innerHTML = ''; return; }
+    const label = role === 'tenant'
+      ? `Active Inspections (${pendingCount} Pending)`
+      : `Inspection Requests (${pendingCount} Awaiting Your Response)`;
+    wrap.innerHTML = `
+      <div class="dash-summary-card" id="dash-inspections-summary-card">
+        <div class="dash-summary-icon"><i data-lucide="calendar-check" class="w-4 h-4"></i></div>
+        <div class="dash-summary-text">
+          <p class="dash-summary-title">${label}</p>
+          <p class="dash-summary-sub">${confirmedCount} confirmed · tap to view schedule</p>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4" style="color:#64748b;"></i>
+      </div>`;
+    if (window.lucide) lucide.createIcons();
+    document.getElementById('dash-inspections-summary-card').addEventListener('click', () => navigateTo('screen-inspections'));
   }
 
   // ---- Dashboard tile routing: "browse" tiles open Screen 5, others show a coming-soon toast ----
@@ -2053,13 +2378,13 @@
     document.getElementById('s5-search-input').value = '';
 
     if (role === 'tenant') {
-      renderInspectionBanner();
       document.getElementById('s5-currency-toggle-wrap').style.display = currentListingType === 'rent' ? 'flex' : 'none';
       if (currentListingType === 'rent') renderTenantFeed(currentCurrency); else renderLandFeed();
     } else if (role === 'landlord') {
       renderLandlordList();
     } else {
       document.getElementById('s5-tab-new').click();
+      renderAgentListings(); // also populate "My Listings" + Inspections Manager in the background so role-switching shows live data immediately
     }
 
     if (window.lucide) lucide.createIcons();
@@ -2108,6 +2433,7 @@
             <button type="button" class="s5-action-btn wt-btn" data-title="${p.title}"><i data-lucide="video" class="w-4 h-4"></i>Virtual Walkthrough</button>
             <button type="button" class="s5-action-btn primary bv-btn" data-title="${p.title}"><i data-lucide="calendar" class="w-4 h-4"></i>Book Inspection</button>
           </div>
+          <button type="button" class="s5-action-btn cart-add-btn" data-listing-id="${p.id}" style="width:100%; margin-top:8px;"><i data-lucide="shopping-bag" class="w-4 h-4"></i>Add to Inspection Cart</button>
         </div>
       </div>`).join('');
     if (window.lucide) lucide.createIcons();
@@ -2138,6 +2464,7 @@
     const wtBtn = e.target.closest('.wt-btn');
     const bvBtn = e.target.closest('.bv-btn');
     const landBtn = e.target.closest('.land-pay-btn');
+    const cartBtn = e.target.closest('.cart-add-btn');
     if (wtBtn) {
       openWalkthroughModal(wtBtn.dataset.title);
     } else if (bvBtn) {
@@ -2145,6 +2472,9 @@
     } else if (landBtn) {
       const listing = landListingsList().find(l => String(l.id) === landBtn.dataset.listingId);
       if (listing) openLandPaymentModal(listing);
+    } else if (cartBtn) {
+      const listing = rentListings().find(l => String(l.id) === cartBtn.dataset.listingId);
+      if (listing) addToCart(listing);
     }
   });
 
@@ -2456,7 +2786,71 @@
         </div>`;
     }).join('');
     if (window.lucide) lucide.createIcons();
+    renderLandlordInspectionsManager();
   }
+
+  // ==================================================================
+  // ---- Landlord / Agent Inspections Manager (shared renderer) ----
+  //      Reads directly from the unified `schedules` array so tenant
+  //      bookings appear here instantly, and actions write straight back.
+  // ==================================================================
+  function inspectionsManagerCardHTML(s) {
+    const isPending = s.status === 'Pending Approval';
+    const isConfirmed = s.status === 'Confirmed';
+    const isConducted = s.status === 'Conducted';
+    const badgeClass = isPending ? 'insp-status-pending' : (isConducted ? 'insp-status-conducted' : 'insp-status-confirmed');
+    let actions = '';
+    if (isPending) {
+      actions = `
+        <button type="button" class="insp-mgr-btn insp-mgr-accept" data-action="accept" data-sched-id="${s.id}"><i data-lucide="check" class="w-3.5 h-3.5"></i>Accept Inspection</button>
+        <button type="button" class="insp-mgr-btn insp-mgr-decline" data-action="decline" data-sched-id="${s.id}"><i data-lucide="calendar-x" class="w-3.5 h-3.5"></i>Decline / Reschedule</button>`;
+    } else if (isConfirmed) {
+      actions = `<button type="button" class="insp-mgr-btn insp-mgr-conduct" data-action="conduct" data-sched-id="${s.id}"><i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i>Mark Inspection Conducted</button>`;
+    } else {
+      actions = `<span class="role-hint" style="text-align:left; margin:2px 0 0;">Awaiting tenant decision (proceed to lease vs. 50/50 split).</span>`;
+    }
+    return `
+      <div class="insp-mgmt-card" data-sched-id="${s.id}">
+        <div class="insp-mgmt-top">
+          <img class="insp-mgmt-img" src="${s.img}" alt="${s.title}">
+          <div class="insp-mgmt-text">
+            <p class="insp-mgmt-title">${s.title}</p>
+            <p class="insp-mgmt-loc"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${s.location}</p>
+            <div class="insp-mgmt-badges">
+              <span class="insp-date-badge"><i data-lucide="calendar" class="w-3 h-3"></i>${s.date || 'TBD'}</span>
+              <span class="insp-date-badge"><i data-lucide="clock" class="w-3 h-3"></i>${s.time || 'TBD'}</span>
+              <span class="insp-date-badge"><i data-lucide="shield-check" class="w-3 h-3"></i>${formatMoney(s.fee, 'ngn')} escrow</span>
+              <span class="s5-status-badge ${badgeClass}">${s.status}</span>
+            </div>
+          </div>
+        </div>
+        <div class="insp-mgmt-actions-row">${actions}</div>
+      </div>`;
+  }
+
+  function renderInspectionsManagerInto(containerId) {
+    const wrap = document.getElementById(containerId);
+    if (!wrap) return;
+    if (!schedules.length) {
+      wrap.innerHTML = `<p class="role-hint" style="text-align:left;">No inspection requests yet.</p>`;
+      return;
+    }
+    wrap.innerHTML = schedules.map(inspectionsManagerCardHTML).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+  function renderLandlordInspectionsManager() { renderInspectionsManagerInto('s5-landlord-inspections'); }
+  function renderAgentInspectionsManager() { renderInspectionsManagerInto('s5-agent-inspections'); }
+
+  function handleInspectionsManagerClick(e) {
+    const btn = e.target.closest('[data-action][data-sched-id]');
+    if (!btn) return;
+    const id = btn.dataset.schedId;
+    if (btn.dataset.action === 'accept') acceptSchedule(id);
+    else if (btn.dataset.action === 'decline') declineOrRescheduleSchedule(id);
+    else if (btn.dataset.action === 'conduct') markInspectionConducted(id);
+  }
+  document.getElementById('s5-landlord-inspections').addEventListener('click', handleInspectionsManagerClick);
+  document.getElementById('s5-agent-inspections').addEventListener('click', handleInspectionsManagerClick);
 
   const titleVerifyModal = document.getElementById('title-verify-modal');
 
@@ -2541,19 +2935,39 @@
     const wrap = document.getElementById('s5-agent-listings');
     if (!agentListings.length) {
       wrap.innerHTML = `<p class="role-hint" style="text-align:left;">No listings submitted yet.</p>`;
+      renderAgentInspectionsManager();
       return;
     }
-    wrap.innerHTML = agentListings.map(l => `
+    wrap.innerHTML = agentListings.map(l => {
+      const isLive = l.status === 'live';
+      return `
       <div class="s5-list-item">
-        <div class="s5-list-icon"><i data-lucide="lock" class="w-5 h-5"></i></div>
+        <div class="s5-list-icon"><i data-lucide="${isLive ? 'check-circle-2' : 'lock'}" class="w-5 h-5"></i></div>
         <div class="s5-list-text">
           <p class="s5-list-title">${l.title}</p>
           <p class="s5-list-sub">${l.address} · Landlord: ${l.landlordName}</p>
         </div>
-        <span class="s5-status-badge s5-status-pending">Pending</span>
-      </div>`).join('');
+        <div class="s5-list-status-col">
+          <span class="s5-status-badge ${isLive ? 's5-status-live' : 's5-status-pending'}">${isLive ? 'Live & Verified' : 'Pending'}</span>
+          ${isLive ? '' : `<button type="button" class="dev-approve-btn quick-approve-btn" data-id="${l.id}">⚡ Quick Approve (Dev Mode)</button>`}
+        </div>
+      </div>`;
+    }).join('');
     if (window.lucide) lucide.createIcons();
+    renderAgentInspectionsManager();
   }
+
+  document.getElementById('s5-agent-listings').addEventListener('click', (e) => {
+    const btn = e.target.closest('.quick-approve-btn');
+    if (!btn) return;
+    const item = agentListings.find(a => String(a.id) === btn.dataset.id);
+    if (!item || item.status === 'live') return;
+    item.status = 'live';
+    listings.unshift(item.listingData);
+    saveListings();
+    renderAgentListings();
+    showToast('Property status set to Live! It is now visible in the tenant search feed.');
+  });
 
   document.getElementById('s5-photo-upload').addEventListener('click', () => document.getElementById('s5-photo-file').click());
   document.getElementById('s5-photo-file').addEventListener('change', (e) => {
@@ -2570,7 +2984,8 @@
 
   // ---- Auto-calculating Annual-to-Monthly Rent + Fee Structure Preview (Agent form) ----
   function updateAnnualCalc(prefix) {
-    const raw = document.getElementById(`${prefix}-annual`).value;
+    const rawInput = document.getElementById(`${prefix}-annual`).value;
+    const raw = String(rawInput).replace(/[^0-9.]/g, ''); // strip commas / non-numeric chars defensively
     const annual = parseFloat(raw) || 0;
     const type = document.getElementById(`${prefix}-listing-type`) ? document.getElementById(`${prefix}-listing-type`).value : document.getElementById('tv-listing-type').value;
     const monthlyBadge = document.getElementById(`${prefix}-monthly-badge`);
@@ -2581,12 +2996,14 @@
     } else {
       monthlyBadge.style.display = 'none';
     }
-    document.getElementById(`${prefix}-fee-commission`).textContent = formatMoney(annual * 0.10, 'ngn');
-    document.getElementById(`${prefix}-fee-legal`).textContent = formatMoney(annual * 0.05, 'ngn');
+    document.getElementById(`${prefix}-fee-commission`).textContent = annual > 0 ? formatMoney(annual * 0.10, 'ngn') : '₦0';
+    document.getElementById(`${prefix}-fee-legal`).textContent = annual > 0 ? formatMoney(annual * 0.05, 'ngn') : '₦0';
   }
   document.getElementById('s5-listing-annual').addEventListener('input', () => updateAnnualCalc('s5'));
+  document.getElementById('s5-listing-annual').addEventListener('change', () => updateAnnualCalc('s5'));
   document.getElementById('s5-listing-type').addEventListener('change', () => updateAnnualCalc('s5'));
   document.getElementById('tv-annual').addEventListener('input', () => updateAnnualCalc('tv'));
+  document.getElementById('tv-annual').addEventListener('change', () => updateAnnualCalc('tv'));
   document.getElementById('tv-listing-type').addEventListener('change', () => updateAnnualCalc('tv'));
 
   document.getElementById('s5-listing-form').addEventListener('submit', (e) => {
@@ -2604,19 +3021,27 @@
       return;
     }
 
-    agentListings.unshift({ id: Date.now(), title, address, type, annual, landlordName, landlordPhone, landlordEmail });
-
-    // Dynamic Feed Sync: push into the global listings array so it renders at the top of Screen 5
+    // Build the listing payload, but only publish it to the global tenant search feed
+    // once it's Live/Verified (either via the auto-approve checkbox now, or Quick Approve later).
     const newId = Date.now();
+    let listingData;
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
-      listings.unshift({ id: newId, type: 'rent', title, location: address, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: `https://picsum.photos/seed/mtr-${newId}/400/240`, listedBy: 'agent' });
+      listingData = { id: newId, type: 'rent', title, location: address, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: `https://picsum.photos/seed/mtr-${newId}/400/240`, listedBy: 'agent' };
     } else {
-      listings.unshift({ id: newId, type: 'land', title, location: address, totalPrice: annual, img: `https://picsum.photos/seed/mtr-${newId}/400/240`, listedBy: 'agent' });
+      listingData = { id: newId, type: 'land', title, location: address, totalPrice: annual, img: `https://picsum.photos/seed/mtr-${newId}/400/240`, listedBy: 'agent' };
     }
-    saveListings();
+
+    const autoApprove = document.getElementById('s5-auto-approve').checked;
+    agentListings.unshift({ id: newId + 1, title, address, type, annual, landlordName, landlordPhone, landlordEmail, status: autoApprove ? 'live' : 'pending', listingData });
+
+    if (autoApprove) {
+      listings.unshift(listingData);
+      saveListings();
+    }
 
     e.target.reset();
+    document.getElementById('s5-auto-approve').checked = false;
     document.getElementById('s5-photo-upload').classList.remove('has-file');
     document.getElementById('s5-photo-upload-label').textContent = 'Property Photos';
     document.getElementById('s5-video-upload').classList.remove('has-file');
@@ -2626,7 +3051,9 @@
     document.getElementById('s5-fee-legal').textContent = '₦0';
 
     document.getElementById('s5-tab-mine').click();
-    showToast('Listing submitted — landlord notified & live on the Search Feed');
+    showToast(autoApprove
+      ? 'Property status set to Live! It is now visible in the tenant search feed.'
+      : 'Listing submitted — landlord notified. Pending verification before it appears in the tenant search feed.');
   });
 
   document.getElementById('sign-btn').addEventListener('click', () => {
@@ -2794,9 +3221,13 @@
     const time = document.getElementById('ib-time').value;
     const isAgent = inspectionListing.listedBy === 'agent';
     const fee = isAgent ? 12000 : 5000;
+    const inspId = Date.now();
 
+    // Unified record: written to BOTH the legacy `inspections` log AND the
+    // shared `schedules` array so it instantly appears in the tenant's
+    // Inspection Schedules Hub *and* the Landlord/Agent Inspections Manager.
     inspections.unshift({
-      id: Date.now(),
+      id: inspId,
       listingTitle: inspectionListing.title,
       listingImg: inspectionListing.img,
       date, time,
@@ -2805,60 +3236,325 @@
       status: 'pending' // pending -> accepted -> completed
     });
     saveInspections();
+
+    schedules.unshift({
+      id: inspId, title: inspectionListing.title, img: inspectionListing.img, location: inspectionListing.location,
+      date, time, feeType: isAgent ? 'agent' : 'landlord', fee,
+      status: 'Pending Approval', conversationId: null, inspectionId: inspId
+    });
+    saveSchedules();
+
     inspectionBookingModal.classList.remove('open');
     showToast('Inspection deposit locked in escrow — awaiting response');
-    renderInspectionBanner();
+    renderInspectionsSummaryCard();
+    if (document.getElementById('screen-inspections') && !document.getElementById('screen-inspections').classList.contains('hidden')) renderSchedulesScreen();
+    renderLandlordInspectionsManager();
+    renderAgentInspectionsManager();
   });
 
-  function renderInspectionBanner() {
-    const wrap = document.getElementById('s5-inspection-banner');
-    const pending = inspections.filter(i => i.status !== 'completed' && i.status !== 'archived');
-    if (!pending.length) { wrap.innerHTML = ''; return; }
-    wrap.innerHTML = pending.map(i => {
-      if (i.status === 'pending') {
-        return `
-        <div class="s5-notice-box" style="margin: 0 0 14px;">
-          <i data-lucide="clock" class="w-5 h-5"></i>
-          <p><strong>${i.listingTitle}</strong> — inspection requested for ${i.date || 'TBD'} ${i.time || ''}. Deposit ${formatMoney(i.fee, 'ngn')} locked in escrow, awaiting response.</p>
-        </div>
-        <button type="button" class="s5-add-btn simulate-accept-btn" data-id="${i.id}" style="margin-top:-6px;">
-          <i data-lucide="check-circle" class="w-4 h-4"></i> Simulate Agent/Landlord Accept
-        </button>`;
-      }
-      return `
-        <div class="s5-notice-box" style="margin: 0 0 14px; border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.08);">
-          <i data-lucide="message-square" class="w-5 h-5" style="color:#34d399;"></i>
-          <p style="color:#6ee7b7;"><strong>${i.listingTitle}</strong> — inspection accepted. Check your Messages to continue.</p>
-        </div>`;
-    }).join('');
-    if (window.lucide) lucide.createIcons();
-  }
+  // ==================================================================
+  // ---- Cross-role inspection status transitions (shared by tenant's
+  //      "Simulate Agent Accept" and the Landlord/Agent Inspections Manager) ----
+  // ==================================================================
+  function acceptSchedule(scheduleId) {
+    const sched = schedules.find(s => String(s.id) === String(scheduleId));
+    if (!sched || sched.status !== 'Pending Approval') return;
+    sched.status = 'Confirmed';
 
-  document.getElementById('s5-inspection-banner').addEventListener('click', (e) => {
-    const btn = e.target.closest('.simulate-accept-btn');
-    if (!btn) return;
-    const inspection = inspections.find(i => String(i.id) === btn.dataset.id);
-    if (!inspection) return;
-    inspection.status = 'accepted';
-    saveInspections();
-
+    const convId = Date.now();
+    sched.conversationId = convId;
     conversations.unshift({
-      id: Date.now(),
-      inspectionId: inspection.id,
-      listingTitle: inspection.listingTitle,
-      feeType: inspection.feeType,
-      fee: inspection.fee,
+      id: convId,
+      inspectionId: sched.inspectionId,
+      listingTitle: sched.title,
+      feeType: sched.feeType,
+      fee: sched.fee,
       status: 'active',
       messages: [
-        { from: 'system', text: `Inspection confirmed for ${inspection.listingTitle}` },
-        { from: 'them', text: `Hi! Your inspection for ${inspection.listingTitle} on ${inspection.date || 'the scheduled date'} at ${inspection.time || 'the scheduled time'} has been accepted. See you then!` }
+        { from: 'system', text: `Inspection confirmed for ${sched.title}` },
+        { from: 'them', text: `Hi! Your inspection for ${sched.title} on ${sched.date || 'the scheduled date'} at ${sched.time || 'the scheduled time'} has been accepted. See you then!` }
       ]
     });
     saveConversations();
 
+    const insp = inspections.find(i => i.id === sched.inspectionId);
+    if (insp) insp.status = 'accepted';
+    saveInspections();
+    saveSchedules();
+
     document.getElementById('dash-bell-dot').classList.add('show');
-    showToast('Accepted — a new conversation has been unlocked in Messages');
-    renderInspectionBanner();
+    showToast('Accepted — chat unlocked for the tenant in Messages');
+    renderSchedulesScreen();
+    renderInspectionsSummaryCard();
+    renderLandlordInspectionsManager();
+    renderAgentInspectionsManager();
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function declineOrRescheduleSchedule(scheduleId) {
+    const sched = schedules.find(s => String(s.id) === String(scheduleId));
+    if (!sched) return;
+    const newTime = prompt(`Reschedule "${sched.title}" — enter a new date & time (or leave blank / Cancel to decline and refund):`, sched.date && sched.time ? `${sched.date} ${sched.time}` : '');
+    if (newTime === null || !newTime.trim()) {
+      // Decline: remove from all stores and refund to the tenant's flex wallet
+      schedules = schedules.filter(s => String(s.id) !== String(scheduleId));
+      inspections = inspections.filter(i => i.id !== sched.inspectionId);
+      saveSchedules();
+      saveInspections();
+      showToast(`Declined — ${formatMoney(sched.fee, 'ngn')} refunded to Tenant Flex Wallet`);
+    } else {
+      sched.date = newTime.trim();
+      saveSchedules();
+      showToast(`Reschedule proposed for "${sched.title}" — tenant notified`);
+    }
+    renderSchedulesScreen();
+    renderInspectionsSummaryCard();
+    renderLandlordInspectionsManager();
+    renderAgentInspectionsManager();
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function markInspectionConducted(scheduleId) {
+    const sched = schedules.find(s => String(s.id) === String(scheduleId));
+    if (!sched || sched.status !== 'Confirmed') return;
+    sched.status = 'Conducted';
+    saveSchedules();
+
+    const conv = conversations.find(c => c.id === sched.conversationId);
+    if (conv) {
+      conv.messages.push({ from: 'system', text: 'Inspection marked as conducted. You may now proceed to lease checkout or execute the 50/50 fee split.' });
+      saveConversations();
+    }
+    document.getElementById('dash-bell-dot').classList.add('show');
+    showToast('Marked conducted — tenant can now decide next steps');
+    renderSchedulesScreen();
+    renderLandlordInspectionsManager();
+    renderAgentInspectionsManager();
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // ==================================================================
+  // ---- Inspection Cart Engine (Multi-Home Selection) ----
+  // ==================================================================
+  let cart = [];
+  try {
+    const storedCart = JSON.parse(localStorage.getItem('flexrent_cart'));
+    cart = Array.isArray(storedCart) ? storedCart : [];
+  } catch (e) { cart = []; }
+  function saveCart() { try { localStorage.setItem('flexrent_cart', JSON.stringify(cart)); } catch (e) {} }
+
+  let schedules = [];
+  try {
+    const storedSchedules = JSON.parse(localStorage.getItem('flexrent_schedules'));
+    schedules = Array.isArray(storedSchedules) ? storedSchedules : [];
+  } catch (e) { schedules = []; }
+  function saveSchedules() { try { localStorage.setItem('flexrent_schedules', JSON.stringify(schedules)); } catch (e) {} }
+
+  function updateCartBadge() {
+    const badge = document.getElementById('s5-cart-badge');
+    if (!badge) return;
+    badge.textContent = cart.length;
+    badge.classList.toggle('show', cart.length > 0);
+  }
+
+  function addToCart(listing) {
+    if (cart.some(c => String(c.listingId) === String(listing.id))) {
+      showToast('Already in your Inspection Cart');
+      return;
+    }
+    cart.push({
+      listingId: listing.id,
+      title: listing.title,
+      location: listing.location,
+      img: listing.img,
+      listedBy: listing.listedBy,
+      date: '',
+      time: ''
+    });
+    saveCart();
+    updateCartBadge();
+    showToast(`${listing.title} added to Inspection Cart`);
+  }
+
+  document.getElementById('s5-cart-btn').addEventListener('click', () => navigateTo('screen-cart'));
+  document.getElementById('cart-back-btn').addEventListener('click', () => navigateTo('screen-5'));
+  document.getElementById('insp-back-btn').addEventListener('click', () => navigateTo('screen-4'));
+
+  function cartFeeFor(item) { return item.listedBy === 'agent' ? 12000 : 5000; }
+
+  function renderCartScreen() {
+    const itemsWrap = document.getElementById('cart-items-wrap');
+    const summaryWrap = document.getElementById('cart-summary-wrap');
+    const confirmBtn = document.getElementById('cart-confirm-btn');
+
+    if (!cart.length) {
+      itemsWrap.innerHTML = `
+        <div class="cart-empty-state">
+          <i data-lucide="shopping-bag" class="w-10 h-10"></i>
+          <p>Your Inspection Cart is empty. Add properties from the Search tab.</p>
+        </div>`;
+      summaryWrap.innerHTML = '';
+      confirmBtn.style.display = 'none';
+      if (window.lucide) lucide.createIcons();
+      return;
+    }
+
+    confirmBtn.style.display = 'flex';
+    itemsWrap.innerHTML = cart.map((item, idx) => `
+      <div class="cart-item" data-idx="${idx}">
+        <div class="cart-item-top">
+          <img class="cart-item-img" src="${item.img}" alt="${item.title}">
+          <div class="cart-item-text">
+            <p class="cart-item-title">${item.title}</p>
+            <p class="cart-item-loc"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${item.location}</p>
+            <p class="cart-item-fee">${item.listedBy === 'agent' ? 'Agent Inspection Fee' : 'Direct Landlord Fee'}: ${formatMoney(cartFeeFor(item), 'ngn')}</p>
+          </div>
+          <button type="button" class="cart-item-remove" data-idx="${idx}"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        </div>
+        <div class="cart-item-datetime">
+          <input class="field-input cart-date-input" type="date" data-idx="${idx}" value="${item.date}">
+          <input class="field-input cart-time-input" type="time" data-idx="${idx}" value="${item.time}">
+        </div>
+      </div>`).join('');
+
+    const total = cart.reduce((sum, item) => sum + cartFeeFor(item), 0);
+    summaryWrap.innerHTML = `
+      <div class="cart-summary-card">
+        <div class="cart-summary-row"><span>Properties Selected</span><span>${cart.length}</span></div>
+        <div class="cart-summary-row"><span>Total Inspection Fees</span><strong>${formatMoney(total, 'ngn')}</strong></div>
+        <div class="cart-escrow-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i>100% Escrow Guarantee</div>
+      </div>`;
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('cart-items-wrap').addEventListener('click', (e) => {
+    const removeBtn = e.target.closest('.cart-item-remove');
+    if (!removeBtn) return;
+    cart.splice(parseInt(removeBtn.dataset.idx, 10), 1);
+    saveCart();
+    updateCartBadge();
+    renderCartScreen();
+  });
+
+  document.getElementById('cart-items-wrap').addEventListener('input', (e) => {
+    const idx = e.target.dataset.idx;
+    if (idx === undefined) return;
+    if (e.target.classList.contains('cart-date-input')) cart[idx].date = e.target.value;
+    if (e.target.classList.contains('cart-time-input')) cart[idx].time = e.target.value;
+    saveCart();
+  });
+
+  document.getElementById('cart-confirm-btn').addEventListener('click', () => {
+    if (!cart.length) return;
+    const missing = cart.some(item => !item.date || !item.time);
+    if (missing) {
+      showToast('Please pick a date & time for every property in your cart');
+      return;
+    }
+
+    cart.forEach(item => {
+      const isAgent = item.listedBy === 'agent';
+      const fee = cartFeeFor(item);
+      const inspId = Date.now() + Math.floor(Math.random() * 1000);
+      const convId = inspId + 1;
+
+      inspections.unshift({
+        id: inspId, listingTitle: item.title, listingImg: item.img,
+        date: item.date, time: item.time, feeType: isAgent ? 'agent' : 'landlord', fee,
+        status: 'accepted'
+      });
+
+      conversations.unshift({
+        id: convId, inspectionId: inspId, listingTitle: item.title,
+        feeType: isAgent ? 'agent' : 'landlord', fee, status: 'active',
+        messages: [
+          { from: 'system', text: `Inspection confirmed for ${item.title}` },
+          { from: 'them', text: `Hi! Your inspection for ${item.title} on ${item.date} at ${item.time} has been confirmed. See you then!` }
+        ]
+      });
+
+      schedules.unshift({
+        id: inspId, title: item.title, img: item.img, location: item.location,
+        date: item.date, time: item.time, feeType: isAgent ? 'agent' : 'landlord', fee,
+        status: 'Confirmed', conversationId: convId, inspectionId: inspId
+      });
+    });
+
+    saveInspections();
+    saveConversations();
+    saveSchedules();
+
+    cart = [];
+    saveCart();
+    updateCartBadge();
+
+    showToast('Inspections confirmed & paid — 100% Escrow Guarantee');
+    navigateTo('screen-inspections');
+  });
+
+  function renderSchedulesScreen() {
+    const list = document.getElementById('insp-schedule-list');
+    const emptyHint = document.getElementById('insp-empty-hint');
+    // Unified data source: `schedules` (flexrent_schedules) — covers BOTH single
+    // "Book Inspection" requests (Pending Approval) and Inspection Cart checkouts (Confirmed).
+    if (!schedules.length) {
+      list.innerHTML = '';
+      emptyHint.style.display = 'block';
+      return;
+    }
+    emptyHint.style.display = 'none';
+    list.innerHTML = schedules.map(s => {
+      const isPending = s.status === 'Pending Approval';
+      const badgeClass = isPending ? 'insp-status-pending' : (s.status === 'Conducted' ? 'insp-status-conducted' : 'insp-status-confirmed');
+      const badgeIcon = isPending ? 'clock' : (s.status === 'Conducted' ? 'clipboard-check' : 'check-circle-2');
+      return `
+      <div class="insp-mgmt-card" data-sched-id="${s.id}">
+        <div class="insp-mgmt-top">
+          <img class="insp-mgmt-img" src="${s.img}" alt="${s.title}">
+          <div class="insp-mgmt-text">
+            <p class="insp-mgmt-title">${s.title}</p>
+            <p class="insp-mgmt-loc"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${s.location}</p>
+            <div class="insp-mgmt-badges">
+              <span class="insp-date-badge"><i data-lucide="calendar" class="w-3 h-3"></i>${s.date || 'TBD'}</span>
+              <span class="insp-date-badge"><i data-lucide="clock" class="w-3 h-3"></i>${s.time || 'TBD'}</span>
+              <span class="insp-date-badge"><i data-lucide="shield-check" class="w-3 h-3"></i>${formatMoney(s.fee, 'ngn')} escrow</span>
+              <span class="s5-status-badge ${badgeClass}"><i data-lucide="${badgeIcon}" class="w-3 h-3"></i>${s.status}</span>
+            </div>
+          </div>
+        </div>
+        <div class="insp-mgmt-actions">
+          ${isPending
+            ? `<button type="button" class="s5-action-btn primary insp-simulate-accept-btn" data-sched-id="${s.id}"><i data-lucide="zap" class="w-4 h-4"></i>⚡ Simulate Agent Accept</button>`
+            : `<button type="button" class="s5-action-btn insp-chat-btn" data-conv-id="${s.conversationId}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>
+               <button type="button" class="s5-action-btn primary insp-complete-btn" data-conv-id="${s.conversationId}"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Complete &amp; Decide Split</button>`}
+        </div>
+      </div>`;
+    }).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('insp-schedule-list').addEventListener('click', (e) => {
+    const chatBtn = e.target.closest('.insp-chat-btn');
+    const completeBtn = e.target.closest('.insp-complete-btn');
+    const simulateBtn = e.target.closest('.insp-simulate-accept-btn');
+    if (chatBtn) {
+      const convId = parseInt(chatBtn.dataset.convId, 10);
+      navigateTo('screen-messages');
+      openThreadDetail(convId);
+    } else if (completeBtn) {
+      const convId = parseInt(completeBtn.dataset.convId, 10);
+      activeThreadId = convId;
+      inspectionDecisionModal.classList.add('open');
+    } else if (simulateBtn) {
+      acceptSchedule(simulateBtn.dataset.schedId);
+    }
+  });
+
+  // Dashboard "Inspection scheduled" activity card -> jump straight into Schedules view
+  document.getElementById('dash-list').addEventListener('click', (e) => {
+    const item = e.target.closest('.dash-list-item');
+    if (item && item.dataset.action === 'inspections') navigateTo('screen-inspections');
   });
 
   // ==================================================================
@@ -2946,6 +3642,10 @@
     if (insp) insp.status = 'completed';
     saveInspections();
     saveConversations();
+    // Remove the now-resolved item from the shared Schedules Hub / Inspections Manager
+    schedules = schedules.filter(s => s.inspectionId !== conv.inspectionId);
+    saveSchedules();
+    renderInspectionsSummaryCard();
     renderChatLog(conv);
     showToast('Satisfied — proceeding to Rent/Buy checkout');
 
@@ -2986,13 +3686,16 @@
     if (insp) insp.status = 'archived';
     saveInspections();
     saveConversations();
+    // Remove the now-resolved item from the shared Schedules Hub / Inspections Manager
+    schedules = schedules.filter(s => s.inspectionId !== conv.inspectionId);
+    saveSchedules();
 
     renderChatLog(conv);
     document.getElementById('msg-chat-log').innerHTML += receiptHtml;
     document.getElementById('msg-complete-btn').style.display = 'none';
     document.getElementById('msg-thread-sub').textContent = 'Archived conversation';
     showToast('Cancellation processed — 50/50 split executed');
-    renderInspectionBanner();
+    renderInspectionsSummaryCard();
     if (window.lucide) lucide.createIcons();
   });
 
@@ -3069,6 +3772,30 @@
     renderTicketList();
     if (window.lucide) lucide.createIcons();
   }
+
+  // ==================================================================
+  // ---- Dev Role Switcher: instantly hop between Tenant / Agent / Landlord ----
+  //      views to test the 2-way inspection sync from both ends.
+  // ==================================================================
+  function setActiveRoleSwitcherBtn() {
+    const role = currentUserRole || 'tenant';
+    document.querySelectorAll('.dev-role-btn').forEach(b => b.classList.toggle('active', b.dataset.role === role));
+  }
+  document.querySelectorAll('.dev-role-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentUserRole = btn.dataset.role;
+      setActiveRoleSwitcherBtn();
+      showToast(`Dev Role Switcher — now viewing as ${roleDisplayNames[currentUserRole]}`);
+
+      // Refresh whichever screen is currently visible so the switch feels instant
+      const activeScreen = document.querySelector('.screen-view:not(.hidden)');
+      const activeId = activeScreen ? activeScreen.id : null;
+      if (activeId === 'screen-4') navigateTo('screen-4');
+      else if (activeId === 'screen-5') navigateTo('screen-5');
+      else navigateTo('screen-5'); // default to the Listing/Inspection Hub — most useful for testing
+    });
+  });
+  setActiveRoleSwitcherBtn();
 
   // ---- Initial icon render (Screen 1 role cards, OTP modal, etc.) ----
   if (window.lucide) lucide.createIcons();
