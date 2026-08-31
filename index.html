@@ -715,6 +715,52 @@
   .chat-bubble { max-width: 88%; padding: 10px 13px; border-radius: 14px; font-size: 12.5px; line-height: 1.5; margin-bottom: 10px; }
   .chat-bubble.system { background: rgba(30,41,59,0.7); color: #94a3b8; border: 1px solid #1e293b; margin: 0 auto 10px; text-align: center; font-size: 11.5px; max-width: 100%; }
   .chat-bubble.them { background: rgba(30,41,59,0.7); color: #e2e8f0; border: 1px solid #1e293b; }
+  .chat-bubble.me { background: linear-gradient(90deg, #9333ea, #7e22ce); color: #fff; border: none; margin-left: auto; }
+
+  /* ---- Messages Screen: header call/quick-action controls ---- */
+  .chat-thread-actions { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .chat-icon-btn {
+    width: 36px; height: 36px; border-radius: 999px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(30,41,59,0.7); border: 1px solid #1e293b; color: #c084fc; cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .chat-icon-btn:hover { border-color: #9333ea; background: rgba(147,51,234,0.18); }
+  .chat-icon-btn.recording { color: #f87171; border-color: rgba(248,113,113,0.5); background: rgba(248,113,113,0.15); animation: pulseRecord 1s ease-in-out infinite; }
+  @keyframes pulseRecord { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+  .chat-quick-chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 9px 13px; border-radius: 999px;
+    background: rgba(147,51,234,0.15); border: 1px solid rgba(147,51,234,0.4); color: #c084fc;
+    font-size: 11.5px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background .15s ease;
+  }
+  .chat-quick-chip:hover { background: rgba(147,51,234,0.3); }
+
+  /* ---- Messages Screen: fixed bottom chat input bar (sits above the app bottom nav) ---- */
+  .chat-input-bar {
+    display: none; position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%);
+    width: 100%; max-width: 420px; padding: 0 20px; box-sizing: border-box; z-index: 45; pointer-events: none;
+  }
+  .chat-input-bar.visible { display: block; }
+  .chat-input-inner {
+    pointer-events: auto; display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box;
+    background: rgba(15,23,42,0.97); border: 1px solid #1e293b; border-radius: 18px; padding: 7px 7px 7px 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45); backdrop-filter: blur(6px);
+  }
+  .chat-input-inner .chat-attach-btn, .chat-input-inner .chat-mic-btn {
+    width: 32px; height: 32px; border-radius: 999px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(30,41,59,0.7); border: 1px solid #1e293b; color: #94a3b8; cursor: pointer;
+    transition: border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  .chat-input-inner .chat-attach-btn:hover, .chat-input-inner .chat-mic-btn:hover { border-color: #9333ea; color: #c084fc; }
+  .chat-input-inner .chat-mic-btn.recording { color: #f87171; border-color: rgba(248,113,113,0.5); background: rgba(248,113,113,0.15); animation: pulseRecord 1s ease-in-out infinite; }
+  .chat-input-inner input[type="text"] {
+    flex: 1; min-width: 0; background: none; border: none; outline: none; color: #fff; font-size: 12.5px;
+  }
+  .chat-input-inner input[type="text"]::placeholder { color: #475569; }
+  .chat-send-btn {
+    width: 32px; height: 32px; border-radius: 999px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(90deg, #9333ea, #7e22ce); border: none; color: #fff; cursor: pointer; transition: opacity .15s ease;
+  }
+  .chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .stage-track { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
   .stage-item { display: flex; align-items: flex-start; gap: 12px; padding: 13px 14px; border-radius: 14px; border: 1px solid #1e293b; background: rgba(15,23,42,0.8); opacity: 0.4; transition: all .2s ease; }
@@ -1584,11 +1630,41 @@
 
   <div id="msg-thread-detail" style="display:none;">
     <h1 class="s5-role-title" id="msg-thread-title" style="margin-bottom: 4px;">Conversation</h1>
-    <p class="s5-role-sub" id="msg-thread-sub" style="margin-bottom: 18px;">—</p>
+    <p class="s5-role-sub" id="msg-thread-sub" style="margin-bottom: 14px;">—</p>
+
+    <!-- Header communication controls: audio call, video call, quick "Request Full Address" -->
+    <div class="chat-thread-actions">
+      <button type="button" class="chat-icon-btn" id="msg-audiocall-btn" title="Audio call" aria-label="Start audio call">
+        <i data-lucide="phone" class="w-4 h-4"></i>
+      </button>
+      <button type="button" class="chat-icon-btn" id="msg-videocall-btn" title="Video call" aria-label="Start video call">
+        <i data-lucide="video" class="w-4 h-4"></i>
+      </button>
+      <button type="button" class="chat-quick-chip" id="msg-request-address-btn">
+        <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Request Full Address
+      </button>
+    </div>
+
     <div id="msg-chat-log" style="margin-bottom: 18px;"></div>
-    <button type="button" id="msg-complete-btn" class="btn-primary" style="display:flex; align-items:center; justify-content:center; gap:6px;">
+    <button type="button" id="msg-complete-btn" class="btn-primary" style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom: 110px;">
       <i data-lucide="check-circle" class="w-4 h-4"></i> Simulate Inspection Complete
     </button>
+  </div>
+
+  <!-- Fixed bottom interactive chat bar — sits above the main bottom nav, only visible while a thread is open -->
+  <div id="msg-chat-input-bar" class="chat-input-bar">
+    <div class="chat-input-inner">
+      <button type="button" class="chat-attach-btn" id="msg-attach-btn" title="Attach" aria-label="Attach media or document">
+        <i data-lucide="paperclip" class="w-4 h-4"></i>
+      </button>
+      <input type="text" id="msg-text-input" placeholder="Type a message or ask for full address..." autocomplete="off">
+      <button type="button" class="chat-mic-btn" id="msg-mic-btn" title="Voice note" aria-label="Record voice note">
+        <i data-lucide="mic" class="w-4 h-4"></i>
+      </button>
+      <button type="button" class="chat-send-btn" id="msg-send-btn" title="Send" aria-label="Send message" disabled>
+        <i data-lucide="send" class="w-4 h-4"></i>
+      </button>
+    </div>
   </div>
 
 </div>
@@ -4564,6 +4640,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function renderThreadList() {
     document.getElementById('msg-list-view').style.display = 'block';
     document.getElementById('msg-thread-detail').style.display = 'none';
+    document.getElementById('msg-chat-input-bar').classList.remove('visible');
     const list = document.getElementById('msg-thread-list');
     const emptyHint = document.getElementById('msg-empty-hint');
 
@@ -4600,9 +4677,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   function renderChatLog(conv) {
-    document.getElementById('msg-chat-log').innerHTML = conv.messages.map(m => `
-      <div class="chat-bubble ${m.from === 'system' ? 'system' : 'them'}">${m.text}</div>
-    `).join('');
+    document.getElementById('msg-chat-log').innerHTML = conv.messages.map(m => {
+      const cls = m.from === 'system' ? 'system' : (m.from === 'me' ? 'me' : 'them');
+      return `<div class="chat-bubble ${cls}">${m.text}</div>`;
+    }).join('');
   }
 
   function openThreadDetail(id) {
@@ -4618,8 +4696,81 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // action — Landlord/Agent must never see tenant payment triggers in chat.
     const canComplete = conv.status !== 'archived' && (currentUserRole || 'tenant') === 'tenant';
     document.getElementById('msg-complete-btn').style.display = canComplete ? 'flex' : 'none';
+    // Fixed chat input bar: available to all roles unless the thread is archived.
+    const inputBar = document.getElementById('msg-chat-input-bar');
+    if (conv.status === 'archived') {
+      inputBar.classList.remove('visible');
+    } else {
+      inputBar.classList.add('visible');
+    }
     if (window.lucide) lucide.createIcons();
   }
+
+  // ---- Fixed chat input bar: send text, quick "Request Full Address", voice note,
+  // ---- audio/video call triggers. Works the same for tenant, landlord, and agent —
+  // ---- whoever is actively using the app renders as the right-aligned "me" bubble.
+  function appendChatMessage(text) {
+    const conv = conversations.find(c => c.id === activeThreadId);
+    if (!conv || !text || !text.trim()) return;
+    conv.messages.push({ from: 'me', text: text.trim() });
+    saveConversations();
+    renderChatLog(conv);
+    const log = document.getElementById('msg-chat-log');
+    log.scrollTop = log.scrollHeight;
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+
+  const msgTextInput = document.getElementById('msg-text-input');
+  const msgSendBtn = document.getElementById('msg-send-btn');
+
+  msgTextInput.addEventListener('input', () => {
+    msgSendBtn.disabled = !msgTextInput.value.trim();
+  });
+
+  function sendTypedMessage() {
+    const text = msgTextInput.value;
+    if (!text.trim()) return;
+    appendChatMessage(text);
+    msgTextInput.value = '';
+    msgSendBtn.disabled = true;
+  }
+
+  msgSendBtn.addEventListener('click', sendTypedMessage);
+  msgTextInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); sendTypedMessage(); }
+  });
+
+  document.getElementById('msg-attach-btn').addEventListener('click', () => {
+    showToast('Opening attachment picker...');
+  });
+
+  let msgRecording = false;
+  document.getElementById('msg-mic-btn').addEventListener('click', () => {
+    const micBtn = document.getElementById('msg-mic-btn');
+    if (msgRecording) return; // already mid-recording, ignore repeat taps
+    msgRecording = true;
+    micBtn.classList.add('recording');
+    showToast('Recording voice note...');
+    setTimeout(() => {
+      msgRecording = false;
+      micBtn.classList.remove('recording');
+      appendChatMessage('🎤 Voice note · 0:07');
+      showToast('Voice note sent');
+    }, 1400);
+  });
+
+  document.getElementById('msg-audiocall-btn').addEventListener('click', () => {
+    showToast('Starting audio call...');
+  });
+
+  document.getElementById('msg-videocall-btn').addEventListener('click', () => {
+    showToast('Starting video call...');
+  });
+
+  document.getElementById('msg-request-address-btn').addEventListener('click', () => {
+    appendChatMessage('Hi, could you please share the full/exact address for this property?');
+    showToast('Address request sent');
+  });
 
   const inspectionDecisionModal = document.getElementById('inspection-decision-modal');
   document.getElementById('msg-complete-btn').addEventListener('click', () => {
