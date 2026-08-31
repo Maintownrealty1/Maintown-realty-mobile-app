@@ -422,6 +422,7 @@
   .insp-mgr-accept { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
   .insp-mgr-decline { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.35); }
   .insp-mgr-conduct { background: rgba(147,51,234,0.15); color: #c084fc; border: 1px solid rgba(147,51,234,0.4); }
+  .insp-mgr-chat { background: rgba(147,51,234,0.15); color: #c084fc; border: 1px solid rgba(147,51,234,0.4); }
   /* ---- Fixed bottom navigation bar (lives OUTSIDE #screen-4 / #screen-5) ---- */
   #app-bottom-nav {
     display: flex; justify-content: center; padding: 0 20px 16px; pointer-events: none;
@@ -664,6 +665,8 @@
   .agreement-sig-preview.tenant-sig { background: rgba(148,163,184,0.08); border: 1px dashed #334155; color: #64748b; }
   .agreement-sig-preview.tenant-sig.signed { background: rgba(147,51,234,0.1); border: 1px solid rgba(147,51,234,0.35); color: #c084fc; font-family: 'Segoe Script', cursive; font-style: italic; border-style: solid; }
   .agreement-sig-preview.tenant-sig.signed img { max-height: 44px; max-width: 100%; }
+  .agreement-sig-preview.landlord-sig.pending { background: rgba(148,163,184,0.08); border: 1px dashed #334155; color: #64748b; font-style: normal; font-family: inherit; }
+  .agreement-sig-preview.landlord-sig img { max-height: 44px; max-width: 100%; }
 
   /* Signature modal */
   .sig-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
@@ -672,7 +675,7 @@
     color: #94a3b8; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; cursor: pointer; transition: all 0.15s ease;
   }
   .sig-tab.active { background: rgba(147,51,234,0.15); border-color: rgba(147,51,234,0.4); color: #c084fc; }
-  #sig-canvas {
+  #sig-canvas, #hr-sig-canvas {
     width: 100%; height: 150px; border-radius: 12px; border: 1.5px dashed #334155; background: #0b0f19;
     touch-action: none; cursor: crosshair; margin-bottom: 8px; display: block;
   }
@@ -1972,6 +1975,74 @@
   </div>
 </div>
 
+<!-- ===================== Landlord Agreement Review & Sign-Off Sheet ===================== -->
+<div id="handover-review-modal" class="sheet-overlay">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <h2 class="sheet-title"><i data-lucide="file-signature" class="w-4 h-4"></i><span>Tenancy Agreement Review</span></h2>
+        <p class="sheet-subtitle" id="hr-property-name">—</p>
+      </div>
+      <button type="button" class="sheet-close-btn" id="hr-close-btn">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+
+    <div class="agreement-preview-card">
+      <div class="agreement-preview-row">
+        <i data-lucide="file-text" class="w-6 h-6 text-purple-400"></i>
+        <div>
+          <p class="s5-list-title" style="margin:0;">Tenancy Agreement.pdf</p>
+          <p class="s5-list-sub" style="margin:0;">Digitally signed by the tenant</p>
+        </div>
+      </div>
+      <div class="agreement-sig-row">
+        <div class="agreement-sig-block">
+          <p class="agreement-sig-label">Tenant Signature</p>
+          <div class="agreement-sig-preview tenant-sig signed" id="hr-tenant-sig-preview">—</div>
+          <p class="s5-list-sub" id="hr-tenant-sig-date" style="margin:4px 0 0;">—</p>
+        </div>
+        <div class="agreement-sig-block">
+          <p class="agreement-sig-label">Your Signature</p>
+          <div class="agreement-sig-preview landlord-sig pending" id="hr-landlord-sig-preview">Pending</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="hr-sign-panel">
+      <p class="s5-section-label"><i data-lucide="pen-tool" class="w-4 h-4 text-purple-400"></i>Apply Your Digital Signature</p>
+      <div class="sig-tabs">
+        <div class="sig-tab active" id="hr-sig-tab-draw" data-mode="draw">Draw</div>
+        <div class="sig-tab" id="hr-sig-tab-type" data-mode="type">Type</div>
+      </div>
+      <div id="hr-sig-draw-panel">
+        <canvas id="hr-sig-canvas" width="320" height="150"></canvas>
+        <button type="button" id="hr-sig-clear-btn" class="btn-secondary" style="margin-bottom: 12px;">Clear</button>
+      </div>
+      <div id="hr-sig-type-panel" style="display:none;">
+        <div class="field">
+          <label class="field-label">Type your full name as signature</label>
+          <input class="field-input signature-input" id="hr-sig-type-input" type="text" placeholder="e.g. Adaeze Okafor">
+        </div>
+      </div>
+      <button type="button" id="hr-sign-send-btn" class="btn-primary" style="margin-top:4px; margin-bottom:0; display:flex; align-items:center; justify-content:center; gap:6px;" disabled>
+        <i data-lucide="send" class="w-4 h-4"></i> Sign &amp; Send
+      </button>
+    </div>
+
+    <div id="hr-completed-panel" style="display:none;">
+      <div class="s5-notice-box" style="border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.08);">
+        <i data-lucide="shield-check" class="w-5 h-5" style="color:#34d399;"></i>
+        <p>Dual-signed and executed. This is now the official Tenancy Agreement for both parties, permanently available in the Post-Lease Hub.</p>
+      </div>
+      <button type="button" id="hr-download-btn" class="btn-primary" style="margin-bottom:0; display:flex; align-items:center; justify-content:center; gap:6px;">
+        <i data-lucide="download" class="w-4 h-4"></i> Download Executed Agreement
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast Notification -->
 <div id="toast" class="toast">
   <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -2535,8 +2606,7 @@
         { icon: 'calendar-check', label: 'Inspections', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'browse' }
       ],
       activity: [
-        { icon: 'wallet', color: 'text-emerald-400', title: 'Payout disbursed', sub: 'Aug 3 · ₦620,000' },
-        { icon: 'check-circle-2', color: 'text-emerald-400', title: 'Handover sign-off completed', sub: 'Unit 4B, Ikeja' }
+        { icon: 'wallet', color: 'text-emerald-400', title: 'Payout disbursed', sub: 'Aug 3 · ₦620,000' }
       ]
     },
     agent: {
@@ -2697,7 +2767,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
       </div>`).join('');
 
     const list = document.getElementById('dash-list');
-    list.innerHTML = data.activity.map(item => `
+    let activityItems = data.activity.slice();
+    // Landlord Recent Activity: dynamic "Handover sign-off" item, driven by the
+    // real tenant-signed / dual-signed Tenancy Agreement state (see handover object).
+    if (role === 'landlord' && typeof handover !== 'undefined' && handover) {
+      activityItems = [{
+        icon: handover.status === 'completed' ? 'check-circle-2' : 'file-signature',
+        color: handover.status === 'completed' ? 'text-emerald-400' : 'text-amber-400',
+        title: handover.status === 'completed' ? 'Handover sign-off completed' : 'Tenant signed — awaiting your sign-off',
+        sub: handover.listingTitle,
+        action: 'handoverReview'
+      }, ...activityItems];
+    }
+    list.innerHTML = activityItems.map(item => `
       <div class="dash-list-item" ${item.action ? `data-action="${item.action}" style="cursor:pointer;"` : ''}>
         <div class="dash-list-icon"><i data-lucide="${item.icon}" class="w-4 h-4 ${item.color}"></i></div>
         <div class="dash-list-text">
@@ -3219,6 +3301,177 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('s6-pay-wallet').addEventListener('click', () => selectPaySource('wallet'));
   document.getElementById('s6-pay-card').addEventListener('click', () => selectPaySource('card'));
 
+  // ==================================================================
+  // ---- Tenancy Agreement Handover & Landlord Sign-Off ----
+  //      Fires once the tenant has BOTH paid AND digitally signed the
+  //      Tenancy Agreement PDF. Notifies the Landlord, updates their
+  //      Recent Activity card, and lets them review + countersign to
+  //      produce the final, dual-signed, permanently downloadable doc.
+  // ==================================================================
+  let handover = null;
+  try {
+    const storedHandover = JSON.parse(localStorage.getItem('mtr_handover'));
+    handover = storedHandover || null;
+  } catch (e) { handover = null; }
+  function saveHandover() { try { localStorage.setItem('mtr_handover', JSON.stringify(handover)); } catch (e) {} }
+
+  function createHandoverForTenantSignOff() {
+    if (!checkoutListing || !checkoutTenantSignature) return;
+    handover = {
+      listingTitle: checkoutListing.title,
+      tenantSignature: checkoutTenantSignature,
+      tenantSignedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      landlordSignature: null,
+      landlordSignedAt: null,
+      status: 'tenant-signed'
+    };
+    saveHandover();
+    document.getElementById('dash-bell-dot').classList.add('show');
+    if (!document.getElementById('screen-4').classList.contains('hidden')) populateScreen4();
+    showToast('Landlord notified — signed agreement sent for their sign-off');
+  }
+
+  // ---- Landlord Agreement Review & Sign-Off Sheet ----
+  const handoverReviewModal = document.getElementById('handover-review-modal');
+  const hrSigCanvas = document.getElementById('hr-sig-canvas');
+  const hrSigCtx = hrSigCanvas.getContext('2d');
+  const hrSignSendBtn = document.getElementById('hr-sign-send-btn');
+  const hrSigTypeInput = document.getElementById('hr-sig-type-input');
+  let hrSigMode = 'draw';
+  let hrSigHasStrokes = false;
+  let hrSigDrawing = false;
+
+  function resizeHrSigCanvas() {
+    const rect = hrSigCanvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    hrSigCanvas.width = Math.max(1, Math.round(rect.width * dpr));
+    hrSigCanvas.height = Math.max(1, Math.round(150 * dpr));
+    hrSigCtx.scale(dpr, dpr);
+    hrSigCtx.strokeStyle = '#c084fc';
+    hrSigCtx.lineWidth = 2.4;
+    hrSigCtx.lineCap = 'round';
+    hrSigCtx.lineJoin = 'round';
+  }
+
+  function hrSigPointerPos(e) {
+    const rect = hrSigCanvas.getBoundingClientRect();
+    const point = e.touches ? e.touches[0] : e;
+    return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+  }
+  function hrSigStart(e) {
+    e.preventDefault();
+    hrSigDrawing = true;
+    const p = hrSigPointerPos(e);
+    hrSigCtx.beginPath();
+    hrSigCtx.moveTo(p.x, p.y);
+  }
+  function hrSigMove(e) {
+    if (!hrSigDrawing) return;
+    e.preventDefault();
+    const p = hrSigPointerPos(e);
+    hrSigCtx.lineTo(p.x, p.y);
+    hrSigCtx.stroke();
+    hrSigHasStrokes = true;
+    updateHrSignState();
+  }
+  function hrSigEnd() { hrSigDrawing = false; }
+  hrSigCanvas.addEventListener('mousedown', hrSigStart);
+  hrSigCanvas.addEventListener('mousemove', hrSigMove);
+  window.addEventListener('mouseup', hrSigEnd);
+  hrSigCanvas.addEventListener('touchstart', hrSigStart, { passive: false });
+  hrSigCanvas.addEventListener('touchmove', hrSigMove, { passive: false });
+  hrSigCanvas.addEventListener('touchend', hrSigEnd);
+
+  document.getElementById('hr-sig-clear-btn').addEventListener('click', () => {
+    hrSigCtx.clearRect(0, 0, hrSigCanvas.width, hrSigCanvas.height);
+    hrSigHasStrokes = false;
+    updateHrSignState();
+  });
+
+  function updateHrSignState() {
+    hrSignSendBtn.disabled = hrSigMode === 'draw' ? !hrSigHasStrokes : !hrSigTypeInput.value.trim();
+  }
+  hrSigTypeInput.addEventListener('input', updateHrSignState);
+
+  function setHrSigMode(mode) {
+    hrSigMode = mode;
+    document.getElementById('hr-sig-tab-draw').classList.toggle('active', mode === 'draw');
+    document.getElementById('hr-sig-tab-type').classList.toggle('active', mode === 'type');
+    document.getElementById('hr-sig-draw-panel').style.display = mode === 'draw' ? 'block' : 'none';
+    document.getElementById('hr-sig-type-panel').style.display = mode === 'type' ? 'block' : 'none';
+    updateHrSignState();
+  }
+  document.getElementById('hr-sig-tab-draw').addEventListener('click', () => setHrSigMode('draw'));
+  document.getElementById('hr-sig-tab-type').addEventListener('click', () => setHrSigMode('type'));
+
+  function renderHrTenantSigPreview() {
+    const preview = document.getElementById('hr-tenant-sig-preview');
+    if (handover.tenantSignature.mode === 'draw') {
+      preview.innerHTML = `<img src="${handover.tenantSignature.data}" alt="Tenant signature">`;
+    } else {
+      preview.textContent = handover.tenantSignature.data;
+    }
+    document.getElementById('hr-tenant-sig-date').textContent = `Signed ${handover.tenantSignedAt}`;
+  }
+
+  function openHandoverReviewModal() {
+    if (!handover) return;
+    document.getElementById('hr-property-name').textContent = handover.listingTitle;
+    renderHrTenantSigPreview();
+
+    const signPanel = document.getElementById('hr-sign-panel');
+    const completedPanel = document.getElementById('hr-completed-panel');
+    const landlordPreview = document.getElementById('hr-landlord-sig-preview');
+
+    if (handover.status === 'completed') {
+      signPanel.style.display = 'none';
+      completedPanel.style.display = 'block';
+      landlordPreview.className = 'agreement-sig-preview landlord-sig';
+      if (handover.landlordSignature.mode === 'draw') {
+        landlordPreview.innerHTML = `<img src="${handover.landlordSignature.data}" alt="Landlord signature">`;
+      } else {
+        landlordPreview.textContent = handover.landlordSignature.data;
+      }
+      handoverReviewModal.classList.add('open');
+      if (window.lucide) lucide.createIcons();
+      return;
+    }
+
+    signPanel.style.display = 'block';
+    completedPanel.style.display = 'none';
+    landlordPreview.className = 'agreement-sig-preview landlord-sig pending';
+    landlordPreview.textContent = 'Pending';
+    setHrSigMode('draw');
+    hrSigTypeInput.value = '';
+    hrSigHasStrokes = false;
+    handoverReviewModal.classList.add('open');
+    resizeHrSigCanvas();
+    hrSigCtx.clearRect(0, 0, hrSigCanvas.width, hrSigCanvas.height);
+    updateHrSignState();
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('hr-close-btn').addEventListener('click', () => handoverReviewModal.classList.remove('open'));
+
+  document.getElementById('hr-sign-send-btn').addEventListener('click', () => {
+    if (hrSignSendBtn.disabled || !handover) return;
+    handover.landlordSignature = hrSigMode === 'draw'
+      ? { mode: 'draw', data: hrSigCanvas.toDataURL('image/png') }
+      : { mode: 'type', data: hrSigTypeInput.value.trim() };
+    handover.landlordSignedAt = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    handover.status = 'completed';
+    saveHandover();
+
+    showToast('Agreement signed & sent — executed copy available to both parties');
+    populateScreen4();
+    if (!document.getElementById('screen-post-lease').classList.contains('hidden')) populateScreen7();
+    handoverReviewModal.classList.remove('open');
+  });
+
+  document.getElementById('hr-download-btn').addEventListener('click', () => {
+    showToast('Opening Executed Tenancy Agreement (Dual-Signed).pdf');
+  });
+
   // ---- Checkout OTP modal ----
   const checkoutOtpModal = document.getElementById('checkout-otp-modal');
   const checkoutOtpInputs = document.querySelectorAll('#checkout-otp-modal .otp-input');
@@ -3377,6 +3630,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('s6-success-panel').classList.add('hidden');
     document.getElementById('s6-invoice-panel').classList.remove('hidden');
     if (window.lucide) lucide.createIcons();
+
+    // Tenant has now both paid AND digitally signed the Tenancy Agreement —
+    // hand off to the Landlord for review & countersignature.
+    createHandoverForTenantSignOff();
   }
 
   // ---- PIN Authorization Modal (escrow release) ----
@@ -3455,21 +3712,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
   //      Reads directly from the unified `schedules` array so tenant
   //      bookings appear here instantly, and actions write straight back.
   // ==================================================================
+  // Landlord/Agent no longer take scheduling actions (accept / decline / mark conducted)
+  // directly on this card — every inspection request routes through a direct chat with
+  // the tenant instead. The tenant alone decides acceptance, inspection outcome, and the
+  // Complete & Decide Split / payment flow.
   function inspectionsManagerCardHTML(s) {
     const isPending = s.status === 'Pending Approval';
-    const isConfirmed = s.status === 'Confirmed';
     const isConducted = s.status === 'Conducted';
     const badgeClass = isPending ? 'insp-status-pending' : (isConducted ? 'insp-status-conducted' : 'insp-status-confirmed');
-    let actions = '';
-    if (isPending) {
-      actions = `
-        <button type="button" class="insp-mgr-btn insp-mgr-accept" data-action="accept" data-sched-id="${s.id}"><i data-lucide="check" class="w-3.5 h-3.5"></i>Accept Inspection</button>
-        <button type="button" class="insp-mgr-btn insp-mgr-decline" data-action="decline" data-sched-id="${s.id}"><i data-lucide="calendar-x" class="w-3.5 h-3.5"></i>Decline / Reschedule</button>`;
-    } else if (isConfirmed) {
-      actions = `<button type="button" class="insp-mgr-btn insp-mgr-conduct" data-action="conduct" data-sched-id="${s.id}"><i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i>Mark Inspection Conducted</button>`;
-    } else {
-      actions = `<span class="role-hint" style="text-align:left; margin:2px 0 0;">Awaiting tenant decision (proceed to lease vs. 50/50 split).</span>`;
-    }
     return `
       <div class="insp-mgmt-card" data-sched-id="${s.id}">
         <div class="insp-mgmt-top">
@@ -3485,7 +3735,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
             </div>
           </div>
         </div>
-        <div class="insp-mgmt-actions-row">${actions}</div>
+        <div class="insp-mgmt-actions-row">
+          <button type="button" class="insp-mgr-btn insp-mgr-chat" data-action="chat" data-sched-id="${s.id}"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>Chat Manager</button>
+        </div>
       </div>`;
   }
 
@@ -3506,9 +3758,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const btn = e.target.closest('[data-action][data-sched-id]');
     if (!btn) return;
     const id = btn.dataset.schedId;
-    if (btn.dataset.action === 'accept') acceptSchedule(id);
-    else if (btn.dataset.action === 'decline') declineOrRescheduleSchedule(id);
-    else if (btn.dataset.action === 'conduct') markInspectionConducted(id);
+    if (btn.dataset.action === 'chat') {
+      const sched = schedules.find(s => String(s.id) === String(id));
+      if (!sched) return;
+      const convId = ensureConversationForSchedule(sched);
+      renderLandlordInspectionsManager();
+      renderAgentInspectionsManager();
+      navigateTo('screen-messages');
+      openThreadDetail(convId);
+    }
   }
   document.getElementById('s5-landlord-inspections').addEventListener('click', handleInspectionsManagerClick);
   document.getElementById('s5-agent-inspections').addEventListener('click', handleInspectionsManagerClick);
@@ -3943,6 +4201,34 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // ---- Cross-role inspection status transitions (shared by tenant's
   //      "Simulate Agent Accept" and the Landlord/Agent Inspections Manager) ----
   // ==================================================================
+
+  // Landlord/Agent "Chat Manager" action: opens the existing conversation for this
+  // inspection request, or creates one on the fly so they can message the tenant
+  // immediately — even before the request has been formally accepted.
+  function ensureConversationForSchedule(sched) {
+    if (sched.conversationId) {
+      const existing = conversations.find(c => c.id === sched.conversationId);
+      if (existing) return existing.id;
+    }
+    const convId = Date.now() + Math.floor(Math.random() * 1000);
+    sched.conversationId = convId;
+    conversations.unshift({
+      id: convId,
+      inspectionId: sched.inspectionId,
+      listingTitle: sched.title,
+      feeType: sched.feeType,
+      fee: sched.fee,
+      status: 'active',
+      messages: [
+        { from: 'system', text: `Inspection request received for ${sched.title}${sched.date ? ` — ${sched.date}` : ''}${sched.time ? ` at ${sched.time}` : ''}.` },
+        { from: 'them', text: `Hi! I'd like to discuss the inspection request for ${sched.title}.` }
+      ]
+    });
+    saveConversations();
+    saveSchedules();
+    return convId;
+  }
+
   function acceptSchedule(scheduleId) {
     const sched = schedules.find(s => String(s.id) === String(scheduleId));
     if (!sched || sched.status !== 'Pending Approval') return;
@@ -4191,10 +4477,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
     emptyHint.style.display = 'none';
+    const role = currentUserRole || 'tenant';
+    const isLandlordOrAgent = role === 'landlord' || role === 'agent';
     list.innerHTML = schedules.map(s => {
       const isPending = s.status === 'Pending Approval';
       const badgeClass = isPending ? 'insp-status-pending' : (s.status === 'Conducted' ? 'insp-status-conducted' : 'insp-status-confirmed');
       const badgeIcon = isPending ? 'clock' : (s.status === 'Conducted' ? 'clipboard-check' : 'check-circle-2');
+      // Landlord/Agent: view-only requests, routed entirely through direct chat with the
+      // tenant — no scheduling controls and no access to the tenant's payment/split flow.
+      const actionsHtml = isLandlordOrAgent
+        ? `<button type="button" class="s5-action-btn primary insp-chat-btn" data-sched-id="${s.id}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>`
+        : (isPending
+            ? `<button type="button" class="s5-action-btn primary insp-simulate-accept-btn" data-sched-id="${s.id}"><i data-lucide="zap" class="w-4 h-4"></i>⚡ Simulate Agent Accept</button>`
+            : `<button type="button" class="s5-action-btn insp-chat-btn" data-conv-id="${s.conversationId}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>
+               <button type="button" class="s5-action-btn primary insp-complete-btn" data-conv-id="${s.conversationId}"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Complete &amp; Decide Split</button>`);
       return `
       <div class="insp-mgmt-card" data-sched-id="${s.id}">
         <div class="insp-mgmt-top">
@@ -4210,12 +4506,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
             </div>
           </div>
         </div>
-        <div class="insp-mgmt-actions">
-          ${isPending
-            ? `<button type="button" class="s5-action-btn primary insp-simulate-accept-btn" data-sched-id="${s.id}"><i data-lucide="zap" class="w-4 h-4"></i>⚡ Simulate Agent Accept</button>`
-            : `<button type="button" class="s5-action-btn insp-chat-btn" data-conv-id="${s.conversationId}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>
-               <button type="button" class="s5-action-btn primary insp-complete-btn" data-conv-id="${s.conversationId}"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Complete &amp; Decide Split</button>`}
-        </div>
+        <div class="insp-mgmt-actions">${actionsHtml}</div>
       </div>`;
     }).join('');
     if (window.lucide) lucide.createIcons();
@@ -4226,22 +4517,36 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const completeBtn = e.target.closest('.insp-complete-btn');
     const simulateBtn = e.target.closest('.insp-simulate-accept-btn');
     if (chatBtn) {
-      const convId = parseInt(chatBtn.dataset.convId, 10);
+      let convId;
+      if (chatBtn.dataset.schedId) {
+        // Landlord/Agent path: no conversation may exist yet — create it on the fly.
+        const sched = schedules.find(s => String(s.id) === String(chatBtn.dataset.schedId));
+        convId = sched ? ensureConversationForSchedule(sched) : null;
+      } else {
+        convId = parseInt(chatBtn.dataset.convId, 10);
+      }
+      if (!convId) return;
       navigateTo('screen-messages');
       openThreadDetail(convId);
     } else if (completeBtn) {
+      // Tenant-only: Complete & Decide Split must never be reachable by Landlord/Agent.
+      if ((currentUserRole || 'tenant') !== 'tenant') return;
       const convId = parseInt(completeBtn.dataset.convId, 10);
       activeThreadId = convId;
       inspectionDecisionModal.classList.add('open');
     } else if (simulateBtn) {
+      if ((currentUserRole || 'tenant') !== 'tenant') return;
       acceptSchedule(simulateBtn.dataset.schedId);
     }
   });
 
   // Dashboard "Inspection scheduled" activity card -> jump straight into Schedules view
+  // Dashboard "Handover sign-off" activity card (Landlord) -> open the Agreement Review & Sign-Off sheet
   document.getElementById('dash-list').addEventListener('click', (e) => {
     const item = e.target.closest('.dash-list-item');
-    if (item && item.dataset.action === 'inspections') navigateTo('screen-inspections');
+    if (!item) return;
+    if (item.dataset.action === 'inspections') navigateTo('screen-inspections');
+    else if (item.dataset.action === 'handoverReview') openHandoverReviewModal();
   });
 
   // ==================================================================
@@ -4309,7 +4614,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('msg-thread-title').textContent = conv.listingTitle;
     document.getElementById('msg-thread-sub').textContent = conv.status === 'archived' ? 'Archived conversation' : 'Active inspection conversation';
     renderChatLog(conv);
-    document.getElementById('msg-complete-btn').style.display = conv.status === 'archived' ? 'none' : 'flex';
+    // Complete & Decide Split (via "Simulate Inspection Complete") is a tenant-only
+    // action — Landlord/Agent must never see tenant payment triggers in chat.
+    const canComplete = conv.status !== 'archived' && (currentUserRole || 'tenant') === 'tenant';
+    document.getElementById('msg-complete-btn').style.display = canComplete ? 'flex' : 'none';
     if (window.lucide) lucide.createIcons();
   }
 
@@ -4320,6 +4628,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('id-cancel-btn').addEventListener('click', () => inspectionDecisionModal.classList.remove('open'));
 
   document.getElementById('id-satisfied-btn').addEventListener('click', () => {
+    if ((currentUserRole || 'tenant') !== 'tenant') return; // tenant-only: proceeds into the payment flow
     const conv = conversations.find(c => c.id === activeThreadId);
     if (!conv) return;
     inspectionDecisionModal.classList.remove('open');
@@ -4444,7 +4753,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   document.getElementById('s7-vault-download-btn').addEventListener('click', () => {
-    showToast('Opening Signed Tenancy Agreement.pdf (read-only)');
+    const label = (typeof handover !== 'undefined' && handover && handover.status === 'completed')
+      ? 'Executed Tenancy Agreement (Dual-Signed).pdf'
+      : 'Signed Tenancy Agreement.pdf';
+    showToast(`Opening ${label} (read-only)`);
   });
 
   document.getElementById('s7-movein-confirm-btn').addEventListener('click', () => {
@@ -4473,10 +4785,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('s7-lease-amount').textContent = lease.amountLabel;
     document.getElementById('s7-lease-due').textContent = lease.dueLabel;
     document.getElementById('s7-lease-card').textContent = lease.card;
-    document.getElementById('s7-vault-filename').textContent = 'Signed Tenancy Agreement.pdf';
-    document.getElementById('s7-vault-timestamp').textContent = checkoutTenantSignature
-      ? `Digitally executed — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-      : `Digitally signed — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    const isDualSigned = typeof handover !== 'undefined' && handover && handover.status === 'completed';
+    document.getElementById('s7-vault-filename').textContent = isDualSigned
+      ? 'Executed Tenancy Agreement (Dual-Signed).pdf'
+      : 'Signed Tenancy Agreement.pdf';
+    document.getElementById('s7-vault-timestamp').textContent = isDualSigned
+      ? `Dual-signed & executed — ${handover.landlordSignedAt}`
+      : checkoutTenantSignature
+        ? `Digitally executed — awaiting landlord countersignature`
+        : `Digitally signed — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
     document.getElementById('s7-movein-date').value = '';
     document.getElementById('s7-movein-confirmed').style.display = 'none';
     renderStageTracker();
