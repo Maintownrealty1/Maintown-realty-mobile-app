@@ -156,6 +156,89 @@
   .resend-link { color: #c084fc; cursor: pointer; }
   .resend-link:hover { text-decoration: underline; }
 
+  /* Payout / Commission History — slide-up sheet */
+  .sheet-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px); z-index: 60; align-items: flex-end; justify-content: center; padding: 0;
+  }
+  .sheet-overlay.open { display: flex; }
+  .sheet-card {
+    background: #0b0f19; border: 1px solid #1e293b; border-bottom: none;
+    border-top-left-radius: 24px; border-top-right-radius: 24px;
+    width: 100%; max-width: 420px; max-height: 92vh; max-height: 92dvh;
+    overflow-y: auto; -webkit-overflow-scrolling: touch; box-sizing: border-box;
+    padding: 14px 20px 28px; animation: sheetSlideUp 0.3s ease;
+  }
+  @keyframes sheetSlideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .sheet-handle { width: 36px; height: 4px; background: #334155; border-radius: 999px; margin: 0 auto 16px; }
+  .sheet-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .sheet-title { font-size: 16px; font-weight: 600; color: #fff; margin: 0 0 2px; display: flex; align-items: center; gap: 8px; }
+  .sheet-title svg { width: 17px; height: 17px; color: #c084fc; }
+  .sheet-subtitle { font-size: 12px; color: #64748b; margin: 0; }
+  .sheet-close-btn {
+    width: 32px; height: 32px; border-radius: 999px; background: rgba(30,41,59,0.8);
+    border: 1px solid #1e293b; display: flex; align-items: center; justify-content: center;
+    color: #94a3b8; cursor: pointer; flex-shrink: 0;
+  }
+  .sheet-close-btn:hover { color: #fff; border-color: #334155; }
+  .sheet-close-btn svg { width: 15px; height: 15px; }
+
+  .bank-info-card {
+    background: linear-gradient(135deg, rgba(139,92,246,0.16), rgba(124,58,237,0.06));
+    border: 1px solid rgba(139,92,246,0.3); border-radius: 16px; padding: 16px; margin-bottom: 20px;
+  }
+  .bank-info-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .bank-icon-wrap {
+    width: 40px; height: 40px; border-radius: 12px; background: rgba(139,92,246,0.2);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .bank-icon-wrap svg { width: 19px; height: 19px; color: #c084fc; }
+  .bank-info-label { font-size: 11px; color: #94a3b8; margin: 0 0 2px; }
+  .bank-info-value { font-size: 14px; font-weight: 600; color: #fff; margin: 0; }
+  .security-badge {
+    display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; color: #a78bfa;
+    background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25);
+    padding: 7px 10px; border-radius: 999px; width: fit-content;
+  }
+  .security-badge svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+  .txn-section-title { font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin: 0 0 12px; }
+  .txn-row { background: rgba(15,23,42,0.7); border: 1px solid #1e293b; border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+  .txn-row-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+  .txn-title { font-size: 13px; font-weight: 600; color: #fff; margin: 0 0 3px; line-height: 1.3; }
+  .txn-date { font-size: 11px; color: #64748b; margin: 0; }
+  .txn-status-badge { font-size: 10px; font-weight: 600; padding: 4px 9px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+  .txn-status-badge.settled { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+  .txn-status-badge.pending { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+  .txn-breakdown {
+    display: flex; flex-direction: column; gap: 5px; padding: 10px 0; margin-bottom: 10px;
+    border-top: 1px dashed #1e293b; border-bottom: 1px dashed #1e293b;
+  }
+  .txn-breakdown-row { display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; }
+  .txn-breakdown-row span:last-child { color: #cbd5e1; font-weight: 500; }
+  .txn-breakdown-row.net { margin-top: 2px; }
+  .txn-breakdown-row.net span:first-child { color: #e2e8f0; font-weight: 600; }
+  .txn-breakdown-row.net span:last-child { color: #34d399; font-weight: 700; font-size: 13px; }
+  .txn-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .txn-ref { font-size: 10px; color: #64748b; font-family: 'SFMono-Regular', Consolas, monospace; }
+  .txn-download-btn {
+    display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: #c084fc;
+    background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.3);
+    padding: 7px 12px; border-radius: 10px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    transition: background 0.15s ease;
+  }
+  .txn-download-btn:hover { background: rgba(139,92,246,0.24); }
+  .txn-download-btn svg { width: 13px; height: 13px; }
+
+  /* Make the top earnings card on Landlord/Agent dashboards feel clickable */
+  .dash-card.clickable { cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+  .dash-card.clickable:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(147,51,234,0.32); }
+  .dash-card-tap-hint {
+    display: flex; align-items: center; gap: 4px; font-size: 11px; color: rgba(255,255,255,0.85);
+    margin-top: 10px; font-weight: 500;
+  }
+  .dash-card-tap-hint svg { width: 12px; height: 12px; }
+
   /* Toast */
   .toast {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
@@ -1030,10 +1113,13 @@
     </div>
   </div>
 
-  <div class="dash-card">
+  <div class="dash-card" id="dash-top-card">
     <p class="dash-card-label" id="dash-card-label">Active Status</p>
     <p class="dash-card-value" id="dash-card-value">—</p>
     <p class="dash-card-sub" id="dash-card-sub">—</p>
+    <div class="dash-card-tap-hint" id="dash-card-tap-hint" style="display:none;">
+      <i data-lucide="wallet" class="w-3 h-3"></i> Tap to view transaction &amp; payout history
+    </div>
   </div>
 
   <div id="dash-inspections-summary"><!-- populated dynamically --></div>
@@ -1853,6 +1939,39 @@
   </div>
 </div>
 
+<!-- ===================== Transaction & Payout History Sheet ===================== -->
+<div id="payout-history-modal" class="sheet-overlay">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <h2 class="sheet-title"><i data-lucide="wallet" class="w-4 h-4"></i><span id="ph-title">Transaction &amp; Payout History</span></h2>
+        <p class="sheet-subtitle" id="ph-subtitle">Itemized settlements and bank transfers</p>
+      </div>
+      <button type="button" class="sheet-close-btn" id="ph-close-btn">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+
+    <div class="bank-info-card">
+      <div class="bank-info-row">
+        <div class="bank-icon-wrap"><i data-lucide="landmark" class="w-4 h-4"></i></div>
+        <div>
+          <p class="bank-info-label">Linked Settlement Account</p>
+          <p class="bank-info-value" id="ph-bank-account">—</p>
+        </div>
+      </div>
+      <div class="security-badge">
+        <i data-lucide="shield-check" class="w-3 h-3"></i>
+        Automated Bank Settlements via Flutterwave Escrow
+      </div>
+    </div>
+
+    <p class="txn-section-title">Itemized Transactions</p>
+    <div id="ph-txn-list"><!-- populated dynamically --></div>
+  </div>
+</div>
+
 <!-- Toast Notification -->
 <div id="toast" class="toast">
   <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -2411,7 +2530,7 @@
       cardSub: '3 active tenants across 2 properties',
       actions: [
         { icon: 'plus-circle', label: 'List Property', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
-        { icon: 'wallet', label: 'Payouts', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'toast' },
+        { icon: 'wallet', label: 'Payouts', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'payoutHistory' },
         { icon: 'users', label: 'Tenants', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'toast' },
         { icon: 'calendar-check', label: 'Inspections', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'browse' }
       ],
@@ -2429,7 +2548,7 @@
         { icon: 'plus-circle', label: 'Add Listing', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
         { icon: 'calendar-check', label: 'Walkthroughs', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'browse' },
         { icon: 'users', label: 'Clients', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'toast' },
-        { icon: 'bar-chart-3', label: 'Commission', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'toast' }
+        { icon: 'bar-chart-3', label: 'Commission', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'payoutHistory' }
       ],
       activity: [
         { icon: 'calendar-check', color: 'text-amber-400', title: 'Walkthrough completed', sub: 'Duplex, Victoria Island' },
@@ -2439,6 +2558,119 @@
   };
 
   const roleDisplayNames = { tenant: 'Tenant', landlord: 'Landlord', agent: 'Agent' };
+
+  // ---- Payout / Commission History data (per role) ----
+  const payoutHistoryData = {
+    landlord: {
+      sheetTitle: 'Payout History',
+      subtitle: 'Rent settlements to your bank',
+      bank: { name: 'Zenith Bank', masked: '•••• 4920' },
+      feeLabel: 'Escrow / Platform Fee',
+      transactions: [
+        { property: '2 Bedroom Ikeja — Rent Payment', gross: 650000, fee: 65000, net: 585000, date: 'Aug 20, 2026 · 14:30', status: 'settled', txnId: 'FLW-TXN-904821' },
+        { property: 'Duplex, Victoria Island — Rent Payment', gross: 480000, fee: 48000, net: 432000, date: 'Aug 12, 2026 · 10:05', status: 'settled', txnId: 'FLW-TXN-897765' },
+        { property: 'Mini Flat, Yaba — Rent Payment', gross: 260000, fee: 26000, net: 234000, date: 'Aug 28, 2026 · 16:40', status: 'pending', txnId: 'FLW-TXN-915032' }
+      ]
+    },
+    agent: {
+      sheetTitle: 'Commission History',
+      subtitle: 'Commission settlements to your bank',
+      bank: { name: 'GTBank', masked: '•••• 2217' },
+      feeLabel: 'Platform Retention (40%)',
+      transactions: [
+        { property: 'Duplex, Victoria Island — Agent Commission', gross: 230000, fee: 92000, net: 138000, date: 'Aug 20, 2026 · 14:30', status: 'pending', txnId: 'FLW-TXN-904821' },
+        { property: '2 Bedroom Ikeja — Agent Commission', gross: 180000, fee: 72000, net: 108000, date: 'Aug 10, 2026 · 09:20', status: 'settled', txnId: 'FLW-TXN-891204' },
+        { property: 'Studio Apartment, Yaba — Agent Commission', gross: 95000, fee: 38000, net: 57000, date: 'Jul 30, 2026 · 13:15', status: 'settled', txnId: 'FLW-TXN-873390' }
+      ]
+    }
+  };
+
+  const payoutHistoryModal = document.getElementById('payout-history-modal');
+
+  function openPayoutHistory(role) {
+    const data = payoutHistoryData[role];
+    if (!data) return; // tenant role has no payout/commission history
+
+    document.getElementById('ph-title').textContent = data.sheetTitle;
+    document.getElementById('ph-subtitle').textContent = data.subtitle;
+    document.getElementById('ph-bank-account').textContent = `${data.bank.name} ${data.bank.masked}`;
+
+    const list = document.getElementById('ph-txn-list');
+    list.innerHTML = data.transactions.map((t, i) => `
+      <div class="txn-row">
+        <div class="txn-row-top">
+          <div>
+            <p class="txn-title">${t.property}</p>
+            <p class="txn-date">${t.date}</p>
+          </div>
+          <span class="txn-status-badge ${t.status}">${t.status === 'settled' ? 'Settled to Bank' : 'In Escrow (Pending Handover)'}</span>
+        </div>
+        <div class="txn-breakdown">
+          <div class="txn-breakdown-row"><span>Gross Amount</span><span>${formatMoney(t.gross, 'ngn')}</span></div>
+          <div class="txn-breakdown-row"><span>${data.feeLabel}</span><span>-${formatMoney(t.fee, 'ngn')}</span></div>
+          <div class="txn-breakdown-row net"><span>Net Amount ${t.status === 'settled' ? 'Settled' : 'Payable'}</span><span>${formatMoney(t.net, 'ngn')}</span></div>
+        </div>
+        <div class="txn-footer">
+          <span class="txn-ref">${t.txnId}</span>
+          <button type="button" class="txn-download-btn" data-role="${role}" data-idx="${i}">
+            <i data-lucide="download" class="w-3 h-3"></i> Download Receipt
+          </button>
+        </div>
+      </div>`).join('');
+
+    payoutHistoryModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('ph-close-btn').addEventListener('click', () => {
+    payoutHistoryModal.classList.remove('open');
+  });
+  payoutHistoryModal.addEventListener('click', (e) => {
+    if (e.target === payoutHistoryModal) payoutHistoryModal.classList.remove('open');
+  });
+
+  document.getElementById('ph-txn-list').addEventListener('click', (e) => {
+    const btn = e.target.closest('.txn-download-btn');
+    if (!btn) return;
+    const role = btn.dataset.role;
+    const t = payoutHistoryData[role].transactions[Number(btn.dataset.idx)];
+    downloadReceipt(role, t);
+  });
+
+  function downloadReceipt(role, t) {
+    const data = payoutHistoryData[role];
+    const statusLabel = t.status === 'settled' ? 'Settled to Bank' : 'In Escrow (Pending Handover)';
+    const receiptText =
+`MAINTOWN REALTY — SETTLEMENT VOUCHER
+=====================================
+${data.sheetTitle}
+
+Listing: ${t.property}
+Date: ${t.date}
+Status: ${statusLabel}
+
+Gross Amount:            ${formatMoney(t.gross, 'ngn')}
+${data.feeLabel}:  -${formatMoney(t.fee, 'ngn')}
+-------------------------------------
+Net Amount Settled:      ${formatMoney(t.net, 'ngn')}
+
+Linked Account: ${data.bank.name} ${data.bank.masked}
+Settlement Method: Automated Bank Settlement via Flutterwave Escrow
+Transaction Audit Reference: ${t.txnId}
+=====================================
+This voucher is auto-generated and serves as proof of settlement.`;
+
+    const blob = new Blob([receiptText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `receipt-${t.txnId}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Receipt downloaded');
+  }
 
   function populateScreen4() {
     const role = currentUserRole || 'tenant';
@@ -2450,6 +2682,12 @@
     document.getElementById('dash-card-label').textContent = data.cardLabel;
     document.getElementById('dash-card-value').textContent = data.cardValue;
     document.getElementById('dash-card-sub').textContent = data.cardSub;
+
+    const topCard = document.getElementById('dash-top-card');
+    const tapHint = document.getElementById('dash-card-tap-hint');
+    const hasPayoutHistory = role === 'landlord' || role === 'agent';
+    topCard.classList.toggle('clickable', hasPayoutHistory);
+    tapHint.style.display = hasPayoutHistory ? 'flex' : 'none';
 
     const grid = document.getElementById('dash-grid');
     grid.innerHTML = data.actions.map(a => `
@@ -2507,8 +2745,17 @@
     if (!tile) return;
     if (tile.dataset.action === 'browse') {
       navigateTo('screen-5');
+    } else if (tile.dataset.action === 'payoutHistory') {
+      openPayoutHistory(currentUserRole);
     } else {
       showToast(`${tile.dataset.label} — coming soon`);
+    }
+  });
+
+  // ---- Top earnings card: clickable on Landlord/Agent dashboards to open Transaction & Payout History ----
+  document.getElementById('dash-top-card').addEventListener('click', () => {
+    if (currentUserRole === 'landlord' || currentUserRole === 'agent') {
+      openPayoutHistory(currentUserRole);
     }
   });
 
