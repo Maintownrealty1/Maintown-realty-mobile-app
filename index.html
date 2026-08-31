@@ -156,6 +156,89 @@
   .resend-link { color: #c084fc; cursor: pointer; }
   .resend-link:hover { text-decoration: underline; }
 
+  /* Payout / Commission History — slide-up sheet */
+  .sheet-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px); z-index: 60; align-items: flex-end; justify-content: center; padding: 0;
+  }
+  .sheet-overlay.open { display: flex; }
+  .sheet-card {
+    background: #0b0f19; border: 1px solid #1e293b; border-bottom: none;
+    border-top-left-radius: 24px; border-top-right-radius: 24px;
+    width: 100%; max-width: 420px; max-height: 92vh; max-height: 92dvh;
+    overflow-y: auto; -webkit-overflow-scrolling: touch; box-sizing: border-box;
+    padding: 14px 20px 28px; animation: sheetSlideUp 0.3s ease;
+  }
+  @keyframes sheetSlideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .sheet-handle { width: 36px; height: 4px; background: #334155; border-radius: 999px; margin: 0 auto 16px; }
+  .sheet-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .sheet-title { font-size: 16px; font-weight: 600; color: #fff; margin: 0 0 2px; display: flex; align-items: center; gap: 8px; }
+  .sheet-title svg { width: 17px; height: 17px; color: #c084fc; }
+  .sheet-subtitle { font-size: 12px; color: #64748b; margin: 0; }
+  .sheet-close-btn {
+    width: 32px; height: 32px; border-radius: 999px; background: rgba(30,41,59,0.8);
+    border: 1px solid #1e293b; display: flex; align-items: center; justify-content: center;
+    color: #94a3b8; cursor: pointer; flex-shrink: 0;
+  }
+  .sheet-close-btn:hover { color: #fff; border-color: #334155; }
+  .sheet-close-btn svg { width: 15px; height: 15px; }
+
+  .bank-info-card {
+    background: linear-gradient(135deg, rgba(139,92,246,0.16), rgba(124,58,237,0.06));
+    border: 1px solid rgba(139,92,246,0.3); border-radius: 16px; padding: 16px; margin-bottom: 20px;
+  }
+  .bank-info-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .bank-icon-wrap {
+    width: 40px; height: 40px; border-radius: 12px; background: rgba(139,92,246,0.2);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .bank-icon-wrap svg { width: 19px; height: 19px; color: #c084fc; }
+  .bank-info-label { font-size: 11px; color: #94a3b8; margin: 0 0 2px; }
+  .bank-info-value { font-size: 14px; font-weight: 600; color: #fff; margin: 0; }
+  .security-badge {
+    display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; color: #a78bfa;
+    background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25);
+    padding: 7px 10px; border-radius: 999px; width: fit-content;
+  }
+  .security-badge svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+  .txn-section-title { font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin: 0 0 12px; }
+  .txn-row { background: rgba(15,23,42,0.7); border: 1px solid #1e293b; border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+  .txn-row-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+  .txn-title { font-size: 13px; font-weight: 600; color: #fff; margin: 0 0 3px; line-height: 1.3; }
+  .txn-date { font-size: 11px; color: #64748b; margin: 0; }
+  .txn-status-badge { font-size: 10px; font-weight: 600; padding: 4px 9px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+  .txn-status-badge.settled { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+  .txn-status-badge.pending { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+  .txn-breakdown {
+    display: flex; flex-direction: column; gap: 5px; padding: 10px 0; margin-bottom: 10px;
+    border-top: 1px dashed #1e293b; border-bottom: 1px dashed #1e293b;
+  }
+  .txn-breakdown-row { display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; }
+  .txn-breakdown-row span:last-child { color: #cbd5e1; font-weight: 500; }
+  .txn-breakdown-row.net { margin-top: 2px; }
+  .txn-breakdown-row.net span:first-child { color: #e2e8f0; font-weight: 600; }
+  .txn-breakdown-row.net span:last-child { color: #34d399; font-weight: 700; font-size: 13px; }
+  .txn-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .txn-ref { font-size: 10px; color: #64748b; font-family: 'SFMono-Regular', Consolas, monospace; }
+  .txn-download-btn {
+    display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: #c084fc;
+    background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.3);
+    padding: 7px 12px; border-radius: 10px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    transition: background 0.15s ease;
+  }
+  .txn-download-btn:hover { background: rgba(139,92,246,0.24); }
+  .txn-download-btn svg { width: 13px; height: 13px; }
+
+  /* Make the top earnings card on Landlord/Agent dashboards feel clickable */
+  .dash-card.clickable { cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+  .dash-card.clickable:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(147,51,234,0.32); }
+  .dash-card-tap-hint {
+    display: flex; align-items: center; gap: 4px; font-size: 11px; color: rgba(255,255,255,0.85);
+    margin-top: 10px; font-weight: 500;
+  }
+  .dash-card-tap-hint svg { width: 12px; height: 12px; }
+
   /* Toast */
   .toast {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
@@ -1030,10 +1113,13 @@
     </div>
   </div>
 
-  <div class="dash-card">
+  <div class="dash-card" id="dash-top-card">
     <p class="dash-card-label" id="dash-card-label">Active Status</p>
     <p class="dash-card-value" id="dash-card-value">—</p>
     <p class="dash-card-sub" id="dash-card-sub">—</p>
+    <div class="dash-card-tap-hint" id="dash-card-tap-hint" style="display:none;">
+      <i data-lucide="wallet" class="w-3 h-3"></i> Tap to view transaction &amp; payout history
+    </div>
   </div>
 
   <div id="dash-inspections-summary"><!-- populated dynamically --></div>
@@ -1742,49 +1828,6 @@
   </div>
 </div>
 
-<!-- Landlord Handover Review & Countersignature Overlay -->
-<div id="landlord-review-modal" class="modal-overlay">
-  <div class="modal-card">
-    <div class="modal-icon-wrap">
-      <i data-lucide="file-check-2" class="w-6 h-6 text-purple-400"></i>
-    </div>
-    <h2 class="modal-title">Review &amp; Countersign Handover</h2>
-    <p class="modal-sub" id="lr-property-name">—</p>
-
-    <div class="agreement-preview-card">
-      <div class="agreement-preview-row">
-        <i data-lucide="file-text" class="w-6 h-6 text-purple-400"></i>
-        <div>
-          <p class="s5-list-title" style="margin:0;">Tenancy Agreement.pdf</p>
-          <p class="s5-list-sub" style="margin:0;" id="lr-doc-status">Tenant-signed, awaiting Landlord countersignature</p>
-        </div>
-      </div>
-      <button type="button" id="lr-view-pdf-btn" class="s5-back-btn" style="width:auto; padding:0 14px; gap:6px; display:flex; align-items:center; white-space:nowrap; margin:10px 0 14px;">
-        <i data-lucide="eye" class="w-4 h-4"></i><span style="font-size:11.5px; font-weight:600;">View Tenant's Signed PDF</span>
-      </button>
-      <div class="agreement-sig-row">
-        <div class="agreement-sig-block">
-          <p class="agreement-sig-label">Tenant Signature</p>
-          <div class="agreement-sig-preview tenant-sig signed" id="lr-tenant-sig-preview">Pending</div>
-        </div>
-        <div class="agreement-sig-block">
-          <p class="agreement-sig-label">Your Signature</p>
-          <div class="agreement-sig-preview tenant-sig" id="lr-landlord-sig-preview">Pending</div>
-        </div>
-      </div>
-    </div>
-
-    <button type="button" id="lr-apply-signature-btn" class="doc-action-btn">
-      <i data-lucide="pen-tool" class="w-4 h-4"></i> Apply Landlord Signature
-    </button>
-
-    <button type="button" id="lr-sign-send-btn" class="btn-primary" style="margin-top:12px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:6px;" disabled>
-      <i data-lucide="send" class="w-4 h-4"></i> Sign &amp; Send
-    </button>
-    <button type="button" id="lr-cancel-btn" class="btn-secondary">Close</button>
-  </div>
-</div>
-
 <!-- PIN Authorization Modal (escrow release) -->
 <div id="pin-modal" class="modal-overlay">
   <div class="modal-card">
@@ -1893,6 +1936,39 @@
       <i data-lucide="x-circle" class="w-4 h-4"></i> Not Satisfied — Request Cancellation
     </button>
     <button type="button" id="id-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
+<!-- ===================== Transaction & Payout History Sheet ===================== -->
+<div id="payout-history-modal" class="sheet-overlay">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <h2 class="sheet-title"><i data-lucide="wallet" class="w-4 h-4"></i><span id="ph-title">Transaction &amp; Payout History</span></h2>
+        <p class="sheet-subtitle" id="ph-subtitle">Itemized settlements and bank transfers</p>
+      </div>
+      <button type="button" class="sheet-close-btn" id="ph-close-btn">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+
+    <div class="bank-info-card">
+      <div class="bank-info-row">
+        <div class="bank-icon-wrap"><i data-lucide="landmark" class="w-4 h-4"></i></div>
+        <div>
+          <p class="bank-info-label">Linked Settlement Account</p>
+          <p class="bank-info-value" id="ph-bank-account">—</p>
+        </div>
+      </div>
+      <div class="security-badge">
+        <i data-lucide="shield-check" class="w-3 h-3"></i>
+        Automated Bank Settlements via Flutterwave Escrow
+      </div>
+    </div>
+
+    <p class="txn-section-title">Itemized Transactions</p>
+    <div id="ph-txn-list"><!-- populated dynamically --></div>
   </div>
 </div>
 
@@ -2454,13 +2530,13 @@
       cardSub: '3 active tenants across 2 properties',
       actions: [
         { icon: 'plus-circle', label: 'List Property', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
-        { icon: 'wallet', label: 'Payouts', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'toast' },
+        { icon: 'wallet', label: 'Payouts', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'payoutHistory' },
         { icon: 'users', label: 'Tenants', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'toast' },
         { icon: 'calendar-check', label: 'Inspections', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'browse' }
       ],
       activity: [
         { icon: 'wallet', color: 'text-emerald-400', title: 'Payout disbursed', sub: 'Aug 3 · ₦620,000' },
-        { icon: 'check-circle-2', color: 'text-emerald-400', title: 'Handover sign-off completed', sub: 'Unit 4B, Ikeja — tap to countersign', action: 'handover-review', handoverId: 'demo' }
+        { icon: 'check-circle-2', color: 'text-emerald-400', title: 'Handover sign-off completed', sub: 'Unit 4B, Ikeja' }
       ]
     },
     agent: {
@@ -2472,7 +2548,7 @@
         { icon: 'plus-circle', label: 'Add Listing', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
         { icon: 'calendar-check', label: 'Walkthroughs', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'browse' },
         { icon: 'users', label: 'Clients', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'toast' },
-        { icon: 'bar-chart-3', label: 'Commission', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'toast' }
+        { icon: 'bar-chart-3', label: 'Commission', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'payoutHistory' }
       ],
       activity: [
         { icon: 'calendar-check', color: 'text-amber-400', title: 'Walkthrough completed', sub: 'Duplex, Victoria Island' },
@@ -2482,6 +2558,119 @@
   };
 
   const roleDisplayNames = { tenant: 'Tenant', landlord: 'Landlord', agent: 'Agent' };
+
+  // ---- Payout / Commission History data (per role) ----
+  const payoutHistoryData = {
+    landlord: {
+      sheetTitle: 'Payout History',
+      subtitle: 'Rent settlements to your bank',
+      bank: { name: 'Zenith Bank', masked: '•••• 4920' },
+      feeLabel: 'Escrow / Platform Fee',
+      transactions: [
+        { property: '2 Bedroom Ikeja — Rent Payment', gross: 650000, fee: 65000, net: 585000, date: 'Aug 20, 2026 · 14:30', status: 'settled', txnId: 'FLW-TXN-904821' },
+        { property: 'Duplex, Victoria Island — Rent Payment', gross: 480000, fee: 48000, net: 432000, date: 'Aug 12, 2026 · 10:05', status: 'settled', txnId: 'FLW-TXN-897765' },
+        { property: 'Mini Flat, Yaba — Rent Payment', gross: 260000, fee: 26000, net: 234000, date: 'Aug 28, 2026 · 16:40', status: 'pending', txnId: 'FLW-TXN-915032' }
+      ]
+    },
+    agent: {
+      sheetTitle: 'Commission History',
+      subtitle: 'Commission settlements to your bank',
+      bank: { name: 'GTBank', masked: '•••• 2217' },
+      feeLabel: 'Platform Retention (40%)',
+      transactions: [
+        { property: 'Duplex, Victoria Island — Agent Commission', gross: 230000, fee: 92000, net: 138000, date: 'Aug 20, 2026 · 14:30', status: 'pending', txnId: 'FLW-TXN-904821' },
+        { property: '2 Bedroom Ikeja — Agent Commission', gross: 180000, fee: 72000, net: 108000, date: 'Aug 10, 2026 · 09:20', status: 'settled', txnId: 'FLW-TXN-891204' },
+        { property: 'Studio Apartment, Yaba — Agent Commission', gross: 95000, fee: 38000, net: 57000, date: 'Jul 30, 2026 · 13:15', status: 'settled', txnId: 'FLW-TXN-873390' }
+      ]
+    }
+  };
+
+  const payoutHistoryModal = document.getElementById('payout-history-modal');
+
+  function openPayoutHistory(role) {
+    const data = payoutHistoryData[role];
+    if (!data) return; // tenant role has no payout/commission history
+
+    document.getElementById('ph-title').textContent = data.sheetTitle;
+    document.getElementById('ph-subtitle').textContent = data.subtitle;
+    document.getElementById('ph-bank-account').textContent = `${data.bank.name} ${data.bank.masked}`;
+
+    const list = document.getElementById('ph-txn-list');
+    list.innerHTML = data.transactions.map((t, i) => `
+      <div class="txn-row">
+        <div class="txn-row-top">
+          <div>
+            <p class="txn-title">${t.property}</p>
+            <p class="txn-date">${t.date}</p>
+          </div>
+          <span class="txn-status-badge ${t.status}">${t.status === 'settled' ? 'Settled to Bank' : 'In Escrow (Pending Handover)'}</span>
+        </div>
+        <div class="txn-breakdown">
+          <div class="txn-breakdown-row"><span>Gross Amount</span><span>${formatMoney(t.gross, 'ngn')}</span></div>
+          <div class="txn-breakdown-row"><span>${data.feeLabel}</span><span>-${formatMoney(t.fee, 'ngn')}</span></div>
+          <div class="txn-breakdown-row net"><span>Net Amount ${t.status === 'settled' ? 'Settled' : 'Payable'}</span><span>${formatMoney(t.net, 'ngn')}</span></div>
+        </div>
+        <div class="txn-footer">
+          <span class="txn-ref">${t.txnId}</span>
+          <button type="button" class="txn-download-btn" data-role="${role}" data-idx="${i}">
+            <i data-lucide="download" class="w-3 h-3"></i> Download Receipt
+          </button>
+        </div>
+      </div>`).join('');
+
+    payoutHistoryModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('ph-close-btn').addEventListener('click', () => {
+    payoutHistoryModal.classList.remove('open');
+  });
+  payoutHistoryModal.addEventListener('click', (e) => {
+    if (e.target === payoutHistoryModal) payoutHistoryModal.classList.remove('open');
+  });
+
+  document.getElementById('ph-txn-list').addEventListener('click', (e) => {
+    const btn = e.target.closest('.txn-download-btn');
+    if (!btn) return;
+    const role = btn.dataset.role;
+    const t = payoutHistoryData[role].transactions[Number(btn.dataset.idx)];
+    downloadReceipt(role, t);
+  });
+
+  function downloadReceipt(role, t) {
+    const data = payoutHistoryData[role];
+    const statusLabel = t.status === 'settled' ? 'Settled to Bank' : 'In Escrow (Pending Handover)';
+    const receiptText =
+`MAINTOWN REALTY — SETTLEMENT VOUCHER
+=====================================
+${data.sheetTitle}
+
+Listing: ${t.property}
+Date: ${t.date}
+Status: ${statusLabel}
+
+Gross Amount:            ${formatMoney(t.gross, 'ngn')}
+${data.feeLabel}:  -${formatMoney(t.fee, 'ngn')}
+-------------------------------------
+Net Amount Settled:      ${formatMoney(t.net, 'ngn')}
+
+Linked Account: ${data.bank.name} ${data.bank.masked}
+Settlement Method: Automated Bank Settlement via Flutterwave Escrow
+Transaction Audit Reference: ${t.txnId}
+=====================================
+This voucher is auto-generated and serves as proof of settlement.`;
+
+    const blob = new Blob([receiptText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `receipt-${t.txnId}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Receipt downloaded');
+  }
 
   function populateScreen4() {
     const role = currentUserRole || 'tenant';
@@ -2494,6 +2683,12 @@
     document.getElementById('dash-card-value').textContent = data.cardValue;
     document.getElementById('dash-card-sub').textContent = data.cardSub;
 
+    const topCard = document.getElementById('dash-top-card');
+    const tapHint = document.getElementById('dash-card-tap-hint');
+    const hasPayoutHistory = role === 'landlord' || role === 'agent';
+    topCard.classList.toggle('clickable', hasPayoutHistory);
+    tapHint.style.display = hasPayoutHistory ? 'flex' : 'none';
+
     const grid = document.getElementById('dash-grid');
     grid.innerHTML = data.actions.map(a => `
       <div class="dash-tile" data-action="${a.action}" data-label="${a.label}">
@@ -2503,7 +2698,7 @@
 
     const list = document.getElementById('dash-list');
     list.innerHTML = data.activity.map(item => `
-      <div class="dash-list-item" ${item.action ? `data-action="${item.action}"${item.handoverId !== undefined ? ` data-handover-id="${item.handoverId}"` : ''} style="cursor:pointer;"` : ''}>
+      <div class="dash-list-item" ${item.action ? `data-action="${item.action}" style="cursor:pointer;"` : ''}>
         <div class="dash-list-icon"><i data-lucide="${item.icon}" class="w-4 h-4 ${item.color}"></i></div>
         <div class="dash-list-text">
           <p class="dash-list-title">${item.title}</p>
@@ -2550,8 +2745,17 @@
     if (!tile) return;
     if (tile.dataset.action === 'browse') {
       navigateTo('screen-5');
+    } else if (tile.dataset.action === 'payoutHistory') {
+      openPayoutHistory(currentUserRole);
     } else {
       showToast(`${tile.dataset.label} — coming soon`);
+    }
+  });
+
+  // ---- Top earnings card: clickable on Landlord/Agent dashboards to open Transaction & Payout History ----
+  document.getElementById('dash-top-card').addEventListener('click', () => {
+    if (currentUserRole === 'landlord' || currentUserRole === 'agent') {
+      openPayoutHistory(currentUserRole);
     }
   });
 
@@ -2891,7 +3095,6 @@
   const sigTypeInput = document.getElementById('sig-type-input');
   let sigMode = 'draw';
   let sigHasStrokes = false;
-  let signatureContext = 'tenant'; // 'tenant' (checkout) or 'landlord' (handover countersignature)
   let sigDrawing = false;
 
   function resizeSigCanvas() {
@@ -2961,7 +3164,6 @@
   document.getElementById('sig-tab-type').addEventListener('click', () => setSigMode('type'));
 
   document.getElementById('s6-sign-agreement-btn').addEventListener('click', () => {
-    signatureContext = 'tenant';
     setSigMode('draw');
     sigTypeInput.value = '';
     sigHasStrokes = false;
@@ -2991,17 +3193,9 @@
 
   document.getElementById('sig-confirm-btn').addEventListener('click', () => {
     if (sigConfirmBtn.disabled) return;
-    const capturedSignature = sigMode === 'draw'
+    checkoutTenantSignature = sigMode === 'draw'
       ? { mode: 'draw', data: sigCanvas.toDataURL('image/png') }
       : { mode: 'type', data: sigTypeInput.value.trim() };
-
-    if (signatureContext === 'landlord') {
-      signatureModal.classList.remove('open');
-      applyLandlordSignature(capturedSignature);
-      return;
-    }
-
-    checkoutTenantSignature = capturedSignature;
     checkoutAgreementUploaded = true;
 
     const preview = document.getElementById('s6-tenant-sig-preview');
@@ -3165,10 +3359,6 @@
   function releaseEscrowAndShowInvoice() {
     buildActiveLeaseFromCheckout();
 
-    // Tenant has now both signed the Tenancy Agreement (mandatory pre-payment) AND
-    // completed payment (PIN-authorized escrow release) — notify the Landlord.
-    notifyLandlordOfHandover();
-
     // Populate the itemized Payment Invoice & Receipt from the same breakdown values shown at checkout
     document.getElementById('s6-invoice-row1-label').textContent = document.getElementById('s6-row1-label').textContent;
     document.getElementById('s6-invoice-row2-label').textContent = document.getElementById('s6-row2-label').textContent;
@@ -3267,11 +3457,19 @@
   // ==================================================================
   function inspectionsManagerCardHTML(s) {
     const isPending = s.status === 'Pending Approval';
+    const isConfirmed = s.status === 'Confirmed';
     const isConducted = s.status === 'Conducted';
     const badgeClass = isPending ? 'insp-status-pending' : (isConducted ? 'insp-status-conducted' : 'insp-status-confirmed');
-    // Landlords & Agents only ever get a single action here: open a direct chat with the tenant.
-    // All scheduling / accept / decline / split decisions belong exclusively to the tenant.
-    const actions = `<button type="button" class="s5-action-btn insp-chat-btn" data-conv-id="${s.conversationId || ''}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>`;
+    let actions = '';
+    if (isPending) {
+      actions = `
+        <button type="button" class="insp-mgr-btn insp-mgr-accept" data-action="accept" data-sched-id="${s.id}"><i data-lucide="check" class="w-3.5 h-3.5"></i>Accept Inspection</button>
+        <button type="button" class="insp-mgr-btn insp-mgr-decline" data-action="decline" data-sched-id="${s.id}"><i data-lucide="calendar-x" class="w-3.5 h-3.5"></i>Decline / Reschedule</button>`;
+    } else if (isConfirmed) {
+      actions = `<button type="button" class="insp-mgr-btn insp-mgr-conduct" data-action="conduct" data-sched-id="${s.id}"><i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i>Mark Inspection Conducted</button>`;
+    } else {
+      actions = `<span class="role-hint" style="text-align:left; margin:2px 0 0;">Awaiting tenant decision (proceed to lease vs. 50/50 split).</span>`;
+    }
     return `
       <div class="insp-mgmt-card" data-sched-id="${s.id}">
         <div class="insp-mgmt-top">
@@ -3305,12 +3503,12 @@
   function renderAgentInspectionsManager() { renderInspectionsManagerInto('s5-agent-inspections'); }
 
   function handleInspectionsManagerClick(e) {
-    const btn = e.target.closest('.insp-chat-btn');
+    const btn = e.target.closest('[data-action][data-sched-id]');
     if (!btn) return;
-    const convId = parseInt(btn.dataset.convId, 10);
-    if (!convId) { showToast('Chat unlocks as soon as the request comes in.'); return; }
-    navigateTo('screen-messages');
-    openThreadDetail(convId);
+    const id = btn.dataset.schedId;
+    if (btn.dataset.action === 'accept') acceptSchedule(id);
+    else if (btn.dataset.action === 'decline') declineOrRescheduleSchedule(id);
+    else if (btn.dataset.action === 'conduct') markInspectionConducted(id);
   }
   document.getElementById('s5-landlord-inspections').addEventListener('click', handleInspectionsManagerClick);
   document.getElementById('s5-agent-inspections').addEventListener('click', handleInspectionsManagerClick);
@@ -3711,12 +3909,10 @@
     const isAgent = inspectionListing.listedBy === 'agent';
     const fee = isAgent ? 12000 : 5000;
     const inspId = Date.now();
-    const convId = inspId + 1;
 
-    // Unified record: written to the legacy `inspections` log, the shared `conversations`
-    // store (so Chat Manager is available to the Landlord/Agent immediately), AND the
-    // shared `schedules` array so it instantly appears in the tenant's Inspection Schedules
-    // Hub *and* the Landlord/Agent Inspections Manager.
+    // Unified record: written to BOTH the legacy `inspections` log AND the
+    // shared `schedules` array so it instantly appears in the tenant's
+    // Inspection Schedules Hub *and* the Landlord/Agent Inspections Manager.
     inspections.unshift({
       id: inspId,
       listingTitle: inspectionListing.title,
@@ -3724,30 +3920,19 @@
       date, time,
       feeType: isAgent ? 'agent' : 'landlord',
       fee,
-      status: 'accepted'
+      status: 'pending' // pending -> accepted -> completed
     });
     saveInspections();
-
-    conversations.unshift({
-      id: convId, inspectionId: inspId, listingTitle: inspectionListing.title,
-      feeType: isAgent ? 'agent' : 'landlord', fee, status: 'active',
-      messages: [
-        { from: 'system', text: `Inspection request sent for ${inspectionListing.title}` },
-        { from: 'them', text: `Hi! We've received your inspection request for ${inspectionListing.title} on ${date || 'a date to be arranged'} at ${time || 'a time to be arranged'}. Chat with us here to coordinate.` }
-      ]
-    });
-    saveConversations();
 
     schedules.unshift({
       id: inspId, title: inspectionListing.title, img: inspectionListing.img, location: inspectionListing.location,
       date, time, feeType: isAgent ? 'agent' : 'landlord', fee,
-      status: 'Confirmed', conversationId: convId, inspectionId: inspId
+      status: 'Pending Approval', conversationId: null, inspectionId: inspId
     });
     saveSchedules();
 
     inspectionBookingModal.classList.remove('open');
-    showToast('Inspection deposit locked in escrow — chat unlocked with the Landlord/Agent');
-    document.getElementById('dash-bell-dot').classList.add('show');
+    showToast('Inspection deposit locked in escrow — awaiting response');
     renderInspectionsSummaryCard();
     if (document.getElementById('screen-inspections') && !document.getElementById('screen-inspections').classList.contains('hidden')) renderSchedulesScreen();
     renderLandlordInspectionsManager();
@@ -4006,16 +4191,10 @@
       return;
     }
     emptyHint.style.display = 'none';
-    const role = currentUserRole || 'tenant';
     list.innerHTML = schedules.map(s => {
-      const badgeClass = s.status === 'Conducted' ? 'insp-status-conducted' : 'insp-status-confirmed';
-      const badgeIcon = s.status === 'Conducted' ? 'clipboard-check' : 'check-circle-2';
-      // Only the Tenant may progress an inspection into the payment/split decision.
-      // Landlords & Agents get a single Chat Manager action — no scheduling or split controls.
-      const actions = role === 'tenant'
-        ? `<button type="button" class="s5-action-btn insp-chat-btn" data-conv-id="${s.conversationId}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>
-           <button type="button" class="s5-action-btn primary insp-complete-btn" data-conv-id="${s.conversationId}"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Complete &amp; Decide Split</button>`
-        : `<button type="button" class="s5-action-btn insp-chat-btn" data-conv-id="${s.conversationId}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>`;
+      const isPending = s.status === 'Pending Approval';
+      const badgeClass = isPending ? 'insp-status-pending' : (s.status === 'Conducted' ? 'insp-status-conducted' : 'insp-status-confirmed');
+      const badgeIcon = isPending ? 'clock' : (s.status === 'Conducted' ? 'clipboard-check' : 'check-circle-2');
       return `
       <div class="insp-mgmt-card" data-sched-id="${s.id}">
         <div class="insp-mgmt-top">
@@ -4031,7 +4210,12 @@
             </div>
           </div>
         </div>
-        <div class="insp-mgmt-actions">${actions}</div>
+        <div class="insp-mgmt-actions">
+          ${isPending
+            ? `<button type="button" class="s5-action-btn primary insp-simulate-accept-btn" data-sched-id="${s.id}"><i data-lucide="zap" class="w-4 h-4"></i>⚡ Simulate Agent Accept</button>`
+            : `<button type="button" class="s5-action-btn insp-chat-btn" data-conv-id="${s.conversationId}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>
+               <button type="button" class="s5-action-btn primary insp-complete-btn" data-conv-id="${s.conversationId}"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Complete &amp; Decide Split</button>`}
+        </div>
       </div>`;
     }).join('');
     if (window.lucide) lucide.createIcons();
@@ -4040,23 +4224,24 @@
   document.getElementById('insp-schedule-list').addEventListener('click', (e) => {
     const chatBtn = e.target.closest('.insp-chat-btn');
     const completeBtn = e.target.closest('.insp-complete-btn');
+    const simulateBtn = e.target.closest('.insp-simulate-accept-btn');
     if (chatBtn) {
       const convId = parseInt(chatBtn.dataset.convId, 10);
       navigateTo('screen-messages');
       openThreadDetail(convId);
-    } else if (completeBtn && (currentUserRole || 'tenant') === 'tenant') {
+    } else if (completeBtn) {
       const convId = parseInt(completeBtn.dataset.convId, 10);
       activeThreadId = convId;
       inspectionDecisionModal.classList.add('open');
+    } else if (simulateBtn) {
+      acceptSchedule(simulateBtn.dataset.schedId);
     }
   });
 
   // Dashboard "Inspection scheduled" activity card -> jump straight into Schedules view
   document.getElementById('dash-list').addEventListener('click', (e) => {
     const item = e.target.closest('.dash-list-item');
-    if (!item) return;
-    if (item.dataset.action === 'inspections') navigateTo('screen-inspections');
-    else if (item.dataset.action === 'handover-review') openHandoverReview(item.dataset.handoverId);
+    if (item && item.dataset.action === 'inspections') navigateTo('screen-inspections');
   });
 
   // ==================================================================
@@ -4070,160 +4255,6 @@
   function saveConversations() { try { localStorage.setItem('mtr_conversations', JSON.stringify(conversations)); } catch (e) {} }
 
   let activeThreadId = null;
-
-  // ==================================================================
-  // ---- Tenancy Agreement Handover: Landlord Notification & Countersignature ----
-  //      Created once the Tenant has both signed AND paid (PIN-authorized
-  //      escrow release). The Landlord reviews the tenant's signed PDF,
-  //      applies their own signature, then "Sign & Send" produces the
-  //      final dual-signed, permanently downloadable executed document.
-  // ==================================================================
-  let pendingHandovers = [];
-  try {
-    const storedHandovers = JSON.parse(localStorage.getItem('mtr_handovers'));
-    pendingHandovers = Array.isArray(storedHandovers) ? storedHandovers : [];
-  } catch (e) { pendingHandovers = []; }
-  function saveHandovers() { try { localStorage.setItem('mtr_handovers', JSON.stringify(pendingHandovers)); } catch (e) {} }
-
-  let activeHandoverId = null;
-  let executedAgreement = null;
-  const landlordReviewModal = document.getElementById('landlord-review-modal');
-
-  // Called right after escrow funds are released to the Landlord (PIN-authorized handover).
-  // By this point the Tenant has already digitally signed the Tenancy Agreement (mandatory
-  // pre-payment), so this is the moment "payment + signature" is fully complete.
-  function notifyLandlordOfHandover() {
-    if (!checkoutListing || !checkoutTenantSignature) return;
-    const handoverId = Date.now();
-    pendingHandovers.unshift({
-      id: handoverId,
-      propertyTitle: checkoutListing.title,
-      tenantSignature: checkoutTenantSignature,
-      landlordSignature: null,
-      status: 'awaiting_landlord',
-      createdDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    });
-    saveHandovers();
-
-    dashboardContent.landlord.activity.unshift({
-      icon: 'check-circle-2', color: 'text-emerald-400',
-      title: 'Handover sign-off completed',
-      sub: `${checkoutListing.title} — tenant signed & paid, tap to countersign`,
-      action: 'handover-review', handoverId
-    });
-
-    document.getElementById('dash-bell-dot').classList.add('show');
-    if (currentUserRole === 'landlord' && !document.getElementById('screen-4').classList.contains('hidden')) populateScreen4();
-  }
-
-  function renderHandoverSigPreview(el, signature, signedClass) {
-    el.className = `agreement-sig-preview ${signedClass}`;
-    if (signature && signature.mode === 'draw') {
-      el.innerHTML = `<img src="${signature.data}" alt="Signature">`;
-    } else {
-      el.textContent = signature ? signature.data : 'Pending';
-    }
-  }
-
-  function refreshHandoverReviewUI(record) {
-    document.getElementById('lr-property-name').textContent = record.propertyTitle;
-    renderHandoverSigPreview(document.getElementById('lr-tenant-sig-preview'), record.tenantSignature, 'tenant-sig signed');
-
-    const landlordPreview = document.getElementById('lr-landlord-sig-preview');
-    const signSendBtn = document.getElementById('lr-sign-send-btn');
-    const docStatus = document.getElementById('lr-doc-status');
-
-    if (record.landlordSignature) {
-      renderHandoverSigPreview(landlordPreview, record.landlordSignature, 'landlord-sig');
-    } else {
-      landlordPreview.className = 'agreement-sig-preview tenant-sig';
-      landlordPreview.textContent = 'Pending';
-    }
-
-    if (record.status === 'executed') {
-      docStatus.textContent = `Officially executed (dual-signed) — ${record.executedDate || ''}`;
-      signSendBtn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Executed &amp; Sent';
-      signSendBtn.disabled = true;
-    } else {
-      docStatus.textContent = 'Tenant-signed, awaiting Landlord countersignature';
-      signSendBtn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Sign &amp; Send';
-      signSendBtn.disabled = !record.landlordSignature;
-    }
-    if (window.lucide) lucide.createIcons();
-  }
-
-  function openHandoverReview(handoverId) {
-    let record = pendingHandovers.find(h => String(h.id) === String(handoverId));
-    if (!record) {
-      // Demo fallback so the seeded "Handover sign-off completed" activity item is
-      // clickable out of the box, even before a real checkout has happened.
-      record = pendingHandovers.find(h => h.id === 'demo');
-      if (!record) {
-        record = {
-          id: 'demo', propertyTitle: 'Unit 4B, Ikeja',
-          tenantSignature: { mode: 'type', data: 'Chinedu Okafor' },
-          landlordSignature: null, status: 'awaiting_landlord',
-          createdDate: 'Aug 3, 2026'
-        };
-        pendingHandovers.unshift(record);
-        saveHandovers();
-      }
-    }
-    activeHandoverId = record.id;
-    refreshHandoverReviewUI(record);
-    landlordReviewModal.classList.add('open');
-    if (window.lucide) lucide.createIcons();
-  }
-
-  document.getElementById('lr-view-pdf-btn').addEventListener('click', () => {
-    showToast("Opening tenant-signed Tenancy Agreement.pdf (read-only)");
-  });
-
-  document.getElementById('lr-cancel-btn').addEventListener('click', () => {
-    landlordReviewModal.classList.remove('open');
-  });
-
-  document.getElementById('lr-apply-signature-btn').addEventListener('click', () => {
-    signatureContext = 'landlord';
-    setSigMode('draw');
-    sigTypeInput.value = '';
-    sigHasStrokes = false;
-    signatureModal.classList.add('open');
-    resizeSigCanvas();
-    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
-    updateSigConfirmState();
-  });
-
-  function applyLandlordSignature(signatureData) {
-    const record = pendingHandovers.find(h => String(h.id) === String(activeHandoverId));
-    if (!record) return;
-    record.landlordSignature = signatureData;
-    saveHandovers();
-    refreshHandoverReviewUI(record);
-    showToast('Landlord signature applied — tap "Sign & Send" to finalize');
-  }
-
-  document.getElementById('lr-sign-send-btn').addEventListener('click', () => {
-    const record = pendingHandovers.find(h => String(h.id) === String(activeHandoverId));
-    if (!record || !record.landlordSignature || record.status === 'executed') return;
-    record.status = 'executed';
-    record.executedDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    saveHandovers();
-    executedAgreement = record;
-
-    // Replace the "awaiting" activity entry with a final "executed & sent" entry.
-    dashboardContent.landlord.activity = dashboardContent.landlord.activity.filter(a => a.handoverId !== record.id);
-    dashboardContent.landlord.activity.unshift({
-      icon: 'file-check-2', color: 'text-emerald-400',
-      title: 'Executed agreement sent to tenant',
-      sub: `${record.propertyTitle} — dual-signed & final`,
-      action: 'handover-review', handoverId: record.id
-    });
-    if (currentUserRole === 'landlord' && !document.getElementById('screen-4').classList.contains('hidden')) populateScreen4();
-
-    refreshHandoverReviewUI(record);
-    showToast('Signed & sent — this is now the official executed document, downloadable on the Post-Lease screen');
-  });
 
   function renderThreadList() {
     document.getElementById('msg-list-view').style.display = 'block';
@@ -4278,10 +4309,7 @@
     document.getElementById('msg-thread-title').textContent = conv.listingTitle;
     document.getElementById('msg-thread-sub').textContent = conv.status === 'archived' ? 'Archived conversation' : 'Active inspection conversation';
     renderChatLog(conv);
-    // Only the Tenant may trigger the inspection-complete → payment/split decision.
-    // Landlords & Agents get a plain chat thread with no payment/split entry point.
-    const isTenant = (currentUserRole || 'tenant') === 'tenant';
-    document.getElementById('msg-complete-btn').style.display = (conv.status === 'archived' || !isTenant) ? 'none' : 'flex';
+    document.getElementById('msg-complete-btn').style.display = conv.status === 'archived' ? 'none' : 'flex';
     if (window.lucide) lucide.createIcons();
   }
 
@@ -4416,10 +4444,7 @@
   });
 
   document.getElementById('s7-vault-download-btn').addEventListener('click', () => {
-    const executed = executedAgreement || pendingHandovers.find(h => h.status === 'executed');
-    showToast(executed
-      ? 'Downloading the official, dual-signed Executed Tenancy Agreement.pdf'
-      : 'Opening Signed Tenancy Agreement.pdf (read-only)');
+    showToast('Opening Signed Tenancy Agreement.pdf (read-only)');
   });
 
   document.getElementById('s7-movein-confirm-btn').addEventListener('click', () => {
@@ -4448,18 +4473,10 @@
     document.getElementById('s7-lease-amount').textContent = lease.amountLabel;
     document.getElementById('s7-lease-due').textContent = lease.dueLabel;
     document.getElementById('s7-lease-card').textContent = lease.card;
-    // Vault reflects the true handoff state: tenant-only signature vs. the final
-    // dual-signed document once the Landlord has countersigned via the review overlay.
-    const executed = executedAgreement || pendingHandovers.find(h => h.status === 'executed');
-    if (executed) {
-      document.getElementById('s7-vault-filename').textContent = 'Executed Tenancy Agreement (Dual-Signed).pdf';
-      document.getElementById('s7-vault-timestamp').textContent = `Officially executed — ${executed.executedDate || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-    } else {
-      document.getElementById('s7-vault-filename').textContent = 'Signed Tenancy Agreement.pdf';
-      document.getElementById('s7-vault-timestamp').textContent = checkoutTenantSignature
-        ? `Digitally executed by you — awaiting Landlord countersignature`
-        : `Digitally signed — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-    }
+    document.getElementById('s7-vault-filename').textContent = 'Signed Tenancy Agreement.pdf';
+    document.getElementById('s7-vault-timestamp').textContent = checkoutTenantSignature
+      ? `Digitally executed — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+      : `Digitally signed — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
     document.getElementById('s7-movein-date').value = '';
     document.getElementById('s7-movein-confirmed').style.display = 'none';
     renderStageTracker();
