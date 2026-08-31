@@ -560,6 +560,33 @@
     transition: border-color 0.15s ease;
   }
   .doc-action-btn:hover { border-color: #a855f7; }
+
+  /* Agreement preview card (in-app digital signature) */
+  .agreement-preview-card { background: #131b2e; border: 1px solid #1e293b; border-radius: 16px; padding: 16px; margin-bottom: 14px; }
+  .agreement-preview-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .agreement-sig-row { display: flex; gap: 10px; }
+  .agreement-sig-block { flex: 1; }
+  .agreement-sig-label { font-size: 10.5px; color: #64748b; margin: 0 0 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .agreement-sig-preview {
+    height: 52px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; text-align: center; padding: 0 6px;
+  }
+  .agreement-sig-preview.landlord-sig { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #34d399; font-family: 'Segoe Script', cursive; font-style: italic; }
+  .agreement-sig-preview.tenant-sig { background: rgba(148,163,184,0.08); border: 1px dashed #334155; color: #64748b; }
+  .agreement-sig-preview.tenant-sig.signed { background: rgba(147,51,234,0.1); border: 1px solid rgba(147,51,234,0.35); color: #c084fc; font-family: 'Segoe Script', cursive; font-style: italic; border-style: solid; }
+  .agreement-sig-preview.tenant-sig.signed img { max-height: 44px; max-width: 100%; }
+
+  /* Signature modal */
+  .sig-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .sig-tab {
+    flex: 1; text-align: center; padding: 9px; border-radius: 10px; font-size: 12px; font-weight: 600;
+    color: #94a3b8; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; cursor: pointer; transition: all 0.15s ease;
+  }
+  .sig-tab.active { background: rgba(147,51,234,0.15); border-color: rgba(147,51,234,0.4); color: #c084fc; }
+  #sig-canvas {
+    width: 100%; height: 150px; border-radius: 12px; border: 1.5px dashed #334155; background: #0b0f19;
+    touch-action: none; cursor: crosshair; margin-bottom: 8px; display: block;
+  }
   .fee-preview-box { background: rgba(15,23,42,0.9); border: 1px solid #1e293b; border-radius: 14px; padding: 14px 16px; margin: 4px 0 18px; }
   .fee-preview-box .row { display: flex; justify-content: space-between; font-size: 12.5px; color: #94a3b8; padding: 4px 0; }
   .fee-preview-box .row strong { color: #c084fc; font-weight: 600; }
@@ -1255,18 +1282,32 @@
       <p>Funds are held securely in escrow and only released to the landlord after digital handover sign-off.</p>
     </div>
 
-    <!-- Tenancy Agreement Execution (mandatory pre-payment) -->
-    <p class="s5-section-label"><i data-lucide="file-signature" class="w-4 h-4 text-purple-400"></i>Tenancy Agreement Execution</p>
-    <button type="button" id="s6-download-agreement-btn" class="doc-action-btn">
-      <i data-lucide="download" class="w-4 h-4"></i> Download Agreement PDF
-    </button>
-    <div class="s5-upload-box" id="s6-agreement-upload">
-      <i data-lucide="upload-cloud" class="w-6 h-6"></i>
-      <span id="s6-agreement-upload-label">Upload Signed Tenancy Agreement (PDF/Image)</span>
-      <input type="file" id="s6-agreement-file" hidden accept="image/*,.pdf">
+    <!-- Tenancy Agreement Execution (in-app digital signature, mandatory pre-payment) -->
+    <p class="s5-section-label"><i data-lucide="file-signature" class="w-4 h-4 text-purple-400"></i>Execute Tenancy Agreement</p>
+    <div class="agreement-preview-card">
+      <div class="agreement-preview-row">
+        <i data-lucide="file-text" class="w-6 h-6 text-purple-400"></i>
+        <div>
+          <p class="s5-list-title" style="margin:0;">Tenancy Agreement.pdf</p>
+          <p class="s5-list-sub" style="margin:0;">Standard MainTown Realty lease terms</p>
+        </div>
+      </div>
+      <div class="agreement-sig-row">
+        <div class="agreement-sig-block">
+          <p class="agreement-sig-label">Landlord Signature</p>
+          <div class="agreement-sig-preview landlord-sig">✓ Pre-attached</div>
+        </div>
+        <div class="agreement-sig-block">
+          <p class="agreement-sig-label">Your Signature</p>
+          <div class="agreement-sig-preview tenant-sig" id="s6-tenant-sig-preview">Pending</div>
+        </div>
+      </div>
     </div>
+    <button type="button" id="s6-sign-agreement-btn" class="doc-action-btn">
+      <i data-lucide="pen-tool" class="w-4 h-4"></i> Sign Agreement
+    </button>
     <div class="rent-badge" id="s6-agreement-confirmed" style="display:none;">
-      <i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>Agreement Signed &amp; Uploaded</span>
+      <i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>Agreement Digitally Executed</span>
     </div>
 
     <button type="button" id="s6-authorize-btn" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -1292,11 +1333,36 @@
     </button>
   </div>
 
+  <!-- ---- Payment Invoice & Receipt: shown after PIN-authorized escrow release ---- -->
+  <div id="s6-invoice-panel" class="hidden">
+    <div class="dash-card" style="background: linear-gradient(135deg, #7e22ce, #4c1d95); margin-bottom: 20px;">
+      <p class="dash-card-label" style="display: flex; align-items: center; gap: 5px;"><i data-lucide="receipt" class="w-3.5 h-3.5"></i>Status</p>
+      <p class="dash-card-value">Escrow Released — Handover Complete</p>
+      <p class="dash-card-sub" id="s6-invoice-ref">Ref: —</p>
+    </div>
+
+    <p class="s5-section-label" style="margin-top: 0;"><i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Payment Invoice &amp; Receipt</p>
+    <div class="receipt-box">
+      <div class="s5-hold-row"><span id="s6-invoice-row1-label">Rent Amount</span><strong id="s6-invoice-rent">—</strong></div>
+      <div class="s5-hold-row"><span id="s6-invoice-row2-label">Caution Deposit</span><strong id="s6-invoice-deposit">—</strong></div>
+      <div class="s5-hold-row"><span id="s6-invoice-row3-label">Service / Escrow Fee</span><strong id="s6-invoice-fee">—</strong></div>
+      <div class="s5-hold-divider"></div>
+      <div class="s5-hold-row"><span>Total Amount Paid</span><strong id="s6-invoice-total" style="color: #c084fc; font-size: 15px;">—</strong></div>
+      <div class="s5-hold-divider"></div>
+      <div class="s5-hold-row"><span>Transaction Reference</span><strong id="s6-invoice-txref">—</strong></div>
+      <div class="s5-hold-row"><span>Date</span><strong id="s6-invoice-date">—</strong></div>
+    </div>
+
+    <button type="button" id="s6-goto-postlease-btn" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+      <i data-lucide="arrow-right-circle" class="w-4 h-4"></i> Proceed to Post-Lease Hub
+    </button>
+  </div>
+
 </div>
 <!-- ===================== END SCREEN 6 ===================== -->
 
 <!-- ===================== SCREEN 7: Post-Lease Management & Default Enforcement Hub ===================== -->
-<div id="screen-7" class="screen-view hidden pb-24">
+<div id="screen-post-lease" class="screen-view hidden pb-24">
 
   <div class="s5-topbar">
     <button type="button" class="s5-back-btn" id="s7-back-btn">
@@ -1635,6 +1701,62 @@
     <button type="button" id="checkout-simulate-btn" class="btn-secondary" style="margin-bottom: 0;">Simulate Verification</button>
     <button type="button" id="checkout-otp-close" class="btn-secondary">Cancel</button>
     <p class="resend-line">Didn't get a code? <span class="resend-link" id="checkout-resend-btn">Resend OTP</span></p>
+  </div>
+</div>
+
+<!-- In-App Digital Signature Modal (canvas draw or typed signature — no external apps needed) -->
+<div id="signature-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <i data-lucide="pen-tool" class="w-6 h-6 text-purple-400"></i>
+    </div>
+    <h2 class="modal-title">Sign Tenancy Agreement</h2>
+    <p class="modal-sub">Draw your signature below, or switch to a typed signature</p>
+
+    <div class="sig-tabs">
+      <div class="sig-tab active" id="sig-tab-draw" data-mode="draw">Draw</div>
+      <div class="sig-tab" id="sig-tab-type" data-mode="type">Type</div>
+    </div>
+
+    <div id="sig-draw-panel">
+      <canvas id="sig-canvas" width="320" height="150"></canvas>
+      <button type="button" id="sig-clear-btn" class="btn-secondary" style="margin-bottom: 12px;">Clear</button>
+    </div>
+    <div id="sig-type-panel" style="display:none;">
+      <div class="field">
+        <label class="field-label">Type your full name as signature</label>
+        <input class="field-input signature-input" id="sig-type-input" type="text" placeholder="e.g. Onwochei Precious Ebuka">
+      </div>
+    </div>
+
+    <button type="button" id="sig-confirm-btn" class="btn-primary" style="margin-top:4px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:6px;" disabled>
+      <i data-lucide="check-circle" class="w-4 h-4"></i> Confirm &amp; Attach Signature
+    </button>
+    <button type="button" id="sig-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
+<!-- PIN Authorization Modal (escrow release) -->
+<div id="pin-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <i data-lucide="key-round" class="w-6 h-6 text-purple-400"></i>
+    </div>
+    <h2 class="modal-title">Authorize Payout</h2>
+    <p class="modal-sub">Enter PIN to release escrow funds</p>
+
+    <div class="otp-boxes" id="pin-boxes">
+      <input maxlength="1" type="password" inputmode="numeric" class="otp-input">
+      <input maxlength="1" type="password" inputmode="numeric" class="otp-input">
+      <input maxlength="1" type="password" inputmode="numeric" class="otp-input">
+      <input maxlength="1" type="password" inputmode="numeric" class="otp-input">
+    </div>
+
+    <button type="button" id="pin-verify-btn" class="btn-primary" style="margin-top:0; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:6px;">
+      <i data-lucide="unlock" class="w-4 h-4"></i> Verify PIN &amp; Release Funds
+    </button>
+    <button type="button" id="pin-simulate-btn" class="btn-secondary" style="margin-bottom: 0;">Simulate Verification (1234)</button>
+    <button type="button" id="pin-cancel-btn" class="btn-secondary">Cancel</button>
   </div>
 </div>
 
@@ -2047,7 +2169,7 @@
       renderThreadList();
     }
 
-    if (screenId === 'screen-7') {
+    if (screenId === 'screen-post-lease') {
       populateScreen7();
     }
 
@@ -2579,8 +2701,8 @@
   let checkoutSource = 'wallet';
   let checkoutOtpTimer = null;
   let checkoutLandPayment = null; // { mode, months, downPayment, monthly, totalPrice, processingFee }
-  let checkoutAgreementUploaded = false;
-  let checkoutAgreementFile = null;
+  let checkoutAgreementUploaded = false; // true once the agreement has been digitally executed (signed)
+  let checkoutTenantSignature = null; // { mode: 'draw'|'type', data: dataURL or typed name }
 
   function formatMoney(amount, currency) {
     const symbol = currency === 'usd' ? '$' : '₦';
@@ -2613,10 +2735,11 @@
     selectPaySource('wallet');
 
     checkoutAgreementUploaded = false;
-    checkoutAgreementFile = null;
-    document.getElementById('s6-agreement-upload').classList.remove('has-file');
-    document.getElementById('s6-agreement-upload-label').textContent = 'Upload Signed Tenancy Agreement (PDF/Image)';
+    checkoutTenantSignature = null;
+    document.getElementById('s6-tenant-sig-preview').classList.remove('signed');
+    document.getElementById('s6-tenant-sig-preview').innerHTML = 'Pending';
     document.getElementById('s6-agreement-confirmed').style.display = 'none';
+    document.getElementById('s6-invoice-panel').classList.add('hidden');
 
     document.getElementById('s6-property-img').src = listing.img;
     document.getElementById('s6-property-img').alt = listing.title;
@@ -2681,19 +2804,134 @@
   document.getElementById('s6-signoff-box').addEventListener('scroll', updateAuthorizeState);
   document.getElementById('s6-landsign-input').addEventListener('input', updateAuthorizeState);
 
-  document.getElementById('s6-download-agreement-btn').addEventListener('click', () => {
-    showToast('Downloading Tenancy Agreement PDF…');
+  // ==================================================================
+  // ---- In-App Digital Signature Modal (canvas draw or typed signature) ----
+  // ==================================================================
+  const signatureModal = document.getElementById('signature-modal');
+  const sigCanvas = document.getElementById('sig-canvas');
+  const sigCtx = sigCanvas.getContext('2d');
+  const sigConfirmBtn = document.getElementById('sig-confirm-btn');
+  const sigTypeInput = document.getElementById('sig-type-input');
+  let sigMode = 'draw';
+  let sigHasStrokes = false;
+  let sigDrawing = false;
+
+  function resizeSigCanvas() {
+    // Keep the drawing crisp on high-DPI screens while the CSS box stays 100% width.
+    const rect = sigCanvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    sigCanvas.width = Math.max(1, Math.round(rect.width * dpr));
+    sigCanvas.height = Math.max(1, Math.round(150 * dpr));
+    sigCtx.scale(dpr, dpr);
+    sigCtx.strokeStyle = '#ffffff';
+    sigCtx.lineWidth = 2.4;
+    sigCtx.lineCap = 'round';
+    sigCtx.lineJoin = 'round';
+  }
+
+  function sigPointerPos(e) {
+    const rect = sigCanvas.getBoundingClientRect();
+    const point = e.touches ? e.touches[0] : e;
+    return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+  }
+
+  function sigStart(e) {
+    e.preventDefault();
+    sigDrawing = true;
+    const p = sigPointerPos(e);
+    sigCtx.beginPath();
+    sigCtx.moveTo(p.x, p.y);
+  }
+  function sigMove(e) {
+    if (!sigDrawing) return;
+    e.preventDefault();
+    const p = sigPointerPos(e);
+    sigCtx.lineTo(p.x, p.y);
+    sigCtx.stroke();
+    sigHasStrokes = true;
+    updateSigConfirmState();
+  }
+  function sigEnd() { sigDrawing = false; }
+
+  sigCanvas.addEventListener('mousedown', sigStart);
+  sigCanvas.addEventListener('mousemove', sigMove);
+  window.addEventListener('mouseup', sigEnd);
+  sigCanvas.addEventListener('touchstart', sigStart, { passive: false });
+  sigCanvas.addEventListener('touchmove', sigMove, { passive: false });
+  sigCanvas.addEventListener('touchend', sigEnd);
+
+  document.getElementById('sig-clear-btn').addEventListener('click', () => {
+    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+    sigHasStrokes = false;
+    updateSigConfirmState();
   });
-  document.getElementById('s6-agreement-upload').addEventListener('click', () => document.getElementById('s6-agreement-file').click());
-  document.getElementById('s6-agreement-file').addEventListener('change', (e) => {
-    if (!e.target.files.length) return;
-    checkoutAgreementFile = e.target.files[0];
+
+  function updateSigConfirmState() {
+    sigConfirmBtn.disabled = sigMode === 'draw' ? !sigHasStrokes : !sigTypeInput.value.trim();
+  }
+  sigTypeInput.addEventListener('input', updateSigConfirmState);
+
+  function setSigMode(mode) {
+    sigMode = mode;
+    document.getElementById('sig-tab-draw').classList.toggle('active', mode === 'draw');
+    document.getElementById('sig-tab-type').classList.toggle('active', mode === 'type');
+    document.getElementById('sig-draw-panel').style.display = mode === 'draw' ? 'block' : 'none';
+    document.getElementById('sig-type-panel').style.display = mode === 'type' ? 'block' : 'none';
+    updateSigConfirmState();
+  }
+  document.getElementById('sig-tab-draw').addEventListener('click', () => setSigMode('draw'));
+  document.getElementById('sig-tab-type').addEventListener('click', () => setSigMode('type'));
+
+  document.getElementById('s6-sign-agreement-btn').addEventListener('click', () => {
+    setSigMode('draw');
+    sigTypeInput.value = '';
+    sigHasStrokes = false;
+    signatureModal.classList.add('open');
+    resizeSigCanvas();
+    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+    updateSigConfirmState();
+  });
+  document.getElementById('sig-cancel-btn').addEventListener('click', () => signatureModal.classList.remove('open'));
+
+  // Dispatch the executed agreement into the Landlord-Tenant chat thread for this listing,
+  // creating the thread on the fly if the tenant never went through the inspection flow.
+  function dispatchAgreementToChat(listing) {
+    if (!listing) return;
+    let conv = conversations.find(c => c.listingTitle === listing.title);
+    if (!conv) {
+      conv = { id: Date.now(), inspectionId: null, listingTitle: listing.title, feeType: listing.listedBy === 'agent' ? 'agent' : 'landlord', fee: 0, status: 'active', messages: [] };
+      conversations.unshift(conv);
+    }
+    conv.messages.push({ from: 'system', text: `📄 Executed Tenancy Agreement attached for ${listing.title}. Tap to view/download.` });
+    conv.status = 'active';
+    saveConversations();
+    document.getElementById('dash-bell-dot').classList.add('show');
+    if (!document.getElementById('screen-messages').classList.contains('hidden')) renderThreadList();
+    showToast('Signed agreement dispatched to Landlord chat box.');
+  }
+
+  document.getElementById('sig-confirm-btn').addEventListener('click', () => {
+    if (sigConfirmBtn.disabled) return;
+    checkoutTenantSignature = sigMode === 'draw'
+      ? { mode: 'draw', data: sigCanvas.toDataURL('image/png') }
+      : { mode: 'type', data: sigTypeInput.value.trim() };
     checkoutAgreementUploaded = true;
-    document.getElementById('s6-agreement-upload').classList.add('has-file');
-    document.getElementById('s6-agreement-upload-label').textContent = checkoutAgreementFile.name;
+
+    const preview = document.getElementById('s6-tenant-sig-preview');
+    preview.classList.add('signed');
+    if (checkoutTenantSignature.mode === 'draw') {
+      preview.innerHTML = `<img src="${checkoutTenantSignature.data}" alt="Tenant signature">`;
+    } else {
+      preview.textContent = checkoutTenantSignature.data;
+    }
+
     document.getElementById('s6-agreement-confirmed').style.display = 'inline-flex';
+    signatureModal.classList.remove('open');
     if (window.lucide) lucide.createIcons();
     updateAuthorizeState();
+
+    // Automated chat drop + system notification (Part 2)
+    dispatchAgreementToChat(checkoutListing);
   });
 
   document.getElementById('s6-back-btn').addEventListener('click', () => navigateTo('screen-5'));
@@ -2816,29 +3054,95 @@
     approveCheckoutPayment();
   });
 
-  document.getElementById('s6-handover-btn').addEventListener('click', () => {
-    if (checkoutListing) {
-      if (checkoutListing.type === 'land') {
-        activeLease = {
-          title: checkoutListing.title,
-          amountLabel: checkoutLandPayment && checkoutLandPayment.mode === 'installment'
-            ? `${formatMoney(checkoutLandPayment.monthly, 'ngn')} / mo (installment)`
-            : 'Paid in Full (Outright)',
-          dueLabel: checkoutLandPayment && checkoutLandPayment.mode === 'installment' ? `Next debit: ${checkoutLandPayment.firstDate}` : 'No further payments due',
-          card: checkoutSource === 'card' ? `Card ending in ${document.getElementById('s6-card-last4').textContent}` : 'MainTown Funded Wallet'
-        };
-      } else {
-        activeLease = {
-          title: checkoutListing.title,
-          amountLabel: document.getElementById('s6-rent-amount').textContent + ' / mo',
-          dueLabel: 'Next auto-debit in 30 days',
-          card: checkoutSource === 'card' ? `Card ending in ${document.getElementById('s6-card-last4').textContent}` : 'MainTown Funded Wallet'
-        };
-      }
+  function buildActiveLeaseFromCheckout() {
+    if (!checkoutListing) return;
+    if (checkoutListing.type === 'land') {
+      activeLease = {
+        title: checkoutListing.title,
+        amountLabel: checkoutLandPayment && checkoutLandPayment.mode === 'installment'
+          ? `${formatMoney(checkoutLandPayment.monthly, 'ngn')} / mo (installment)`
+          : 'Paid in Full (Outright)',
+        dueLabel: checkoutLandPayment && checkoutLandPayment.mode === 'installment' ? `Next debit: ${checkoutLandPayment.firstDate}` : 'No further payments due',
+        card: checkoutSource === 'card' ? `Card ending in ${document.getElementById('s6-card-last4').textContent}` : 'MainTown Funded Wallet'
+      };
+    } else {
+      activeLease = {
+        title: checkoutListing.title,
+        amountLabel: document.getElementById('s6-rent-amount').textContent + ' / mo',
+        dueLabel: 'Next auto-debit in 30 days',
+        card: checkoutSource === 'card' ? `Card ending in ${document.getElementById('s6-card-last4').textContent}` : 'MainTown Funded Wallet'
+      };
     }
-    showToast('Handover executed — escrow funds released to landlord');
-    navigateTo('screen-7');
+  }
+
+  function releaseEscrowAndShowInvoice() {
+    buildActiveLeaseFromCheckout();
+
+    // Populate the itemized Payment Invoice & Receipt from the same breakdown values shown at checkout
+    document.getElementById('s6-invoice-row1-label').textContent = document.getElementById('s6-row1-label').textContent;
+    document.getElementById('s6-invoice-row2-label').textContent = document.getElementById('s6-row2-label').textContent;
+    document.getElementById('s6-invoice-row3-label').textContent = document.getElementById('s6-row3-label').textContent;
+    document.getElementById('s6-invoice-rent').textContent = document.getElementById('s6-rent-amount').textContent;
+    document.getElementById('s6-invoice-deposit').textContent = document.getElementById('s6-deposit-amount').textContent;
+    document.getElementById('s6-invoice-fee').textContent = document.getElementById('s6-fee-amount').textContent;
+    document.getElementById('s6-invoice-total').textContent = document.getElementById('s6-total-amount').textContent;
+
+    const txRef = 'MTR-' + Date.now().toString(36).toUpperCase();
+    document.getElementById('s6-invoice-txref').textContent = txRef;
+    document.getElementById('s6-invoice-ref').textContent = `Ref: ${txRef}`;
+    document.getElementById('s6-invoice-date').textContent = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+    showToast('PIN verified — escrow funds released to landlord');
+    document.getElementById('s6-success-panel').classList.add('hidden');
+    document.getElementById('s6-invoice-panel').classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // ---- PIN Authorization Modal (escrow release) ----
+  const pinModal = document.getElementById('pin-modal');
+  const pinInputs = document.querySelectorAll('#pin-modal .otp-input');
+
+  document.getElementById('s6-handover-btn').addEventListener('click', () => {
+    pinInputs.forEach(i => (i.value = ''));
+    pinModal.classList.add('open');
+    pinInputs[0].focus();
   });
+
+  pinInputs.forEach((input, index) => {
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/[^0-9]/g, '');
+      if (input.value && index < pinInputs.length - 1) pinInputs[index + 1].focus();
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !input.value && index > 0) pinInputs[index - 1].focus();
+    });
+  });
+
+  document.getElementById('pin-cancel-btn').addEventListener('click', () => pinModal.classList.remove('open'));
+
+  document.getElementById('pin-verify-btn').addEventListener('click', () => {
+    const pin = Array.from(pinInputs).map(i => i.value).join('');
+    if (pin.length < 4) { showToast('Enter the full 4-digit PIN'); return; }
+    if (pin !== '1234') {
+      showToast('Incorrect PIN — for this demo, use 1234');
+      pinInputs.forEach(i => (i.value = ''));
+      pinInputs[0].focus();
+      return;
+    }
+    pinModal.classList.remove('open');
+    releaseEscrowAndShowInvoice();
+  });
+
+  document.getElementById('pin-simulate-btn').addEventListener('click', () => {
+    '1234'.split('').forEach((digit, idx) => (pinInputs[idx].value = digit));
+    pinModal.classList.remove('open');
+    releaseEscrowAndShowInvoice();
+  });
+
+  document.getElementById('s6-goto-postlease-btn').addEventListener('click', () => {
+    navigateTo('screen-post-lease');
+  });
+
   document.getElementById('s7-back-btn').addEventListener('click', () => navigateTo('screen-6'));
 
   // ---- Landlord view: property list + deferred title verification ----
@@ -3859,8 +4163,7 @@
   });
 
   document.getElementById('s7-vault-download-btn').addEventListener('click', () => {
-    const name = checkoutAgreementFile ? checkoutAgreementFile.name : 'Signed Tenancy Agreement.pdf';
-    showToast(`Opening ${name} (read-only)`);
+    showToast('Opening Signed Tenancy Agreement.pdf (read-only)');
   });
 
   document.getElementById('s7-movein-confirm-btn').addEventListener('click', () => {
@@ -3889,8 +4192,10 @@
     document.getElementById('s7-lease-amount').textContent = lease.amountLabel;
     document.getElementById('s7-lease-due').textContent = lease.dueLabel;
     document.getElementById('s7-lease-card').textContent = lease.card;
-    document.getElementById('s7-vault-filename').textContent = checkoutAgreementFile ? checkoutAgreementFile.name : 'Signed Tenancy Agreement.pdf';
-    document.getElementById('s7-vault-timestamp').textContent = `Digitally signed — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    document.getElementById('s7-vault-filename').textContent = 'Signed Tenancy Agreement.pdf';
+    document.getElementById('s7-vault-timestamp').textContent = checkoutTenantSignature
+      ? `Digitally executed — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+      : `Digitally signed — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
     document.getElementById('s7-movein-date').value = '';
     document.getElementById('s7-movein-confirmed').style.display = 'none';
     renderStageTracker();
