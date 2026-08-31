@@ -399,8 +399,14 @@
   .s5-card {
     background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 16px; overflow: hidden;
   }
-  .s5-card-img-wrap { position: relative; width: 100%; height: 150px; background: #1e293b; }
-  .s5-card-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .s5-card-img-wrap {
+    position: relative; width: 100%; height: 150px; background: #1e293b; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .s5-card-img-wrap img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    font-size: 0; color: transparent; text-indent: -9999px; background: #1e293b;
+  }
   .s5-verified-badge {
     position: absolute; top: 10px; right: 10px; display: inline-flex; align-items: center; gap: 4px;
     background: rgba(6,78,59,0.85); border: 1px solid rgba(52,211,153,0.5); color: #6ee7b7;
@@ -692,7 +698,7 @@
     background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 16px; padding: 14px; margin-bottom: 14px;
   }
   .cart-item-top { display: flex; gap: 12px; margin-bottom: 12px; }
-  .cart-item-img { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: #1e293b; }
+  .cart-item-img { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: #1e293b; font-size: 0; color: transparent; text-indent: -9999px; }
   .cart-item-text { flex: 1; min-width: 0; }
   .cart-item-title { font-size: 13.5px; font-weight: 600; color: #fff; margin: 0 0 2px; }
   .cart-item-loc { font-size: 11.5px; color: #64748b; margin: 0 0 4px; display: flex; align-items: center; gap: 4px; }
@@ -719,7 +725,7 @@
      =================================================================== */
   .insp-mgmt-card { background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 16px; padding: 14px; margin-bottom: 14px; }
   .insp-mgmt-top { display: flex; gap: 12px; margin-bottom: 12px; }
-  .insp-mgmt-img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; flex-shrink: 0; background: #1e293b; }
+  .insp-mgmt-img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; flex-shrink: 0; background: #1e293b; font-size: 0; color: transparent; text-indent: -9999px; }
   .insp-mgmt-text { flex: 1; min-width: 0; }
   .insp-mgmt-title { font-size: 13.5px; font-weight: 600; color: #fff; margin: 0 0 2px; }
   .insp-mgmt-loc { font-size: 11.5px; color: #64748b; margin: 0 0 6px; display: flex; align-items: center; gap: 4px; }
@@ -1854,6 +1860,32 @@
 </div>
 
 <script>
+  // ---- Property image fallback system ----
+  // Inline SVG data-URIs so a fallback ALWAYS renders even with no network access.
+  const PROPERTY_IMG_FALLBACK = {
+    rent: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240">' +
+      '<rect width="400" height="240" fill="#1e293b"/>' +
+      '<path d="M200 62 L292 128 V186 H108 V128 Z" fill="none" stroke="#a78bfa" stroke-width="4" stroke-linejoin="round"/>' +
+      '<rect x="182" y="150" width="36" height="36" fill="none" stroke="#a78bfa" stroke-width="4"/>' +
+      '<text x="200" y="216" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">Image unavailable</text>' +
+      '</svg>'
+    ),
+    land: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240">' +
+      '<rect width="400" height="240" fill="#1e293b"/>' +
+      '<path d="M96 158 L150 108 L188 138 L236 92 L304 158 Z" fill="none" stroke="#a78bfa" stroke-width="4" stroke-linejoin="round"/>' +
+      '<line x1="80" y1="158" x2="320" y2="158" stroke="#a78bfa" stroke-width="4"/>' +
+      '<text x="200" y="216" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">Image unavailable</text>' +
+      '</svg>'
+    )
+  };
+  function handleImgError(imgEl, type) {
+    if (!imgEl) return;
+    imgEl.onerror = null; // prevent any fallback loop
+    imgEl.src = PROPERTY_IMG_FALLBACK[type] || PROPERTY_IMG_FALLBACK.rent;
+  }
+
   // Role selection state
   let currentUserRole = null;
   const roleCards = document.querySelectorAll('.role-card');
@@ -2495,11 +2527,11 @@
 
   // ---- Global persistent listings feed (localStorage-backed Dynamic Feed Sync) ----
   const DEFAULT_LISTINGS = [
-    { id: 1, type: 'rent', title: '2-Bed Flat, Lekki Phase 1', location: 'Lekki Phase 1, Lagos', ngn: '₦180,000 / mo', usd: '$220 / mo', img: 'https://picsum.photos/seed/mtr-lekki/400/240', listedBy: 'agent' },
-    { id: 2, type: 'rent', title: 'Studio Apartment, Yaba', location: 'Yaba, Lagos', ngn: '₦95,000 / mo', usd: '$115 / mo', img: 'https://picsum.photos/seed/mtr-yaba/400/240', listedBy: 'landlord' },
-    { id: 3, type: 'rent', title: '3-Bed Duplex, Ikeja GRA', location: 'Ikeja GRA, Lagos', ngn: '₦350,000 / mo', usd: '$430 / mo', img: 'https://picsum.photos/seed/mtr-ikeja/400/240', listedBy: 'agent' },
-    { id: 4, type: 'land', title: '450sqm Land, Ibeju-Lekki', location: 'Ibeju-Lekki, Lagos', totalPrice: 8500000, img: 'https://picsum.photos/seed/mtr-land-ibeju/400/240', listedBy: 'agent' },
-    { id: 5, type: 'land', title: '3-Bed Bungalow, Epe (Outright/Installment)', location: 'Epe, Lagos', totalPrice: 22000000, img: 'https://picsum.photos/seed/mtr-land-epe/400/240', listedBy: 'landlord' }
+    { id: 1, type: 'rent', title: '2-Bed Flat, Lekki Phase 1', location: 'Lekki Phase 1, Lagos', ngn: '₦180,000 / mo', usd: '$220 / mo', img: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=240&fit=crop&q=80', listedBy: 'agent' },
+    { id: 2, type: 'rent', title: 'Studio Apartment, Yaba', location: 'Yaba, Lagos', ngn: '₦95,000 / mo', usd: '$115 / mo', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=240&fit=crop&q=80', listedBy: 'landlord' },
+    { id: 3, type: 'rent', title: '3-Bed Duplex, Ikeja GRA', location: 'Ikeja GRA, Lagos', ngn: '₦350,000 / mo', usd: '$430 / mo', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=240&fit=crop&q=80', listedBy: 'agent' },
+    { id: 4, type: 'land', title: '450sqm Land, Ibeju-Lekki', location: 'Ibeju-Lekki, Lagos', totalPrice: 8500000, img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=240&fit=crop&q=80', listedBy: 'agent' },
+    { id: 5, type: 'land', title: '3-Bed Bungalow, Epe (Outright/Installment)', location: 'Epe, Lagos', totalPrice: 22000000, img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=240&fit=crop&q=80', listedBy: 'landlord' }
   ];
 
   let listings = [];
@@ -2593,7 +2625,7 @@
     feed.innerHTML = data.map(p => `
       <div class="s5-card" data-listing-id="${p.id}">
         <div class="s5-card-img-wrap">
-          <img src="${p.img}" alt="${p.title}" loading="lazy">
+          <img src="${p.img}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'rent')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Verified</span>
         </div>
         <div class="s5-card-body">
@@ -2616,7 +2648,7 @@
     feed.innerHTML = data.map(p => `
       <div class="s5-card" data-listing-id="${p.id}">
         <div class="s5-card-img-wrap">
-          <img src="${p.img}" alt="${p.title}" loading="lazy">
+          <img src="${p.img}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'land')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Title Verified</span>
         </div>
         <div class="s5-card-body">
@@ -2741,8 +2773,10 @@
     document.getElementById('s6-agreement-confirmed').style.display = 'none';
     document.getElementById('s6-invoice-panel').classList.add('hidden');
 
-    document.getElementById('s6-property-img').src = listing.img;
-    document.getElementById('s6-property-img').alt = listing.title;
+    const s6PropImg = document.getElementById('s6-property-img');
+    s6PropImg.onerror = () => handleImgError(s6PropImg, listing.type);
+    s6PropImg.src = listing.img;
+    s6PropImg.alt = listing.title;
     document.getElementById('s6-property-title').textContent = listing.title;
     document.getElementById('s6-property-location').textContent = listing.location;
 
@@ -3192,7 +3226,7 @@
     return `
       <div class="insp-mgmt-card" data-sched-id="${s.id}">
         <div class="insp-mgmt-top">
-          <img class="insp-mgmt-img" src="${s.img}" alt="${s.title}">
+          <img class="insp-mgmt-img" src="${s.img}" alt="${s.title}" onerror="handleImgError(this,'rent')">
           <div class="insp-mgmt-text">
             <p class="insp-mgmt-title">${s.title}</p>
             <p class="insp-mgmt-loc"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${s.location}</p>
@@ -3314,9 +3348,9 @@
     const newId = Date.now();
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
-      listings.unshift({ id: newId, type: 'rent', title, location: address, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: `https://picsum.photos/seed/mtr-${newId}/400/240`, listedBy: 'landlord' });
+      listings.unshift({ id: newId, type: 'rent', title, location: address, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent, listedBy: 'landlord' });
     } else {
-      listings.unshift({ id: newId, type: 'land', title, location: address, totalPrice: annual, img: `https://picsum.photos/seed/mtr-${newId}/400/240`, listedBy: 'landlord' });
+      listings.unshift({ id: newId, type: 'land', title, location: address, totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land, listedBy: 'landlord' });
     }
     saveListings();
 
@@ -3433,9 +3467,9 @@
     let listingData;
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
-      listingData = { id: newId, type: 'rent', title, location: address, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: `https://picsum.photos/seed/mtr-${newId}/400/240`, listedBy: 'agent' };
+      listingData = { id: newId, type: 'rent', title, location: address, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent, listedBy: 'agent' };
     } else {
-      listingData = { id: newId, type: 'land', title, location: address, totalPrice: annual, img: `https://picsum.photos/seed/mtr-${newId}/400/240`, listedBy: 'agent' };
+      listingData = { id: newId, type: 'land', title, location: address, totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land, listedBy: 'agent' };
     }
 
     const autoApprove = document.getElementById('s5-auto-approve').checked;
@@ -3809,7 +3843,7 @@
     itemsWrap.innerHTML = cart.map((item, idx) => `
       <div class="cart-item" data-idx="${idx}">
         <div class="cart-item-top">
-          <img class="cart-item-img" src="${item.img}" alt="${item.title}">
+          <img class="cart-item-img" src="${item.img}" alt="${item.title}" onerror="handleImgError(this,'rent')">
           <div class="cart-item-text">
             <p class="cart-item-title">${item.title}</p>
             <p class="cart-item-loc"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${item.location}</p>
@@ -3917,7 +3951,7 @@
       return `
       <div class="insp-mgmt-card" data-sched-id="${s.id}">
         <div class="insp-mgmt-top">
-          <img class="insp-mgmt-img" src="${s.img}" alt="${s.title}">
+          <img class="insp-mgmt-img" src="${s.img}" alt="${s.title}" onerror="handleImgError(this,'rent')">
           <div class="insp-mgmt-text">
             <p class="insp-mgmt-title">${s.title}</p>
             <p class="insp-mgmt-loc"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${s.location}</p>
