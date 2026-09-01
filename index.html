@@ -810,6 +810,27 @@
   .msg-call-actions { display: flex; gap: 8px; flex-shrink: 0; }
   .msg-call-actions .msg-icon-btn { width: 36px; height: 36px; }
 
+  /* WhatsApp-style header: recipient avatar + name as primary, property as sub-pill */
+  .msg-peer-info { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+  .msg-peer-avatar {
+    width: 42px; height: 42px; border-radius: 999px; background: #1e293b; border: 1px solid #334155;
+    display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; color: #c084fc;
+  }
+  .msg-peer-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .msg-peer-text { min-width: 0; }
+  .msg-peer-name { font-size: 16px; font-weight: 600; color: #fff; margin: 0 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .msg-property-pill {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 500; color: #c084fc;
+    background: rgba(147,51,234,0.14); border: 1px solid rgba(147,51,234,0.3); padding: 3px 9px; border-radius: 999px;
+    max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .msg-property-pill svg { flex-shrink: 0; }
+
+  /* Read receipts on outgoing bubbles: single check = sent, double = delivered, double (accent) = read */
+  .msg-receipt { display: inline-flex; align-items: center; margin-left: 6px; color: rgba(255,255,255,0.6); vertical-align: middle; }
+  .msg-receipt svg { width: 13px; height: 13px; }
+  .msg-receipt.read { color: #7dd3fc; }
+
   /* Simulated Call / Video Call overlay */
   .call-overlay {
     position: fixed; inset: 0; background: linear-gradient(160deg, #1e0a3c, #0B0F19 60%); z-index: 200;
@@ -1732,9 +1753,12 @@
 
   <div id="msg-thread-detail" style="display:none;">
     <div class="msg-thread-header-row">
-      <div>
-        <h1 class="s5-role-title" id="msg-thread-title" style="margin-bottom: 4px;">Conversation</h1>
-        <p class="s5-role-sub" id="msg-thread-sub" style="margin: 0;">—</p>
+      <div class="msg-peer-info">
+        <div class="msg-peer-avatar" id="msg-peer-avatar"><i data-lucide="user" class="w-5 h-5"></i></div>
+        <div class="msg-peer-text">
+          <h1 class="msg-peer-name" id="msg-thread-title">Conversation</h1>
+          <span class="msg-property-pill"><i data-lucide="home" class="w-3 h-3"></i><span id="msg-property-pill-text">—</span></span>
+        </div>
       </div>
       <!-- Call & Video Call: simulated real-time interactions with the other party in this thread -->
       <div class="msg-call-actions">
@@ -1746,6 +1770,7 @@
         </button>
       </div>
     </div>
+    <p class="s5-role-sub" id="msg-thread-sub" style="margin: 6px 0 0;">—</p>
     <!-- Tenant-only: request the full property address from the Landlord/Agent in-thread.
          Landlords and Agents never see this button — they only see the property title header. -->
     <button type="button" id="msg-request-address-btn" class="s5-action-btn" style="display:none; align-items:center; justify-content:center; gap:6px; width:100%; margin: 14px 0;">
@@ -1753,12 +1778,15 @@
     </button>
     <div id="msg-chat-log" style="margin: 18px 0;"></div>
 
-    <!-- Text messaging + Voice note composer -->
+    <!-- Text messaging + attachment + Voice note composer -->
     <div class="msg-composer">
+      <button type="button" id="msg-attach-btn" class="msg-icon-btn" title="Attach media/document">
+        <i data-lucide="paperclip" class="w-4 h-4"></i>
+      </button>
+      <input type="text" id="msg-text-input" class="msg-composer-input" placeholder="Type a message...">
       <button type="button" id="msg-voice-note-btn" class="msg-icon-btn" title="Record voice note">
         <i data-lucide="mic" class="w-4 h-4"></i>
       </button>
-      <input type="text" id="msg-text-input" class="msg-composer-input" placeholder="Type a message...">
       <button type="button" id="msg-send-btn" class="msg-icon-btn send-btn" title="Send">
         <i data-lucide="send" class="w-4 h-4"></i>
       </button>
@@ -5272,6 +5300,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     openThreadDetail(parseInt(item.dataset.id, 10));
   });
 
+  function renderReceipt(status) {
+    if (status === 'read') return '<span class="msg-receipt read"><i data-lucide="check-check" class="w-3.5 h-3.5"></i></span>';
+    if (status === 'delivered') return '<span class="msg-receipt"><i data-lucide="check-check" class="w-3.5 h-3.5"></i></span>';
+    return '<span class="msg-receipt"><i data-lucide="check" class="w-3.5 h-3.5"></i></span>'; // sent (default)
+  }
+
   function renderChatLog(conv) {
     document.getElementById('msg-chat-log').innerHTML = conv.messages.map(m => {
       if (m.type === 'call-log') {
@@ -5285,12 +5319,33 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <button type="button" class="voice-note-play-btn" data-audio="${m.audioUrl}"><i data-lucide="play" class="w-3.5 h-3.5"></i></button>
             <div class="voice-note-wave">${Array.from({length: 22}).map(() => `<span style="height:${6 + Math.round(Math.random()*12)}px;"></span>`).join('')}</div>
             <span class="voice-note-duration">${m.duration}</span>
-          </div>
+          </div>${m.from === 'me' ? renderReceipt(m.status) : ''}
         </div>`;
       }
-      return `<div class="chat-bubble ${m.from === 'me' ? 'me' : (m.from === 'system' ? 'system' : 'them')}">${m.text}</div>`;
+      const cls = m.from === 'me' ? 'me' : (m.from === 'system' ? 'system' : 'them');
+      return `<div class="chat-bubble ${cls}">${m.text}${m.from === 'me' ? renderReceipt(m.status) : ''}</div>`;
     }).join('');
     if (window.lucide) lucide.createIcons();
+  }
+
+  // Simulates the sent → delivered → read progression on an outgoing message,
+  // re-rendering the thread if it's still the one open on screen.
+  function simulateReceiptProgress(conv, msg) {
+    if (!msg || msg.from !== 'me') return;
+    setTimeout(() => {
+      if (msg.status === 'sent') {
+        msg.status = 'delivered';
+        saveConversations();
+        if (activeThreadId === conv.id) renderChatLog(conv);
+      }
+    }, 700);
+    setTimeout(() => {
+      if (msg.status === 'delivered') {
+        msg.status = 'read';
+        saveConversations();
+        if (activeThreadId === conv.id) renderChatLog(conv);
+      }
+    }, 2200);
   }
 
   // Resolves who the other party in a conversation is, for the call overlay peer
@@ -5319,7 +5374,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
     activeThreadId = id;
     document.getElementById('msg-list-view').style.display = 'none';
     document.getElementById('msg-thread-detail').style.display = 'block';
-    document.getElementById('msg-thread-title').textContent = conv.listingTitle;
+
+    // WhatsApp-style header: recipient name + photo are primary; the property
+    // becomes a small contextual pill underneath.
+    const peer = getConversationPeer(conv);
+    document.getElementById('msg-thread-title').textContent = peer.name;
+    document.getElementById('msg-property-pill-text').textContent = conv.listingTitle;
+    const peerAvatar = document.getElementById('msg-peer-avatar');
+    peerAvatar.innerHTML = peer.photo
+      ? `<img src="${peer.photo}" alt="${peer.name}">`
+      : '<i data-lucide="user" class="w-5 h-5"></i>';
+
     document.getElementById('msg-thread-sub').textContent = conv.status === 'archived' ? 'Archived conversation' : 'Active inspection conversation';
     renderChatLog(conv);
     // Complete & Decide Split (via "Simulate Inspection Complete") is a tenant-only
@@ -5378,15 +5443,25 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!text) return;
     const conv = conversations.find(c => c.id === activeThreadId);
     if (!conv) return;
-    conv.messages.push({ from: 'me', type: 'text', text });
+    const msg = { from: 'me', type: 'text', text, status: 'sent' };
+    conv.messages.push(msg);
     saveConversations();
     input.value = '';
     renderChatLog(conv);
     document.getElementById('msg-chat-log').scrollTop = document.getElementById('msg-chat-log').scrollHeight;
+    simulateReceiptProgress(conv, msg);
   }
   document.getElementById('msg-send-btn').addEventListener('click', sendTextMessage);
   document.getElementById('msg-text-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') sendTextMessage();
+  });
+
+  // ==================================================================
+  // ---- Attachment: media/document picker (interactive placeholder) ----
+  // ==================================================================
+  document.getElementById('msg-attach-btn').addEventListener('click', () => {
+    if (!activeThreadId) return;
+    showToast('Opening attachment picker...');
   });
 
   // ==================================================================
@@ -5410,8 +5485,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
         const audioUrl = URL.createObjectURL(blob);
         const conv = conversations.find(c => c.id === activeThreadId);
         if (conv) {
-          conv.messages.push({ from: 'me', type: 'voice', audioUrl, duration: `0:${String(elapsed).padStart(2, '0')}` });
+          const msg = { from: 'me', type: 'voice', audioUrl, duration: `0:${String(elapsed).padStart(2, '0')}`, status: 'sent' };
+          conv.messages.push(msg);
+          saveConversations();
           renderChatLog(conv);
+          simulateReceiptProgress(conv, msg);
         }
       };
       voiceRecorder.start();
@@ -5426,8 +5504,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // so the interaction still works end-to-end in this demo environment.
       const conv = conversations.find(c => c.id === activeThreadId);
       if (conv) {
-        conv.messages.push({ from: 'me', type: 'voice', audioUrl: '', duration: '0:04' });
+        const msg = { from: 'me', type: 'voice', audioUrl: '', duration: '0:04', status: 'sent' };
+        conv.messages.push(msg);
+        saveConversations();
         renderChatLog(conv);
+        simulateReceiptProgress(conv, msg);
       }
       showToast('Microphone unavailable — added a simulated voice note');
     }
