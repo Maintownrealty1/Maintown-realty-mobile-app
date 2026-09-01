@@ -463,6 +463,7 @@
   .insp-mgr-decline { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.35); }
   .insp-mgr-conduct { background: rgba(147,51,234,0.15); color: #c084fc; border: 1px solid rgba(147,51,234,0.4); }
   .insp-mgr-chat { background: rgba(147,51,234,0.15); color: #c084fc; border: 1px solid rgba(147,51,234,0.4); }
+  .insp-mgr-info { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
   /* ---- Fixed bottom navigation bar (lives OUTSIDE #screen-4 / #screen-5) ---- */
   #app-bottom-nav {
     display: flex; justify-content: center; padding: 0 20px 16px; pointer-events: none;
@@ -566,6 +567,14 @@
   .s5-status-vacant { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.35); }
   .s5-status-escrow { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.35); }
   .s5-status-pending { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.35); }
+  .s5-status-draft { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.35); }
+
+  .s5-list-action-btn {
+    flex-shrink: 0; display: flex; align-items: center; gap: 5px;
+    padding: 7px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; cursor: pointer; border: none;
+  }
+  .s5-list-live-btn { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+  .s5-list-publish-btn { background: rgba(147,51,234,0.15); color: #c084fc; border: 1px solid rgba(147,51,234,0.4); }
 
   .s5-list-item {
     display: flex; align-items: center; gap: 12px; padding: 13px 14px; background: rgba(15,23,42,0.8);
@@ -1055,7 +1064,7 @@
 
     <div class="field">
       <label class="field-label">Email Address</label>
-      <input class="field-input" type="email" required placeholder="you@example.com">
+      <input class="field-input" id="reg-email" type="email" required placeholder="you@example.com">
     </div>
 
     <div class="field">
@@ -1066,7 +1075,7 @@
           <option value="+1">CA +1</option>
           <option value="+44">UK +44</option>
         </select>
-        <input class="field-input phone-input" type="tel" required placeholder="801 234 5678">
+        <input class="field-input phone-input" id="reg-phone" type="tel" required placeholder="801 234 5678">
       </div>
     </div>
 
@@ -1383,12 +1392,17 @@
           <input class="field-input" id="s5-landlord-email" type="email" required placeholder="landlord@example.com">
         </div>
 
+        <label class="agree-row" style="margin: 4px 0 4px;">
+          <input type="checkbox" id="s5-publish-toggle" class="agree-checkbox" checked>
+          <span>Publish immediately to the Tenant "Find a Home" feed. Uncheck to save as a private draft — hidden from tenants until published from My Listings.</span>
+        </label>
+
         <div class="s5-notice-box">
           <i data-lucide="zap" class="w-5 h-5"></i>
-          <p>Photos and walkthrough videos publish immediately — this listing goes live on the Tenant Search Feed as soon as you submit, with no staging or review queue.</p>
+          <p>When published, photos and walkthrough videos go live on the Tenant Search Feed instantly — no staging or review queue.</p>
         </div>
 
-        <button type="submit" class="btn-primary">Submit Listing &amp; Publish Live</button>
+        <button type="submit" class="btn-primary">Submit Listing</button>
       </form>
     </div>
 
@@ -1854,9 +1868,27 @@
     <p class="modal-sub" style="margin-bottom:16px;">Requested an inspection for <span id="bio-listing">—</span></p>
 
     <div class="bio-row"><span>Occupation</span><strong id="bio-occupation">—</strong></div>
+    <div class="bio-row"><span>Phone</span><strong id="bio-phone">—</strong></div>
+    <div class="bio-row"><span>Email</span><strong id="bio-email">—</strong></div>
     <div class="bio-row"><span>KYC Verification</span><strong style="color:#34d399;">Verified</strong></div>
 
-    <button type="button" id="bio-close-btn" class="btn-primary" style="margin-top:20px;">Close</button>
+    <button type="button" id="bio-chat-btn" class="btn-primary" style="margin-top:20px; margin-bottom:10px; display:none; align-items:center; justify-content:center; gap:6px;"><i data-lucide="message-square" class="w-4 h-4"></i> Chat Tenant</button>
+    <button type="button" id="bio-close-btn" class="btn-secondary">Close</button>
+  </div>
+</div>
+
+<!-- Live Listing Preview Modal — Landlord/Agent "View Live Listing" -->
+<div id="live-listing-preview-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <i data-lucide="eye" class="w-6 h-6 text-purple-400"></i>
+    </div>
+    <h2 class="modal-title">Live Listing Preview</h2>
+    <p class="modal-sub" style="margin-bottom:16px;">Exactly what tenants see on the "Find a Home" feed right now.</p>
+
+    <div id="llp-card-wrap"><!-- populated dynamically --></div>
+
+    <button type="button" id="llp-close-btn" class="btn-primary" style="margin-top:16px;">Close</button>
   </div>
 </div>
 
@@ -1945,6 +1977,11 @@
       <span class="doc-verify-badge" id="tv-verify-badge" style="display:none;"><i data-lucide="badge-check" class="w-3 h-3"></i>Queued for verification</span>
       <input type="file" id="tv-file" hidden accept="image/*,.pdf">
     </div>
+
+    <label class="agree-row" style="margin: 4px 0 4px;">
+      <input type="checkbox" id="tv-publish-toggle" class="agree-checkbox" checked>
+      <span>Publish immediately to the Tenant "Find a Home" feed. Uncheck to save as a private draft — hidden from tenants until you publish it from My Properties.</span>
+    </label>
 
     <button type="button" id="tv-submit-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Submit for Verification</button>
     <button type="button" id="tv-cancel-btn" class="btn-secondary">Cancel</button>
@@ -2177,6 +2214,23 @@
 
     <p class="txn-section-title">Itemized Transactions</p>
     <div id="ph-txn-list"><!-- populated dynamically --></div>
+  </div>
+</div>
+
+<!-- ===================== Landlord "Tenants" / Agent "Clients" — Closed Deals Sheet ===================== -->
+<div id="closed-deals-modal" class="sheet-overlay">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <h2 class="sheet-title"><i data-lucide="users" class="w-4 h-4"></i><span id="cd-title">Tenants</span></h2>
+        <p class="sheet-subtitle" id="cd-subtitle">Active, verified tenants who have completed payment and activated move-in</p>
+      </div>
+      <button type="button" class="sheet-close-btn" id="cd-close-btn">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+    <div id="cd-list"><!-- populated dynamically --></div>
   </div>
 </div>
 
@@ -2858,7 +2912,7 @@
       actions: [
         { icon: 'plus-circle', label: 'List Property', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
         { icon: 'wallet', label: 'Payouts', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'payoutHistory' },
-        { icon: 'users', label: 'Tenants', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'toast' },
+        { icon: 'users', label: 'Tenants', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'tenants' },
         { icon: 'calendar-check', label: 'Inspections', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'browse' }
       ],
       activity: [
@@ -2873,7 +2927,7 @@
       actions: [
         { icon: 'plus-circle', label: 'Add Listing', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
         { icon: 'calendar-check', label: 'Walkthroughs', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'browse' },
-        { icon: 'users', label: 'Clients', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'toast' },
+        { icon: 'users', label: 'Clients', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'clients' },
         { icon: 'bar-chart-3', label: 'Commission', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'payoutHistory' }
       ],
       activity: [
@@ -2947,6 +3001,56 @@
     payoutHistoryModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
   }
+
+  // ---- Landlord "Tenants" / Agent "Clients": closed deals — a tenant who has
+  //      completed the payment flow AND activated their move-in date in the
+  //      Post-Lease Hub. Agents see only deals tied to their own listings. ----
+  const closedDealsModal = document.getElementById('closed-deals-modal');
+  function getClosedDeals(role) {
+    if (!activeLease || !activeLease.moveInConfirmed) return [];
+    if (role === 'agent' && !activeLease.listedByAgent) return [];
+    const rentTerm = activeLease.remainingMonths ? `${activeLease.remainingMonths + 1} months` : 'Outright / Full Payment';
+    return [{
+      tenantName: activeLease.tenantName || 'Tenant',
+      propertyTitle: activeLease.title,
+      moveInDateLabel: activeLease.moveInDateLabel,
+      escrowStatus: activeLease.escrowStatus || 'Pending Release',
+      rentTerm
+    }];
+  }
+  function openClosedDealsModal(role) {
+    document.getElementById('cd-title').textContent = role === 'agent' ? 'Clients' : 'Tenants';
+    document.getElementById('cd-subtitle').textContent = role === 'agent'
+      ? 'Closed deals on listings you uploaded or were assigned'
+      : 'Active, verified tenants with completed payment & activated move-in';
+    const deals = getClosedDeals(role);
+    const list = document.getElementById('cd-list');
+    if (!deals.length) {
+      list.innerHTML = `<p class="role-hint" style="text-align:left;">No closed deals yet — this fills in once a tenant completes payment and confirms a move-in date.</p>`;
+    } else {
+      list.innerHTML = deals.map(d => `
+        <div class="txn-row">
+          <div class="txn-row-top">
+            <div>
+              <p class="txn-title">${d.tenantName}</p>
+              <p class="txn-date">${d.propertyTitle}</p>
+            </div>
+            <span class="txn-status-badge settled">Move-in Confirmed</span>
+          </div>
+          <div class="txn-breakdown">
+            <div class="txn-breakdown-row"><span>Move-in Date</span><span>${d.moveInDateLabel}</span></div>
+            <div class="txn-breakdown-row"><span>Escrow Settlement Status</span><span>${d.escrowStatus}</span></div>
+            <div class="txn-breakdown-row net"><span>Rent Term</span><span>${d.rentTerm}</span></div>
+          </div>
+        </div>`).join('');
+    }
+    closedDealsModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('cd-close-btn').addEventListener('click', () => closedDealsModal.classList.remove('open'));
+  closedDealsModal.addEventListener('click', (e) => {
+    if (e.target === closedDealsModal) closedDealsModal.classList.remove('open');
+  });
 
   document.getElementById('ph-close-btn').addEventListener('click', () => {
     payoutHistoryModal.classList.remove('open');
@@ -3104,6 +3208,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       navigateTo('screen-5');
     } else if (tile.dataset.action === 'payoutHistory') {
       openPayoutHistory(currentUserRole);
+    } else if (tile.dataset.action === 'tenants' || tile.dataset.action === 'clients') {
+      openClosedDealsModal(tile.dataset.action === 'tenants' ? 'landlord' : 'agent');
     } else {
       showToast(`${tile.dataset.label} — coming soon`);
     }
@@ -3152,8 +3258,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function saveListings() {
     try { localStorage.setItem('mtr_listings', JSON.stringify(listings)); } catch (e) {}
   }
-  function rentListings() { return listings.filter(l => l.type === 'rent'); }
-  function landListingsList() { return listings.filter(l => l.type === 'land'); }
+  // Media Uploads visibility rule: draft/private listings (status: 'draft') are stored
+  // but never surfaced on the tenant-facing feeds below until explicitly published.
+  function rentListings() { return listings.filter(l => l.type === 'rent' && l.status !== 'draft'); }
+  function landListingsList() { return listings.filter(l => l.type === 'land' && l.status !== 'draft'); }
 
   let landlordProperties = [
     { id: 1, title: '2-Bed Flat, Lekki Phase 1', address: 'Lekki Phase 1, Lagos', status: 'occupied' },
@@ -3955,6 +4063,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function releaseEscrowAndShowInvoice() {
     buildActiveLeaseFromCheckout();
+    if (activeLease) activeLease.escrowStatus = 'Released to Landlord';
 
     // Populate the itemized Payment Invoice & Receipt from the same breakdown values shown at checkout
     document.getElementById('s6-invoice-row1-label').textContent = document.getElementById('s6-row1-label').textContent;
@@ -4031,12 +4140,27 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function renderLandlordList() {
     const statusMap = {
       occupied: { cls: 's5-status-occupied', label: 'Occupied' },
-      vacant: { cls: 's5-status-vacant', label: 'Vacant' },
-      escrow: { cls: 's5-status-escrow', label: 'Escrow Pending' }
+      vacant: { cls: 's5-status-vacant', label: 'Vacant' }
     };
     const list = document.getElementById('s5-landlord-list');
     list.innerHTML = landlordProperties.map(p => {
-      const s = statusMap[p.status];
+      let rightHtml;
+      if (p.status === 'escrow') {
+        // Inventory Card: instead of a static "Escrow Pending" badge, surface an
+        // actionable button that routes straight to the live/published listing (or,
+        // if it's still a private draft, lets the landlord publish it in one tap).
+        const linkedListing = listings.find(l => l.listedBy === 'landlord' && (p.listingId ? l.id === p.listingId : l.title === p.title));
+        if (linkedListing && linkedListing.status !== 'draft') {
+          rightHtml = `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${p.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`;
+        } else if (linkedListing) {
+          rightHtml = `<button type="button" class="s5-list-action-btn s5-list-publish-btn" data-action="publish" data-title="${p.title}"><i data-lucide="upload-cloud" class="w-3 h-3"></i>Publish Listing</button>`;
+        } else {
+          rightHtml = `<span class="s5-status-badge s5-status-escrow">Escrow Pending</span>`;
+        }
+      } else {
+        const s = statusMap[p.status];
+        rightHtml = `<span class="s5-status-badge ${s.cls}">${s.label}</span>`;
+      }
       return `
         <div class="s5-list-item">
           <div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
@@ -4044,12 +4168,23 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <p class="s5-list-title">${p.title}</p>
             <p class="s5-list-sub">${p.address}</p>
           </div>
-          <span class="s5-status-badge ${s.cls}">${s.label}</span>
+          ${rightHtml}
         </div>`;
     }).join('');
     if (window.lucide) lucide.createIcons();
     renderLandlordInspectionsManager();
   }
+
+  document.getElementById('s5-landlord-list').addEventListener('click', (e) => {
+    const viewBtn = e.target.closest('[data-action="viewLive"]');
+    const pubBtn = e.target.closest('[data-action="publish"]');
+    if (viewBtn) {
+      openLiveListingPreview(viewBtn.dataset.title, 'landlord');
+    } else if (pubBtn) {
+      publishListingByTitle(pubBtn.dataset.title, 'landlord');
+      renderLandlordList();
+    }
+  });
 
   // ==================================================================
   // ---- Landlord / Agent Inspections Manager (shared renderer) ----
@@ -4080,7 +4215,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
           </div>
         </div>
         <div class="insp-mgmt-actions-row">
+          <button type="button" class="insp-mgr-btn insp-mgr-info" data-action="viewTenant" data-sched-id="${s.id}"><i data-lucide="user" class="w-3.5 h-3.5"></i>View Tenant Info</button>
           <button type="button" class="insp-mgr-btn insp-mgr-chat" data-action="chat" data-sched-id="${s.id}"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>Chat Manager</button>
+          ${isPending ? `<button type="button" class="insp-mgr-btn insp-mgr-accept" data-action="confirm" data-sched-id="${s.id}"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>Confirm Inspection</button>` : ''}
         </div>
       </div>`;
   }
@@ -4110,7 +4247,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
       renderAgentInspectionsManager();
       navigateTo('screen-messages');
       openThreadDetail(convId);
+    } else if (btn.dataset.action === 'viewTenant') {
+      openTenantInfoModalFromSchedule(id);
+    } else if (btn.dataset.action === 'confirm') {
+      confirmInspectionSchedule(id);
     }
+  }
+
+  // Landlord/Agent "Confirm Inspection": instantly flips the status pill on the
+  // Inspections Manager card from "Pending Approval" to "Confirmed" and unlocks chat.
+  function confirmInspectionSchedule(scheduleId) {
+    acceptSchedule(scheduleId);
   }
   document.getElementById('s5-landlord-inspections').addEventListener('click', handleInspectionsManagerClick);
   document.getElementById('s5-agent-inspections').addEventListener('click', handleInspectionsManagerClick);
@@ -4134,6 +4281,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('tv-upload-box').classList.remove('has-file');
     document.getElementById('tv-upload-label').textContent = 'Upload C of O / Title Document';
     document.getElementById('tv-verify-badge').style.display = 'none';
+    document.getElementById('tv-publish-toggle').checked = true;
     titleVerifyModal.classList.add('open');
   });
 
@@ -4193,17 +4341,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
       showToast('Please fill in property title, address, and annual price');
       return;
     }
-    landlordProperties.unshift({ id: Date.now(), title, address, status: 'escrow' });
+    const isPublished = document.getElementById('tv-publish-toggle').checked;
+    const newId = Date.now();
+    landlordProperties.unshift({ id: newId, title, address, status: 'escrow', listingId: newId });
     renderLandlordList();
 
-    // Immediate Live Media Publishing: real property photos/walkthrough video uploaded
-    // here are published straight to the live listingsFeed with status 'live' — no
-    // staging or review queue. hasPhotos/hasVideo drive the walkthrough badge on the
-    // Tenant "Find a Home" feed card, and update instantly.
+    // Media Visibility: photos/walkthrough video uploaded here are stored on the listing
+    // with a visibility status. When published, they go straight to the live listingsFeed
+    // (status 'live') and are instantly reflected in the Tenant "Find a Home" feed. When
+    // saved as a draft (status 'draft'), the listing is stored but filtered out of every
+    // tenant-facing feed until explicitly published from My Properties.
     const currentUserName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Landlord';
-    const newId = Date.now();
     const baseFields = {
-      id: newId, title, location: address, listedBy: 'landlord', status: 'live',
+      id: newId, title, location: address, listedBy: 'landlord', status: isPublished ? 'live' : 'draft',
       hasPhotos: tvPendingPhotoCount > 0, hasVideo: tvPendingHasVideo,
       landlordName: currentUserName, landlordPhoto: currentUserSelfieDataUrl || null,
       agentName: null, agentPhoto: null
@@ -4225,7 +4375,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
 
     titleVerifyModal.classList.remove('open');
-    showToast('Property photos & walkthrough are now live on the Tenant Search Feed');
+    showToast(isPublished ? 'Property photos & walkthrough are now live on the Tenant Search Feed' : 'Saved as a private draft — publish anytime from My Properties');
   });
 
   // ---- Agent view: upload listing form + mandatory landlord mapping ----
@@ -4248,10 +4398,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
       renderAgentInspectionsManager();
       return;
     }
-    // Immediate Live Media Publishing: every agent-submitted listing is pushed
-    // straight to the live tenant feed on submit — there is no pending/review
-    // queue to resolve here anymore, so every row simply reflects "Live & Verified".
-    wrap.innerHTML = agentListings.map(l => `
+    // Media Visibility: a listing is either live on the Tenant Search Feed or saved
+    // as a private draft — the row's action reflects whichever it currently is.
+    wrap.innerHTML = agentListings.map(l => {
+      const isLive = l.status !== 'draft';
+      const actionHtml = isLive
+        ? `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`
+        : `<button type="button" class="s5-list-action-btn s5-list-publish-btn" data-action="publish" data-title="${l.title}"><i data-lucide="upload-cloud" class="w-3 h-3"></i>Publish Listing</button>`;
+      return `
       <div class="s5-list-item">
         <div class="s5-list-icon"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
         <div class="s5-list-text">
@@ -4259,11 +4413,65 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <p class="s5-list-sub">${l.address} · Landlord: ${l.landlordName}${l.hasVideo ? ' · 🎥 Walkthrough' : ''}</p>
         </div>
         <div class="s5-list-status-col">
-          <span class="s5-status-badge s5-status-live">Live & Verified</span>
+          ${actionHtml}
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     if (window.lucide) lucide.createIcons();
     renderAgentInspectionsManager();
+  }
+
+  document.getElementById('s5-agent-listings').addEventListener('click', (e) => {
+    const viewBtn = e.target.closest('[data-action="viewLive"]');
+    const pubBtn = e.target.closest('[data-action="publish"]');
+    if (viewBtn) {
+      openLiveListingPreview(viewBtn.dataset.title, 'agent');
+    } else if (pubBtn) {
+      publishListingByTitle(pubBtn.dataset.title, 'agent');
+      renderAgentListings();
+    }
+  });
+
+  // ---- Live Listing Preview: renders the exact tenant-facing card for a property so
+  //      the Landlord/Agent can inspect their uploaded photos/video in real time. ----
+  const liveListingPreviewModal = document.getElementById('live-listing-preview-modal');
+  function openLiveListingPreview(title, role) {
+    const listing = listings.find(l => l.title === title && l.listedBy === role);
+    if (!listing) { showToast('This listing is not available to preview yet'); return; }
+    const wrap = document.getElementById('llp-card-wrap');
+    const priceLine = listing.type === 'rent'
+      ? `${currentCurrency === 'usd' ? listing.usd : listing.ngn} <span>rent</span>`
+      : formatMoney(listing.totalPrice, 'ngn');
+    wrap.innerHTML = `
+      <div class="s5-card">
+        <div class="s5-card-img-wrap">
+          <img src="${listing.img}" alt="${listing.title}" onerror="handleImgError(this,'${listing.type}')">
+          <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Verified</span>
+          ${listing.hasVideo ? `<span class="s5-live-media-badge"><i data-lucide="video" class="w-3 h-3"></i>Walkthrough Video</span>` : ''}
+        </div>
+        <div class="s5-card-body">
+          <p class="s5-card-title">${listing.title}</p>
+          <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${listing.location}</p>
+          <p class="s5-card-price">${priceLine}</p>
+        </div>
+      </div>`;
+    liveListingPreviewModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('llp-close-btn').addEventListener('click', () => liveListingPreviewModal.classList.remove('open'));
+
+  // Publishes a draft listing straight to the live Tenant "Find a Home" feed.
+  function publishListingByTitle(title, role) {
+    const listing = listings.find(l => l.title === title && l.listedBy === role);
+    if (!listing) return;
+    listing.status = 'live';
+    saveListings();
+    const agentEntry = agentListings.find(l => l.title === title);
+    if (agentEntry) agentEntry.status = 'live';
+    if (!document.getElementById('tenant-view').classList.contains('hidden')) {
+      if (currentListingType === 'land') renderLandFeed(); else renderTenantFeed(currentCurrency);
+    }
+    showToast(`"${title}" is now live on the Tenant Search Feed`);
   }
 
   let s5PendingPhotoCount = 0;
@@ -4325,14 +4533,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
 
-    // Immediate Live Media Publishing: the listing (with its real photos & walkthrough
-    // video) is pushed straight into `listingsFeed` with status: 'live' — no staging
-    // or review queue. It's visible on the Tenant "Find a Home" feed the instant this
-    // submits, and hasPhotos/hasVideo drive the walkthrough badge on its card.
+    // Media Visibility: photos/walkthrough video uploaded here are stored on the listing
+    // with a visibility status. When published, they go straight into `listingsFeed` with
+    // status 'live' and are instantly visible on the Tenant "Find a Home" feed. When saved
+    // as a draft (status 'draft'), the listing is stored but filtered out of every
+    // tenant-facing feed until explicitly published from My Listings.
+    const isPublished = document.getElementById('s5-publish-toggle').checked;
     const agentName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Agent';
     const newId = Date.now();
     const baseFields = {
-      id: newId, title, location: address, listedBy: 'agent', status: 'live',
+      id: newId, title, location: address, listedBy: 'agent', status: isPublished ? 'live' : 'draft',
       hasPhotos: s5PendingPhotoCount > 0, hasVideo: s5PendingHasVideo,
       landlordName, landlordPhoto: null,
       agentName, agentPhoto: currentUserSelfieDataUrl || null
@@ -4345,7 +4555,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       listingData = { ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land };
     }
 
-    agentListings.unshift({ id: newId + 1, title, address, type, annual, landlordName, landlordPhone, landlordEmail, status: 'live', hasVideo: s5PendingHasVideo, listingData });
+    agentListings.unshift({ id: newId + 1, title, address, type, annual, landlordName, landlordPhone, landlordEmail, status: isPublished ? 'live' : 'draft', listingId: newId, hasVideo: s5PendingHasVideo, listingData });
     listingsFeed.unshift(listingData);
     saveListings();
     s5PendingPhotoCount = 0;
@@ -4492,12 +4702,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const tenantName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Tenant';
     const tenantOccupation = (document.getElementById('reg-occupation')?.value || '').trim() || 'Not specified';
     const tenantPhoto = currentUserSelfieDataUrl || null;
+    const tenantPhone = (document.getElementById('reg-phone')?.value || '').trim() || null;
+    const tenantEmail = (document.getElementById('reg-email')?.value || '').trim() || null;
     ['landlord', 'agent'].forEach(forRole => {
       inspectionNotifications.unshift({
         id: Date.now() + Math.random(),
         forRole,
         listingTitle: listing.title,
-        tenantName, tenantOccupation, tenantPhoto,
+        tenantName, tenantOccupation, tenantPhoto, tenantPhone, tenantEmail,
         unread: true
       });
     });
@@ -4557,7 +4769,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     schedules.unshift({
       id: inspId, title: inspectionListing.title, img: inspectionListing.img, location: inspectionListing.location,
       date, time, feeType: isAgent ? 'agent' : 'landlord', fee,
-      status: 'Pending Approval', conversationId: null, inspectionId: inspId
+      status: 'Pending Approval', conversationId: null, inspectionId: inspId,
+      tenantName: (document.getElementById('reg-fullname')?.value || '').trim() || 'Tenant',
+      tenantOccupation: (document.getElementById('reg-occupation')?.value || '').trim() || 'Not specified',
+      tenantPhoto: currentUserSelfieDataUrl || null,
+      tenantPhone: (document.getElementById('reg-phone')?.value || '').trim() || null,
+      tenantEmail: (document.getElementById('reg-email')?.value || '').trim() || null
     });
     saveSchedules();
 
@@ -4833,7 +5050,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       schedules.unshift({
         id: inspId, title: item.title, img: item.img, location: item.location,
         date: item.date, time: item.time, feeType: isAgent ? 'agent' : 'landlord', fee,
-        status: 'Confirmed', conversationId: convId, inspectionId: inspId
+        status: 'Confirmed', conversationId: convId, inspectionId: inspId,
+        tenantName: (document.getElementById('reg-fullname')?.value || '').trim() || 'Tenant',
+        tenantOccupation: (document.getElementById('reg-occupation')?.value || '').trim() || 'Not specified',
+        tenantPhoto: currentUserSelfieDataUrl || null,
+        tenantPhone: (document.getElementById('reg-phone')?.value || '').trim() || null,
+        tenantEmail: (document.getElementById('reg-email')?.value || '').trim() || null
       });
 
       // Inspection Activation & Dashboard Cards Sync: notify the Agent & Landlord
@@ -4939,6 +5161,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   const tenantBioModal = document.getElementById('tenant-bio-modal');
+  let bioModalSchedId = null; // set when opened from the Inspections Manager, so "Chat Tenant" knows which schedule/conversation to open
+
   function openTenantBioModal(notifId) {
     const notif = inspectionNotifications.find(n => String(n.id) === String(notifId));
     if (!notif) return;
@@ -4951,16 +5175,52 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (cardEl) cardEl.classList.remove('unread');
     }
 
+    bioModalSchedId = null;
     document.getElementById('bio-avatar').src = notif.tenantPhoto || '';
     document.getElementById('bio-avatar').style.display = notif.tenantPhoto ? 'block' : 'none';
     document.getElementById('bio-avatar-fallback').style.display = notif.tenantPhoto ? 'none' : 'flex';
     document.getElementById('bio-name').textContent = notif.tenantName;
     document.getElementById('bio-occupation').textContent = notif.tenantOccupation;
+    document.getElementById('bio-phone').textContent = notif.tenantPhone || 'Not provided';
+    document.getElementById('bio-email').textContent = notif.tenantEmail || 'Not provided';
     document.getElementById('bio-listing').textContent = notif.listingTitle;
+    document.getElementById('bio-chat-btn').style.display = 'none';
     tenantBioModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
   }
+
+  // "View Tenant Info" from the Inspections Manager card — pulls the tenant onboarding
+  // data saved directly on the schedule and offers a "Chat Tenant" action button.
+  function openTenantInfoModalFromSchedule(scheduleId) {
+    const sched = schedules.find(s => String(s.id) === String(scheduleId));
+    if (!sched) return;
+
+    bioModalSchedId = scheduleId;
+    document.getElementById('bio-avatar').src = sched.tenantPhoto || '';
+    document.getElementById('bio-avatar').style.display = sched.tenantPhoto ? 'block' : 'none';
+    document.getElementById('bio-avatar-fallback').style.display = sched.tenantPhoto ? 'none' : 'flex';
+    document.getElementById('bio-name').textContent = sched.tenantName || 'Tenant';
+    document.getElementById('bio-occupation').textContent = sched.tenantOccupation || 'Not specified';
+    document.getElementById('bio-phone').textContent = sched.tenantPhone || 'Not provided';
+    document.getElementById('bio-email').textContent = sched.tenantEmail || 'Not provided';
+    document.getElementById('bio-listing').textContent = sched.title;
+    document.getElementById('bio-chat-btn').style.display = 'flex';
+    tenantBioModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+
   document.getElementById('bio-close-btn').addEventListener('click', () => tenantBioModal.classList.remove('open'));
+  document.getElementById('bio-chat-btn').addEventListener('click', () => {
+    if (!bioModalSchedId) return;
+    const sched = schedules.find(s => String(s.id) === String(bioModalSchedId));
+    if (!sched) return;
+    const convId = ensureConversationForSchedule(sched);
+    renderLandlordInspectionsManager();
+    renderAgentInspectionsManager();
+    tenantBioModal.classList.remove('open');
+    navigateTo('screen-messages');
+    openThreadDetail(convId);
+  });
 
   // ==================================================================
   // ---- Messages Screen: Chat Unlock, Inspection Complete, 50/50 Split ----
@@ -5429,6 +5689,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('s7-movein-confirmed-text').textContent = `Move-in scheduled for ${formatted}`;
     document.getElementById('s7-movein-confirmed').style.display = 'inline-flex';
     if (window.lucide) lucide.createIcons();
+
+    // Closed Deal tracking: once payment is complete AND the move-in date is activated,
+    // this tenant becomes a "closed deal" visible in the Landlord's Tenants / Agent's
+    // Clients dashboard card.
+    if (activeLease) {
+      activeLease.moveInConfirmed = true;
+      activeLease.moveInDateLabel = formatted;
+      activeLease.listedByAgent = listedByAgent;
+      activeLease.tenantName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Tenant';
+    }
 
     // Auto-Debit Schedule: tied to the move-in date. Month 1 was already paid upfront
     // at checkout, so the remaining months auto-debit monthly, 30 days apart, starting
