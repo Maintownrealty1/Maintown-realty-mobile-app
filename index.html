@@ -482,16 +482,34 @@
   .insp-status-pending { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); }
   .insp-status-confirmed { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
   .insp-status-conducted { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
+  .insp-status-declined { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.4); }
   .insp-mgmt-actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
   .insp-mgr-btn {
     flex: 1; min-width: 120px; display: flex; align-items: center; justify-content: center; gap: 6px;
     padding: 9px 10px; border-radius: 10px; font-size: 11.5px; font-weight: 600; cursor: pointer; border: none;
   }
+  .insp-mgr-btn:disabled { cursor: not-allowed; opacity: 0.7; }
   .insp-mgr-accept { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
   .insp-mgr-decline { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.35); }
   .insp-mgr-conduct { background: rgba(147,51,234,0.15); color: #c084fc; border: 1px solid rgba(147,51,234,0.4); }
   .insp-mgr-chat { background: rgba(147,51,234,0.15); color: #c084fc; border: 1px solid rgba(147,51,234,0.4); }
+  .insp-mgr-chat:disabled { background: rgba(148,163,184,0.1); color: #64748b; border: 1px solid rgba(148,163,184,0.25); }
   .insp-mgr-info { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
+  /* ---- Chat-locked action button (tenant Schedules screen + Messages composer reuse .s5-action-btn) ---- */
+  .s5-action-btn:disabled { cursor: not-allowed; opacity: 0.55; background: rgba(148,163,184,0.08); color: #64748b; border-color: rgba(148,163,184,0.2); }
+  /* ---- Host Info row: Confirmed Inspection Card banner (Tenant view) ---- */
+  .host-info-row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-top: 10px;
+    background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.25); border-radius: 12px; cursor: pointer;
+  }
+  .host-info-avatar { width: 36px; height: 36px; border-radius: 999px; object-fit: cover; background: #1e293b; border: 1px solid #334155; flex-shrink: 0; }
+  .host-info-avatar-fallback { display: flex; align-items: center; justify-content: center; color: #94a3b8; }
+  .host-info-text { flex: 1; min-width: 0; }
+  .host-info-name { font-size: 12.5px; font-weight: 600; color: #fff; margin: 0 0 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .host-info-role { font-size: 10.5px; color: #34d399; margin: 0; }
+  /* ---- Chat header: Host/peer online-role status line + tappable peer info ---- */
+  .msg-peer-info.tappable { cursor: pointer; }
+  .msg-peer-status { font-size: 10.5px; color: #34d399; margin: 0 0 2px; display: flex; align-items: center; gap: 4px; }
   /* ---- Fixed bottom navigation bar (lives OUTSIDE #screen-4 / #screen-5) ---- */
   #app-bottom-nav {
     display: flex; justify-content: center; padding: 0 20px 16px; pointer-events: none;
@@ -1834,10 +1852,11 @@
 
   <div id="msg-thread-detail" style="display:none;">
     <div class="msg-thread-header-row">
-      <div class="msg-peer-info">
+      <div class="msg-peer-info" id="msg-peer-info-btn" role="button" tabindex="0">
         <div class="msg-peer-avatar" id="msg-peer-avatar"><i data-lucide="user" class="w-5 h-5"></i></div>
         <div class="msg-peer-text">
           <h1 class="msg-peer-name" id="msg-thread-title">Conversation</h1>
+          <p class="msg-peer-status" id="msg-peer-status" style="display:none;">—</p>
           <span class="msg-property-pill"><i data-lucide="home" class="w-3 h-3"></i><span id="msg-property-pill-text">—</span></span>
         </div>
       </div>
@@ -1873,9 +1892,6 @@
       </button>
     </div>
 
-    <button type="button" id="msg-complete-btn" class="btn-primary" style="display:flex; align-items:center; justify-content:center; gap:6px;">
-      <i data-lucide="check-circle" class="w-4 h-4"></i> Simulate Inspection Complete
-    </button>
   </div>
 
 </div>
@@ -2052,6 +2068,21 @@
     </div>
 
     <button type="button" id="lp-close-btn" class="btn-secondary" style="margin-top:16px;">Close</button>
+  </div>
+</div>
+
+<!-- Host Preview Modal — Tenant tap on the Host Info row inside a Confirmed Inspection card -->
+<div id="host-preview-modal" class="modal-overlay">
+  <div class="modal-card">
+    <img id="hostprev-avatar" class="bio-avatar-lg" alt="Host portrait" style="display:none;">
+    <div class="modal-icon-wrap" id="hostprev-avatar-fallback">
+      <i data-lucide="user" class="w-8 h-8 text-purple-400"></i>
+    </div>
+    <h2 class="modal-title" id="hostprev-name">—</h2>
+    <p class="modal-sub" style="margin-bottom:16px;"><span id="hostprev-role">—</span> · Verified</p>
+    <div class="bio-row"><span>Managing</span><strong id="hostprev-listing">—</strong></div>
+    <p style="font-size:12.5px; color:#94a3b8; line-height:1.5; margin: 14px 0 0;" id="hostprev-bio">—</p>
+    <button type="button" id="hostprev-close-btn" class="btn-secondary" style="margin-top:20px;">Close</button>
   </div>
 </div>
 
@@ -2363,6 +2394,32 @@
 </div>
 
 <!-- ===================== Transaction & Payout History Sheet ===================== -->
+<!-- Host Info Bottom Sheet — Chat header tap (Tenant viewing the Host in a 1-on-1 thread) -->
+<div id="host-info-sheet" class="sheet-overlay">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <h2 class="sheet-title"><i data-lucide="user" class="w-4 h-4"></i><span>Host Info</span></h2>
+        <p class="sheet-subtitle">Verified host details</p>
+      </div>
+      <button type="button" class="sheet-close-btn" id="his-close-btn">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:center; margin: 8px 0 18px;">
+      <img id="his-avatar" class="bio-avatar-lg" style="display:none;" alt="Host portrait">
+      <div class="modal-icon-wrap" id="his-avatar-fallback"><i data-lucide="user" class="w-8 h-8 text-purple-400"></i></div>
+      <h2 class="modal-title" id="his-name" style="margin-top:12px; margin-bottom:2px;">—</h2>
+      <p class="modal-sub" id="his-role" style="margin-bottom:0;">—</p>
+    </div>
+    <div class="bio-row"><span>Phone</span><strong id="his-phone">—</strong></div>
+    <div class="bio-row"><span>Email</span><strong id="his-email">—</strong></div>
+    <p class="txn-section-title" style="margin-top:16px;">Managed Property Listings</p>
+    <div id="his-listings"><!-- populated dynamically --></div>
+  </div>
+</div>
+
 <div id="payout-history-modal" class="sheet-overlay">
   <div class="sheet-card">
     <div class="sheet-handle"></div>
@@ -3332,7 +3389,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // #dash-list for the Landlord & Agent dashboards — red unread dot, Tenant's Full
     // Name, Occupation, and KYC Portrait Photo. Clicking opens the tenant bio modal. ----
     const notifHtml = (role === 'landlord' || role === 'agent')
-      ? inspectionNotifications.filter(n => n.forRole === role).map(n => `
+      ? inspectionNotifications.filter(n => n.forRole === role && n.type !== 'tenantAlert').map(n => `
         <div class="dash-list-item ${n.unread ? 'unread' : ''}" data-action="tenantBio" data-notif-id="${n.id}" style="cursor:pointer;">
           <span class="dash-unread-dot"></span>
           ${n.tenantPhoto
@@ -3343,7 +3400,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <p class="dash-list-sub">${n.listingTitle}</p>
           </div>
         </div>`).join('')
-      : '';
+      // Tenant Notification Center: Acceptance/Decline alerts — tapping deep-links to
+      // the Inspection Schedules feed to view the updated status badge.
+      : (role === 'tenant'
+          ? inspectionNotifications.filter(n => n.forRole === 'tenant' && n.type === 'tenantAlert').map(n => `
+            <div class="dash-list-item ${n.unread ? 'unread' : ''}" data-action="inspections" data-notif-id="${n.id}" style="cursor:pointer;">
+              <span class="dash-unread-dot"></span>
+              <div class="dash-list-icon"><i data-lucide="${n.kind === 'declined' ? 'x-circle' : 'check-circle-2'}" class="w-4 h-4 ${n.kind === 'declined' ? 'text-red-400' : 'text-emerald-400'}"></i></div>
+              <div class="dash-list-text">
+                <p class="dash-list-title">${n.kind === 'declined' ? 'Inspection declined' : 'Inspection confirmed'}</p>
+                <p class="dash-list-sub">${n.message}</p>
+              </div>
+            </div>`).join('')
+          : '');
 
     list.innerHTML = notifHtml + activityItems.map(item => `
       <div class="dash-list-item" ${item.action ? `data-action="${item.action}" style="cursor:pointer;"` : ''}>
@@ -4382,10 +4451,29 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // directly on this card — every inspection request routes through a direct chat with
   // the tenant instead. The tenant alone decides acceptance, inspection outcome, and the
   // Complete & Decide Split / payment flow.
+  // Renders the Chat Manager button in its correct state for the given schedule:
+  // locked (disabled) while "Pending Approval" or after "Declined", unlocked once "Confirmed"/"Conducted".
+  function chatManagerButtonHTML(s, dataAttrHtml) {
+    if (s.status === 'Pending Approval') {
+      return `<button type="button" class="insp-mgr-btn insp-mgr-chat" disabled><i data-lucide="lock" class="w-3.5 h-3.5"></i>Chat Locked (Awaiting Confirmation)</button>`;
+    }
+    if (s.status === 'Declined') {
+      return `<button type="button" class="insp-mgr-btn insp-mgr-chat" disabled><i data-lucide="lock" class="w-3.5 h-3.5"></i>Chat Locked</button>`;
+    }
+    return `<button type="button" class="insp-mgr-btn insp-mgr-chat" data-action="chat" ${dataAttrHtml}><i data-lucide="message-square" class="w-3.5 h-3.5"></i>Chat Manager</button>`;
+  }
+
   function inspectionsManagerCardHTML(s) {
     const isPending = s.status === 'Pending Approval';
     const isConducted = s.status === 'Conducted';
-    const badgeClass = isPending ? 'insp-status-pending' : (isConducted ? 'insp-status-conducted' : 'insp-status-confirmed');
+    const isDeclined = s.status === 'Declined';
+    const badgeClass = isPending ? 'insp-status-pending' : isDeclined ? 'insp-status-declined' : (isConducted ? 'insp-status-conducted' : 'insp-status-confirmed');
+    // Host action controls: only the Host (Landlord/Agent who posted the listing) ever sees
+    // these, and only while the request is still "Pending Approval".
+    const hostActionsHtml = isPending
+      ? `<button type="button" class="insp-mgr-btn insp-mgr-accept" data-action="accept" data-sched-id="${s.id}"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>Accept Inspection</button>
+         <button type="button" class="insp-mgr-btn insp-mgr-decline" data-action="decline" data-sched-id="${s.id}"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>Decline Inspection</button>`
+      : '';
     return `
       <div class="insp-mgmt-card" data-sched-id="${s.id}">
         <div class="insp-mgmt-top">
@@ -4403,8 +4491,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         </div>
         <div class="insp-mgmt-actions-row">
           <button type="button" class="insp-mgr-btn insp-mgr-info" data-action="viewTenant" data-sched-id="${s.id}"><i data-lucide="user" class="w-3.5 h-3.5"></i>View Tenant Info</button>
-          <button type="button" class="insp-mgr-btn insp-mgr-chat" data-action="chat" data-sched-id="${s.id}"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>Chat Manager</button>
-          ${isPending ? `<button type="button" class="insp-mgr-btn insp-mgr-accept" data-action="confirm" data-sched-id="${s.id}"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>Confirm Inspection</button>` : ''}
+          ${chatManagerButtonHTML(s, `data-sched-id="${s.id}"`)}
+          ${hostActionsHtml}
         </div>
       </div>`;
   }
@@ -4436,15 +4524,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       openThreadDetail(convId);
     } else if (btn.dataset.action === 'viewTenant') {
       openTenantInfoModalFromSchedule(id);
-    } else if (btn.dataset.action === 'confirm') {
-      confirmInspectionSchedule(id);
+    } else if (btn.dataset.action === 'accept') {
+      acceptSchedule(id);
+    } else if (btn.dataset.action === 'decline') {
+      declineInspectionSchedule(id);
     }
-  }
-
-  // Landlord/Agent "Confirm Inspection": instantly flips the status pill on the
-  // Inspections Manager card from "Pending Approval" to "Confirmed" and unlocks chat.
-  function confirmInspectionSchedule(scheduleId) {
-    acceptSchedule(scheduleId);
   }
   document.getElementById('s5-landlord-inspections').addEventListener('click', handleInspectionsManagerClick);
   document.getElementById('s5-agent-inspections').addEventListener('click', handleInspectionsManagerClick);
@@ -4979,8 +5063,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   // ==================================================================
-  // ---- Cross-role inspection status transitions (shared by tenant's
-  //      "Simulate Agent Accept" and the Landlord/Agent Inspections Manager) ----
+  // ---- Cross-role inspection status transitions (Host Accept/Decline actions
+  //      on the Landlord/Agent Inspections Manager card) ----
   // ==================================================================
 
   // Landlord/Agent "Chat Manager" action: opens the existing conversation for this
@@ -5036,13 +5120,58 @@ This voucher is auto-generated and serves as proof of settlement.`;
     saveInspections();
     saveSchedules();
 
-    document.getElementById('dash-bell-dot').classList.add('show');
+    pushTenantInspectionAlert(sched, 'confirmed');
     showToast('Accepted — chat unlocked for the tenant in Messages');
     renderSchedulesScreen();
     renderInspectionsSummaryCard();
     renderLandlordInspectionsManager();
     renderAgentInspectionsManager();
     if (window.lucide) lucide.createIcons();
+  }
+
+  // Landlord/Agent "Decline Inspection": flips the status pill to "Declined" (Red) on
+  // BOTH the Host's Inspections Manager card and the Tenant's Inspection Schedules card
+  // (they read from the same shared `schedules` array), and keeps chat permanently locked.
+  function declineInspectionSchedule(scheduleId) {
+    const sched = schedules.find(s => String(s.id) === String(scheduleId));
+    if (!sched || sched.status !== 'Pending Approval') return;
+    sched.status = 'Declined';
+    saveSchedules();
+
+    const insp = inspections.find(i => i.id === sched.inspectionId);
+    if (insp) insp.status = 'declined';
+    saveInspections();
+
+    pushTenantInspectionAlert(sched, 'declined');
+    showToast('Declined — tenant notified. Chat remains locked.');
+    renderSchedulesScreen();
+    renderInspectionsSummaryCard();
+    renderLandlordInspectionsManager();
+    renderAgentInspectionsManager();
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // ---- Tenant Notifications: Acceptance/Decline Push Alert + In-App Notification Center ----
+  // Pushes an unread card into the Tenant's dashboard Notification Center (#dash-list) and
+  // fires a simulated push alert (toast) — deep-links back to the Inspection Schedules feed.
+  function pushTenantInspectionAlert(sched, kind) {
+    const message = kind === 'confirmed'
+      ? `Your inspection request for ${sched.title} has been confirmed for ${sched.date || 'the scheduled date'} at ${sched.time || 'the scheduled time'}. Chat is now unlocked.`
+      : `Your inspection request for ${sched.title} has been declined by the host.`;
+    inspectionNotifications.unshift({
+      id: Date.now() + Math.random(),
+      forRole: 'tenant',
+      type: 'tenantAlert',
+      kind,
+      listingTitle: sched.title,
+      message,
+      unread: true
+    });
+    saveInspectionNotifications();
+    document.getElementById('dash-bell-dot').classList.add('show');
+    // Simulated Push Alert: shown immediately if the Tenant dashboard happens to be active.
+    if ((currentUserRole || 'tenant') === 'tenant') showToast(message);
+    if (!document.getElementById('screen-4').classList.contains('hidden')) populateScreen4();
   }
 
   function declineOrRescheduleSchedule(scheduleId) {
@@ -5278,16 +5407,25 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const isLandlordOrAgent = role === 'landlord' || role === 'agent';
     list.innerHTML = schedules.map(s => {
       const isPending = s.status === 'Pending Approval';
-      const badgeClass = isPending ? 'insp-status-pending' : (s.status === 'Conducted' ? 'insp-status-conducted' : 'insp-status-confirmed');
-      const badgeIcon = isPending ? 'clock' : (s.status === 'Conducted' ? 'clipboard-check' : 'check-circle-2');
+      const isDeclined = s.status === 'Declined';
+      const badgeClass = isPending ? 'insp-status-pending' : isDeclined ? 'insp-status-declined' : (s.status === 'Conducted' ? 'insp-status-conducted' : 'insp-status-confirmed');
+      const badgeIcon = isPending ? 'clock' : isDeclined ? 'x-circle' : (s.status === 'Conducted' ? 'clipboard-check' : 'check-circle-2');
+      // Chat Locking Logic: locked for ALL parties while "Pending Approval", and
+      // permanently locked once "Declined" — unlocked only once "Confirmed"/"Conducted".
+      const chatLockedHtml = `<button type="button" class="s5-action-btn" disabled><i data-lucide="lock" class="w-4 h-4"></i>${isPending ? 'Chat Locked (Awaiting Confirmation)' : 'Chat Locked'}</button>`;
       // Landlord/Agent: view-only requests, routed entirely through direct chat with the
       // tenant — no scheduling controls and no access to the tenant's payment/split flow.
       const actionsHtml = isLandlordOrAgent
-        ? `<button type="button" class="s5-action-btn primary insp-chat-btn" data-sched-id="${s.id}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>`
-        : (isPending
-            ? `<button type="button" class="s5-action-btn primary insp-simulate-accept-btn" data-sched-id="${s.id}"><i data-lucide="zap" class="w-4 h-4"></i>⚡ Simulate Agent Accept</button>`
+        ? ((isPending || isDeclined)
+            ? chatLockedHtml
+            : `<button type="button" class="s5-action-btn primary insp-chat-btn" data-sched-id="${s.id}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>`)
+        : ((isPending || isDeclined)
+            ? chatLockedHtml
             : `<button type="button" class="s5-action-btn insp-chat-btn" data-conv-id="${s.conversationId}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>
                <button type="button" class="s5-action-btn primary insp-complete-btn" data-conv-id="${s.conversationId}"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Complete &amp; Decide Split</button>`);
+      // Host Profile Integration: Confirmed Inspection Card banner — Tenant view only,
+      // and only while status is exactly "Confirmed" (Green badge).
+      const hostInfoHtml = (!isLandlordOrAgent && s.status === 'Confirmed') ? hostInfoRowHTML(s) : '';
       return `
       <div class="insp-mgmt-card" data-sched-id="${s.id}">
         <div class="insp-mgmt-top">
@@ -5303,17 +5441,52 @@ This voucher is auto-generated and serves as proof of settlement.`;
             </div>
           </div>
         </div>
+        ${hostInfoHtml}
         <div class="insp-mgmt-actions">${actionsHtml}</div>
       </div>`;
     }).join('');
     if (window.lucide) lucide.createIcons();
   }
 
+  // Resolves the Host (Landlord or Agent) for a given schedule's listing, mirroring
+  // getConversationPeer's Tenant-side branch — used for the Confirmed card's Host Info
+  // row/modal and the Chat header's Host Info bottom sheet.
+  function getScheduleHost(s) {
+    const listing = rentListings().find(l => l.title === s.title) || landListingsList().find(l => l.title === s.title);
+    if (s.feeType === 'agent' && listing && listing.agentName) {
+      return { name: listing.agentName, photo: listing.agentPhoto || null, label: 'Agent' };
+    }
+    if (listing && listing.landlordName) {
+      return { name: listing.landlordName, photo: listing.landlordPhoto || null, label: 'Landlord' };
+    }
+    return { name: s.feeType === 'agent' ? 'Agent' : 'Landlord', photo: null, label: s.feeType === 'agent' ? 'Agent' : 'Landlord' };
+  }
+
+  // Lightweight Host Info row — Confirmed Inspection card banner (Tenant's Inspection
+  // Schedules screen). Tapping opens the Host Preview Modal (enlarged photo, name, bio).
+  function hostInfoRowHTML(s) {
+    const host = getScheduleHost(s);
+    const avatarHtml = host.photo
+      ? `<img class="host-info-avatar" src="${host.photo}" alt="${host.name}">`
+      : `<div class="host-info-avatar host-info-avatar-fallback"><i data-lucide="user" class="w-4 h-4"></i></div>`;
+    return `
+      <div class="host-info-row" data-action="hostPreview" data-sched-id="${s.id}">
+        ${avatarHtml}
+        <div class="host-info-text">
+          <p class="host-info-name">${host.name}</p>
+          <p class="host-info-role">${host.label} • Verified</p>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4" style="color:#64748b;"></i>
+      </div>`;
+  }
+
   document.getElementById('insp-schedule-list').addEventListener('click', (e) => {
+    const hostRow = e.target.closest('.host-info-row');
     const chatBtn = e.target.closest('.insp-chat-btn');
     const completeBtn = e.target.closest('.insp-complete-btn');
-    const simulateBtn = e.target.closest('.insp-simulate-accept-btn');
-    if (chatBtn) {
+    if (hostRow) {
+      openHostPreviewModal(hostRow.dataset.schedId);
+    } else if (chatBtn) {
       let convId;
       if (chatBtn.dataset.schedId) {
         // Landlord/Agent path: no conversation may exist yet — create it on the fly.
@@ -5331,11 +5504,27 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const convId = parseInt(completeBtn.dataset.convId, 10);
       activeThreadId = convId;
       inspectionDecisionModal.classList.add('open');
-    } else if (simulateBtn) {
-      if ((currentUserRole || 'tenant') !== 'tenant') return;
-      acceptSchedule(simulateBtn.dataset.schedId);
     }
   });
+
+  // ---- Host Preview Modal (Tenant tap on the Confirmed card's Host Info row) ----
+  const hostPreviewModal = document.getElementById('host-preview-modal');
+  function openHostPreviewModal(scheduleId) {
+    const sched = schedules.find(s => String(s.id) === String(scheduleId));
+    if (!sched) return;
+    const host = getScheduleHost(sched);
+    document.getElementById('hostprev-name').textContent = host.name;
+    document.getElementById('hostprev-role').textContent = host.label;
+    document.getElementById('hostprev-listing').textContent = sched.title;
+    document.getElementById('hostprev-bio').textContent = `Verified ${host.label} on MainTown Realty, currently managing ${sched.title}.`;
+    const av = document.getElementById('hostprev-avatar');
+    const avFallback = document.getElementById('hostprev-avatar-fallback');
+    if (host.photo) { av.src = host.photo; av.style.display = 'block'; avFallback.style.display = 'none'; }
+    else { av.style.display = 'none'; avFallback.style.display = 'flex'; }
+    hostPreviewModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('hostprev-close-btn').addEventListener('click', () => hostPreviewModal.classList.remove('open'));
 
   // Dashboard "Inspection scheduled" activity card -> jump straight into Schedules view
   // Dashboard "Handover sign-off" activity card (Landlord) -> open the Agreement Review & Sign-Off sheet
@@ -5343,10 +5532,24 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('dash-list').addEventListener('click', (e) => {
     const item = e.target.closest('.dash-list-item');
     if (!item) return;
-    if (item.dataset.action === 'inspections') navigateTo('screen-inspections');
+    if (item.dataset.action === 'inspections') {
+      if (item.dataset.notifId) markTenantAlertRead(item.dataset.notifId);
+      navigateTo('screen-inspections');
+    }
     else if (item.dataset.action === 'handoverReview') openHandoverReviewModal();
     else if (item.dataset.action === 'tenantBio') openTenantBioModal(item.dataset.notifId);
   });
+
+  // Marks a Tenant Notification Center alert (Acceptance/Decline) as read without a
+  // full dashboard re-render, mirroring openTenantBioModal's read-state handling.
+  function markTenantAlertRead(notifId) {
+    const notif = inspectionNotifications.find(n => String(n.id) === String(notifId));
+    if (!notif || !notif.unread) return;
+    notif.unread = false;
+    saveInspectionNotifications();
+    const cardEl = document.querySelector(`.dash-list-item[data-notif-id="${notifId}"]`);
+    if (cardEl) cardEl.classList.remove('unread');
+  }
 
   const tenantBioModal = document.getElementById('tenant-bio-modal');
   let bioModalSchedId = null; // set when opened from the Inspections Manager, so "Chat Tenant" knows which schedule/conversation to open
@@ -5373,6 +5576,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('bio-email').textContent = notif.tenantEmail || 'Not provided';
     document.getElementById('bio-listing').textContent = notif.listingTitle;
     document.getElementById('bio-chat-btn').style.display = 'none';
+    document.getElementById('bio-chat-btn').disabled = false;
     tenantBioModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
   }
@@ -5392,7 +5596,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('bio-phone').textContent = sched.tenantPhone || 'Not provided';
     document.getElementById('bio-email').textContent = sched.tenantEmail || 'Not provided';
     document.getElementById('bio-listing').textContent = sched.title;
-    document.getElementById('bio-chat-btn').style.display = 'flex';
+    // Chat Locking: the Host's "Chat Tenant" shortcut from this modal must respect the
+    // same Pending/Declined lock as the Inspections Manager card's Chat Manager button.
+    const chatBtn = document.getElementById('bio-chat-btn');
+    if (sched.status === 'Pending Approval') {
+      chatBtn.style.display = 'flex';
+      chatBtn.disabled = true;
+      chatBtn.innerHTML = `<i data-lucide="lock" class="w-4 h-4"></i> Chat Locked (Awaiting Confirmation)`;
+    } else if (sched.status === 'Declined') {
+      chatBtn.style.display = 'flex';
+      chatBtn.disabled = true;
+      chatBtn.innerHTML = `<i data-lucide="lock" class="w-4 h-4"></i> Chat Locked`;
+    } else {
+      chatBtn.style.display = 'flex';
+      chatBtn.disabled = false;
+      chatBtn.innerHTML = `<i data-lucide="message-square" class="w-4 h-4"></i> Chat Tenant`;
+    }
     tenantBioModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
   }
@@ -5421,6 +5640,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function saveConversations() { try { localStorage.setItem('mtr_conversations', JSON.stringify(conversations)); } catch (e) {} }
 
   let activeThreadId = null;
+  let activeThreadHostInfo = null; // set by openThreadDetail when the Tenant is viewing a Host (Agent/Landlord) thread
 
   function renderThreadList() {
     document.getElementById('msg-list-view').style.display = 'block';
@@ -5545,12 +5765,24 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ? `<img src="${peer.photo}" alt="${peer.name}">`
       : '<i data-lucide="user" class="w-5 h-5"></i>';
 
+    // Chat Header & Host Profile Sheet: Tenant viewing the Host (Agent/Landlord) sees an
+    // active online/role status line, and can tap the header to open the Host Info sheet.
+    const isTenantViewingHost = (currentUserRole || 'tenant') === 'tenant' && (peer.label === 'Agent' || peer.label === 'Landlord');
+    const peerInfoBtn = document.getElementById('msg-peer-info-btn');
+    const peerStatus = document.getElementById('msg-peer-status');
+    if (isTenantViewingHost) {
+      peerStatus.style.display = 'flex';
+      peerStatus.innerHTML = `<i data-lucide="circle" class="w-2 h-2" style="fill:currentColor;"></i>${peer.label} • Online`;
+      peerInfoBtn.classList.add('tappable');
+      activeThreadHostInfo = { ...peer, listingTitle: conv.listingTitle };
+    } else {
+      peerStatus.style.display = 'none';
+      peerInfoBtn.classList.remove('tappable');
+      activeThreadHostInfo = null;
+    }
+
     document.getElementById('msg-thread-sub').textContent = conv.status === 'archived' ? 'Archived conversation' : 'Active inspection conversation';
     renderChatLog(conv);
-    // Complete & Decide Split (via "Simulate Inspection Complete") is a tenant-only
-    // action — Landlord/Agent must never see tenant payment triggers in chat.
-    const canComplete = conv.status !== 'archived' && (currentUserRole || 'tenant') === 'tenant';
-    document.getElementById('msg-complete-btn').style.display = canComplete ? 'flex' : 'none';
 
     // ---- Messaging UI Address Restriction: "Request Full Address" is strictly
     // Tenant-only. Landlords/Agents only ever see the property title header. ----
@@ -5593,6 +5825,54 @@ This voucher is auto-generated and serves as proof of settlement.`;
     openThreadDetail(conv.id); // refresh button state ("Full Address Shared")
     showToast('Full address requested');
   });
+
+  // Chat Header tap: photo or name slides up the Host Info bottom sheet (Tenant-only,
+  // only when the current thread's peer is the Host — Agent/Landlord).
+  const hostInfoSheet = document.getElementById('host-info-sheet');
+  document.getElementById('msg-peer-info-btn').addEventListener('click', () => {
+    if (!activeThreadHostInfo) return;
+    openHostInfoSheet(activeThreadHostInfo);
+  });
+  document.getElementById('his-close-btn').addEventListener('click', () => hostInfoSheet.classList.remove('open'));
+
+  function openHostInfoSheet(host) {
+    document.getElementById('his-name').textContent = host.name;
+    document.getElementById('his-role').textContent = `${host.label} • Verified`;
+    const av = document.getElementById('his-avatar');
+    const avFallback = document.getElementById('his-avatar-fallback');
+    if (host.photo) { av.src = host.photo; av.style.display = 'block'; avFallback.style.display = 'none'; }
+    else { av.style.display = 'none'; avFallback.style.display = 'flex'; }
+
+    // Direct Contact Info: sourced from the landlord contact captured at listing
+    // creation where available; otherwise contact stays routed through chat.
+    const listingEntry = (typeof agentListings !== 'undefined') ? agentListings.find(a => a.title === host.listingTitle) : null;
+    document.getElementById('his-phone').textContent = (host.label === 'Landlord' && listingEntry && listingEntry.landlordPhone) ? listingEntry.landlordPhone : 'Available via chat';
+    document.getElementById('his-email').textContent = (host.label === 'Landlord' && listingEntry && listingEntry.landlordEmail) ? listingEntry.landlordEmail : 'Available via chat';
+
+    // Managed Property Listings: every live/draft listing tied to this Host's name.
+    const managed = rentListings().concat(landListingsList()).filter(l =>
+      host.label === 'Agent' ? l.agentName === host.name : l.landlordName === host.name
+    );
+    const listWrap = document.getElementById('his-listings');
+    listWrap.innerHTML = managed.length
+      ? managed.map(l => `
+        <div class="s5-list-item">
+          <div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+          <div class="s5-list-text">
+            <p class="s5-list-title">${l.title}</p>
+            <p class="s5-list-sub">${l.location}</p>
+          </div>
+        </div>`).join('')
+      : `<div class="s5-list-item">
+          <div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+          <div class="s5-list-text">
+            <p class="s5-list-title">${host.listingTitle}</p>
+          </div>
+        </div>`;
+
+    hostInfoSheet.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
 
   // ==================================================================
   // ---- Text Messaging: free-text composer ----
@@ -5783,9 +6063,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   const inspectionDecisionModal = document.getElementById('inspection-decision-modal');
-  document.getElementById('msg-complete-btn').addEventListener('click', () => {
-    inspectionDecisionModal.classList.add('open');
-  });
   document.getElementById('id-cancel-btn').addEventListener('click', () => inspectionDecisionModal.classList.remove('open'));
 
   document.getElementById('id-satisfied-btn').addEventListener('click', () => {
@@ -5849,7 +6126,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
     renderChatLog(conv);
     document.getElementById('msg-chat-log').innerHTML += receiptHtml;
-    document.getElementById('msg-complete-btn').style.display = 'none';
     document.getElementById('msg-thread-sub').textContent = 'Archived conversation';
     showToast('Cancellation processed — 50/50 split executed');
     renderInspectionsSummaryCard();
