@@ -309,6 +309,46 @@
   }
   .kyc-progress-fill { height: 100%; width: 0%; background: #a855f7; transition: width 0.08s linear; }
   .kyc-item.uploaded .kyc-progress-fill { background: #10b981; width: 100% !important; }
+  /* Physical Portrait Photo (Selfie) live preview thumbnail — sits inline with the KYC item icon */
+  .kyc-selfie-thumb {
+    width: 34px; height: 34px; border-radius: 10px; object-fit: cover; flex-shrink: 0;
+    border: 1px solid #10b981; display: none;
+  }
+
+  /* Dashboard: unread client/tenant notification cards (Landlord/Agent) */
+  .dash-list-item { position: relative; }
+  .dash-unread-dot {
+    display: none; position: absolute; top: 10px; right: 10px; width: 9px; height: 9px;
+    border-radius: 999px; background: #ef4444; box-shadow: 0 0 0 2px #0B0F19;
+  }
+  .dash-list-item.unread .dash-unread-dot { display: block; }
+  .dash-list-avatar {
+    width: 34px; height: 34px; border-radius: 10px; object-fit: cover; flex-shrink: 0;
+    background: #1e293b;
+  }
+
+  /* Tenant Bio Modal (Landlord/Agent view of a tenant who activated an inspection) */
+  .bio-avatar-lg {
+    width: 72px; height: 72px; border-radius: 999px; object-fit: cover; margin: 0 auto 14px;
+    display: block; border: 2px solid #a855f7; background: #1e293b;
+  }
+  .bio-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1e293b; font-size: 13px; }
+  .bio-row:last-child { border-bottom: none; }
+  .bio-row span { color: #64748b; }
+  .bio-row strong { color: #fff; font-weight: 500; }
+
+  /* Tenant "My Lease" — Assigned Agent & Landlord photo/name card */
+  .assigned-people-row { display: flex; gap: 12px; margin-bottom: 20px; }
+  .assigned-person-card {
+    flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center;
+    padding: 14px 10px; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 14px;
+  }
+  .assigned-person-avatar {
+    width: 48px; height: 48px; border-radius: 999px; object-fit: cover; margin-bottom: 8px;
+    background: #1e293b; border: 1px solid #334155;
+  }
+  .assigned-person-role { font-size: 10.5px; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 2px; }
+  .assigned-person-name { font-size: 12.5px; color: #fff; font-weight: 500; margin: 0; }
 
   /* Screen 3: Legal Terms */
   .legal-box {
@@ -494,6 +534,11 @@
   .s5-verified-badge {
     position: absolute; top: 10px; right: 10px; display: inline-flex; align-items: center; gap: 4px;
     background: rgba(6,78,59,0.85); border: 1px solid rgba(52,211,153,0.5); color: #6ee7b7;
+    font-size: 10.5px; font-weight: 600; padding: 4px 8px; border-radius: 999px; backdrop-filter: blur(2px);
+  }
+  .s5-live-media-badge {
+    position: absolute; top: 10px; left: 10px; display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(88,28,135,0.85); border: 1px solid rgba(192,132,252,0.5); color: #e9d5ff;
     font-size: 10.5px; font-weight: 600; padding: 4px 8px; border-radius: 999px; backdrop-filter: blur(2px);
   }
   .s5-card-body { padding: 14px 16px 16px; }
@@ -715,52 +760,6 @@
   .chat-bubble { max-width: 88%; padding: 10px 13px; border-radius: 14px; font-size: 12.5px; line-height: 1.5; margin-bottom: 10px; }
   .chat-bubble.system { background: rgba(30,41,59,0.7); color: #94a3b8; border: 1px solid #1e293b; margin: 0 auto 10px; text-align: center; font-size: 11.5px; max-width: 100%; }
   .chat-bubble.them { background: rgba(30,41,59,0.7); color: #e2e8f0; border: 1px solid #1e293b; }
-  .chat-bubble.me { background: linear-gradient(90deg, #9333ea, #7e22ce); color: #fff; border: none; margin-left: auto; }
-
-  /* ---- Messages Screen: header call/quick-action controls ---- */
-  .chat-thread-actions { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-  .chat-icon-btn {
-    width: 36px; height: 36px; border-radius: 999px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-    background: rgba(30,41,59,0.7); border: 1px solid #1e293b; color: #c084fc; cursor: pointer;
-    transition: border-color .15s ease, background .15s ease;
-  }
-  .chat-icon-btn:hover { border-color: #9333ea; background: rgba(147,51,234,0.18); }
-  .chat-icon-btn.recording { color: #f87171; border-color: rgba(248,113,113,0.5); background: rgba(248,113,113,0.15); animation: pulseRecord 1s ease-in-out infinite; }
-  @keyframes pulseRecord { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
-  .chat-quick-chip {
-    display: inline-flex; align-items: center; gap: 6px; padding: 9px 13px; border-radius: 999px;
-    background: rgba(147,51,234,0.15); border: 1px solid rgba(147,51,234,0.4); color: #c084fc;
-    font-size: 11.5px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background .15s ease;
-  }
-  .chat-quick-chip:hover { background: rgba(147,51,234,0.3); }
-
-  /* ---- Messages Screen: fixed bottom chat input bar (sits above the app bottom nav) ---- */
-  .chat-input-bar {
-    display: none; position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%);
-    width: 100%; max-width: 420px; padding: 0 20px; box-sizing: border-box; z-index: 45; pointer-events: none;
-  }
-  .chat-input-bar.visible { display: block; }
-  .chat-input-inner {
-    pointer-events: auto; display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box;
-    background: rgba(15,23,42,0.97); border: 1px solid #1e293b; border-radius: 18px; padding: 7px 7px 7px 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.45); backdrop-filter: blur(6px);
-  }
-  .chat-input-inner .chat-attach-btn, .chat-input-inner .chat-mic-btn {
-    width: 32px; height: 32px; border-radius: 999px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-    background: rgba(30,41,59,0.7); border: 1px solid #1e293b; color: #94a3b8; cursor: pointer;
-    transition: border-color .15s ease, color .15s ease, background .15s ease;
-  }
-  .chat-input-inner .chat-attach-btn:hover, .chat-input-inner .chat-mic-btn:hover { border-color: #9333ea; color: #c084fc; }
-  .chat-input-inner .chat-mic-btn.recording { color: #f87171; border-color: rgba(248,113,113,0.5); background: rgba(248,113,113,0.15); animation: pulseRecord 1s ease-in-out infinite; }
-  .chat-input-inner input[type="text"] {
-    flex: 1; min-width: 0; background: none; border: none; outline: none; color: #fff; font-size: 12.5px;
-  }
-  .chat-input-inner input[type="text"]::placeholder { color: #475569; }
-  .chat-send-btn {
-    width: 32px; height: 32px; border-radius: 999px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(90deg, #9333ea, #7e22ce); border: none; color: #fff; cursor: pointer; transition: opacity .15s ease;
-  }
-  .chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .stage-track { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
   .stage-item { display: flex; align-items: flex-start; gap: 12px; padding: 13px 14px; border-radius: 14px; border: 1px solid #1e293b; background: rgba(15,23,42,0.8); opacity: 0.4; transition: all .2s ease; }
@@ -981,7 +980,12 @@
 
     <div class="field">
       <label class="field-label">Full Name</label>
-      <input class="field-input" type="text" required placeholder="e.g. Onwochei Precious Ebuka">
+      <input class="field-input" id="reg-fullname" type="text" required placeholder="e.g. Onwochei Precious Ebuka">
+    </div>
+
+    <div class="field">
+      <label class="field-label">Occupation</label>
+      <input class="field-input" id="reg-occupation" type="text" placeholder="e.g. Software Engineer">
     </div>
 
     <div class="field">
@@ -1315,16 +1319,11 @@
         </div>
 
         <div class="s5-notice-box">
-          <i data-lucide="lock" class="w-5 h-5"></i>
-          <p>Submitting this listing automatically sends an instant SMS &amp; WhatsApp invite to the landlord. Escrow funds are locked until the landlord joins and confirms ownership.</p>
+          <i data-lucide="zap" class="w-5 h-5"></i>
+          <p>Photos and walkthrough videos publish immediately — this listing goes live on the Tenant Search Feed as soon as you submit, with no staging or review queue.</p>
         </div>
 
-        <label class="auto-approve-row" for="s5-auto-approve">
-          <input type="checkbox" id="s5-auto-approve">
-          <span>Auto-approve listing for testing (Skip Landlord/Admin Queue)</span>
-        </label>
-
-        <button type="submit" class="btn-primary">Submit Listing &amp; Notify Landlord</button>
+        <button type="submit" class="btn-primary">Submit Listing &amp; Publish Live</button>
       </form>
     </div>
 
@@ -1528,6 +1527,27 @@
     <div class="s5-hold-row"><span>Status</span><strong id="s7-lease-status" style="color:#34d399;">Active</strong></div>
   </div>
 
+  <!-- Assigned Agent & Landlord — Full Name & Profile Photo ONLY, for this listing -->
+  <p class="s5-section-label"><i data-lucide="users" class="w-4 h-4 text-purple-400"></i>Assigned to Your Property</p>
+  <div class="assigned-people-row">
+    <div class="assigned-person-card">
+      <img id="s7-agent-avatar" class="assigned-person-avatar" alt="Agent" style="display:none;">
+      <div id="s7-agent-avatar-fallback" class="assigned-person-avatar" style="display:flex; align-items:center; justify-content:center;">
+        <i data-lucide="briefcase" class="w-5 h-5 text-slate-500"></i>
+      </div>
+      <p class="assigned-person-role">Agent</p>
+      <p class="assigned-person-name" id="s7-agent-name">—</p>
+    </div>
+    <div class="assigned-person-card">
+      <img id="s7-landlord-avatar" class="assigned-person-avatar" alt="Landlord" style="display:none;">
+      <div id="s7-landlord-avatar-fallback" class="assigned-person-avatar" style="display:flex; align-items:center; justify-content:center;">
+        <i data-lucide="key-round" class="w-5 h-5 text-slate-500"></i>
+      </div>
+      <p class="assigned-person-role">Landlord</p>
+      <p class="assigned-person-name" id="s7-landlord-name">—</p>
+    </div>
+  </div>
+
   <!-- Move-In Date Scheduler -->
   <p class="s5-section-label"><i data-lucide="calendar-check" class="w-4 h-4 text-purple-400"></i>Schedule Move-In Date</p>
   <div class="field">
@@ -1630,41 +1650,16 @@
 
   <div id="msg-thread-detail" style="display:none;">
     <h1 class="s5-role-title" id="msg-thread-title" style="margin-bottom: 4px;">Conversation</h1>
-    <p class="s5-role-sub" id="msg-thread-sub" style="margin-bottom: 14px;">—</p>
-
-    <!-- Header communication controls: audio call, video call, quick "Request Full Address" -->
-    <div class="chat-thread-actions">
-      <button type="button" class="chat-icon-btn" id="msg-audiocall-btn" title="Audio call" aria-label="Start audio call">
-        <i data-lucide="phone" class="w-4 h-4"></i>
-      </button>
-      <button type="button" class="chat-icon-btn" id="msg-videocall-btn" title="Video call" aria-label="Start video call">
-        <i data-lucide="video" class="w-4 h-4"></i>
-      </button>
-      <button type="button" class="chat-quick-chip" id="msg-request-address-btn">
-        <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Request Full Address
-      </button>
-    </div>
-
+    <p class="s5-role-sub" id="msg-thread-sub" style="margin-bottom: 12px;">—</p>
+    <!-- Tenant-only: request the full property address from the Landlord/Agent in-thread.
+         Landlords and Agents never see this button — they only see the property title header. -->
+    <button type="button" id="msg-request-address-btn" class="s5-action-btn" style="display:none; align-items:center; justify-content:center; gap:6px; width:100%; margin-bottom: 14px;">
+      <i data-lucide="map-pin" class="w-4 h-4"></i> Request Full Address
+    </button>
     <div id="msg-chat-log" style="margin-bottom: 18px;"></div>
-    <button type="button" id="msg-complete-btn" class="btn-primary" style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom: 110px;">
+    <button type="button" id="msg-complete-btn" class="btn-primary" style="display:flex; align-items:center; justify-content:center; gap:6px;">
       <i data-lucide="check-circle" class="w-4 h-4"></i> Simulate Inspection Complete
     </button>
-  </div>
-
-  <!-- Fixed bottom interactive chat bar — sits above the main bottom nav, only visible while a thread is open -->
-  <div id="msg-chat-input-bar" class="chat-input-bar">
-    <div class="chat-input-inner">
-      <button type="button" class="chat-attach-btn" id="msg-attach-btn" title="Attach" aria-label="Attach media or document">
-        <i data-lucide="paperclip" class="w-4 h-4"></i>
-      </button>
-      <input type="text" id="msg-text-input" placeholder="Type a message or ask for full address..." autocomplete="off">
-      <button type="button" class="chat-mic-btn" id="msg-mic-btn" title="Voice note" aria-label="Record voice note">
-        <i data-lucide="mic" class="w-4 h-4"></i>
-      </button>
-      <button type="button" class="chat-send-btn" id="msg-send-btn" title="Send" aria-label="Send message" disabled>
-        <i data-lucide="send" class="w-4 h-4"></i>
-      </button>
-    </div>
   </div>
 
 </div>
@@ -1729,6 +1724,23 @@
 <!-- ===================== END FIXED BOTTOM NAVIGATION ===================== -->
 
 <!-- OTP Modal -->
+<!-- Tenant Bio Modal — Landlord/Agent view of a Tenant who activated an inspection -->
+<div id="tenant-bio-modal" class="modal-overlay">
+  <div class="modal-card">
+    <img id="bio-avatar" class="bio-avatar-lg" alt="Tenant portrait" style="display:none;">
+    <div class="modal-icon-wrap" id="bio-avatar-fallback">
+      <i data-lucide="user" class="w-8 h-8 text-purple-400"></i>
+    </div>
+    <h2 class="modal-title" id="bio-name">—</h2>
+    <p class="modal-sub" style="margin-bottom:16px;">Requested an inspection for <span id="bio-listing">—</span></p>
+
+    <div class="bio-row"><span>Occupation</span><strong id="bio-occupation">—</strong></div>
+    <div class="bio-row"><span>KYC Verification</span><strong style="color:#34d399;">Verified</strong></div>
+
+    <button type="button" id="bio-close-btn" class="btn-primary" style="margin-top:20px;">Close</button>
+  </div>
+</div>
+
 <div id="otp-modal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-icon-wrap">
@@ -2154,6 +2166,10 @@
 
   // Role selection state
   let currentUserRole = null;
+  // KYC Physical Portrait Photo (Selfie) — captured once at Step 2 and reused as the
+  // user's profile photo across the app (dashboard notification cards, Assigned
+  // Agent/Landlord photos, etc). Data URL, or null until the user uploads one.
+  let currentUserSelfieDataUrl = null;
   const roleCards = document.querySelectorAll('.role-card');
   const continueBtn = document.getElementById('continue-btn');
   const roleHint = document.getElementById('role-hint');
@@ -2228,6 +2244,8 @@
   }
 
   // ---- Role-based KYC content for Screen 2 ----
+  // Every role includes a mandatory "Physical Portrait Photo (Selfie)" capture item
+  // (selfie: true) — Step 2 of registration/KYC for tenant, landlord, AND agent.
   const kycContent = {
     tenant: {
       label: 'Tenant / Renter',
@@ -2235,7 +2253,8 @@
       items: [
         { text: 'Government-issued ID (NIN, Driver\'s License, or Passport)', icon: 'id-card' },
         { text: 'Proof of address (utility bill, not older than 3 months)', icon: 'landmark' },
-        { text: 'Employment or income verification', icon: 'file-text' }
+        { text: 'Employment or income verification', icon: 'file-text' },
+        { text: 'Physical Portrait Photo (Selfie)', icon: 'camera', selfie: true }
       ]
     },
     landlord: {
@@ -2243,7 +2262,8 @@
       roleIcon: 'key-round',
       items: [
         { text: 'Personal Identification (NIN, Passport, or BVN)', icon: 'id-card' },
-        { text: 'Bank account details for rent disbursement', icon: 'landmark' }
+        { text: 'Bank account details for rent disbursement', icon: 'landmark' },
+        { text: 'Physical Portrait Photo (Selfie)', icon: 'camera', selfie: true }
       ]
     },
     agent: {
@@ -2251,7 +2271,8 @@
       roleIcon: 'briefcase',
       items: [
         { text: 'Personal Identification (NIN, Passport, or BVN)', icon: 'id-card' },
-        { text: 'Bank account details for commission payout', icon: 'landmark' }
+        { text: 'Bank account details for commission payout', icon: 'landmark' },
+        { text: 'Physical Portrait Photo (Selfie)', icon: 'camera', selfie: true }
       ]
     }
   };
@@ -2371,14 +2392,15 @@
         <div class="kyc-item-icon-wrap">
           <i data-lucide="${docItem.icon}" class="w-5 h-5 text-slate-400"></i>
         </div>
+        ${docItem.selfie ? '<img class="kyc-selfie-thumb" alt="Selfie preview">' : ''}
         <div class="kyc-item-text">
           <p class="kyc-item-title">${docItem.text}</p>
-          <p class="kyc-item-status">Tap to upload</p>
+          <p class="kyc-item-status">${docItem.selfie ? 'Tap to take/upload a photo' : 'Tap to upload'}</p>
         </div>
         <button type="button" class="kyc-reupload-btn" title="Re-upload / Replace">
           <i data-lucide="refresh-cw" class="w-4 h-4"></i>
         </button>
-        <input type="file" hidden class="kyc-file-input" id="kyc-file-${i}">
+        <input type="file" hidden class="kyc-file-input" id="kyc-file-${i}"${docItem.selfie ? ' accept="image/*" capture="user"' : ''}>
         <div class="kyc-progress-track"><div class="kyc-progress-fill"></div></div>
       `;
       const fileInput = item.querySelector('.kyc-file-input');
@@ -2389,7 +2411,20 @@
         if (item.classList.contains('uploading')) return;
         fileInput.click();
       });
-      fileInput.addEventListener('change', () => simulateUpload(item));
+      fileInput.addEventListener('change', () => {
+        // Physical Portrait Photo (Selfie): show an immediate image preview the moment
+        // a file is selected or captured, and keep a copy as the user's profile photo.
+        if (docItem.selfie && fileInput.files && fileInput.files[0]) {
+          const thumb = item.querySelector('.kyc-selfie-thumb');
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            if (thumb) { thumb.src = ev.target.result; thumb.style.display = 'block'; }
+            currentUserSelfieDataUrl = ev.target.result;
+          };
+          reader.readAsDataURL(fileInput.files[0]);
+        }
+        simulateUpload(item);
+      });
       // Fallback: if the file picker is dismissed without a selection, still let a second tap simulate upload
       fileInput.addEventListener('cancel', () => simulateUpload(item));
 
@@ -2456,7 +2491,21 @@
       if (role === 'landlord') document.getElementById('landlord-view').classList.remove('hidden');
       if (role === 'agent') document.getElementById('agent-view').classList.remove('hidden');
       populateScreen5();
+      // ---- Inspection Cart Restructuring: the cart FAB (and everything it opens —
+      // the cart drawer/screen, checkout) is a Tenant-only surface. Landlords and
+      // Agents never see the cart icon in the Screen 5 topbar. ----
+      const cartFab = document.getElementById('s5-cart-btn');
+      if (cartFab) cartFab.style.display = (role === 'tenant') ? 'flex' : 'none';
       if (typeof updateCartBadge === 'function') updateCartBadge();
+    }
+
+    // Defense-in-depth: the Inspection Cart screen itself is Tenant-only. If a
+    // Landlord/Agent session ever reaches this route (e.g. stale history state),
+    // bounce them back to their own Screen 5 view instead of rendering the cart.
+    if (screenId === 'screen-cart' && (currentUserRole || 'tenant') !== 'tenant') {
+      screenId = 'screen-5';
+      document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+      document.getElementById(screenId).classList.remove('hidden');
     }
 
     if (screenId === 'screen-4') {
@@ -2821,7 +2870,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function populateScreen4() {
     const role = currentUserRole || 'tenant';
     const data = dashboardContent[role];
-    const name = (document.querySelector('#reg-form input[type="text"]')?.value || '').trim() || roleDisplayNames[role];
+    const name = (document.getElementById('reg-fullname')?.value || '').trim() || roleDisplayNames[role];
 
     document.getElementById('dash-user-name').textContent = name;
     document.getElementById('dash-avatar').textContent = data.initial;
@@ -2855,7 +2904,26 @@ This voucher is auto-generated and serves as proof of settlement.`;
         action: 'handoverReview'
       }, ...activityItems];
     }
-    list.innerHTML = activityItems.map(item => `
+
+    // ---- Inspection Activation & Dashboard Cards Sync: when a Tenant activates an
+    // inspection slot, a clickable client/tenant notification card is pushed into
+    // #dash-list for the Landlord & Agent dashboards — red unread dot, Tenant's Full
+    // Name, Occupation, and KYC Portrait Photo. Clicking opens the tenant bio modal. ----
+    const notifHtml = (role === 'landlord' || role === 'agent')
+      ? inspectionNotifications.filter(n => n.forRole === role).map(n => `
+        <div class="dash-list-item ${n.unread ? 'unread' : ''}" data-action="tenantBio" data-notif-id="${n.id}" style="cursor:pointer;">
+          <span class="dash-unread-dot"></span>
+          ${n.tenantPhoto
+            ? `<img class="dash-list-avatar" src="${n.tenantPhoto}" alt="${n.tenantName}">`
+            : `<div class="dash-list-icon"><i data-lucide="user" class="w-4 h-4 text-purple-400"></i></div>`}
+          <div class="dash-list-text">
+            <p class="dash-list-title">${n.tenantName} activated an inspection</p>
+            <p class="dash-list-sub">${n.listingTitle}</p>
+          </div>
+        </div>`).join('')
+      : '';
+
+    list.innerHTML = notifHtml + activityItems.map(item => `
       <div class="dash-list-item" ${item.action ? `data-action="${item.action}" style="cursor:pointer;"` : ''}>
         <div class="dash-list-icon"><i data-lucide="${item.icon}" class="w-4 h-4 ${item.color}"></i></div>
         <div class="dash-list-text">
@@ -2946,6 +3014,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   } catch (e) {
     listings = DEFAULT_LISTINGS.slice();
   }
+  // `listingsFeed` is the canonical name for the live tenant-facing feed array —
+  // it is the SAME array object as `listings` (not a copy), so every push via
+  // either name is instantly reflected in rentListings()/landListingsList().
+  const listingsFeed = listings;
   function saveListings() {
     try { localStorage.setItem('mtr_listings', JSON.stringify(listings)); } catch (e) {}
   }
@@ -3032,6 +3104,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="s5-card-img-wrap">
           <img src="${p.img}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'rent')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Verified</span>
+          ${p.hasVideo ? `<span class="s5-live-media-badge"><i data-lucide="video" class="w-3 h-3"></i>Walkthrough Video</span>` : ''}
         </div>
         <div class="s5-card-body">
           <p class="s5-card-title">${p.title}</p>
@@ -3055,6 +3128,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="s5-card-img-wrap">
           <img src="${p.img}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'land')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Title Verified</span>
+          ${p.hasVideo ? `<span class="s5-live-media-badge"><i data-lucide="video" class="w-3 h-3"></i>Walkthrough Video</span>` : ''}
         </div>
         <div class="s5-card-body">
           <p class="s5-card-title">${p.title}</p>
@@ -3881,6 +3955,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const label = document.getElementById('tv-photo-upload-label');
     const thumbs = document.getElementById('tv-photo-thumbs');
     thumbs.innerHTML = '';
+    tvPendingPhotoCount = e.target.files.length;
     if (e.target.files.length) {
       box.classList.add('has-file');
       label.textContent = `${e.target.files.length} photo(s) selected`;
@@ -3896,6 +3971,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const box = document.getElementById('tv-video-upload');
     const label = document.getElementById('tv-video-upload-label');
     const meta = document.getElementById('tv-video-upload-meta');
+    tvPendingHasVideo = e.target.files.length > 0;
     if (e.target.files.length) {
       box.classList.add('has-file');
       label.textContent = e.target.files[0].name;
@@ -3926,17 +4002,36 @@ This voucher is auto-generated and serves as proof of settlement.`;
     landlordProperties.unshift({ id: Date.now(), title, address, status: 'escrow' });
     renderLandlordList();
 
+    // Immediate Live Media Publishing: real property photos/walkthrough video uploaded
+    // here are published straight to the live listingsFeed with status 'live' — no
+    // staging or review queue. hasPhotos/hasVideo drive the walkthrough badge on the
+    // Tenant "Find a Home" feed card, and update instantly.
+    const currentUserName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Landlord';
     const newId = Date.now();
+    const baseFields = {
+      id: newId, title, location: address, listedBy: 'landlord', status: 'live',
+      hasPhotos: tvPendingPhotoCount > 0, hasVideo: tvPendingHasVideo,
+      landlordName: currentUserName, landlordPhoto: currentUserSelfieDataUrl || null,
+      agentName: null, agentPhoto: null
+    };
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
-      listings.unshift({ id: newId, type: 'rent', title, location: address, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent, listedBy: 'landlord' });
+      listingsFeed.unshift({ ...baseFields, type: 'rent', ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent });
     } else {
-      listings.unshift({ id: newId, type: 'land', title, location: address, totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land, listedBy: 'landlord' });
+      listingsFeed.unshift({ ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land });
     }
     saveListings();
+    tvPendingPhotoCount = 0;
+    tvPendingHasVideo = false;
+
+    // Instantly reflect the new listing (with its photo/walkthrough badge) on the
+    // Tenant "Find a Home" search feed if it's currently open.
+    if (!document.getElementById('tenant-view').classList.contains('hidden')) {
+      if (currentListingType === 'land') renderLandFeed(); else renderTenantFeed(currentCurrency);
+    }
 
     titleVerifyModal.classList.remove('open');
-    showToast('Property submitted — pending title verification, now live on the Search Feed');
+    showToast('Property photos & walkthrough are now live on the Tenant Search Feed');
   });
 
   // ---- Agent view: upload listing form + mandatory landlord mapping ----
@@ -3959,47 +4054,41 @@ This voucher is auto-generated and serves as proof of settlement.`;
       renderAgentInspectionsManager();
       return;
     }
-    wrap.innerHTML = agentListings.map(l => {
-      const isLive = l.status === 'live';
-      return `
+    // Immediate Live Media Publishing: every agent-submitted listing is pushed
+    // straight to the live tenant feed on submit — there is no pending/review
+    // queue to resolve here anymore, so every row simply reflects "Live & Verified".
+    wrap.innerHTML = agentListings.map(l => `
       <div class="s5-list-item">
-        <div class="s5-list-icon"><i data-lucide="${isLive ? 'check-circle-2' : 'lock'}" class="w-5 h-5"></i></div>
+        <div class="s5-list-icon"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
         <div class="s5-list-text">
           <p class="s5-list-title">${l.title}</p>
-          <p class="s5-list-sub">${l.address} · Landlord: ${l.landlordName}</p>
+          <p class="s5-list-sub">${l.address} · Landlord: ${l.landlordName}${l.hasVideo ? ' · 🎥 Walkthrough' : ''}</p>
         </div>
         <div class="s5-list-status-col">
-          <span class="s5-status-badge ${isLive ? 's5-status-live' : 's5-status-pending'}">${isLive ? 'Live & Verified' : 'Pending'}</span>
-          ${isLive ? '' : `<button type="button" class="dev-approve-btn quick-approve-btn" data-id="${l.id}">⚡ Quick Approve (Dev Mode)</button>`}
+          <span class="s5-status-badge s5-status-live">Live & Verified</span>
         </div>
-      </div>`;
-    }).join('');
+      </div>`).join('');
     if (window.lucide) lucide.createIcons();
     renderAgentInspectionsManager();
   }
 
-  document.getElementById('s5-agent-listings').addEventListener('click', (e) => {
-    const btn = e.target.closest('.quick-approve-btn');
-    if (!btn) return;
-    const item = agentListings.find(a => String(a.id) === btn.dataset.id);
-    if (!item || item.status === 'live') return;
-    item.status = 'live';
-    listings.unshift(item.listingData);
-    saveListings();
-    renderAgentListings();
-    showToast('Property status set to Live! It is now visible in the tenant search feed.');
-  });
+  let s5PendingPhotoCount = 0;
+  let s5PendingHasVideo = false;
+  let tvPendingPhotoCount = 0;
+  let tvPendingHasVideo = false;
 
   document.getElementById('s5-photo-upload').addEventListener('click', () => document.getElementById('s5-photo-file').click());
   document.getElementById('s5-photo-file').addEventListener('change', (e) => {
     const box = document.getElementById('s5-photo-upload');
     const label = document.getElementById('s5-photo-upload-label');
+    s5PendingPhotoCount = e.target.files.length;
     if (e.target.files.length) { box.classList.add('has-file'); label.textContent = `${e.target.files.length} photo(s) selected`; }
   });
   document.getElementById('s5-video-upload').addEventListener('click', () => document.getElementById('s5-video-file').click());
   document.getElementById('s5-video-file').addEventListener('change', (e) => {
     const box = document.getElementById('s5-video-upload');
     const label = document.getElementById('s5-video-upload-label');
+    s5PendingHasVideo = e.target.files.length > 0;
     if (e.target.files.length) { box.classList.add('has-file'); label.textContent = e.target.files[0].name; }
   });
 
@@ -4042,27 +4131,33 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
 
-    // Build the listing payload, but only publish it to the global tenant search feed
-    // once it's Live/Verified (either via the auto-approve checkbox now, or Quick Approve later).
+    // Immediate Live Media Publishing: the listing (with its real photos & walkthrough
+    // video) is pushed straight into `listingsFeed` with status: 'live' — no staging
+    // or review queue. It's visible on the Tenant "Find a Home" feed the instant this
+    // submits, and hasPhotos/hasVideo drive the walkthrough badge on its card.
+    const agentName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Agent';
     const newId = Date.now();
+    const baseFields = {
+      id: newId, title, location: address, listedBy: 'agent', status: 'live',
+      hasPhotos: s5PendingPhotoCount > 0, hasVideo: s5PendingHasVideo,
+      landlordName, landlordPhoto: null,
+      agentName, agentPhoto: currentUserSelfieDataUrl || null
+    };
     let listingData;
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
-      listingData = { id: newId, type: 'rent', title, location: address, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent, listedBy: 'agent' };
+      listingData = { ...baseFields, type: 'rent', ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent };
     } else {
-      listingData = { id: newId, type: 'land', title, location: address, totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land, listedBy: 'agent' };
+      listingData = { ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land };
     }
 
-    const autoApprove = document.getElementById('s5-auto-approve').checked;
-    agentListings.unshift({ id: newId + 1, title, address, type, annual, landlordName, landlordPhone, landlordEmail, status: autoApprove ? 'live' : 'pending', listingData });
-
-    if (autoApprove) {
-      listings.unshift(listingData);
-      saveListings();
-    }
+    agentListings.unshift({ id: newId + 1, title, address, type, annual, landlordName, landlordPhone, landlordEmail, status: 'live', hasVideo: s5PendingHasVideo, listingData });
+    listingsFeed.unshift(listingData);
+    saveListings();
+    s5PendingPhotoCount = 0;
+    s5PendingHasVideo = false;
 
     e.target.reset();
-    document.getElementById('s5-auto-approve').checked = false;
     document.getElementById('s5-photo-upload').classList.remove('has-file');
     document.getElementById('s5-photo-upload-label').textContent = 'Property Photos';
     document.getElementById('s5-video-upload').classList.remove('has-file');
@@ -4071,10 +4166,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('s5-fee-commission').textContent = '₦0';
     document.getElementById('s5-fee-legal').textContent = '₦0';
 
+    // Instantly reflect the new listing (with its photo/walkthrough badge) on the
+    // Tenant "Find a Home" search feed if it's currently open.
+    if (!document.getElementById('tenant-view').classList.contains('hidden')) {
+      if (currentListingType === 'land') renderLandFeed(); else renderTenantFeed(currentCurrency);
+    }
+
     document.getElementById('s5-tab-mine').click();
-    showToast(autoApprove
-      ? 'Property status set to Live! It is now visible in the tenant search feed.'
-      : 'Listing submitted — landlord notified. Pending verification before it appears in the tenant search feed.');
+    showToast('Listing is live! Photos & walkthrough now visible on the Tenant Search Feed.');
   });
 
   document.getElementById('sign-btn').addEventListener('click', () => {
@@ -4209,6 +4308,34 @@ This voucher is auto-generated and serves as proof of settlement.`;
   } catch (e) { inspections = []; }
   function saveInspections() { try { localStorage.setItem('mtr_inspections', JSON.stringify(inspections)); } catch (e) {} }
 
+  // ---- Inspection Activation & Dashboard Cards Sync ----
+  let inspectionNotifications = [];
+  try {
+    const storedNotifs = JSON.parse(localStorage.getItem('mtr_inspection_notifications'));
+    inspectionNotifications = Array.isArray(storedNotifs) ? storedNotifs : [];
+  } catch (e) { inspectionNotifications = []; }
+  function saveInspectionNotifications() { try { localStorage.setItem('mtr_inspection_notifications', JSON.stringify(inspectionNotifications)); } catch (e) {} }
+
+  // Called whenever a Tenant schedules/activates an inspection slot (single-property
+  // booking OR multi-property Inspection Cart checkout). Pushes an unread client card
+  // into BOTH the Agent and Landlord dashboards for that listing.
+  function notifyDashboardOfInspectionActivation(listing) {
+    const tenantName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Tenant';
+    const tenantOccupation = (document.getElementById('reg-occupation')?.value || '').trim() || 'Not specified';
+    const tenantPhoto = currentUserSelfieDataUrl || null;
+    ['landlord', 'agent'].forEach(forRole => {
+      inspectionNotifications.unshift({
+        id: Date.now() + Math.random(),
+        forRole,
+        listingTitle: listing.title,
+        tenantName, tenantOccupation, tenantPhoto,
+        unread: true
+      });
+    });
+    saveInspectionNotifications();
+    if (!document.getElementById('screen-4').classList.contains('hidden')) populateScreen4();
+  }
+
   function openInspectionModal(title) {
     inspectionListing = rentListings().find(p => p.title === title) || null;
     if (!inspectionListing) return;
@@ -4264,6 +4391,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       status: 'Pending Approval', conversationId: null, inspectionId: inspId
     });
     saveSchedules();
+
+    // Inspection Activation & Dashboard Cards Sync: the Tenant has just activated
+    // this inspection slot — notify the Agent & Landlord dashboards immediately.
+    notifyDashboardOfInspectionActivation(inspectionListing);
 
     inspectionBookingModal.classList.remove('open');
     showToast('Inspection deposit locked in escrow — awaiting response');
@@ -4407,6 +4538,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
 
   function addToCart(listing) {
+    // Inspection Cart Restructuring: cart mutations are Tenant-only, regardless of
+    // how the handler is reached — this is the last line of defense behind the
+    // hidden FAB and the tenant-only listing feed that renders the "Add to Cart" button.
+    if ((currentUserRole || 'tenant') !== 'tenant') return;
     if (cart.some(c => String(c.listingId) === String(listing.id))) {
       showToast('Already in your Inspection Cart');
       return;
@@ -4425,7 +4560,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     showToast(`${listing.title} added to Inspection Cart`);
   }
 
-  document.getElementById('s5-cart-btn').addEventListener('click', () => navigateTo('screen-cart'));
+  document.getElementById('s5-cart-btn').addEventListener('click', () => {
+    if ((currentUserRole || 'tenant') !== 'tenant') return;
+    navigateTo('screen-cart');
+  });
   document.getElementById('cart-back-btn').addEventListener('click', () => navigateTo('screen-5'));
   document.getElementById('insp-back-btn').addEventListener('click', () => navigateTo('screen-4'));
 
@@ -4528,6 +4666,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
         date: item.date, time: item.time, feeType: isAgent ? 'agent' : 'landlord', fee,
         status: 'Confirmed', conversationId: convId, inspectionId: inspId
       });
+
+      // Inspection Activation & Dashboard Cards Sync: notify the Agent & Landlord
+      // dashboards for each property activated via the cart checkout.
+      notifyDashboardOfInspectionActivation(item);
     });
 
     saveInspections();
@@ -4618,12 +4760,38 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   // Dashboard "Inspection scheduled" activity card -> jump straight into Schedules view
   // Dashboard "Handover sign-off" activity card (Landlord) -> open the Agreement Review & Sign-Off sheet
+  // Dashboard tenant/client notification card (Landlord/Agent) -> open the Tenant Bio modal
   document.getElementById('dash-list').addEventListener('click', (e) => {
     const item = e.target.closest('.dash-list-item');
     if (!item) return;
     if (item.dataset.action === 'inspections') navigateTo('screen-inspections');
     else if (item.dataset.action === 'handoverReview') openHandoverReviewModal();
+    else if (item.dataset.action === 'tenantBio') openTenantBioModal(item.dataset.notifId);
   });
+
+  const tenantBioModal = document.getElementById('tenant-bio-modal');
+  function openTenantBioModal(notifId) {
+    const notif = inspectionNotifications.find(n => String(n.id) === String(notifId));
+    if (!notif) return;
+
+    // Mark read: clears the red unread dot without a full dashboard re-render.
+    if (notif.unread) {
+      notif.unread = false;
+      saveInspectionNotifications();
+      const cardEl = document.querySelector(`.dash-list-item[data-notif-id="${notifId}"]`);
+      if (cardEl) cardEl.classList.remove('unread');
+    }
+
+    document.getElementById('bio-avatar').src = notif.tenantPhoto || '';
+    document.getElementById('bio-avatar').style.display = notif.tenantPhoto ? 'block' : 'none';
+    document.getElementById('bio-avatar-fallback').style.display = notif.tenantPhoto ? 'none' : 'flex';
+    document.getElementById('bio-name').textContent = notif.tenantName;
+    document.getElementById('bio-occupation').textContent = notif.tenantOccupation;
+    document.getElementById('bio-listing').textContent = notif.listingTitle;
+    tenantBioModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('bio-close-btn').addEventListener('click', () => tenantBioModal.classList.remove('open'));
 
   // ==================================================================
   // ---- Messages Screen: Chat Unlock, Inspection Complete, 50/50 Split ----
@@ -4640,7 +4808,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function renderThreadList() {
     document.getElementById('msg-list-view').style.display = 'block';
     document.getElementById('msg-thread-detail').style.display = 'none';
-    document.getElementById('msg-chat-input-bar').classList.remove('visible');
     const list = document.getElementById('msg-thread-list');
     const emptyHint = document.getElementById('msg-empty-hint');
 
@@ -4677,10 +4844,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   function renderChatLog(conv) {
-    document.getElementById('msg-chat-log').innerHTML = conv.messages.map(m => {
-      const cls = m.from === 'system' ? 'system' : (m.from === 'me' ? 'me' : 'them');
-      return `<div class="chat-bubble ${cls}">${m.text}</div>`;
-    }).join('');
+    document.getElementById('msg-chat-log').innerHTML = conv.messages.map(m => `
+      <div class="chat-bubble ${m.from === 'system' ? 'system' : 'them'}">${m.text}</div>
+    `).join('');
   }
 
   function openThreadDetail(id) {
@@ -4696,80 +4862,39 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // action — Landlord/Agent must never see tenant payment triggers in chat.
     const canComplete = conv.status !== 'archived' && (currentUserRole || 'tenant') === 'tenant';
     document.getElementById('msg-complete-btn').style.display = canComplete ? 'flex' : 'none';
-    // Fixed chat input bar: available to all roles unless the thread is archived.
-    const inputBar = document.getElementById('msg-chat-input-bar');
-    if (conv.status === 'archived') {
-      inputBar.classList.remove('visible');
-    } else {
-      inputBar.classList.add('visible');
-    }
+
+    // ---- Messaging UI Address Restriction: "Request Full Address" is strictly
+    // Tenant-only. Landlords/Agents only ever see the property title header. ----
+    const addressBtn = document.getElementById('msg-request-address-btn');
+    const isTenant = (currentUserRole || 'tenant') === 'tenant';
+    addressBtn.style.display = (isTenant && conv.status !== 'archived') ? 'flex' : 'none';
+    addressBtn.disabled = !!conv.addressRevealed;
+    addressBtn.innerHTML = conv.addressRevealed
+      ? `<i data-lucide="check" class="w-4 h-4"></i> Full Address Shared`
+      : `<i data-lucide="map-pin" class="w-4 h-4"></i> Request Full Address`;
+
     if (window.lucide) lucide.createIcons();
   }
 
-  // ---- Fixed chat input bar: send text, quick "Request Full Address", voice note,
-  // ---- audio/video call triggers. Works the same for tenant, landlord, and agent —
-  // ---- whoever is actively using the app renders as the right-aligned "me" bubble.
-  function appendChatMessage(text) {
-    const conv = conversations.find(c => c.id === activeThreadId);
-    if (!conv || !text || !text.trim()) return;
-    conv.messages.push({ from: 'me', text: text.trim() });
-    saveConversations();
-    renderChatLog(conv);
-    const log = document.getElementById('msg-chat-log');
-    log.scrollTop = log.scrollHeight;
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  // Resolve the full street address for a conversation's listing by title, checking
+  // both the rent and land/property feeds (the source of truth for listing data).
+  function getListingAddressByTitle(title) {
+    const listing = rentListings().find(l => l.title === title) || landListingsList().find(l => l.title === title);
+    return listing ? listing.location : null;
   }
-
-  const msgTextInput = document.getElementById('msg-text-input');
-  const msgSendBtn = document.getElementById('msg-send-btn');
-
-  msgTextInput.addEventListener('input', () => {
-    msgSendBtn.disabled = !msgTextInput.value.trim();
-  });
-
-  function sendTypedMessage() {
-    const text = msgTextInput.value;
-    if (!text.trim()) return;
-    appendChatMessage(text);
-    msgTextInput.value = '';
-    msgSendBtn.disabled = true;
-  }
-
-  msgSendBtn.addEventListener('click', sendTypedMessage);
-  msgTextInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); sendTypedMessage(); }
-  });
-
-  document.getElementById('msg-attach-btn').addEventListener('click', () => {
-    showToast('Opening attachment picker...');
-  });
-
-  let msgRecording = false;
-  document.getElementById('msg-mic-btn').addEventListener('click', () => {
-    const micBtn = document.getElementById('msg-mic-btn');
-    if (msgRecording) return; // already mid-recording, ignore repeat taps
-    msgRecording = true;
-    micBtn.classList.add('recording');
-    showToast('Recording voice note...');
-    setTimeout(() => {
-      msgRecording = false;
-      micBtn.classList.remove('recording');
-      appendChatMessage('🎤 Voice note · 0:07');
-      showToast('Voice note sent');
-    }, 1400);
-  });
-
-  document.getElementById('msg-audiocall-btn').addEventListener('click', () => {
-    showToast('Starting audio call...');
-  });
-
-  document.getElementById('msg-videocall-btn').addEventListener('click', () => {
-    showToast('Starting video call...');
-  });
 
   document.getElementById('msg-request-address-btn').addEventListener('click', () => {
-    appendChatMessage('Hi, could you please share the full/exact address for this property?');
-    showToast('Address request sent');
+    if ((currentUserRole || 'tenant') !== 'tenant') return; // tenant-only action, enforced server-side-equivalent here too
+    const conv = conversations.find(c => c.id === activeThreadId);
+    if (!conv || conv.addressRevealed) return;
+    const address = getListingAddressByTitle(conv.listingTitle);
+    conv.messages.push({ from: 'system', text: 'Tenant requested the full property address.' });
+    conv.messages.push({ from: 'them', text: address ? `Sure — the full address is: ${address}` : `Full address will be shared shortly by the ${conv.feeType === 'agent' ? 'Agent' : 'Landlord'}.` });
+    conv.addressRevealed = true;
+    saveConversations();
+    renderChatLog(conv);
+    openThreadDetail(conv.id); // refresh button state ("Full Address Shared")
+    showToast('Full address requested');
   });
 
   const inspectionDecisionModal = document.getElementById('inspection-decision-modal');
@@ -4936,6 +5061,39 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('s7-lease-amount').textContent = lease.amountLabel;
     document.getElementById('s7-lease-due').textContent = lease.dueLabel;
     document.getElementById('s7-lease-card').textContent = lease.card;
+
+    // Assigned Agent & Landlord card: Full Name + Profile Photo ONLY, sourced from
+    // the actual listing (identity fields set at submission — see requirement 4).
+    const propertyListing = checkoutListing || rentListings()[0] || null;
+    const agentAvatar = document.getElementById('s7-agent-avatar');
+    const agentAvatarFallback = document.getElementById('s7-agent-avatar-fallback');
+    const landlordAvatar = document.getElementById('s7-landlord-avatar');
+    const landlordAvatarFallback = document.getElementById('s7-landlord-avatar-fallback');
+
+    if (propertyListing && propertyListing.listedBy === 'agent' && propertyListing.agentName) {
+      document.getElementById('s7-agent-name').textContent = propertyListing.agentName;
+      if (propertyListing.agentPhoto) {
+        agentAvatar.src = propertyListing.agentPhoto; agentAvatar.style.display = 'block'; agentAvatarFallback.style.display = 'none';
+      } else {
+        agentAvatar.style.display = 'none'; agentAvatarFallback.style.display = 'flex';
+      }
+    } else {
+      document.getElementById('s7-agent-name').textContent = 'Direct Listing';
+      agentAvatar.style.display = 'none'; agentAvatarFallback.style.display = 'flex';
+    }
+
+    if (propertyListing && propertyListing.landlordName) {
+      document.getElementById('s7-landlord-name').textContent = propertyListing.landlordName;
+      if (propertyListing.landlordPhoto) {
+        landlordAvatar.src = propertyListing.landlordPhoto; landlordAvatar.style.display = 'block'; landlordAvatarFallback.style.display = 'none';
+      } else {
+        landlordAvatar.style.display = 'none'; landlordAvatarFallback.style.display = 'flex';
+      }
+    } else {
+      document.getElementById('s7-landlord-name').textContent = 'Not assigned';
+      landlordAvatar.style.display = 'none'; landlordAvatarFallback.style.display = 'flex';
+    }
+
     const isDualSigned = typeof handover !== 'undefined' && handover && handover.status === 'completed';
     document.getElementById('s7-vault-filename').textContent = isDualSigned
       ? 'Executed Tenancy Agreement (Dual-Signed).pdf'
