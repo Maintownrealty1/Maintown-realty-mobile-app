@@ -760,6 +760,71 @@
   .chat-bubble { max-width: 88%; padding: 10px 13px; border-radius: 14px; font-size: 12.5px; line-height: 1.5; margin-bottom: 10px; }
   .chat-bubble.system { background: rgba(30,41,59,0.7); color: #94a3b8; border: 1px solid #1e293b; margin: 0 auto 10px; text-align: center; font-size: 11.5px; max-width: 100%; }
   .chat-bubble.them { background: rgba(30,41,59,0.7); color: #e2e8f0; border: 1px solid #1e293b; }
+  .chat-bubble.me { background: linear-gradient(135deg, #7e22ce, #a855f7); color: #fff; border: none; margin-left: auto; }
+  .chat-bubble.call-log { background: rgba(30,41,59,0.5); color: #94a3b8; border: 1px dashed #334155; display: flex; align-items: center; gap: 8px; margin: 0 auto 10px; font-size: 11.5px; }
+  .chat-bubble.call-log.me { margin-left: auto; margin-right: 0; }
+  .chat-bubble.call-log.them { margin-right: auto; margin-left: 0; }
+
+  /* Voice note bubble */
+  .voice-note-row { display: flex; align-items: center; gap: 8px; }
+  .voice-note-play-btn {
+    width: 28px; height: 28px; border-radius: 999px; border: none; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .chat-bubble.me .voice-note-play-btn { background: rgba(255,255,255,0.2); color: #fff; }
+  .chat-bubble.them .voice-note-play-btn { background: rgba(168,85,247,0.2); color: #c084fc; }
+  .voice-note-wave { flex: 1; display: flex; align-items: center; gap: 2px; height: 18px; }
+  .voice-note-wave span { width: 2px; background: currentColor; opacity: 0.55; border-radius: 2px; }
+  .voice-note-duration { font-size: 10.5px; opacity: 0.85; flex-shrink: 0; }
+
+  /* Chat composer (text messaging + voice note trigger) */
+  .msg-composer { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .msg-composer-input {
+    flex: 1; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 999px;
+    padding: 11px 16px; font-size: 13px; color: #fff; outline: none;
+  }
+  .msg-composer-input:focus { border-color: #a855f7; }
+  .msg-composer-input::placeholder { color: #64748b; }
+  .msg-icon-btn {
+    width: 40px; height: 40px; border-radius: 999px; border: none; flex-shrink: 0; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; color: #cbd5e1;
+    background: rgba(30,41,59,0.9); border: 1px solid #1e293b; transition: background 0.15s;
+  }
+  .msg-icon-btn:hover { background: rgba(51,65,85,0.9); }
+  .msg-icon-btn.send-btn { background: #a855f7; color: #fff; border: none; }
+  .msg-icon-btn.send-btn:hover { background: #9333ea; }
+  .msg-icon-btn.recording { background: #ef4444; color: #fff; border: none; animation: pulseRec 1.1s infinite; }
+  @keyframes pulseRec { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); } 50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); } }
+
+  /* Thread header call/video buttons */
+  .msg-thread-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .msg-call-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .msg-call-actions .msg-icon-btn { width: 36px; height: 36px; }
+
+  /* Simulated Call / Video Call overlay */
+  .call-overlay {
+    position: fixed; inset: 0; background: linear-gradient(160deg, #1e0a3c, #0B0F19 60%); z-index: 200;
+    display: none; flex-direction: column; align-items: center; justify-content: space-between;
+    padding: 60px 24px 40px; text-align: center;
+  }
+  .call-overlay.open { display: flex; }
+  .call-avatar-wrap { width: 96px; height: 96px; border-radius: 999px; background: rgba(88,28,135,0.5); border: 2px solid #a855f7; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; overflow: hidden; }
+  .call-avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .call-peer-name { font-size: 19px; font-weight: 600; color: #fff; margin: 0 0 6px; }
+  .call-status-text { font-size: 13px; color: #a855f7; margin: 0; }
+  .call-status-text.connected { color: #34d399; }
+  .call-video-area {
+    width: 100%; flex: 1; margin: 20px 0; border-radius: 20px; background: rgba(15,23,42,0.7);
+    border: 1px solid #1e293b; display: none; align-items: center; justify-content: center; color: #475569;
+  }
+  .call-video-area.show { display: flex; }
+  .call-controls-row { display: flex; gap: 18px; align-items: center; justify-content: center; }
+  .call-control-btn {
+    width: 54px; height: 54px; border-radius: 999px; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; background: rgba(51,65,85,0.9); color: #fff;
+  }
+  .call-control-btn.active-toggle { background: #fff; color: #0B0F19; }
+  .call-control-btn.end-call { background: #ef4444; width: 62px; height: 62px; }
 
   .stage-track { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
   .stage-item { display: flex; align-items: flex-start; gap: 12px; padding: 13px 14px; border-radius: 14px; border: 1px solid #1e293b; background: rgba(15,23,42,0.8); opacity: 0.4; transition: all .2s ease; }
@@ -983,7 +1048,7 @@
       <input class="field-input" id="reg-fullname" type="text" required placeholder="e.g. Onwochei Precious Ebuka">
     </div>
 
-    <div class="field">
+    <div class="field" id="reg-occupation-field" style="display:none;">
       <label class="field-label">Occupation</label>
       <input class="field-input" id="reg-occupation" type="text" placeholder="e.g. Software Engineer">
     </div>
@@ -1649,19 +1714,70 @@
   </div>
 
   <div id="msg-thread-detail" style="display:none;">
-    <h1 class="s5-role-title" id="msg-thread-title" style="margin-bottom: 4px;">Conversation</h1>
-    <p class="s5-role-sub" id="msg-thread-sub" style="margin-bottom: 12px;">—</p>
+    <div class="msg-thread-header-row">
+      <div>
+        <h1 class="s5-role-title" id="msg-thread-title" style="margin-bottom: 4px;">Conversation</h1>
+        <p class="s5-role-sub" id="msg-thread-sub" style="margin: 0;">—</p>
+      </div>
+      <!-- Call & Video Call: simulated real-time interactions with the other party in this thread -->
+      <div class="msg-call-actions">
+        <button type="button" id="msg-call-btn" class="msg-icon-btn" title="Voice call">
+          <i data-lucide="phone" class="w-4 h-4"></i>
+        </button>
+        <button type="button" id="msg-video-call-btn" class="msg-icon-btn" title="Video call">
+          <i data-lucide="video" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
     <!-- Tenant-only: request the full property address from the Landlord/Agent in-thread.
          Landlords and Agents never see this button — they only see the property title header. -->
-    <button type="button" id="msg-request-address-btn" class="s5-action-btn" style="display:none; align-items:center; justify-content:center; gap:6px; width:100%; margin-bottom: 14px;">
+    <button type="button" id="msg-request-address-btn" class="s5-action-btn" style="display:none; align-items:center; justify-content:center; gap:6px; width:100%; margin: 14px 0;">
       <i data-lucide="map-pin" class="w-4 h-4"></i> Request Full Address
     </button>
-    <div id="msg-chat-log" style="margin-bottom: 18px;"></div>
+    <div id="msg-chat-log" style="margin: 18px 0;"></div>
+
+    <!-- Text messaging + Voice note composer -->
+    <div class="msg-composer">
+      <button type="button" id="msg-voice-note-btn" class="msg-icon-btn" title="Record voice note">
+        <i data-lucide="mic" class="w-4 h-4"></i>
+      </button>
+      <input type="text" id="msg-text-input" class="msg-composer-input" placeholder="Type a message...">
+      <button type="button" id="msg-send-btn" class="msg-icon-btn send-btn" title="Send">
+        <i data-lucide="send" class="w-4 h-4"></i>
+      </button>
+    </div>
+
     <button type="button" id="msg-complete-btn" class="btn-primary" style="display:flex; align-items:center; justify-content:center; gap:6px;">
       <i data-lucide="check-circle" class="w-4 h-4"></i> Simulate Inspection Complete
     </button>
   </div>
 
+</div>
+
+<!-- Simulated Voice / Video Call overlay -->
+<div id="call-overlay" class="call-overlay">
+  <div>
+    <div class="call-avatar-wrap" id="call-avatar-wrap"><i data-lucide="user" class="w-9 h-9 text-purple-300"></i></div>
+    <p class="call-peer-name" id="call-peer-name">—</p>
+    <p class="call-status-text" id="call-status-text">Calling…</p>
+  </div>
+  <div class="call-video-area" id="call-video-area">
+    <span style="font-size:12px;">Camera preview unavailable in this demo</span>
+  </div>
+  <div class="call-controls-row">
+    <button type="button" class="call-control-btn" id="call-mute-btn" title="Mute">
+      <i data-lucide="mic" class="w-5 h-5"></i>
+    </button>
+    <button type="button" class="call-control-btn" id="call-cam-btn" title="Camera" style="display:none;">
+      <i data-lucide="video" class="w-5 h-5"></i>
+    </button>
+    <button type="button" class="call-control-btn" id="call-speaker-btn" title="Speaker">
+      <i data-lucide="volume-2" class="w-5 h-5"></i>
+    </button>
+    <button type="button" class="call-control-btn end-call" id="call-end-btn" title="End call">
+      <i data-lucide="phone-off" class="w-5 h-5"></i>
+    </button>
+  </div>
 </div>
 <!-- ===================== END SCREEN MESSAGES ===================== -->
 
@@ -2185,6 +2301,15 @@
       card.classList.add('selected');
       currentUserRole = card.dataset.role;
       updateContinueState();
+
+      // Occupation profiling is a Tenant-only field — Landlords/Agents never see it.
+      const occupationField = document.getElementById('reg-occupation-field');
+      if (currentUserRole === 'tenant') {
+        occupationField.style.display = 'block';
+      } else {
+        occupationField.style.display = 'none';
+        document.getElementById('reg-occupation').value = '';
+      }
     });
   });
 
@@ -2579,7 +2704,12 @@
   document.getElementById('nav-messages').addEventListener('click', () => navigateTo('screen-messages'));
   document.getElementById('nav-profile').addEventListener('click', () => showToast('Profile — coming soon'));
   document.getElementById('dash-bell-btn').addEventListener('click', () => navigateTo('screen-messages'));
-  document.getElementById('msg-back-btn').addEventListener('click', () => navigateTo('screen-4'));
+  document.getElementById('msg-back-btn').addEventListener('click', () => {
+    document.getElementById('call-overlay').classList.remove('open');
+    clearInterval(callTimerInterval);
+    if (typeof isRecordingVoice !== 'undefined' && isRecordingVoice) stopVoiceRecording();
+    navigateTo('screen-4');
+  });
 
   document.getElementById('kyc-back-btn').addEventListener('click', () => {
     showScreen(screen2, screen1);
@@ -4844,9 +4974,44 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   function renderChatLog(conv) {
-    document.getElementById('msg-chat-log').innerHTML = conv.messages.map(m => `
-      <div class="chat-bubble ${m.from === 'system' ? 'system' : 'them'}">${m.text}</div>
-    `).join('');
+    document.getElementById('msg-chat-log').innerHTML = conv.messages.map(m => {
+      if (m.type === 'call-log') {
+        const icon = m.callType === 'video' ? 'video' : 'phone';
+        return `<div class="chat-bubble call-log ${m.from === 'me' ? 'me' : 'them'}"><i data-lucide="${icon}" class="w-3.5 h-3.5"></i>${m.text}</div>`;
+      }
+      if (m.type === 'voice') {
+        return `
+        <div class="chat-bubble ${m.from === 'me' ? 'me' : 'them'}">
+          <div class="voice-note-row">
+            <button type="button" class="voice-note-play-btn" data-audio="${m.audioUrl}"><i data-lucide="play" class="w-3.5 h-3.5"></i></button>
+            <div class="voice-note-wave">${Array.from({length: 22}).map(() => `<span style="height:${6 + Math.round(Math.random()*12)}px;"></span>`).join('')}</div>
+            <span class="voice-note-duration">${m.duration}</span>
+          </div>
+        </div>`;
+      }
+      return `<div class="chat-bubble ${m.from === 'me' ? 'me' : (m.from === 'system' ? 'system' : 'them')}">${m.text}</div>`;
+    }).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // Resolves who the other party in a conversation is, for the call overlay peer
+  // name/photo and for "them" chat bubbles — Agent/Landlord (Tenant's view) or
+  // Tenant (Landlord's/Agent's view), using the identity data captured earlier.
+  function getConversationPeer(conv) {
+    const role = currentUserRole || 'tenant';
+    if (role === 'tenant') {
+      const listing = rentListings().find(l => l.title === conv.listingTitle) || landListingsList().find(l => l.title === conv.listingTitle);
+      if (conv.feeType === 'agent' && listing && listing.agentName) {
+        return { name: listing.agentName, photo: listing.agentPhoto || null, label: 'Agent' };
+      }
+      if (listing && listing.landlordName) {
+        return { name: listing.landlordName, photo: listing.landlordPhoto || null, label: 'Landlord' };
+      }
+      return { name: conv.feeType === 'agent' ? 'Agent' : 'Landlord', photo: null, label: conv.feeType === 'agent' ? 'Agent' : 'Landlord' };
+    }
+    const notif = inspectionNotifications.find(n => n.forRole === role && n.listingTitle === conv.listingTitle);
+    if (notif) return { name: notif.tenantName, photo: notif.tenantPhoto || null, label: 'Tenant' };
+    return { name: 'Tenant', photo: null, label: 'Tenant' };
   }
 
   function openThreadDetail(id) {
@@ -4873,6 +5038,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ? `<i data-lucide="check" class="w-4 h-4"></i> Full Address Shared`
       : `<i data-lucide="map-pin" class="w-4 h-4"></i> Request Full Address`;
 
+    // Reset the composer/call state when switching threads
+    document.getElementById('msg-text-input').value = '';
+    if (isRecordingVoice) stopVoiceRecording();
+    document.getElementById('call-overlay').classList.remove('open');
+    clearInterval(callTimerInterval);
+    document.getElementById('msg-call-btn').style.display = conv.status === 'archived' ? 'none' : 'flex';
+    document.getElementById('msg-video-call-btn').style.display = conv.status === 'archived' ? 'none' : 'flex';
+
     if (window.lucide) lucide.createIcons();
   }
 
@@ -4895,6 +5068,178 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderChatLog(conv);
     openThreadDetail(conv.id); // refresh button state ("Full Address Shared")
     showToast('Full address requested');
+  });
+
+  // ==================================================================
+  // ---- Text Messaging: free-text composer ----
+  // ==================================================================
+  function sendTextMessage() {
+    const input = document.getElementById('msg-text-input');
+    const text = input.value.trim();
+    if (!text) return;
+    const conv = conversations.find(c => c.id === activeThreadId);
+    if (!conv) return;
+    conv.messages.push({ from: 'me', type: 'text', text });
+    saveConversations();
+    input.value = '';
+    renderChatLog(conv);
+    document.getElementById('msg-chat-log').scrollTop = document.getElementById('msg-chat-log').scrollHeight;
+  }
+  document.getElementById('msg-send-btn').addEventListener('click', sendTextMessage);
+  document.getElementById('msg-text-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendTextMessage();
+  });
+
+  // ==================================================================
+  // ---- Voice Note: real microphone recording via MediaRecorder ----
+  // ==================================================================
+  let voiceRecorder = null;
+  let voiceChunks = [];
+  let voiceRecordStart = 0;
+  let isRecordingVoice = false;
+
+  async function startVoiceRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      voiceChunks = [];
+      voiceRecorder = new MediaRecorder(stream);
+      voiceRecorder.ondataavailable = (e) => { if (e.data.size > 0) voiceChunks.push(e.data); };
+      voiceRecorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        const elapsed = Math.max(1, Math.round((Date.now() - voiceRecordStart) / 1000));
+        const blob = new Blob(voiceChunks, { type: 'audio/webm' });
+        const audioUrl = URL.createObjectURL(blob);
+        const conv = conversations.find(c => c.id === activeThreadId);
+        if (conv) {
+          conv.messages.push({ from: 'me', type: 'voice', audioUrl, duration: `0:${String(elapsed).padStart(2, '0')}` });
+          renderChatLog(conv);
+        }
+      };
+      voiceRecorder.start();
+      voiceRecordStart = Date.now();
+      isRecordingVoice = true;
+      const btn = document.getElementById('msg-voice-note-btn');
+      btn.classList.add('recording');
+      btn.innerHTML = '<i data-lucide="square" class="w-4 h-4"></i>';
+      if (window.lucide) lucide.createIcons();
+    } catch (err) {
+      // Microphone access denied/unavailable — fall back to a simulated voice note
+      // so the interaction still works end-to-end in this demo environment.
+      const conv = conversations.find(c => c.id === activeThreadId);
+      if (conv) {
+        conv.messages.push({ from: 'me', type: 'voice', audioUrl: '', duration: '0:04' });
+        renderChatLog(conv);
+      }
+      showToast('Microphone unavailable — added a simulated voice note');
+    }
+  }
+
+  function stopVoiceRecording() {
+    if (voiceRecorder && voiceRecorder.state !== 'inactive') voiceRecorder.stop();
+    isRecordingVoice = false;
+    const btn = document.getElementById('msg-voice-note-btn');
+    btn.classList.remove('recording');
+    btn.innerHTML = '<i data-lucide="mic" class="w-4 h-4"></i>';
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('msg-voice-note-btn').addEventListener('click', () => {
+    if (!activeThreadId) return;
+    if (isRecordingVoice) stopVoiceRecording();
+    else startVoiceRecording();
+  });
+
+  // Voice note playback (event delegation on the chat log)
+  document.getElementById('msg-chat-log').addEventListener('click', (e) => {
+    const btn = e.target.closest('.voice-note-play-btn');
+    if (!btn) return;
+    const url = btn.dataset.audio;
+    if (!url) { showToast('Playing simulated voice note'); return; }
+    const audio = new Audio(url);
+    audio.play().catch(() => showToast('Unable to play voice note'));
+  });
+
+  // ==================================================================
+  // ---- Voice & Video Call: simulated real-time call interactions ----
+  // ==================================================================
+  const callOverlay = document.getElementById('call-overlay');
+  let callTimerInterval = null;
+  let callMuted = false;
+  let callCamOff = false;
+
+  function openCallOverlay(type) {
+    const conv = conversations.find(c => c.id === activeThreadId);
+    if (!conv) return;
+    const peer = getConversationPeer(conv);
+
+    document.getElementById('call-peer-name').textContent = peer.name;
+    const avatarWrap = document.getElementById('call-avatar-wrap');
+    avatarWrap.innerHTML = peer.photo
+      ? `<img src="${peer.photo}" alt="${peer.name}">`
+      : '<i data-lucide="user" class="w-9 h-9 text-purple-300"></i>';
+    document.getElementById('call-status-text').textContent = 'Calling…';
+    document.getElementById('call-status-text').classList.remove('connected');
+    document.getElementById('call-video-area').classList.toggle('show', type === 'video');
+    document.getElementById('call-cam-btn').style.display = type === 'video' ? 'flex' : 'none';
+
+    callMuted = false; callCamOff = false;
+    document.getElementById('call-mute-btn').classList.remove('active-toggle');
+    document.getElementById('call-cam-btn').classList.remove('active-toggle');
+    callOverlay.dataset.callType = type;
+    callOverlay.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+
+    // Simulate ringing -> connected, then start a live call duration timer
+    let seconds = 0;
+    clearInterval(callTimerInterval);
+    setTimeout(() => {
+      if (!callOverlay.classList.contains('open')) return;
+      document.getElementById('call-status-text').textContent = '0:00';
+      document.getElementById('call-status-text').classList.add('connected');
+      callTimerInterval = setInterval(() => {
+        seconds++;
+        document.getElementById('call-status-text').textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+      }, 1000);
+    }, 1800);
+  }
+
+  function closeCallOverlay(logToChat) {
+    const wasConnected = document.getElementById('call-status-text').classList.contains('connected');
+    const durationText = document.getElementById('call-status-text').textContent;
+    clearInterval(callTimerInterval);
+    callOverlay.classList.remove('open');
+
+    if (logToChat) {
+      const conv = conversations.find(c => c.id === activeThreadId);
+      if (conv) {
+        const type = callOverlay.dataset.callType;
+        conv.messages.push({
+          from: 'me', type: 'call-log', callType: type,
+          text: wasConnected ? `${type === 'video' ? 'Video call' : 'Voice call'} · ${durationText}` : `${type === 'video' ? 'Video call' : 'Voice call'} · Missed/Not answered`
+        });
+        saveConversations();
+        renderChatLog(conv);
+      }
+    }
+  }
+
+  document.getElementById('msg-call-btn').addEventListener('click', () => { if (activeThreadId) openCallOverlay('voice'); });
+  document.getElementById('msg-video-call-btn').addEventListener('click', () => { if (activeThreadId) openCallOverlay('video'); });
+  document.getElementById('call-end-btn').addEventListener('click', () => closeCallOverlay(true));
+  document.getElementById('call-mute-btn').addEventListener('click', () => {
+    callMuted = !callMuted;
+    document.getElementById('call-mute-btn').classList.toggle('active-toggle', callMuted);
+    document.getElementById('call-mute-btn').innerHTML = `<i data-lucide="${callMuted ? 'mic-off' : 'mic'}" class="w-5 h-5"></i>`;
+    if (window.lucide) lucide.createIcons();
+  });
+  document.getElementById('call-cam-btn').addEventListener('click', () => {
+    callCamOff = !callCamOff;
+    document.getElementById('call-cam-btn').classList.toggle('active-toggle', callCamOff);
+    document.getElementById('call-cam-btn').innerHTML = `<i data-lucide="${callCamOff ? 'video-off' : 'video'}" class="w-5 h-5"></i>`;
+    if (window.lucide) lucide.createIcons();
+  });
+  document.getElementById('call-speaker-btn').addEventListener('click', (e) => {
+    e.currentTarget.classList.toggle('active-toggle');
   });
 
   const inspectionDecisionModal = document.getElementById('inspection-decision-modal');
