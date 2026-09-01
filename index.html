@@ -337,6 +337,24 @@
   .bio-row span { color: #64748b; }
   .bio-row strong { color: #fff; font-weight: 500; }
 
+  /* Profile / Account Settings screen */
+  .profile-avatar-wrap { position: relative; width: 84px; height: 84px; margin: 0 auto; }
+  .profile-avatar-lg {
+    width: 84px; height: 84px; border-radius: 999px; background: #1e293b; border: 2px solid #a855f7;
+    display: flex; align-items: center; justify-content: center; overflow: hidden; color: #c084fc;
+  }
+  .profile-avatar-lg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .profile-avatar-edit-btn {
+    position: absolute; bottom: -2px; right: -2px; width: 28px; height: 28px; border-radius: 999px;
+    background: #9333ea; border: 2px solid #0B0F19; color: #fff; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; padding: 0;
+  }
+  .profile-avatar-edit-btn:hover { background: #a855f7; }
+  .profile-occupation-line { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11.5px; color: #64748b; margin: 0 0 10px; }
+  .profile-field-status { font-size: 11px; margin: 6px 0 0; min-height: 14px; }
+  .profile-field-status.valid { color: #34d399; }
+  .profile-field-status.invalid { color: #f87171; }
+
   /* Tenant "My Lease" — Assigned Agent & Landlord photo/name card */
   .assigned-people-row { display: flex; gap: 12px; margin-bottom: 20px; }
   .assigned-person-card {
@@ -401,7 +419,10 @@
     width: 40px; height: 40px; border-radius: 999px; background: #1e293b;
     border: 1px solid #334155; display: flex; align-items: center; justify-content: center;
     font-weight: 600; font-size: 14px; color: #c084fc; flex-shrink: 0;
+    padding: 0; cursor: pointer; overflow: hidden; font-family: inherit;
   }
+  .dash-avatar:hover { border-color: #a855f7; }
+  .dash-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .dash-card {
     background: linear-gradient(135deg, #9333ea, #581c87);
     border-radius: 18px; padding: 20px; margin-bottom: 20px;
@@ -1244,6 +1265,58 @@
 </div>
 <!-- ===================== END SCREEN 3 ===================== -->
 
+<!-- ===================== SCREEN LOGIN: Sign back in after Log Out ===================== -->
+<div id="screen-login" class="screen hidden-screen">
+
+  <div class="brand-row">
+    <div class="brand-logo">M</div>
+    <div>
+      <p class="brand-name">MainTown Realty</p>
+      <p class="brand-tag">Rent, restructured.</p>
+    </div>
+  </div>
+
+  <h1 class="title" style="margin-top: 8px;">Welcome back</h1>
+  <p class="subtitle">Log in to continue to your dashboard.</p>
+
+  <div class="field">
+    <label class="field-label">Email Address</label>
+    <input class="field-input" id="login-email" type="email" placeholder="you@example.com">
+  </div>
+  <div class="field">
+    <label class="field-label">Password</label>
+    <input class="field-input" id="login-password" type="password" placeholder="Enter your password">
+  </div>
+
+  <button type="button" id="login-submit-btn" class="btn-primary">Log In</button>
+
+  <!-- Demo-only: quick relogin using the most recently saved onboarding profile, so
+       testers aren't forced to repeat the full 3-step onboarding flow after logging out. -->
+  <div id="login-demo-section" style="display:none; margin-top: 26px;">
+    <p class="s5-section-label" style="margin-bottom: 12px;"><i data-lucide="zap" class="w-4 h-4 text-purple-400"></i>Demo Quick Access</p>
+    <div class="role-card selected" style="cursor:default; margin-bottom: 14px;">
+      <span class="role-icon"><i data-lucide="user-circle" class="w-6 h-6 text-purple-400"></i></span>
+      <div class="role-text">
+        <p class="role-name" id="login-demo-name">—</p>
+        <p class="role-sub" id="login-demo-role">—</p>
+      </div>
+    </div>
+    <button type="button" id="login-quick-btn" class="btn-primary" style="display:flex; align-items:center; justify-content:center; gap:6px;">
+      <i data-lucide="rocket" class="w-4 h-4"></i> Quick Demo Login
+    </button>
+    <p class="role-hint" style="margin: 14px 0 8px;">Or jump in as a different role (same demo profile):</p>
+    <div style="display:flex; gap:8px;">
+      <button type="button" class="s5-action-btn login-role-switch-btn" data-role="tenant" style="flex:1;">Tenant</button>
+      <button type="button" class="s5-action-btn login-role-switch-btn" data-role="landlord" style="flex:1;">Landlord</button>
+      <button type="button" class="s5-action-btn login-role-switch-btn" data-role="agent" style="flex:1;">Agent</button>
+    </div>
+  </div>
+
+  <p class="role-hint" style="margin-top: 24px;">New here? <span id="login-signup-link" style="color:#c084fc; cursor:pointer; font-weight:600;">Create an account</span></p>
+
+</div>
+<!-- ===================== END SCREEN LOGIN ===================== -->
+
 <!-- ===================== SCREEN 4: Main App Dashboard ===================== -->
 <div id="screen-4" class="screen-view hidden pb-24" style="min-height: calc(100vh - 72px);">
 
@@ -1257,7 +1330,7 @@
         <i data-lucide="bell" class="w-4 h-4"></i>
         <span class="bell-dot" id="dash-bell-dot"></span>
       </button>
-      <div class="dash-avatar" id="dash-avatar">U</div>
+      <button type="button" class="dash-avatar" id="dash-avatar" title="View Profile"><span id="dash-avatar-initial">U</span></button>
     </div>
   </div>
 
@@ -1871,6 +1944,54 @@
 
 </div>
 <!-- ===================== END SCREEN INSPECTIONS ===================== -->
+
+<!-- ===================== SCREEN PROFILE: Bio Data, Account Settings & Logout ===================== -->
+<div id="screen-profile" class="screen-view hidden pb-24">
+
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="profile-back-btn">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="user" class="w-3.5 h-3.5"></i><span>Profile</span></p>
+    </div>
+  </div>
+
+  <h1 class="s5-role-title" style="margin-bottom: 18px;">My Account</h1>
+
+  <!-- Bio Data -->
+  <div class="s5-card" style="padding: 22px 18px; margin-bottom: 22px; text-align: center;">
+    <div class="profile-avatar-wrap">
+      <div class="profile-avatar-lg" id="profile-avatar-lg"><i data-lucide="user" class="w-9 h-9"></i></div>
+      <button type="button" id="profile-photo-edit-btn" class="profile-avatar-edit-btn" title="Change profile photo">
+        <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+      </button>
+      <input type="file" id="profile-photo-input" accept="image/*" hidden>
+    </div>
+    <p class="s5-card-title" id="profile-fullname" style="font-size: 16px; margin: 12px 0 4px;">—</p>
+    <p class="profile-occupation-line" id="profile-occupation"></p>
+    <div id="profile-role-badge" class="kyc-role-badge" style="margin: 0 auto;"></div>
+  </div>
+
+  <!-- Account & General Settings -->
+  <p class="s5-section-label"><i data-lucide="settings" class="w-4 h-4 text-purple-400"></i>Account & General Settings</p>
+  <div class="field">
+    <label class="field-label">Email Address</label>
+    <input class="field-input" id="profile-email-input" type="email" placeholder="you@example.com">
+    <p class="profile-field-status" id="profile-email-status"></p>
+  </div>
+  <div class="field">
+    <label class="field-label">Phone Number</label>
+    <input class="field-input" id="profile-phone-input" type="tel" placeholder="801 234 5678">
+    <p class="profile-field-status" id="profile-phone-status"></p>
+  </div>
+
+  <button type="button" id="profile-logout-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: 0 8px 20px rgba(239,68,68,0.25); display:flex; align-items:center; justify-content:center; gap:6px; margin-top: 16px;">
+    <i data-lucide="log-out" class="w-4 h-4"></i> Log Out
+  </button>
+
+</div>
+<!-- ===================== END SCREEN PROFILE ===================== -->
 
 </div>
 <!-- ===================== FIXED BOTTOM NAVIGATION (outside #screen-4 and #screen-5) ===================== -->
@@ -2736,11 +2857,16 @@
       renderSchedulesScreen();
     }
 
-    // Bottom nav: visible on screen-4 / screen-5 / screen-messages, with the matching tab highlighted
+    if (screenId === 'screen-profile') {
+      populateProfileScreen();
+    }
+
+    // Bottom nav: visible on screen-4 / screen-5 / screen-messages / screen-profile, with the matching tab highlighted
     appBottomNav.classList.remove('hidden');
     document.getElementById('nav-home').classList.toggle('active', screenId === 'screen-4');
     document.getElementById('nav-search').classList.toggle('active', screenId === 'screen-5');
     document.getElementById('nav-messages').classList.toggle('active', screenId === 'screen-messages');
+    document.getElementById('nav-profile').classList.toggle('active', screenId === 'screen-profile');
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -2785,7 +2911,8 @@
   document.getElementById('nav-home').addEventListener('click', () => navigateTo('screen-4'));
   document.getElementById('nav-search').addEventListener('click', () => navigateTo('screen-5'));
   document.getElementById('nav-messages').addEventListener('click', () => navigateTo('screen-messages'));
-  document.getElementById('nav-profile').addEventListener('click', () => showToast('Profile — coming soon'));
+  document.getElementById('nav-profile').addEventListener('click', () => navigateTo('screen-profile'));
+  document.getElementById('dash-avatar').addEventListener('click', () => navigateTo('screen-profile'));
   document.getElementById('dash-bell-btn').addEventListener('click', () => navigateTo('screen-messages'));
   document.getElementById('msg-back-btn').addEventListener('click', () => {
     document.getElementById('call-overlay').classList.remove('open');
@@ -3136,7 +3263,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const name = (document.getElementById('reg-fullname')?.value || '').trim() || roleDisplayNames[role];
 
     document.getElementById('dash-user-name').textContent = name;
-    document.getElementById('dash-avatar').textContent = data.initial;
+    const avatarEl = document.getElementById('dash-avatar');
+    avatarEl.innerHTML = currentUserSelfieDataUrl
+      ? `<img src="${currentUserSelfieDataUrl}" alt="${name}">`
+      : `<span id="dash-avatar-initial">${data.initial}</span>`;
     document.getElementById('dash-card-label').textContent = data.cardLabel;
     document.getElementById('dash-card-value').textContent = data.cardValue;
     document.getElementById('dash-card-sub').textContent = data.cardSub;
@@ -4611,6 +4741,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('sign-btn').addEventListener('click', () => {
     if (signBtn.disabled) return;
     screen3.classList.add('hidden-screen');
+    saveAccountRecord();
     navigateTo('screen-4'); // populates the dashboard, shows the fixed bottom nav, refreshes icons
     showToast('Agreement signed. Welcome to MainTown Realty!');
   });
@@ -5874,6 +6005,215 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderTicketList();
     if (window.lucide) lucide.createIcons();
   }
+
+  // ==================================================================
+  // ---- Profile Screen: Bio Data + Account & General Settings ----
+  // ==================================================================
+  function populateProfileScreen() {
+    const role = currentUserRole || 'tenant';
+    const fullName = (document.getElementById('reg-fullname')?.value || '').trim() || roleDisplayNames[role];
+    const occupation = (document.getElementById('reg-occupation')?.value || '').trim();
+    const email = (document.getElementById('reg-email')?.value || '').trim();
+    const phone = (document.getElementById('reg-phone')?.value || '').trim();
+
+    document.getElementById('profile-fullname').textContent = fullName;
+    const occLine = document.getElementById('profile-occupation');
+    if (occupation) {
+      occLine.innerHTML = `<i data-lucide="briefcase" class="w-3.5 h-3.5"></i>${occupation}`;
+      occLine.style.display = 'flex';
+    } else {
+      occLine.innerHTML = '';
+      occLine.style.display = 'none';
+    }
+
+    const roleIconMap = { tenant: 'building-2', landlord: 'key-round', agent: 'briefcase' };
+    document.getElementById('profile-role-badge').innerHTML =
+      `<i data-lucide="${roleIconMap[role] || 'user'}" class="w-4 h-4"></i><span>${roleDisplayNames[role]}</span>`;
+
+    const avatarLg = document.getElementById('profile-avatar-lg');
+    avatarLg.innerHTML = currentUserSelfieDataUrl
+      ? `<img src="${currentUserSelfieDataUrl}" alt="${fullName}">`
+      : '<i data-lucide="user" class="w-9 h-9"></i>';
+
+    document.getElementById('profile-email-input').value = email;
+    document.getElementById('profile-phone-input').value = phone;
+    const emailStatus = document.getElementById('profile-email-status');
+    emailStatus.textContent = ''; emailStatus.className = 'profile-field-status';
+    const phoneStatus = document.getElementById('profile-phone-status');
+    phoneStatus.textContent = ''; phoneStatus.className = 'profile-field-status';
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('profile-back-btn').addEventListener('click', () => navigateTo('screen-4'));
+
+  document.getElementById('profile-photo-edit-btn').addEventListener('click', () => {
+    document.getElementById('profile-photo-input').click();
+  });
+  document.getElementById('profile-photo-input').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      currentUserSelfieDataUrl = ev.target.result;
+      populateProfileScreen();
+      if (!document.getElementById('screen-4').classList.contains('hidden')) populateScreen4();
+      saveAccountRecord();
+      showToast('Profile photo updated');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Live validation: Email & Phone update as the user types, and sync back into the
+  // underlying onboarding fields (the app's single source of truth for these values)
+  // plus the persisted demo account record once valid.
+  function validateEmailLive() {
+    const input = document.getElementById('profile-email-input');
+    const status = document.getElementById('profile-email-status');
+    const value = input.value.trim();
+    if (!value) { status.textContent = ''; status.className = 'profile-field-status'; return; }
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    status.textContent = isValid ? 'Looks good' : 'Enter a valid email address';
+    status.className = 'profile-field-status ' + (isValid ? 'valid' : 'invalid');
+    if (isValid) {
+      const emailEl = document.getElementById('reg-email'); if (emailEl) emailEl.value = value;
+      saveAccountRecord();
+    }
+  }
+  function validatePhoneLive() {
+    const input = document.getElementById('profile-phone-input');
+    const status = document.getElementById('profile-phone-status');
+    const value = input.value.trim();
+    if (!value) { status.textContent = ''; status.className = 'profile-field-status'; return; }
+    const digits = value.replace(/\D/g, '');
+    const isValid = digits.length >= 7 && digits.length <= 14;
+    status.textContent = isValid ? 'Looks good' : 'Enter a valid phone number';
+    status.className = 'profile-field-status ' + (isValid ? 'valid' : 'invalid');
+    if (isValid) {
+      const phoneEl = document.getElementById('reg-phone'); if (phoneEl) phoneEl.value = value;
+      saveAccountRecord();
+    }
+  }
+  document.getElementById('profile-email-input').addEventListener('input', validateEmailLive);
+  document.getElementById('profile-phone-input').addEventListener('input', validatePhoneLive);
+
+  // ==================================================================
+  // ---- Login / Logout: demo-friendly session handling ----
+  // Log Out drops straight to the Login screen (never back through the
+  // 3-step onboarding), and the Login screen offers a one-tap demo
+  // relogin using the most recently saved onboarding profile.
+  // ==================================================================
+  function loadSavedAccount() {
+    try {
+      const raw = localStorage.getItem('mtr_account');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
+  function saveAccountRecord() {
+    const account = {
+      role: currentUserRole || 'tenant',
+      fullName: (document.getElementById('reg-fullname')?.value || '').trim(),
+      occupation: (document.getElementById('reg-occupation')?.value || '').trim(),
+      email: (document.getElementById('reg-email')?.value || '').trim(),
+      phone: (document.getElementById('reg-phone')?.value || '').trim(),
+      countryCode: document.getElementById('country-code')?.value || '+234',
+      photo: currentUserSelfieDataUrl || null
+    };
+    try { localStorage.setItem('mtr_account', JSON.stringify(account)); } catch (e) {}
+    return account;
+  }
+
+  function restoreAccountToForm(account) {
+    if (!account) return;
+    currentUserSelfieDataUrl = account.photo || currentUserSelfieDataUrl || null;
+    const fullnameEl = document.getElementById('reg-fullname'); if (fullnameEl) fullnameEl.value = account.fullName || '';
+    const occEl = document.getElementById('reg-occupation'); if (occEl) occEl.value = account.occupation || '';
+    const emailEl = document.getElementById('reg-email'); if (emailEl) emailEl.value = account.email || '';
+    const phoneEl = document.getElementById('reg-phone'); if (phoneEl) phoneEl.value = account.phone || '';
+    const countryEl = document.getElementById('country-code'); if (countryEl && account.countryCode) countryEl.value = account.countryCode;
+  }
+
+  function populateLoginScreen() {
+    const account = loadSavedAccount();
+    document.getElementById('login-password').value = '';
+    const demoSection = document.getElementById('login-demo-section');
+    if (account && account.fullName) {
+      demoSection.style.display = 'block';
+      document.getElementById('login-demo-name').textContent = account.fullName;
+      document.getElementById('login-demo-role').textContent = roleDisplayNames[account.role] || 'Tenant';
+      document.getElementById('login-email').value = account.email || '';
+    } else {
+      demoSection.style.display = 'none';
+      document.getElementById('login-email').value = '';
+    }
+  }
+
+  function enterAppAsRole(role) {
+    const account = loadSavedAccount();
+    currentUserRole = role;
+    restoreAccountToForm(account);
+    screenLogin.classList.add('hidden-screen');
+    navigateTo('screen-4');
+    const displayName = (account && account.fullName) ? account.fullName : roleDisplayNames[role];
+    showToast(`Welcome back, ${displayName}!`);
+  }
+
+  function performLogout() {
+    // Terminate the active session: stop any in-progress call/recording, close
+    // any open modals, and clear the active role so nothing lingers behind the
+    // Login screen.
+    document.getElementById('call-overlay').classList.remove('open');
+    if (typeof callTimerInterval !== 'undefined') clearInterval(callTimerInterval);
+    if (typeof isRecordingVoice !== 'undefined' && isRecordingVoice) stopVoiceRecording();
+    document.querySelectorAll('.modal-overlay.open, .sheet-overlay.open').forEach(m => m.classList.remove('open'));
+    currentUserRole = null;
+
+    document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+    appBottomNav.classList.add('hidden');
+    populateLoginScreen();
+    screenLogin.classList.remove('hidden-screen');
+    navigationHistory = ['screen-login'];
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.lucide) lucide.createIcons();
+    showToast('You have been logged out');
+  }
+
+  // Starts a completely fresh 3-step onboarding (a brand-new demo account),
+  // reachable only from the Login screen's "Create an account" link.
+  function startFreshOnboarding() {
+    currentUserRole = null;
+    currentUserSelfieDataUrl = null;
+    document.getElementById('reg-form').reset();
+    roleCards.forEach(c => c.classList.remove('selected'));
+    document.getElementById('reg-occupation-field').style.display = 'none';
+    updateContinueState();
+    screenLogin.classList.add('hidden-screen');
+    screen1.classList.remove('hidden-screen');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.lucide) lucide.createIcons();
+  }
+
+  const screenLogin = document.getElementById('screen-login');
+
+  document.getElementById('profile-logout-btn').addEventListener('click', () => performLogout());
+
+  document.getElementById('login-quick-btn').addEventListener('click', () => {
+    const account = loadSavedAccount();
+    enterAppAsRole(account ? account.role : 'tenant');
+  });
+  document.querySelectorAll('.login-role-switch-btn').forEach(btn => {
+    btn.addEventListener('click', () => enterAppAsRole(btn.dataset.role));
+  });
+  document.getElementById('login-submit-btn').addEventListener('click', () => {
+    const account = loadSavedAccount();
+    if (account) {
+      enterAppAsRole(account.role);
+    } else {
+      showToast('No saved demo account yet — please create an account');
+    }
+  });
+  document.getElementById('login-signup-link').addEventListener('click', () => startFreshOnboarding());
 
   // ---- Initial icon render (Screen 1 role cards, OTP modal, etc.) ----
   if (window.lucide) lucide.createIcons();
