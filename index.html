@@ -360,13 +360,20 @@
   .assigned-person-card {
     flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center;
     padding: 14px 10px; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 14px;
+    cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease;
   }
+  .assigned-person-card:active { background: rgba(30,41,59,0.9); border-color: #334155; }
   .assigned-person-avatar {
     width: 48px; height: 48px; border-radius: 999px; object-fit: cover; margin-bottom: 8px;
     background: #1e293b; border: 1px solid #334155;
   }
   .assigned-person-role { font-size: 10.5px; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 2px; }
   .assigned-person-name { font-size: 12.5px; color: #fff; font-weight: 500; margin: 0; }
+  .assigned-person-lock-badge {
+    display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600;
+    color: #94a3b8; background: rgba(148,163,184,0.1); border: 1px solid rgba(148,163,184,0.25);
+    border-radius: 999px; padding: 3px 7px; margin-top: 6px; text-transform: none; letter-spacing: 0;
+  }
 
   /* Screen 3: Legal Terms */
   .legal-box {
@@ -1703,7 +1710,7 @@
   <!-- Assigned Agent & Landlord — Full Name & Profile Photo ONLY, for this listing -->
   <p class="s5-section-label"><i data-lucide="users" class="w-4 h-4 text-purple-400"></i>Assigned to Your Property</p>
   <div class="assigned-people-row">
-    <div class="assigned-person-card">
+    <div class="assigned-person-card" id="s7-agent-card" role="button" tabindex="0">
       <img id="s7-agent-avatar" class="assigned-person-avatar" alt="Agent" style="display:none;">
       <div id="s7-agent-avatar-fallback" class="assigned-person-avatar" style="display:flex; align-items:center; justify-content:center;">
         <i data-lucide="briefcase" class="w-5 h-5 text-slate-500"></i>
@@ -1711,13 +1718,14 @@
       <p class="assigned-person-role">Agent</p>
       <p class="assigned-person-name" id="s7-agent-name">—</p>
     </div>
-    <div class="assigned-person-card">
+    <div class="assigned-person-card" id="s7-landlord-card" role="button" tabindex="0">
       <img id="s7-landlord-avatar" class="assigned-person-avatar" alt="Landlord" style="display:none;">
       <div id="s7-landlord-avatar-fallback" class="assigned-person-avatar" style="display:flex; align-items:center; justify-content:center;">
         <i data-lucide="key-round" class="w-5 h-5 text-slate-500"></i>
       </div>
       <p class="assigned-person-role">Landlord</p>
       <p class="assigned-person-name" id="s7-landlord-name">—</p>
+      <span class="assigned-person-lock-badge" id="s7-landlord-lock-badge" style="display:none;"><i data-lucide="lock" class="w-2.5 h-2.5"></i>Chat Unlocks on Move-In</span>
     </div>
   </div>
 
@@ -2023,6 +2031,27 @@
 
     <button type="button" id="bio-chat-btn" class="btn-primary" style="margin-top:20px; margin-bottom:10px; display:none; align-items:center; justify-content:center; gap:6px;"><i data-lucide="message-square" class="w-4 h-4"></i> Chat Tenant</button>
     <button type="button" id="bio-close-btn" class="btn-secondary">Close</button>
+  </div>
+</div>
+
+<!-- Landlord Profile Modal — Tenant view of the assigned Landlord before move-in confirmation -->
+<div id="landlord-profile-modal" class="modal-overlay">
+  <div class="modal-card">
+    <img id="lp-avatar" class="bio-avatar-lg" alt="Landlord portrait" style="display:none;">
+    <div class="modal-icon-wrap" id="lp-avatar-fallback">
+      <i data-lucide="key-round" class="w-8 h-8 text-purple-400"></i>
+    </div>
+    <h2 class="modal-title" id="lp-name">—</h2>
+    <p class="modal-sub" style="margin-bottom:16px;">Landlord for <span id="lp-listing">—</span></p>
+
+    <div class="bio-row"><span>KYC Verification</span><strong style="color:#34d399;">Verified</strong></div>
+    <div class="bio-row"><span>Direct Messaging</span><strong style="color:#f59e0b;">Locked</strong></div>
+
+    <div class="rent-badge" style="margin-top:16px; margin-bottom:0; width:100%; box-sizing:border-box; justify-content:center; text-align:left; background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color: #fbbf24;">
+      <i data-lucide="lock" class="w-3.5 h-3.5"></i><span>Direct messaging unlocks once your move-in date is confirmed below.</span>
+    </div>
+
+    <button type="button" id="lp-close-btn" class="btn-secondary" style="margin-top:16px;">Close</button>
   </div>
 </div>
 
@@ -5949,6 +5978,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (window.lucide) lucide.createIcons();
   }
 
+  let s7PropertyListing = null;
+
   function populateScreen7() {
     const fallback = { title: rentListings()[0] ? rentListings()[0].title : 'Your Active Lease', amountLabel: '₦180,000 / mo', dueLabel: 'Move-in date pending — schedule below', card: 'Card ending in 4321' };
     const lease = activeLease || fallback;
@@ -5960,6 +5991,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Assigned Agent & Landlord card: Full Name + Profile Photo ONLY, sourced from
     // the actual listing (identity fields set at submission — see requirement 4).
     const propertyListing = checkoutListing || rentListings()[0] || null;
+    s7PropertyListing = propertyListing; // exposed for the Agent/Landlord card tap handlers below
     const agentAvatar = document.getElementById('s7-agent-avatar');
     const agentAvatarFallback = document.getElementById('s7-agent-avatar-fallback');
     const landlordAvatar = document.getElementById('s7-landlord-avatar');
@@ -5977,6 +6009,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
       agentAvatar.style.display = 'none'; agentAvatarFallback.style.display = 'flex';
     }
 
+    const moveInPending = !activeLease || !activeLease.moveInConfirmed;
+    const lockBadge = document.getElementById('s7-landlord-lock-badge');
+
     if (propertyListing && propertyListing.landlordName) {
       document.getElementById('s7-landlord-name').textContent = propertyListing.landlordName;
       if (propertyListing.landlordPhoto) {
@@ -5984,9 +6019,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       } else {
         landlordAvatar.style.display = 'none'; landlordAvatarFallback.style.display = 'flex';
       }
+      // Landlord binds automatically as soon as the listing payment is completed —
+      // show the "Chat Unlocks on Move-In" state indicator until move-in is confirmed.
+      lockBadge.style.display = moveInPending ? 'inline-flex' : 'none';
     } else {
       document.getElementById('s7-landlord-name').textContent = 'Not assigned';
       landlordAvatar.style.display = 'none'; landlordAvatarFallback.style.display = 'flex';
+      lockBadge.style.display = 'none';
     }
 
     const isDualSigned = typeof handover !== 'undefined' && handover && handover.status === 'completed';
@@ -6005,6 +6044,61 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderTicketList();
     if (window.lucide) lucide.createIcons();
   }
+
+  // ---- Assigned Agent/Landlord card tap actions (My Lease screen) ----
+  // Finds the existing Agent/Landlord conversation thread for this listing, or
+  // creates one on the fly (mirrors dispatchAgreementToChat's fallback), then
+  // opens it directly in the Messages screen.
+  function openPeerChatThread(listing, feeType) {
+    if (!listing) return;
+    let conv = conversations.find(c => c.listingTitle === listing.title && c.feeType === feeType);
+    if (!conv) {
+      conv = { id: Date.now() + Math.floor(Math.random() * 1000), inspectionId: null, listingTitle: listing.title, feeType, fee: 0, status: 'active', messages: [] };
+      conversations.unshift(conv);
+      saveConversations();
+    }
+    navigateTo('screen-messages');
+    renderThreadList();
+    openThreadDetail(conv.id);
+  }
+
+  document.getElementById('s7-agent-card').addEventListener('click', () => {
+    if (!s7PropertyListing) return;
+    // Agent chat is always unlocked — route straight into the persistent Agent thread.
+    openPeerChatThread(s7PropertyListing, 'agent');
+  });
+  document.getElementById('s7-agent-card').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('s7-agent-card').click(); }
+  });
+
+  const landlordProfileModal = document.getElementById('landlord-profile-modal');
+
+  function openLandlordCard() {
+    if (!s7PropertyListing || !s7PropertyListing.landlordName) return;
+    const moveInPending = !activeLease || !activeLease.moveInConfirmed;
+    if (moveInPending) {
+      // Move-in still pending: show the basic verified profile sheet, chat stays locked.
+      document.getElementById('lp-name').textContent = s7PropertyListing.landlordName;
+      document.getElementById('lp-listing').textContent = s7PropertyListing.title;
+      const lpAvatar = document.getElementById('lp-avatar');
+      const lpAvatarFallback = document.getElementById('lp-avatar-fallback');
+      if (s7PropertyListing.landlordPhoto) {
+        lpAvatar.src = s7PropertyListing.landlordPhoto; lpAvatar.style.display = 'block'; lpAvatarFallback.style.display = 'none';
+      } else {
+        lpAvatar.style.display = 'none'; lpAvatarFallback.style.display = 'flex';
+      }
+      landlordProfileModal.classList.add('open');
+      if (window.lucide) lucide.createIcons();
+    } else {
+      // Move-in confirmed: route straight into the unlocked Tenant-Landlord chat thread.
+      openPeerChatThread(s7PropertyListing, 'landlord');
+    }
+  }
+  document.getElementById('s7-landlord-card').addEventListener('click', openLandlordCard);
+  document.getElementById('s7-landlord-card').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLandlordCard(); }
+  });
+  document.getElementById('lp-close-btn').addEventListener('click', () => landlordProfileModal.classList.remove('open'));
 
   // ==================================================================
   // ---- Profile Screen: Bio Data + Account & General Settings ----
@@ -6110,6 +6204,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } catch (e) { return null; }
   }
 
+  // ---- Last-active-role tracking (demo session restoration) ----
+  // Independent of the account's original signup role: if the tester used the
+  // role-switch buttons, that becomes the role restored next time they log
+  // back in — mirroring "resume the session you just logged out of".
+  function saveLastActiveRole(role) {
+    if (!role) return;
+    try { localStorage.setItem('mtr_last_active_role', role); } catch (e) {}
+  }
+  function loadLastActiveRole() {
+    try { return localStorage.getItem('mtr_last_active_role'); } catch (e) { return null; }
+  }
+
   function saveAccountRecord() {
     const account = {
       role: currentUserRole || 'tenant',
@@ -6136,12 +6242,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function populateLoginScreen() {
     const account = loadSavedAccount();
+    const lastRole = loadLastActiveRole();
     document.getElementById('login-password').value = '';
     const demoSection = document.getElementById('login-demo-section');
     if (account && account.fullName) {
       demoSection.style.display = 'block';
       document.getElementById('login-demo-name').textContent = account.fullName;
-      document.getElementById('login-demo-role').textContent = roleDisplayNames[account.role] || 'Tenant';
+      // Reflect whichever role the session was last active in (falls back to
+      // the account's original signup role if none was ever recorded).
+      document.getElementById('login-demo-role').textContent = roleDisplayNames[lastRole || account.role] || 'Tenant';
       document.getElementById('login-email').value = account.email || '';
     } else {
       demoSection.style.display = 'none';
@@ -6152,6 +6261,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function enterAppAsRole(role) {
     const account = loadSavedAccount();
     currentUserRole = role;
+    saveLastActiveRole(role);
     restoreAccountToForm(account);
     screenLogin.classList.add('hidden-screen');
     navigateTo('screen-4');
@@ -6162,11 +6272,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function performLogout() {
     // Terminate the active session: stop any in-progress call/recording, close
     // any open modals, and clear the active role so nothing lingers behind the
-    // Login screen.
+    // Login screen. The role itself stays remembered (mtr_last_active_role)
+    // so the next login can restore straight back into it; all dashboard
+    // data (listings, inspections, chats, cart) already lives in its own
+    // localStorage keys and is untouched by logout.
     document.getElementById('call-overlay').classList.remove('open');
     if (typeof callTimerInterval !== 'undefined') clearInterval(callTimerInterval);
     if (typeof isRecordingVoice !== 'undefined' && isRecordingVoice) stopVoiceRecording();
     document.querySelectorAll('.modal-overlay.open, .sheet-overlay.open').forEach(m => m.classList.remove('open'));
+    saveLastActiveRole(currentUserRole);
     currentUserRole = null;
 
     document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
@@ -6200,15 +6314,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   document.getElementById('login-quick-btn').addEventListener('click', () => {
     const account = loadSavedAccount();
-    enterAppAsRole(account ? account.role : 'tenant');
+    const lastRole = loadLastActiveRole();
+    enterAppAsRole(lastRole || (account ? account.role : 'tenant'));
   });
   document.querySelectorAll('.login-role-switch-btn').forEach(btn => {
     btn.addEventListener('click', () => enterAppAsRole(btn.dataset.role));
   });
+  // Demo-mode sign-in: any password is accepted for the saved demo profile —
+  // there is no backend, so this intentionally never validates the password
+  // field against anything, letting testers type any dummy value. Logging in
+  // restores the exact role/dashboard the session was last active in.
   document.getElementById('login-submit-btn').addEventListener('click', () => {
     const account = loadSavedAccount();
+    const lastRole = loadLastActiveRole();
     if (account) {
-      enterAppAsRole(account.role);
+      enterAppAsRole(lastRole || account.role);
     } else {
       showToast('No saved demo account yet — please create an account');
     }
