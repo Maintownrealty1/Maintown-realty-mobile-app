@@ -1626,6 +1626,9 @@
     <i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span id="s7-movein-confirmed-text"></span>
   </div>
 
+  <!-- Auto-Debit Schedule: 11 remaining monthly payments, tied to the move-in date -->
+  <div id="s7-autodebit-schedule" style="display:none; margin-top: 18px;"></div>
+
   <!-- Section 8 Default & Grace Period Tracker -->
   <p class="s5-section-label"><i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>Section 8: Default &amp; Grace Period Tracker</p>
   <div class="stage-track" id="s7-stage-track">
@@ -2081,19 +2084,17 @@
     </div>
 
     <div id="lp-installment-panel" style="display:none;">
-      <p class="s5-section-label" style="margin-top:0;">Repayment Term</p>
-      <div class="plan-grid" id="lp-plan-grid">
-        <div class="plan-option" data-months="3">3 Months</div>
-        <div class="plan-option" data-months="6">6 Months</div>
-        <div class="plan-option" data-months="12">12 Months</div>
-        <div class="plan-option" data-months="24">24 Months</div>
+      <div class="s5-notice-box">
+        <i data-lucide="info" class="w-5 h-5"></i>
+        <p>Fixed 12-month plan: pay Month 1 + 10% Commission + 5% Legal Fee now. The remaining 11 installments auto-debit monthly, 30 days apart, starting from your possession date.</p>
       </div>
       <div class="s5-hold-preview">
-        <div class="s5-hold-row"><span>Down Payment (20%)</span><strong id="lp-down">—</strong></div>
-        <div class="s5-hold-row"><span>Monthly Repayment</span><strong id="lp-monthly">—</strong></div>
-        <div class="s5-hold-row"><span>First Scheduled Auto-Debit</span><strong id="lp-firstdate">—</strong></div>
+        <div class="s5-hold-row"><span>Monthly Installment</span><strong id="lp-monthly">—</strong></div>
+        <div class="s5-hold-row"><span>Agency Commission (10%)</span><strong id="lp-commission">—</strong></div>
+        <div class="s5-hold-row"><span>Legal Fee (5%)</span><strong id="lp-legal">—</strong></div>
         <div class="s5-hold-divider"></div>
-        <div class="s5-hold-row"><span>Repayment Term</span><strong id="lp-term">—</strong></div>
+        <div class="s5-hold-row"><span>Total Due Now (Month 1 + Fees)</span><strong id="lp-down" style="color:#c084fc;">—</strong></div>
+        <div class="s5-hold-row"><span>Remaining 11 Months</span><strong id="lp-firstdate">—</strong></div>
       </div>
     </div>
 
@@ -3341,13 +3342,64 @@ This voucher is auto-generated and serves as proof of settlement.`;
   let checkoutListing = null;
   let checkoutSource = 'wallet';
   let checkoutOtpTimer = null;
-  let checkoutLandPayment = null; // { mode, months, downPayment, monthly, totalPrice, processingFee }
+  let checkoutLandPayment = null; // { mode, months, monthly, commission, legal, upfront, remainingMonths, remainingTotal }
+  let checkoutRentBreakdown = null; // { monthly, commission, legal, upfront, remainingMonths, remainingTotal } — set in openCheckout for rentals
   let checkoutAgreementUploaded = false; // true once the agreement has been digitally executed (signed)
   let checkoutTenantSignature = null; // { mode: 'draw'|'type', data: dataURL or typed name }
 
   function formatMoney(amount, currency) {
     const symbol = currency === 'usd' ? '$' : '₦';
     return symbol + Math.round(amount).toLocaleString('en-US');
+  }
+
+  // ==================================================================
+  // ---- Rent / Land Payment Formula (Year 1 vs Renewal) ----
+  // Applies identically to rentals AND land/property purchases:
+  //   Monthly Amount   = Total Amount ÷ 12
+  //   Agency Commission = 10% of Total Amount (one-time, Year 1 only)
+  //   Legal Fee          = 5% of Total Amount (one-time, Year 1 only)
+  //   Upfront (before move-in / possession) = Month 1 + Commission + Legal
+  //   Remaining 11 months are auto-debited monthly after move-in — no further
+  //   commission or legal fee is added to them.
+  // In renewal/subsequent years, only the Monthly Amount applies — no
+  // commission, no legal fee — spread the same way (Month 1 upfront + 11 auto-debited).
+  // ==================================================================
+  function computeYear1Breakdown(totalAmount) {
+    const monthly = Math.round(totalAmount / 12);
+    const commission = Math.round(totalAmount * 0.10);
+    const legal = Math.round(totalAmount * 0.05);
+    const upfront = monthly + commission + legal;
+    const remainingMonths = 11;
+    const remainingTotal = monthly * remainingMonths;
+    return { monthly, commission, legal, upfront, remainingMonths, remainingTotal, grandTotal: totalAmount + commission + legal, isRenewal: false };
+  }
+
+  function computeRenewalBreakdown(totalAmount) {
+    const monthly = Math.round(totalAmount / 12);
+    const upfront = monthly;
+    const remainingMonths = 11;
+    const remainingTotal = monthly * remainingMonths;
+    return { monthly, commission: 0, legal: 0, upfront, remainingMonths, remainingTotal, grandTotal: totalAmount, isRenewal: true };
+  }
+
+  // Builds the 11 remaining auto-debit due dates, tied to the move-in/possession date —
+  // each spaced 30 days apart, starting 30 days AFTER move-in (Month 1 was paid upfront).
+  function generateAutoDebitSchedule(moveInDateStr, monthlyAmount, count) {
+    count = count || 11;
+    const base = moveInDateStr ? new Date(moveInDateStr) : new Date();
+    const schedule = [];
+    for (let i = 1; i <= count; i++) {
+      const due = new Date(base);
+      due.setDate(due.getDate() + 30 * i);
+      schedule.push({
+        month: i + 1, // Month 2 through Month 12 of the lease year
+        date: due.toISOString().slice(0, 10),
+        dateLabel: due.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        amount: monthlyAmount,
+        status: 'scheduled'
+      });
+    }
+    return schedule;
   }
 
   function selectPaySource(source) {
@@ -3410,31 +3462,36 @@ This voucher is auto-generated and serves as proof of settlement.`;
         document.getElementById('s6-fee-amount').textContent = 'Outright — N/A';
         document.getElementById('s6-total-amount').textContent = formatMoney(checkoutLandPayment.totalPrice + checkoutLandPayment.processingFee, 'ngn');
       } else {
-        document.getElementById('s6-row1-label').textContent = 'Down Payment (20%)';
-        document.getElementById('s6-row2-label').textContent = `Monthly Repayment (${checkoutLandPayment.months} months)`;
-        document.getElementById('s6-row3-label').textContent = 'First Scheduled Auto-Debit';
-        document.getElementById('s6-rent-amount').textContent = formatMoney(checkoutLandPayment.downPayment, 'ngn');
-        document.getElementById('s6-deposit-amount').textContent = formatMoney(checkoutLandPayment.monthly, 'ngn');
-        document.getElementById('s6-fee-amount').textContent = checkoutLandPayment.firstDate;
-        document.getElementById('s6-total-amount').textContent = formatMoney(checkoutLandPayment.downPayment, 'ngn') + ' due now';
+        // Installment plan follows the SAME Year-1 formula as rentals: Total Price ÷ 12
+        // + 10% Commission + 5% Legal, all due upfront alongside Month 1; the remaining
+        // 11 installments auto-debit monthly (30 days apart) after the possession date.
+        document.getElementById('s6-row1-label').textContent = 'Monthly Installment';
+        document.getElementById('s6-row2-label').textContent = 'Agency Commission (10%)';
+        document.getElementById('s6-row3-label').textContent = 'Legal Fee (5%)';
+        document.getElementById('s6-rent-amount').textContent = formatMoney(checkoutLandPayment.monthly, 'ngn');
+        document.getElementById('s6-deposit-amount').textContent = formatMoney(checkoutLandPayment.commission, 'ngn');
+        document.getElementById('s6-fee-amount').textContent = formatMoney(checkoutLandPayment.legal, 'ngn');
+        document.getElementById('s6-total-amount').textContent = formatMoney(checkoutLandPayment.upfront, 'ngn') + ' due now';
       }
     } else {
       signoffSection.style.display = 'none';
-      document.getElementById('s6-breakdown-label').innerHTML = '<i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Rent Breakdown';
-      document.getElementById('s6-row1-label').textContent = 'Rent Amount';
-      document.getElementById('s6-row2-label').textContent = 'Caution Deposit';
-      document.getElementById('s6-row3-label').textContent = 'Service / Escrow Fee';
+      document.getElementById('s6-breakdown-label').innerHTML = '<i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Rent Breakdown (Year 1)';
+      document.getElementById('s6-row1-label').textContent = 'Monthly Rent';
+      document.getElementById('s6-row2-label').textContent = 'Agency Commission (10%)';
+      document.getElementById('s6-row3-label').textContent = 'Legal Fee (5%)';
 
-      const rentRaw = currentCurrency === 'usd' ? listing.usd : listing.ngn;
-      const rentValue = parseFloat(rentRaw.replace(/[^0-9.]/g, '')) || 0;
-      const deposit = rentValue;
-      const fee = Math.round(rentValue * 0.05);
-      const total = rentValue + deposit + fee;
+      // Annual rent in NGN is the canonical figure the 10%/5% fees are calculated from —
+      // use the stored annualPrice (set at listing submission), or fall back to
+      // (monthly rent × 12) for older/seed listings that predate that field.
+      const monthlyNgn = parseFloat((listing.ngn || '').replace(/[^0-9.]/g, '')) || 0;
+      const annualNgn = listing.annualPrice || (monthlyNgn * 12);
+      checkoutRentBreakdown = computeYear1Breakdown(annualNgn);
+      const rate = currentCurrency === 'usd' ? (1 / 1600) : 1;
 
-      document.getElementById('s6-rent-amount').textContent = formatMoney(rentValue, currentCurrency);
-      document.getElementById('s6-deposit-amount').textContent = formatMoney(deposit, currentCurrency);
-      document.getElementById('s6-fee-amount').textContent = formatMoney(fee, currentCurrency);
-      document.getElementById('s6-total-amount').textContent = formatMoney(total, currentCurrency);
+      document.getElementById('s6-rent-amount').textContent = formatMoney(checkoutRentBreakdown.monthly * rate, currentCurrency);
+      document.getElementById('s6-deposit-amount').textContent = formatMoney(checkoutRentBreakdown.commission * rate, currentCurrency);
+      document.getElementById('s6-fee-amount').textContent = formatMoney(checkoutRentBreakdown.legal * rate, currentCurrency);
+      document.getElementById('s6-total-amount').textContent = formatMoney(checkoutRentBreakdown.upfront * rate, currentCurrency) + ' due now';
     }
 
     document.getElementById('s6-payment-section').classList.remove('hidden');
@@ -3871,20 +3928,27 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function buildActiveLeaseFromCheckout() {
     if (!checkoutListing) return;
     if (checkoutListing.type === 'land') {
+      const isInstallment = checkoutLandPayment && checkoutLandPayment.mode === 'installment';
       activeLease = {
         title: checkoutListing.title,
-        amountLabel: checkoutLandPayment && checkoutLandPayment.mode === 'installment'
+        amountLabel: isInstallment
           ? `${formatMoney(checkoutLandPayment.monthly, 'ngn')} / mo (installment)`
           : 'Paid in Full (Outright)',
-        dueLabel: checkoutLandPayment && checkoutLandPayment.mode === 'installment' ? `Next debit: ${checkoutLandPayment.firstDate}` : 'No further payments due',
-        card: checkoutSource === 'card' ? `Card ending in ${document.getElementById('s6-card-last4').textContent}` : 'MainTown Funded Wallet'
+        dueLabel: isInstallment ? 'Move-in date pending — schedule below' : 'No further payments due',
+        card: checkoutSource === 'card' ? `Card ending in ${document.getElementById('s6-card-last4').textContent}` : 'MainTown Funded Wallet',
+        monthlyAmount: isInstallment ? checkoutLandPayment.monthly : 0,
+        remainingMonths: isInstallment ? checkoutLandPayment.remainingMonths : 0,
+        autoDebitSchedule: null
       };
     } else {
       activeLease = {
         title: checkoutListing.title,
         amountLabel: document.getElementById('s6-rent-amount').textContent + ' / mo',
-        dueLabel: 'Next auto-debit in 30 days',
-        card: checkoutSource === 'card' ? `Card ending in ${document.getElementById('s6-card-last4').textContent}` : 'MainTown Funded Wallet'
+        dueLabel: 'Move-in date pending — schedule below',
+        card: checkoutSource === 'card' ? `Card ending in ${document.getElementById('s6-card-last4').textContent}` : 'MainTown Funded Wallet',
+        monthlyAmount: checkoutRentBreakdown ? checkoutRentBreakdown.monthly : 0,
+        remainingMonths: checkoutRentBreakdown ? checkoutRentBreakdown.remainingMonths : 11,
+        autoDebitSchedule: null
       };
     }
   }
@@ -4146,7 +4210,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     };
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
-      listingsFeed.unshift({ ...baseFields, type: 'rent', ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent });
+      listingsFeed.unshift({ ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent });
     } else {
       listingsFeed.unshift({ ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land });
     }
@@ -4276,7 +4340,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     let listingData;
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
-      listingData = { ...baseFields, type: 'rent', ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent };
+      listingData = { ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent };
     } else {
       listingData = { ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land };
     }
@@ -4336,28 +4400,29 @@ This voucher is auto-generated and serves as proof of settlement.`;
   const landPaymentModal = document.getElementById('land-payment-modal');
   let landModalListing = null;
   let landModalMode = 'outright';
-  let landModalMonths = null;
 
   function openLandPaymentModal(listing) {
     landModalListing = listing;
     landModalMode = 'outright';
-    landModalMonths = null;
     document.getElementById('lp-property-name').textContent = listing.title;
     document.getElementById('lp-mode-outright').classList.add('active');
     document.getElementById('lp-mode-installment').classList.remove('active');
     document.getElementById('lp-outright-panel').style.display = 'block';
     document.getElementById('lp-installment-panel').style.display = 'none';
-    document.querySelectorAll('.plan-option').forEach(p => p.classList.remove('selected'));
 
     const fee = Math.round(listing.totalPrice * 0.02);
     document.getElementById('lp-out-total').textContent = formatMoney(listing.totalPrice, 'ngn');
     document.getElementById('lp-out-fee').textContent = formatMoney(fee, 'ngn');
     document.getElementById('lp-out-grand').textContent = formatMoney(listing.totalPrice + fee, 'ngn');
 
-    document.getElementById('lp-down').textContent = '—';
-    document.getElementById('lp-monthly').textContent = '—';
-    document.getElementById('lp-firstdate').textContent = '—';
-    document.getElementById('lp-term').textContent = '—';
+    // Installment breakdown: same Year-1 formula used for rentals — Total Price ÷ 12,
+    // + 10% Agency Commission + 5% Legal Fee (one-time, on the full total price).
+    const b = computeYear1Breakdown(listing.totalPrice);
+    document.getElementById('lp-monthly').textContent = formatMoney(b.monthly, 'ngn') + ' / mo';
+    document.getElementById('lp-commission').textContent = formatMoney(b.commission, 'ngn');
+    document.getElementById('lp-legal').textContent = formatMoney(b.legal, 'ngn');
+    document.getElementById('lp-down').textContent = formatMoney(b.upfront, 'ngn');
+    document.getElementById('lp-firstdate').textContent = `${b.remainingMonths} × ${formatMoney(b.monthly, 'ngn')} = ${formatMoney(b.remainingTotal, 'ngn')}`;
 
     landPaymentModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
@@ -4378,46 +4443,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('lp-installment-panel').style.display = 'block';
   });
 
-  document.getElementById('lp-plan-grid').addEventListener('click', (e) => {
-    const opt = e.target.closest('.plan-option');
-    if (!opt || !landModalListing) return;
-    document.querySelectorAll('.plan-option').forEach(p => p.classList.remove('selected'));
-    opt.classList.add('selected');
-    landModalMonths = parseInt(opt.dataset.months, 10);
-
-    const total = landModalListing.totalPrice;
-    const down = Math.round(total * 0.20);
-    const remaining = total - down;
-    const monthly = Math.round(remaining / landModalMonths);
-    const firstDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    const firstDateStr = firstDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-    document.getElementById('lp-down').textContent = formatMoney(down, 'ngn');
-    document.getElementById('lp-monthly').textContent = formatMoney(monthly, 'ngn') + ' / mo';
-    document.getElementById('lp-firstdate').textContent = firstDateStr;
-    document.getElementById('lp-term').textContent = `${landModalMonths} months`;
-  });
-
   document.getElementById('lp-cancel-btn').addEventListener('click', () => landPaymentModal.classList.remove('open'));
 
   document.getElementById('lp-continue-btn').addEventListener('click', () => {
     if (!landModalListing) return;
-    if (landModalMode === 'installment' && !landModalMonths) {
-      showToast('Select a repayment term to continue');
-      return;
-    }
     const fee = Math.round(landModalListing.totalPrice * 0.02);
     let payload;
     if (landModalMode === 'outright') {
       payload = { mode: 'outright', totalPrice: landModalListing.totalPrice, processingFee: fee };
     } else {
-      const down = Math.round(landModalListing.totalPrice * 0.20);
-      const remaining = landModalListing.totalPrice - down;
-      const monthly = Math.round(remaining / landModalMonths);
-      const firstDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      const b = computeYear1Breakdown(landModalListing.totalPrice);
       payload = {
-        mode: 'installment', months: landModalMonths, downPayment: down, monthly,
-        firstDate: firstDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        mode: 'installment', months: 12,
+        monthly: b.monthly, commission: b.commission, legal: b.legal,
+        upfront: b.upfront, remainingMonths: b.remainingMonths, remainingTotal: b.remainingTotal
       };
     }
     landPaymentModal.classList.remove('open');
@@ -5391,16 +5430,45 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('s7-movein-confirmed').style.display = 'inline-flex';
     if (window.lucide) lucide.createIcons();
 
+    // Auto-Debit Schedule: tied to the move-in date. Month 1 was already paid upfront
+    // at checkout, so the remaining months auto-debit monthly, 30 days apart, starting
+    // 30 days AFTER move-in.
+    if (activeLease && activeLease.monthlyAmount) {
+      activeLease.autoDebitSchedule = generateAutoDebitSchedule(dateVal, activeLease.monthlyAmount, activeLease.remainingMonths || 11);
+      activeLease.dueLabel = `Next auto-debit: ${activeLease.autoDebitSchedule[0].dateLabel}`;
+      document.getElementById('s7-lease-due').textContent = activeLease.dueLabel;
+      renderAutoDebitSchedule();
+    }
+
     // Uploader-based notification routing: Landlord-listed → Landlord only; Agent-listed → Agent + Landlord
     if (listedByAgent) {
-      showToast(`Move-in date sent to the Agent & Landlord for "${propertyTitle}"`);
+      showToast(`Move-in date sent to the Agent & Landlord for "${propertyTitle}" — auto-debit schedule generated`);
     } else {
-      showToast(`Move-in date sent to the Landlord for "${propertyTitle}"`);
+      showToast(`Move-in date sent to the Landlord for "${propertyTitle}" — auto-debit schedule generated`);
     }
   });
 
+  // Renders the 11 remaining monthly auto-debit dates (from the move-in date) into the
+  // "My Lease" screen, so the Tenant can see exactly when each future payment is due.
+  function renderAutoDebitSchedule() {
+    const wrap = document.getElementById('s7-autodebit-schedule');
+    if (!wrap) return;
+    if (!activeLease || !activeLease.autoDebitSchedule) {
+      wrap.innerHTML = '';
+      wrap.style.display = 'none';
+      return;
+    }
+    wrap.style.display = 'block';
+    wrap.innerHTML = `
+      <p class="s5-section-label"><i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>Auto-Debit Schedule (Remaining ${activeLease.autoDebitSchedule.length} Months)</p>
+      <div class="s5-hold-preview">
+        ${activeLease.autoDebitSchedule.map(s => `<div class="s5-hold-row"><span>Month ${s.month} — ${s.dateLabel}</span><strong>${formatMoney(s.amount, 'ngn')}</strong></div>`).join('')}
+      </div>`;
+    if (window.lucide) lucide.createIcons();
+  }
+
   function populateScreen7() {
-    const fallback = { title: rentListings()[0] ? rentListings()[0].title : 'Your Active Lease', amountLabel: '₦180,000 / mo', dueLabel: 'Next auto-debit in 30 days', card: 'Card ending in 4321' };
+    const fallback = { title: rentListings()[0] ? rentListings()[0].title : 'Your Active Lease', amountLabel: '₦180,000 / mo', dueLabel: 'Move-in date pending — schedule below', card: 'Card ending in 4321' };
     const lease = activeLease || fallback;
     document.getElementById('s7-lease-title').textContent = lease.title;
     document.getElementById('s7-lease-amount').textContent = lease.amountLabel;
@@ -5450,6 +5518,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         : `Digitally signed — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
     document.getElementById('s7-movein-date').value = '';
     document.getElementById('s7-movein-confirmed').style.display = 'none';
+    renderAutoDebitSchedule();
     renderStageTracker();
     renderTicketList();
     if (window.lucide) lucide.createIcons();
