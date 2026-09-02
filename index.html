@@ -966,15 +966,20 @@
   .notif-tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .notif-tab { flex-shrink: 0; padding: 8px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600; color: #94a3b8; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; cursor: pointer; transition: all .15s ease; }
   .notif-tab.active { color: #fff; background: rgba(147,51,234,0.25); border-color: #a855f7; }
-  .notif-item { position: relative; display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 14px; margin-bottom: 10px; cursor: pointer; transition: border-color .15s ease; }
-  .notif-item:hover { border-color: #334155; }
+  .notif-item { position: relative; display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 14px; margin-bottom: 10px; cursor: pointer; transition: border-color .15s ease, transform .15s ease; }
+  .notif-item:hover { border-color: #334155; transform: scale(1.01); }
   .notif-item.unread { border-color: rgba(168,85,247,0.4); background: rgba(59,7,100,0.15); }
+  .notif-item.notif-static { cursor: default; }
+  .notif-item.notif-static:hover { border-color: #1e293b; transform: none; }
+  .notif-item.notif-static.unread:hover { border-color: rgba(168,85,247,0.4); }
+  .notif-chevron { flex-shrink: 0; color: #475569; align-self: center; }
   .notif-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(147,51,234,0.15); color: #c084fc; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .notif-text { flex: 1; min-width: 0; }
   .notif-title { font-size: 13px; font-weight: 600; color: #fff; margin: 0 0 3px; }
   .notif-body { font-size: 12px; color: #94a3b8; margin: 0 0 4px; line-height: 1.4; }
   .notif-time { font-size: 10.5px; color: #64748b; margin: 0; }
   .notif-unread-dot { position: absolute; top: 14px; right: 14px; width: 8px; height: 8px; border-radius: 999px; background: #a855f7; flex-shrink: 0; }
+  .notif-item:not(.notif-static) .notif-unread-dot { right: 34px; }
 
   .chat-bubble { max-width: 88%; padding: 10px 13px; border-radius: 14px; font-size: 12.5px; line-height: 1.5; margin-bottom: 10px; }
   .chat-bubble.system { background: rgba(30,41,59,0.7); color: #94a3b8; border: 1px solid #1e293b; margin: 0 auto 10px; text-align: center; font-size: 11.5px; max-width: 100%; }
@@ -1186,6 +1191,91 @@
   }
   .insp-secondary-full-btn:hover { border-color: #334155; }
   .insp-secondary-full-btn:disabled { cursor: not-allowed; opacity: 0.55; background: rgba(148,163,184,0.08); color: #64748b; border-color: rgba(148,163,184,0.2); }
+
+  /* ==================================================================
+     ---- SCREEN PAY-RENT: Financial Hub & Checkout ----
+     ================================================================== */
+  .pr-balance-card { background: linear-gradient(160deg, #131927, #0f1420); border: 1px solid #1e293b; border-radius: 20px; padding: 20px; margin-bottom: 18px; }
+  .pr-balance-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
+  .pr-balance-label { font-size: 11.5px; color: #94a3b8; margin: 0 0 4px; }
+  .pr-balance-amount { font-size: 26px; font-weight: 700; color: #fff; margin: 0 0 3px; }
+  .pr-balance-sub { font-size: 11.5px; color: #64748b; margin: 0; }
+  .pr-currency-toggle { display: flex; background: rgba(15,23,42,0.9); border: 1px solid #1e293b; border-radius: 999px; padding: 3px; flex-shrink: 0; }
+  .pr-currency-btn { border: none; background: transparent; color: #94a3b8; font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+  .pr-currency-btn.active { background: #8b5cf6; color: #fff; }
+  .pr-progress-wrap { margin: 0; }
+  .pr-progress-labels { display: flex; justify-content: space-between; font-size: 11.5px; color: #94a3b8; margin-bottom: 8px; }
+  .pr-progress-pct { color: #c084fc; font-weight: 600; }
+
+  .pr-method-list { display: flex; flex-direction: column; gap: 10px; }
+  .pr-method-card { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-radius: 14px; border: 1px solid #1e293b; background: rgba(19,25,39,0.8); cursor: pointer; transition: border-color 0.15s ease; }
+  .pr-method-card:hover { border-color: #334155; }
+  .pr-method-card.selected { border-color: rgba(139,92,246,0.6); background: rgba(139,92,246,0.08); }
+  .pr-method-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(139,92,246,0.12); color: #c084fc; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .pr-method-text { flex: 1; min-width: 0; }
+  .pr-method-title { font-size: 13px; font-weight: 600; color: #fff; margin: 0 0 2px; }
+  .pr-method-sub { font-size: 11px; color: #64748b; margin: 0; }
+  .pr-method-radio { width: 18px; height: 18px; border-radius: 999px; border: 2px solid #334155; flex-shrink: 0; position: relative; }
+  .pr-method-card.selected .pr-method-radio { border-color: #8b5cf6; }
+  .pr-method-card.selected .pr-method-radio::after { content: ''; position: absolute; inset: 3px; border-radius: 999px; background: #8b5cf6; }
+
+  .pr-toggle-row { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 14px; border: 1px solid #1e293b; background: rgba(19,25,39,0.8); }
+  .pr-toggle-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(139,92,246,0.12); color: #c084fc; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .pr-toggle-text { flex: 1; min-width: 0; }
+  .pr-toggle-title { font-size: 13px; font-weight: 600; color: #fff; margin: 0 0 2px; }
+  .pr-toggle-sub { font-size: 11px; color: #64748b; margin: 0; line-height: 1.4; }
+  .pr-switch { position: relative; flex-shrink: 0; width: 42px; height: 24px; }
+  .pr-switch input { opacity: 0; width: 0; height: 0; }
+  .pr-switch-track { position: absolute; inset: 0; background: #334155; border-radius: 999px; transition: background 0.2s ease; cursor: pointer; }
+  .pr-switch-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 999px; background: #fff; transition: transform 0.2s ease; }
+  .pr-switch input:checked + .pr-switch-track { background: #8b5cf6; }
+  .pr-switch input:checked + .pr-switch-track .pr-switch-thumb { transform: translateX(18px); }
+  .pr-pay-btn { display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(139,92,246,0.4); }
+
+  /* ==================================================================
+     ---- SCREEN MY-LEASE: Digital Vault & Title Audit ----
+     ================================================================== */
+  .ml-property-address { font-size: 11.5px; color: #64748b; margin: 4px 0; display: flex; align-items: center; gap: 4px; }
+  .ml-stamp-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #34d399; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); padding: 3px 8px; border-radius: 999px; margin-top: 2px; }
+  .ml-doc-btn { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .ml-doc-btn span { font-size: 11.5px; font-weight: 600; }
+  .ml-metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+  .ml-metric-card { background: rgba(19,25,39,0.8); border: 1px solid #1e293b; border-radius: 14px; padding: 12px 10px; text-align: center; }
+  .ml-metric-label { font-size: 10px; color: #64748b; margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .ml-metric-value { font-size: 13.5px; font-weight: 700; color: #fff; margin: 0 0 3px; }
+  .ml-metric-sub { font-size: 9.5px; color: #94a3b8; margin: 0; }
+  .ml-actions-row { display: flex; gap: 10px; margin-bottom: 8px; }
+
+  /* ==================================================================
+     ---- SCREEN REPORT-ISSUE: Maintenance Ticketing System ----
+     ================================================================== */
+  .ri-cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+  .ri-cat-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px;
+    padding: 16px 6px; border-radius: 14px; border: 1px solid #1e293b; background: rgba(19,25,39,0.8);
+    color: #94a3b8; font-size: 11px; font-weight: 600; cursor: pointer; transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .ri-cat-btn:hover { border-color: #334155; }
+  .ri-cat-btn.selected { border-color: rgba(139,92,246,0.6); background: rgba(139,92,246,0.1); color: #c084fc; }
+  .ri-urgency-row { display: flex; gap: 10px; margin-bottom: 18px; }
+  .ri-urgency-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 13px 8px;
+    border-radius: 14px; border: 1px solid #1e293b; background: rgba(19,25,39,0.8); color: #94a3b8; cursor: pointer;
+  }
+  .ri-urgency-btn span { font-size: 12.5px; font-weight: 600; color: #e2e8f0; }
+  .ri-urgency-btn small { font-size: 9.5px; color: #64748b; }
+  .ri-urgency-btn.selected { border-color: rgba(139,92,246,0.6); background: rgba(139,92,246,0.1); }
+  .ri-urgency-btn.selected span { color: #c084fc; }
+  .ri-urgency-btn.ri-urgency-emergency.selected { border-color: rgba(248,113,113,0.6); background: rgba(248,113,113,0.1); }
+  .ri-urgency-btn.ri-urgency-emergency.selected span { color: #f87171; }
+  .ri-urgency-btn.ri-urgency-emergency.selected i { color: #f87171; }
+  .ri-dispatch-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+  .ri-dispatch-btn {
+    display: flex; align-items: center; gap: 10px; padding: 13px 14px; border-radius: 14px; border: 1px solid #1e293b;
+    background: rgba(19,25,39,0.8); color: #e2e8f0; font-size: 12.5px; font-weight: 600; cursor: pointer; text-align: left;
+  }
+  .ri-dispatch-btn.selected { border-color: rgba(139,92,246,0.6); background: rgba(139,92,246,0.1); color: #c084fc; }
+  .ticket-sla { font-size: 10.5px; color: #64748b; margin: 6px 0 0; display: flex; align-items: center; gap: 4px; }
   .insp-mgmt-badges { display: flex; flex-wrap: wrap; gap: 6px; }
   .insp-date-badge {
     display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600;
@@ -1642,11 +1732,6 @@
     <div id="s5-landlord-list">
       <!-- populated dynamically -->
     </div>
-
-    <p class="s5-section-label"><i data-lucide="calendar-check" class="w-4 h-4 text-amber-400"></i>Inspections Manager</p>
-    <div id="s5-landlord-inspections">
-      <!-- populated dynamically: pending / confirmed inspection requests -->
-    </div>
   </div>
 
   <!-- ---- AGENT VIEW: Upload Listing & Mandatory Landlord Mapping ---- -->
@@ -2050,6 +2135,268 @@
 </div>
 <!-- ===================== END SCREEN 7 ===================== -->
 
+<!-- ===================== SCREEN PAY-RENT: Financial Hub & Checkout ===================== -->
+<div id="screen-pay-rent" class="screen-view hidden pb-24">
+
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="pr-back-btn">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="wallet" class="w-3.5 h-3.5"></i><span>Financial Hub</span></p>
+    </div>
+  </div>
+
+  <h1 class="s5-role-title" style="margin-bottom: 16px;">Pay Rent</h1>
+
+  <!-- Balance Card -->
+  <div class="pr-balance-card">
+    <div class="pr-balance-top">
+      <div>
+        <p class="pr-balance-label">Amount Due</p>
+        <p class="pr-balance-amount" id="pr-balance-amount">₦180,000</p>
+        <p class="pr-balance-sub" id="pr-balance-property">—</p>
+      </div>
+      <div class="pr-currency-toggle" id="pr-currency-toggle">
+        <button type="button" class="pr-currency-btn active" data-currency="ngn">₦ NGN</button>
+        <button type="button" class="pr-currency-btn" data-currency="usd">$ USD</button>
+      </div>
+    </div>
+    <div class="pr-progress-wrap">
+      <div class="pr-progress-labels">
+        <span id="pr-progress-label">8/12 months paid</span>
+        <span id="pr-progress-pct" class="pr-progress-pct">67%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="pr-progress-fill" style="width:67%;"></div></div>
+    </div>
+  </div>
+
+  <!-- Line-Item Breakdown -->
+  <p class="s5-section-label"><i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Payment Breakdown</p>
+  <div class="s5-hold-preview">
+    <div class="s5-hold-row"><span>Base Rent</span><strong id="pr-base-rent">₦165,000</strong></div>
+    <div class="s5-hold-row"><span>Service &amp; Facility Charges</span><strong id="pr-service-charge">₦15,000</strong></div>
+    <div class="s5-hold-row"><span>Platform Escrow Fee</span><strong id="pr-escrow-fee">₦0.00</strong></div>
+  </div>
+
+  <!-- Payment Method Selectors -->
+  <p class="s5-section-label"><i data-lucide="credit-card" class="w-4 h-4 text-purple-400"></i>Payment Method</p>
+  <div class="pr-method-list" id="pr-method-list">
+    <div class="pr-method-card selected" data-method="card">
+      <div class="pr-method-icon"><i data-lucide="credit-card" class="w-4 h-4"></i></div>
+      <div class="pr-method-text">
+        <p class="pr-method-title">Debit / Credit Card</p>
+        <p class="pr-method-sub">Naira, USD, GBP &amp; EUR cards accepted</p>
+      </div>
+      <div class="pr-method-radio"></div>
+    </div>
+    <div class="pr-method-card" data-method="directdebit">
+      <div class="pr-method-icon"><i data-lucide="repeat" class="w-4 h-4"></i></div>
+      <div class="pr-method-text">
+        <p class="pr-method-title">Automated Direct Debit</p>
+        <p class="pr-method-sub">Paystack / Mono mandate</p>
+      </div>
+      <div class="pr-method-radio"></div>
+    </div>
+    <div class="pr-method-card" data-method="crypto">
+      <div class="pr-method-icon"><i data-lucide="coins" class="w-4 h-4"></i></div>
+      <div class="pr-method-text">
+        <p class="pr-method-title">Stablecoin</p>
+        <p class="pr-method-sub">Pay with USDT or USDC</p>
+      </div>
+      <div class="pr-method-radio"></div>
+    </div>
+  </div>
+
+  <!-- Vertex AI Credit Building Toggle -->
+  <div class="pr-toggle-row" style="margin-top: 18px;">
+    <div class="pr-toggle-icon"><i data-lucide="trending-up" class="w-4 h-4"></i></div>
+    <div class="pr-toggle-text">
+      <p class="pr-toggle-title">Vertex AI Credit Building</p>
+      <p class="pr-toggle-sub">Report on-time payments to credit bureaus to boost your score</p>
+    </div>
+    <label class="pr-switch">
+      <input type="checkbox" id="pr-credit-toggle">
+      <span class="pr-switch-track"><span class="pr-switch-thumb"></span></span>
+    </label>
+  </div>
+
+  <button type="button" id="pr-pay-btn" class="btn-primary pr-pay-btn" style="margin-top: 22px;">PAY ₦180,000 NOW</button>
+
+</div>
+<!-- ===================== END SCREEN PAY-RENT ===================== -->
+
+<!-- ===================== SCREEN MY-LEASE: Digital Vault & Title Audit ===================== -->
+<div id="screen-my-lease" class="screen-view hidden pb-24">
+
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="ml-back-btn">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="file-text" class="w-3.5 h-3.5"></i><span>Digital Vault</span></p>
+    </div>
+  </div>
+
+  <h1 class="s5-role-title" style="margin-bottom: 16px;">My Lease</h1>
+
+  <!-- Property Summary Card -->
+  <div class="dash-card" style="margin-bottom: 14px;">
+    <p class="dash-card-label" id="ml-property-title">—</p>
+    <p class="ml-property-address" id="ml-property-address">—</p>
+    <p class="dash-card-sub" id="ml-property-dates">—</p>
+    <span class="s5-verified-badge" style="margin-top: 10px;"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Title Verified via Cadastral Beacon</span>
+  </div>
+
+  <!-- Assigned Agent & Landlord -->
+  <p class="s5-section-label"><i data-lucide="users" class="w-4 h-4 text-purple-400"></i>Assigned to Your Property</p>
+  <div class="assigned-people-row">
+    <div class="assigned-person-card" id="ml-agent-card" role="button" tabindex="0">
+      <img id="ml-agent-avatar" class="assigned-person-avatar" alt="Agent" style="display:none;">
+      <div id="ml-agent-avatar-fallback" class="assigned-person-avatar" style="display:flex; align-items:center; justify-content:center;">
+        <i data-lucide="briefcase" class="w-5 h-5 text-slate-500"></i>
+      </div>
+      <p class="assigned-person-role">Agent</p>
+      <p class="assigned-person-name" id="ml-agent-name">—</p>
+    </div>
+    <div class="assigned-person-card" id="ml-landlord-card" role="button" tabindex="0">
+      <img id="ml-landlord-avatar" class="assigned-person-avatar" alt="Landlord" style="display:none;">
+      <div id="ml-landlord-avatar-fallback" class="assigned-person-avatar" style="display:flex; align-items:center; justify-content:center;">
+        <i data-lucide="key-round" class="w-5 h-5 text-slate-500"></i>
+      </div>
+      <p class="assigned-person-role">Landlord</p>
+      <p class="assigned-person-name" id="ml-landlord-name">—</p>
+    </div>
+  </div>
+
+  <!-- Agreement Documents Vault -->
+  <p class="s5-section-label"><i data-lucide="folder-lock" class="w-4 h-4 text-purple-400"></i>Agreement Documents Vault</p>
+  <div class="s5-list-item" style="margin-bottom: 10px;">
+    <div class="s5-list-icon"><i data-lucide="file-text" class="w-5 h-5"></i></div>
+    <div class="s5-list-text">
+      <p class="s5-list-title">LexiDraft Tenancy Agreement.pdf</p>
+      <p class="s5-list-sub"><span class="ml-stamp-badge"><i data-lucide="stamp" class="w-3 h-3"></i>Stamped by Legal Adviser</span></p>
+    </div>
+    <button type="button" class="s5-back-btn ml-doc-btn" id="ml-download-agreement-btn" style="width:auto; padding:0 14px;">
+      <i data-lucide="download" class="w-4 h-4"></i><span>Download</span>
+    </button>
+  </div>
+  <div class="s5-list-item" style="margin-bottom: 20px;">
+    <div class="s5-list-icon"><i data-lucide="map-pinned" class="w-5 h-5"></i></div>
+    <div class="s5-list-text">
+      <p class="s5-list-title">Cadastral Survey &amp; GPS Audit Certificate</p>
+      <p class="s5-list-sub">Independent title verification record</p>
+    </div>
+    <button type="button" class="s5-back-btn ml-doc-btn" id="ml-view-title-btn" style="width:auto; padding:0 14px;">
+      <i data-lucide="eye" class="w-4 h-4"></i><span>View Title</span>
+    </button>
+  </div>
+
+  <!-- Lease Metrics Grid -->
+  <p class="s5-section-label"><i data-lucide="layout-grid" class="w-4 h-4 text-purple-400"></i>Lease Metrics</p>
+  <div class="ml-metrics-grid">
+    <div class="ml-metric-card">
+      <p class="ml-metric-label">Security Deposit</p>
+      <p class="ml-metric-value" id="ml-deposit-amount">₦300,000</p>
+      <p class="ml-metric-sub">Held in Escrow</p>
+    </div>
+    <div class="ml-metric-card">
+      <p class="ml-metric-label">Notice to Quit</p>
+      <p class="ml-metric-value">30 Days</p>
+      <p class="ml-metric-sub">Standard notice period</p>
+    </div>
+    <div class="ml-metric-card">
+      <p class="ml-metric-label">Verification</p>
+      <p class="ml-metric-value" style="color:#34d399; font-size: 14px;"><i data-lucide="badge-check" class="w-4 h-4" style="display:inline; vertical-align:-3px;"></i> Verified</p>
+      <p class="ml-metric-sub">Landlord / Agent KYC</p>
+    </div>
+  </div>
+
+  <!-- Action CTAs -->
+  <div class="ml-actions-row">
+    <button type="button" class="s5-action-btn" id="ml-extension-btn"><i data-lucide="calendar-plus" class="w-4 h-4"></i>Request Extension</button>
+    <button type="button" class="s5-action-btn" id="ml-terminate-btn" style="color:#f87171; border-color: rgba(248,113,113,0.35);"><i data-lucide="log-out" class="w-4 h-4"></i>Terminate Lease</button>
+  </div>
+
+</div>
+<!-- ===================== END SCREEN MY-LEASE ===================== -->
+
+<!-- ===================== SCREEN REPORT-ISSUE: Maintenance Ticketing System ===================== -->
+<div id="screen-report-issue" class="screen-view hidden pb-24">
+
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="ri-back-btn">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="wrench" class="w-3.5 h-3.5"></i><span>Maintenance</span></p>
+    </div>
+  </div>
+
+  <h1 class="s5-role-title" style="margin-bottom: 16px;">Report an Issue</h1>
+
+  <!-- Category Grid Selector -->
+  <p class="s5-section-label" style="margin-top:0;"><i data-lucide="grid-2x2" class="w-4 h-4 text-purple-400"></i>What&apos;s the issue?</p>
+  <div class="ri-cat-grid" id="ri-cat-grid">
+    <button type="button" class="ri-cat-btn" data-cat="Plumbing"><i data-lucide="droplets" class="w-5 h-5"></i><span>Plumbing</span></button>
+    <button type="button" class="ri-cat-btn" data-cat="Electrical"><i data-lucide="zap" class="w-5 h-5"></i><span>Electrical</span></button>
+    <button type="button" class="ri-cat-btn" data-cat="Locksmith"><i data-lucide="key-round" class="w-5 h-5"></i><span>Locksmith</span></button>
+    <button type="button" class="ri-cat-btn" data-cat="AC/HVAC"><i data-lucide="fan" class="w-5 h-5"></i><span>AC / HVAC</span></button>
+    <button type="button" class="ri-cat-btn" data-cat="Structural"><i data-lucide="building-2" class="w-5 h-5"></i><span>Structural</span></button>
+    <button type="button" class="ri-cat-btn" data-cat="General Repair"><i data-lucide="hammer" class="w-5 h-5"></i><span>General Repair</span></button>
+  </div>
+
+  <div class="field">
+    <label class="field-label">Describe the issue</label>
+    <input class="field-input" id="ri-desc" type="text" placeholder="e.g. Kitchen tap is leaking">
+  </div>
+
+  <!-- Proof Upload -->
+  <p class="s5-section-label"><i data-lucide="camera" class="w-4 h-4 text-purple-400"></i>Proof of Issue</p>
+  <div class="s5-upload-box" id="ri-upload">
+    <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+    <span id="ri-upload-label">Tap to upload a photo or video</span>
+    <input type="file" id="ri-file" hidden accept="image/*,video/*">
+  </div>
+
+  <!-- Urgency Level Selector -->
+  <p class="s5-section-label"><i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>Urgency Level</p>
+  <div class="ri-urgency-row" id="ri-urgency-row">
+    <button type="button" class="ri-urgency-btn selected" data-urgency="Standard">
+      <i data-lucide="clock" class="w-4 h-4"></i>
+      <span>Standard</span>
+      <small>24hr response window</small>
+    </button>
+    <button type="button" class="ri-urgency-btn ri-urgency-emergency" data-urgency="Emergency">
+      <i data-lucide="siren" class="w-4 h-4"></i>
+      <span>Emergency</span>
+      <small>Water leak / power outage</small>
+    </button>
+  </div>
+
+  <!-- Dispatch Routing Preference -->
+  <p class="s5-section-label"><i data-lucide="route" class="w-4 h-4 text-purple-400"></i>Dispatch Preference</p>
+  <div class="ri-dispatch-row" id="ri-dispatch-row">
+    <button type="button" class="ri-dispatch-btn selected" data-dispatch="artisan">
+      <i data-lucide="hard-hat" class="w-4 h-4"></i>
+      <span>Send MainTown Vetted Artisan</span>
+    </button>
+    <button type="button" class="ri-dispatch-btn" data-dispatch="owner">
+      <i data-lucide="user-check" class="w-4 h-4"></i>
+      <span>Notify Landlord / Agent to Resolve</span>
+    </button>
+  </div>
+
+  <button type="button" id="ri-submit-btn" class="btn-primary pr-pay-btn" style="margin-top: 22px; margin-bottom: 16px;">
+    <i data-lucide="send" class="w-4 h-4" style="display:inline; vertical-align:-2px; margin-right:6px;"></i>SUBMIT TICKET &amp; DISPATCH
+  </button>
+
+  <p class="s5-section-label"><i data-lucide="list-checks" class="w-4 h-4 text-purple-400"></i>Your Tickets</p>
+  <div id="ri-ticket-list"></div>
+
+</div>
+<!-- ===================== END SCREEN REPORT-ISSUE ===================== -->
+
 <!-- ===================== SCREEN MESSAGES: Inspection Chats ===================== -->
 <div id="screen-messages" class="screen-view hidden pb-24">
 
@@ -2133,6 +2480,7 @@
     <button type="button" class="notif-tab" data-tab="inspection">Inspections</button>
     <button type="button" class="notif-tab" data-tab="payment">Payments</button>
     <button type="button" class="notif-tab" data-tab="message">Messages</button>
+    <button type="button" class="notif-tab" data-tab="maintenance">Maintenance</button>
   </div>
 
   <div id="notif-list"></div>
@@ -2748,6 +3096,42 @@
   </div>
 </div>
 
+<!-- ===================== Landlord/Agent — Verification & Escrow Release Status Sheet ===================== -->
+<!-- Shown in place of Secure Checkout whenever a Landlord/Agent session hits a
+     tenant-only "proceed to pay" trigger (e.g. Book Inspection / Land Purchase
+     modals). Read-only: Landlords/Agents never initiate a tenant's payment. -->
+<div id="escrow-status-modal" class="sheet-overlay">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <h2 class="sheet-title"><i data-lucide="shield-check" class="w-4 h-4"></i><span>Verification &amp; Escrow Status</span></h2>
+        <p class="sheet-subtitle" id="es-property-name">—</p>
+      </div>
+      <button type="button" class="sheet-close-btn" id="es-close-btn">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+
+    <div class="bank-info-card">
+      <div class="bank-info-row">
+        <div class="bank-icon-wrap"><i data-lucide="badge-check" class="w-4 h-4"></i></div>
+        <div>
+          <p class="bank-info-label">KYC / Listing Verification</p>
+          <p class="bank-info-value" id="es-kyc-status">Verified</p>
+        </div>
+      </div>
+      <div class="security-badge">
+        <i data-lucide="lock" class="w-3 h-3"></i>
+        Checkout &amp; Payment initiation is a Tenant-only action
+      </div>
+    </div>
+
+    <p class="txn-section-title">Escrow Status</p>
+    <div id="es-escrow-body"><!-- populated dynamically --></div>
+  </div>
+</div>
+
 <!-- ===================== Landlord Agreement Review & Sign-Off Sheet ===================== -->
 <div id="handover-review-modal" class="sheet-overlay">
   <div class="sheet-card">
@@ -3216,6 +3600,30 @@
       document.getElementById(screenId).classList.remove('hidden');
     }
 
+    // ==================================================================
+    // ---- Role-Based Screen Guard: Secure Checkout & Post-Lease Hub ----
+    // Both routes are Tenant-only. Any Landlord/Agent session that reaches them
+    // (stale links, direct calls, back/forward nav) is redirected to their own
+    // dashboard, with the closest role-relevant replacement view opened on top:
+    //   Secure Checkout      → Payout Ledger / Earnings Summary
+    //   Post-Lease Hub        → Tenant Overview (Closed Deals / Active Leases)
+    // ==================================================================
+    if (screenId === 'screen-6' && (currentUserRole || 'tenant') !== 'tenant') {
+      showToast('Secure Checkout is a Tenant-only screen — showing your Payout Ledger instead');
+      screenId = 'screen-4';
+      document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+      document.getElementById(screenId).classList.remove('hidden');
+      setTimeout(() => openPayoutHistory(currentUserRole), 200);
+    }
+
+    if (screenId === 'screen-post-lease' && (currentUserRole || 'tenant') !== 'tenant') {
+      showToast('Manage Your Tenancy is a Tenant-only screen — showing your Tenant Overview instead');
+      screenId = 'screen-4';
+      document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+      document.getElementById(screenId).classList.remove('hidden');
+      setTimeout(() => openClosedDealsModal(currentUserRole), 200);
+    }
+
     if (screenId === 'screen-4') {
       populateScreen4();
     }
@@ -3230,6 +3638,19 @@
 
     if (screenId === 'screen-post-lease') {
       populateScreen7();
+    }
+
+    if (screenId === 'screen-pay-rent') {
+      populatePayRentScreen();
+    }
+
+    if (screenId === 'screen-my-lease') {
+      populateMyLeaseScreen();
+    }
+
+    if (screenId === 'screen-report-issue') {
+      checkTicketSLAEscalation();
+      renderIssueTicketList();
     }
 
     if (screenId === 'screen-cart') {
@@ -3433,9 +3854,9 @@
       cardSub: 'Next payment due in 12 days',
       actions: [
         { icon: 'search', label: 'Find a Home', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
-        { icon: 'wallet', label: 'Pay Rent', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'toast' },
-        { icon: 'wrench', label: 'Report Issue', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'toast' },
-        { icon: 'file-text', label: 'My Lease', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'toast' }
+        { icon: 'wallet', label: 'Pay Rent', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'payRent' },
+        { icon: 'wrench', label: 'Report Issue', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'reportIssue' },
+        { icon: 'file-text', label: 'My Lease', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'myLease' }
       ],
       activity: [
         { icon: 'receipt', color: 'text-emerald-400', title: 'Rent payment received', sub: 'Aug 1 · ₦180,000' },
@@ -3588,6 +4009,51 @@
   document.getElementById('cd-close-btn').addEventListener('click', () => closedDealsModal.classList.remove('open'));
   closedDealsModal.addEventListener('click', (e) => {
     if (e.target === closedDealsModal) closedDealsModal.classList.remove('open');
+  });
+
+  // ---- Verification & Escrow Release Status (Landlord/Agent substitute for Secure Checkout) ----
+  const escrowStatusModal = document.getElementById('escrow-status-modal');
+  function openEscrowStatusModal(listing) {
+    document.getElementById('es-property-name').textContent = (listing && listing.title) || 'Selected Property';
+    document.getElementById('es-kyc-status').textContent = (listing && listing.landlordVerified === false) ? 'Pending Verification' : 'Verified';
+
+    const relevant = listing
+      ? transactionLedger.filter(t => t.listing_id === `PROP-${listing.id}`)
+      : [];
+    const body = document.getElementById('es-escrow-body');
+    if (!relevant.length) {
+      body.innerHTML = `
+        <div class="txn-row">
+          <div class="txn-row-top">
+            <div>
+              <p class="txn-title">No escrow currently held</p>
+              <p class="txn-date">Funds move to escrow once the tenant proceeds to checkout</p>
+            </div>
+            <span class="txn-status-badge pending">NONE</span>
+          </div>
+        </div>`;
+    } else {
+      body.innerHTML = relevant.slice(0, 5).map(t => `
+        <div class="txn-row">
+          <div class="txn-row-top">
+            <div>
+              <p class="txn-title">${t.deal_stage}</p>
+              <p class="txn-date">${new Date(t.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+            </div>
+            <span class="txn-status-badge ${t.escrow_status === 'RELEASED' ? 'settled' : 'pending'}">${t.escrow_status}</span>
+          </div>
+          <div class="txn-breakdown">
+            <div class="txn-breakdown-row"><span>Gross Amount</span><span>${formatMoney(t.financial_breakdown.gross_collected, 'ngn')}</span></div>
+            <div class="txn-breakdown-row net"><span>Deal Status</span><span>${t.status}</span></div>
+          </div>
+        </div>`).join('');
+    }
+    escrowStatusModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('es-close-btn').addEventListener('click', () => escrowStatusModal.classList.remove('open'));
+  escrowStatusModal.addEventListener('click', (e) => {
+    if (e.target === escrowStatusModal) escrowStatusModal.classList.remove('open');
   });
 
   document.getElementById('ph-close-btn').addEventListener('click', () => {
@@ -3761,6 +4227,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       navigateTo('screen-5');
     } else if (tile.dataset.action === 'payoutHistory') {
       openPayoutHistory(currentUserRole);
+    } else if (tile.dataset.action === 'payRent') {
+      navigateTo('screen-pay-rent');
+    } else if (tile.dataset.action === 'reportIssue') {
+      navigateTo('screen-report-issue');
+    } else if (tile.dataset.action === 'myLease') {
+      navigateTo('screen-my-lease');
     } else if (tile.dataset.action === 'tenants' || tile.dataset.action === 'clients') {
       openClosedDealsModal(tile.dataset.action === 'tenants' ? 'landlord' : 'agent');
     } else {
@@ -4175,8 +4647,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
   wtConfirmBtn.addEventListener('click', () => {
     if (wtConfirmBtn.disabled) return;
     walkthroughModal.classList.remove('open');
+    const listing = walkthroughListing || rentListings()[0];
+    // Action Button Guard: booking/checkout is a Tenant-only action. A Landlord/Agent
+    // reaching this trigger sees Verification & Escrow Status instead of Checkout.
+    if ((currentUserRole || 'tenant') !== 'tenant') {
+      openEscrowStatusModal(listing);
+      return;
+    }
     showToast(`Inspection confirmed — ${selectedTimeslot}`);
-    openCheckout(walkthroughListing || rentListings()[0]);
+    openCheckout(listing);
     navigateTo('screen-6');
   });
 
@@ -4519,7 +4998,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // chat message, routed straight to this specific conversation thread.
     pushPlatformNotification(conv.feeType === 'agent' ? 'agent' : 'landlord', 'message',
       'New Message', `Signed agreement received in chat for ${listing.title}.`,
-      { screen: 'screen-messages', convId: conv.id });
+      { screen: 'screen-messages', convId: conv.id }, 'NEW_MESSAGE');
   }
 
 
@@ -4845,7 +5324,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ['landlord', 'agent'].forEach(forRole => {
         pushPlatformNotification(forRole, 'payment', 'Escrow Funds Received',
           `Escrow funds received for ${propertyTitle}. Awaiting move-in confirmation.`,
-          { screen: 'screen-post-lease' });
+          { screen: 'screen-post-lease' }, 'ESCROW_FUNDS_RECEIVED');
       });
     }
   }
@@ -4945,7 +5424,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ['landlord', 'agent'].forEach(forRole => {
         pushPlatformNotification(forRole, 'payment', 'Payout Disbursed',
           `Payout of ${disbursedAmount} has been disbursed to your account.`,
-          { screen: 'screen-post-lease' });
+          { screen: 'screen-post-lease' }, 'PAYOUT_DISBURSED');
       });
     }
 
@@ -5000,6 +5479,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   document.getElementById('s7-back-btn').addEventListener('click', () => navigateTo('screen-6'));
+  document.getElementById('pr-back-btn').addEventListener('click', () => navigateTo('screen-4'));
+  document.getElementById('ml-back-btn').addEventListener('click', () => navigateTo('screen-4'));
+  document.getElementById('ri-back-btn').addEventListener('click', () => navigateTo('screen-4'));
 
   // ---- Landlord view: property list + deferred title verification ----
   function renderLandlordList() {
@@ -5549,6 +6031,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   document.getElementById('lp-continue-btn').addEventListener('click', () => {
     if (!landModalListing) return;
+    // Action Button Guard: Landlord/Agent never proceeds to their own tenant's
+    // checkout — show Verification & Escrow Status instead.
+    if ((currentUserRole || 'tenant') !== 'tenant') {
+      landPaymentModal.classList.remove('open');
+      openEscrowStatusModal(landModalListing);
+      return;
+    }
     const fee = Math.round(landModalListing.totalPrice * 0.02);
     let payload;
     if (landModalMode === 'outright') {
@@ -5605,11 +6094,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   // category: 'inspection' | 'payment' | 'message'
   // route: { screen: 'screen-inspections' | 'screen-post-lease' | 'screen-messages' | 'screen-5', convId?: number }
-  function pushPlatformNotification(forRole, category, title, body, route) {
+  // Notification types that are purely informational financial/system receipts —
+  // rendered as static, non-clickable cards (no hover glow/scale, no chevron,
+  // no onClick routing). Every other type remains fully clickable/actionable.
+  const NOTIF_STATIC_TYPES = ['PAYOUT_DISBURSED', 'ESCROW_FUNDS_RECEIVED', 'MOVE_IN_CONFIRMED'];
+
+  function pushPlatformNotification(forRole, category, title, body, route, type) {
     const notif = {
       id: Date.now() + Math.random(),
       forRole, category, title, body,
       route: route || null,
+      type: type || null,
       unread: true,
       timestamp: Date.now()
     };
@@ -5647,9 +6142,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       emptyHint.style.display = 'block';
     } else {
       emptyHint.style.display = 'none';
-      const categoryIcon = { inspection: 'calendar-check', payment: 'wallet', message: 'message-square' };
-      list.innerHTML = items.map(n => `
-        <div class="notif-item ${n.unread ? 'unread' : ''}" data-id="${n.id}">
+      const categoryIcon = { inspection: 'calendar-check', payment: 'wallet', message: 'message-square', maintenance: 'wrench' };
+      list.innerHTML = items.map(n => {
+        const isStatic = NOTIF_STATIC_TYPES.includes(n.type);
+        return `
+        <div class="notif-item ${n.unread ? 'unread' : ''} ${isStatic ? 'notif-static' : ''}" data-id="${n.id}" data-static="${isStatic}">
           <div class="notif-icon"><i data-lucide="${categoryIcon[n.category] || 'bell'}" class="w-4 h-4"></i></div>
           <div class="notif-text">
             <p class="notif-title">${n.title}</p>
@@ -5657,7 +6154,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <p class="notif-time">${new Date(n.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
           </div>
           ${n.unread ? '<span class="notif-unread-dot"></span>' : ''}
-        </div>`).join('');
+          ${!isStatic ? '<i data-lucide="chevron-right" class="w-4 h-4 notif-chevron"></i>' : ''}
+        </div>`;
+      }).join('');
     }
     document.querySelectorAll('.notif-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === notificationFilterTab));
     if (window.lucide) lucide.createIcons();
@@ -5673,6 +6172,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   // Interactive Feeds: tapping any notification item marks it read and routes
   // directly to its corresponding feature (chat thread, inspection details, etc.)
+  // — except for static, informational receipt cards (Payout Disbursed, Escrow
+  // Funds Received, Move-In Confirmed), which never navigate anywhere.
   document.getElementById('notif-list').addEventListener('click', (e) => {
     const item = e.target.closest('.notif-item');
     if (!item) return;
@@ -5681,6 +6182,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     notif.unread = false;
     savePlatformNotifications();
     renderNotificationCenter();
+    if (NOTIF_STATIC_TYPES.includes(notif.type)) return; // static card — no click routing
     if (notif.route) {
       if (notif.route.screen === 'screen-messages' && notif.route.convId) {
         navigateTo('screen-messages');
@@ -5965,7 +6467,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // message for the Tenant — push a real-time alert routed to that thread.
     pushPlatformNotification('tenant', 'message', 'New Message',
       `You have a new message about ${sched.title}.`,
-      { screen: 'screen-messages', convId: convId });
+      { screen: 'screen-messages', convId: convId }, 'NEW_MESSAGE');
     showToast('Accepted — chat unlocked for the tenant in Messages');
     renderSchedulesScreen();
     renderInspectionsSummaryCard();
@@ -6026,7 +6528,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     pushPlatformNotification('tenant', 'inspection',
       kind === 'confirmed' ? 'Inspection Confirmed' : 'Inspection Declined',
       centerMessage,
-      { screen: 'screen-inspections' });
+      { screen: 'screen-inspections' }, kind === 'confirmed' ? 'INSPECTION_CONFIRMED' : 'INSPECTION_DECLINED');
   }
 
   function declineOrRescheduleSchedule(scheduleId) {
@@ -7161,6 +7663,10 @@ available in the Post-Lease Hub and this chat thread.`
   let activeLease = null;
   let defaultStage = 0; // 0 = green, 1 = yellow, 2 = red
   let tickets = [];
+  try {
+    const storedTickets = JSON.parse(localStorage.getItem('mtr_tickets'));
+    tickets = Array.isArray(storedTickets) ? storedTickets : [];
+  } catch (e) { tickets = []; }
 
   function renderStageTracker() {
     ['s7-stage-0', 's7-stage-1', 's7-stage-2'].forEach((id, idx) => {
@@ -7194,10 +7700,11 @@ available in the Post-Lease Hub and this chat thread.`
       <div class="ticket-item">
         <div class="ticket-top">
           <p class="ticket-title">${t.category}</p>
-          <span class="s5-status-badge ${t.status === 'Open' ? 's5-status-pending' : 's5-status-vacant'}">${t.status}</span>
+          <span class="s5-status-badge ${typeof ticketStatusBadgeClass === 'function' ? ticketStatusBadgeClass(t.status) : (t.status === 'Open' ? 's5-status-pending' : 's5-status-vacant')}">${typeof ticketStatusLabel === 'function' ? ticketStatusLabel(t.status) : t.status}</span>
         </div>
         <p class="s5-list-sub">${t.desc}</p>
       </div>`).join('');
+    if (window.lucide) lucide.createIcons();
   }
 
   document.getElementById('s7-ticket-submit-btn').addEventListener('click', () => {
@@ -7267,7 +7774,7 @@ available in the Post-Lease Hub and this chat thread.`
       if (landlordConv) {
         pushPlatformNotification('landlord', 'message', 'Move-In Confirmed',
           `Move-in confirmed! ${tenantName} has activated their lease for ${propertyTitle}. Direct chat is now open.`,
-          { screen: 'screen-messages', convId: landlordConv.id });
+          { screen: 'screen-messages', convId: landlordConv.id }, 'MOVE_IN_CONFIRMED');
       }
     }
   });
@@ -7359,10 +7866,329 @@ available in the Post-Lease Hub and this chat thread.`
   }
 
   // ==================================================================
+  // ---- SCREEN PAY-RENT: Financial Hub & Checkout ----
+  // ==================================================================
+  const NGN_USD_RATE = 1 / 1600; // mirrors the rate already used at checkout (Screen 5/6)
+  let prCurrency = 'ngn';
+  let prSelectedMethod = 'card';
+  let prMonthsPaid = 1; // Month 1 is always paid upfront at checkout — mirrors activeLease.remainingMonths logic
+  let prSelectedRent = 180000, prSelectedBase = 165000, prSelectedService = 15000;
+
+  function prFormat(amountNgn) {
+    return prCurrency === 'usd' ? formatMoney(amountNgn * NGN_USD_RATE, 'usd') : formatMoney(amountNgn, 'ngn');
+  }
+
+  function populatePayRentScreen() {
+    const monthly = (activeLease && activeLease.monthlyAmount) ? activeLease.monthlyAmount : 180000;
+    const totalMonths = 12;
+    const remaining = (activeLease && typeof activeLease.remainingMonths === 'number') ? activeLease.remainingMonths : 11;
+    prMonthsPaid = Math.max(1, totalMonths - remaining);
+
+    // Base Rent vs Service & Facility Charges split (Platform Escrow Fee is always
+    // ₦0.00 under the CBN Model A split-payment structure — MainTown never holds funds).
+    const serviceCharge = Math.round(monthly * 0.0833);
+    const baseRent = monthly - serviceCharge;
+
+    prSelectedRent = monthly;
+    prSelectedBase = baseRent;
+    prSelectedService = serviceCharge;
+
+    document.getElementById('pr-balance-property').textContent = (activeLease && activeLease.title) || (checkoutListing && checkoutListing.title) || 'Your Active Lease';
+    document.getElementById('pr-base-rent').textContent = prFormat(baseRent);
+    document.getElementById('pr-service-charge').textContent = prFormat(serviceCharge);
+    document.getElementById('pr-escrow-fee').textContent = prCurrency === 'usd' ? '$0.00' : '₦0.00';
+    document.getElementById('pr-balance-amount').textContent = prFormat(monthly);
+    document.getElementById('pr-pay-btn').textContent = `PAY ${prFormat(monthly)} NOW`;
+
+    const pct = Math.round((prMonthsPaid / totalMonths) * 100);
+    document.getElementById('pr-progress-label').textContent = `${prMonthsPaid}/${totalMonths} months paid`;
+    document.getElementById('pr-progress-pct').textContent = `${pct}%`;
+    document.getElementById('pr-progress-fill').style.width = `${pct}%`;
+
+    document.querySelectorAll('.pr-currency-btn').forEach(b => b.classList.toggle('active', b.dataset.currency === prCurrency));
+    document.querySelectorAll('.pr-method-card').forEach(c => c.classList.toggle('selected', c.dataset.method === prSelectedMethod));
+
+    const savedOptIn = localStorage.getItem('mtr_credit_reporting_optin') === 'true';
+    document.getElementById('pr-credit-toggle').checked = savedOptIn;
+
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('pr-currency-toggle').addEventListener('click', (e) => {
+    const btn = e.target.closest('.pr-currency-btn');
+    if (!btn) return;
+    prCurrency = btn.dataset.currency;
+    populatePayRentScreen();
+  });
+
+  document.getElementById('pr-method-list').addEventListener('click', (e) => {
+    const card = e.target.closest('.pr-method-card');
+    if (!card) return;
+    prSelectedMethod = card.dataset.method;
+    document.querySelectorAll('.pr-method-card').forEach(c => c.classList.toggle('selected', c === card));
+  });
+
+  document.getElementById('pr-credit-toggle').addEventListener('change', (e) => {
+    try { localStorage.setItem('mtr_credit_reporting_optin', e.target.checked ? 'true' : 'false'); } catch (err) {}
+    showToast(e.target.checked ? 'Credit Building enabled — future on-time payments will be reported' : 'Credit Building disabled');
+  });
+
+  document.getElementById('pr-pay-btn').addEventListener('click', () => {
+    const methodLabel = { card: 'Card', directdebit: 'Direct Debit', crypto: 'Stablecoin' }[prSelectedMethod] || 'Card';
+    const propertyTitle = (activeLease && activeLease.title) || (checkoutListing && checkoutListing.title) || 'your property';
+
+    if (activeLease && typeof activeLease.remainingMonths === 'number' && activeLease.remainingMonths > 0) {
+      activeLease.remainingMonths -= 1;
+    }
+    prMonthsPaid = Math.min(12, prMonthsPaid + 1);
+
+    showToast(`Payment of ${prFormat(prSelectedRent)} received via ${methodLabel} — 100% Escrow Guarantee`);
+
+    // Notification Trigger: mirrors the existing Escrow Funds Received alert pattern.
+    ['landlord', 'agent'].forEach(forRole => {
+      pushPlatformNotification(forRole, 'payment', 'Rent Payment Received',
+        `Rent payment of ${formatMoney(prSelectedRent, 'ngn')} received for ${propertyTitle} via ${methodLabel}.`,
+        { screen: 'screen-post-lease' }, 'RENT_PAYMENT_RECEIVED');
+    });
+
+    populatePayRentScreen();
+  });
+
+  // ==================================================================
+  // ---- SCREEN MY-LEASE: Digital Vault & Title Audit ----
+  // ==================================================================
+  function populateMyLeaseScreen() {
+    const listing = checkoutListing || rentListings()[0] || null;
+    const lease = activeLease || {};
+
+    document.getElementById('ml-property-title').textContent = (lease.title) || (listing && listing.title) || 'Your Active Lease';
+    document.getElementById('ml-property-address').innerHTML = `<i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${(listing && listing.location) || 'Address on file'}`;
+    document.getElementById('ml-property-dates').textContent = lease.moveInConfirmed
+      ? `Active tenancy since ${lease.moveInDateLabel}`
+      : 'Active tenancy — move-in date pending confirmation';
+
+    const agentAvatar = document.getElementById('ml-agent-avatar');
+    const agentAvatarFallback = document.getElementById('ml-agent-avatar-fallback');
+    const landlordAvatar = document.getElementById('ml-landlord-avatar');
+    const landlordAvatarFallback = document.getElementById('ml-landlord-avatar-fallback');
+
+    if (listing && listing.listedBy === 'agent' && listing.agentName) {
+      document.getElementById('ml-agent-name').textContent = listing.agentName;
+      if (listing.agentPhoto) { agentAvatar.src = listing.agentPhoto; agentAvatar.style.display = 'block'; agentAvatarFallback.style.display = 'none'; }
+      else { agentAvatar.style.display = 'none'; agentAvatarFallback.style.display = 'flex'; }
+    } else {
+      document.getElementById('ml-agent-name').textContent = 'Direct Listing';
+      agentAvatar.style.display = 'none'; agentAvatarFallback.style.display = 'flex';
+    }
+
+    if (listing && listing.landlordName) {
+      document.getElementById('ml-landlord-name').textContent = listing.landlordName;
+      if (listing.landlordPhoto) { landlordAvatar.src = listing.landlordPhoto; landlordAvatar.style.display = 'block'; landlordAvatarFallback.style.display = 'none'; }
+      else { landlordAvatar.style.display = 'none'; landlordAvatarFallback.style.display = 'flex'; }
+    } else {
+      document.getElementById('ml-landlord-name').textContent = 'Not assigned';
+      landlordAvatar.style.display = 'none'; landlordAvatarFallback.style.display = 'flex';
+    }
+
+    // Security Deposit — reuses the same commission figure already shown as
+    // "Caution Deposit" at checkout, so the numbers stay consistent app-wide.
+    const depositAmount = (typeof checkoutRentBreakdown !== 'undefined' && checkoutRentBreakdown) ? checkoutRentBreakdown.commission : 300000;
+    document.getElementById('ml-deposit-amount').textContent = formatMoney(depositAmount, 'ngn');
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('ml-download-agreement-btn').addEventListener('click', () => {
+    const isDualSigned = typeof handover !== 'undefined' && handover && handover.status === 'completed';
+    showToast(`Opening ${isDualSigned ? 'Executed Tenancy Agreement (Dual-Signed).pdf' : 'Signed Tenancy Agreement.pdf'} (read-only)`);
+  });
+  document.getElementById('ml-view-title-btn').addEventListener('click', () => {
+    showToast('Opening Cadastral Survey & GPS Audit Certificate (read-only)');
+  });
+  document.getElementById('ml-agent-card').addEventListener('click', () => {
+    if (s7PropertyListing) openPeerChatThread(s7PropertyListing, 'agent');
+  });
+  document.getElementById('ml-landlord-card').addEventListener('click', () => {
+    if (typeof openLandlordCard === 'function') openLandlordCard();
+  });
+  document.getElementById('ml-extension-btn').addEventListener('click', () => {
+    const propertyTitle = (activeLease && activeLease.title) || 'your property';
+    showToast(`Extension request sent for ${propertyTitle} — awaiting Landlord approval`);
+    pushPlatformNotification('landlord', 'message', 'Lease Extension Requested',
+      `Tenant has requested a lease extension for ${propertyTitle}.`, { screen: 'screen-post-lease' }, 'LEASE_EXTENSION_REQUESTED');
+  });
+  document.getElementById('ml-terminate-btn').addEventListener('click', () => {
+    showToast('30-day Notice to Quit submitted — your Landlord has been notified');
+    const propertyTitle = (activeLease && activeLease.title) || 'your property';
+    pushPlatformNotification('landlord', 'message', 'Notice to Quit Submitted',
+      `Tenant has submitted a 30-day Notice to Quit for ${propertyTitle}.`, { screen: 'screen-post-lease' }, 'NOTICE_TO_QUIT_SUBMITTED');
+  });
+
+  // ==================================================================
+  // ---- SCREEN REPORT-ISSUE: Maintenance Ticketing System ----
+  // ---- BACKEND: Ticket Routing & Notification Engine ----
+  // Mirrors the ON_TICKET_SUBMITTED spec: routes to Agent+Landlord for
+  // agent-listed properties, or Landlord only for direct listings, across
+  // in-app + simulated push + simulated WhatsApp backup channels, with an
+  // SLA escalation clock that auto-dispatches a MainTown artisan on timeout.
+  // ==================================================================
+  let riSelectedCategory = null;
+  let riSelectedUrgency = 'Standard';
+  let riSelectedDispatch = 'artisan';
+
+  document.getElementById('ri-cat-grid').addEventListener('click', (e) => {
+    const btn = e.target.closest('.ri-cat-btn');
+    if (!btn) return;
+    riSelectedCategory = btn.dataset.cat;
+    document.querySelectorAll('.ri-cat-btn').forEach(b => b.classList.toggle('selected', b === btn));
+  });
+
+  document.getElementById('ri-urgency-row').addEventListener('click', (e) => {
+    const btn = e.target.closest('.ri-urgency-btn');
+    if (!btn) return;
+    riSelectedUrgency = btn.dataset.urgency;
+    document.querySelectorAll('.ri-urgency-btn').forEach(b => b.classList.toggle('selected', b === btn));
+  });
+
+  document.getElementById('ri-dispatch-row').addEventListener('click', (e) => {
+    const btn = e.target.closest('.ri-dispatch-btn');
+    if (!btn) return;
+    riSelectedDispatch = btn.dataset.dispatch;
+    document.querySelectorAll('.ri-dispatch-btn').forEach(b => b.classList.toggle('selected', b === btn));
+  });
+
+  document.getElementById('ri-upload').addEventListener('click', () => document.getElementById('ri-file').click());
+  document.getElementById('ri-file').addEventListener('change', (e) => {
+    const box = document.getElementById('ri-upload');
+    const label = document.getElementById('ri-upload-label');
+    if (e.target.files.length) { box.classList.add('has-file'); label.textContent = e.target.files[0].name; }
+  });
+
+  // routing_rules.agent_listed_property / direct_landlord_property from the spec
+  function routeMaintenanceTicket(ticket) {
+    const listing = checkoutListing || rentListings()[0] || null;
+    const isAgentListed = !!(listing && listing.listedBy === 'agent');
+    const unitName = ticket.propertyTitle;
+    const message = `⚠️ Maintenance Alert: Unit ${unitName} reported a ${ticket.category} issue [${ticket.urgency}]. Tap to review proof and assign action.`;
+    const recipients = isAgentListed ? ['agent', 'landlord'] : ['landlord'];
+
+    recipients.forEach(forRole => {
+      // Channel 1 & 2: PUSH_NOTIFICATION + IN_APP_ALERT — the existing platform
+      // notification store already fans out to both simultaneously.
+      pushPlatformNotification(forRole, 'maintenance', `Maintenance Alert — ${ticket.category}`, message, { screen: 'screen-report-issue' }, 'MAINTENANCE_ALERT');
+      // Channel 3: WHATSAPP_BACKUP_API — simulated for this prototype.
+      console.log(`[WHATSAPP_BACKUP_API] → ${forRole}: ${message}`);
+    });
+
+    showToast(isAgentListed
+      ? `Ticket dispatched to Agent & Landlord for ${unitName}`
+      : `Ticket dispatched to Landlord for ${unitName}`);
+
+    return recipients;
+  }
+
+  function submitMaintenanceTicket() {
+    if (!riSelectedCategory) { showToast('Please select an issue category'); return; }
+    const desc = document.getElementById('ri-desc').value.trim();
+    if (!desc) { showToast('Please describe the issue'); return; }
+
+    const propertyTitle = (activeLease && activeLease.title) || (checkoutListing && checkoutListing.title) || 'your unit';
+    const slaHours = riSelectedUrgency === 'Emergency' ? 4 : 24;
+
+    const ticket = {
+      id: Date.now(),
+      category: riSelectedCategory,
+      desc,
+      status: 'PENDING_OWNER_ACTION',
+      urgency: riSelectedUrgency,
+      dispatchPref: riSelectedDispatch,
+      propertyTitle,
+      createdAt: Date.now(),
+      slaDeadline: Date.now() + slaHours * 60 * 60 * 1000,
+      slaHours
+    };
+    tickets.unshift(ticket);
+    saveTickets();
+
+    routeMaintenanceTicket(ticket);
+
+    // Reset the form
+    riSelectedCategory = null;
+    riSelectedUrgency = 'Standard';
+    riSelectedDispatch = 'artisan';
+    document.querySelectorAll('.ri-cat-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.ri-urgency-btn').forEach(b => b.classList.toggle('selected', b.dataset.urgency === 'Standard'));
+    document.querySelectorAll('.ri-dispatch-btn').forEach(b => b.classList.toggle('selected', b.dataset.dispatch === 'artisan'));
+    document.getElementById('ri-desc').value = '';
+    document.getElementById('ri-upload').classList.remove('has-file');
+    document.getElementById('ri-upload-label').textContent = 'Tap to upload a photo or video';
+
+    renderIssueTicketList();
+    renderTicketList(); // keep the Post-Lease Hub's ticket list in sync too
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('ri-submit-btn').addEventListener('click', submitMaintenanceTicket);
+
+  function ticketStatusBadgeClass(status) {
+    if (status === 'PENDING_OWNER_ACTION') return 'insp-status-pending';
+    if (status === 'AUTO_DISPATCHED_ARTISAN') return 'insp-status-conducted';
+    if (status === 'Open') return 'insp-status-pending';
+    return 'insp-status-confirmed';
+  }
+  function ticketStatusLabel(status) {
+    if (status === 'PENDING_OWNER_ACTION') return 'Pending Owner Action';
+    if (status === 'AUTO_DISPATCHED_ARTISAN') return 'Auto-Dispatched Artisan';
+    return status;
+  }
+
+  function renderIssueTicketList() {
+    const wrap = document.getElementById('ri-ticket-list');
+    if (!wrap) return;
+    if (!tickets.length) { wrap.innerHTML = '<p class="role-hint">No maintenance tickets yet.</p>'; return; }
+    wrap.innerHTML = tickets.map(t => {
+      const remainingMs = (t.slaDeadline || 0) - Date.now();
+      const slaText = t.status === 'PENDING_OWNER_ACTION'
+        ? (remainingMs > 0
+            ? `SLA: ${Math.max(1, Math.round(remainingMs / 3600000))}h remaining (${t.urgency})`
+            : 'SLA breached — awaiting auto-dispatch')
+        : (t.status === 'AUTO_DISPATCHED_ARTISAN' ? 'MainTown vetted artisan dispatched automatically' : '');
+      return `
+      <div class="ticket-item">
+        <div class="ticket-top">
+          <p class="ticket-title">${t.category}${t.propertyTitle ? ' · ' + t.propertyTitle : ''}</p>
+          <span class="s5-status-badge ${ticketStatusBadgeClass(t.status)}">${ticketStatusLabel(t.status)}</span>
+        </div>
+        <p class="s5-list-sub">${t.desc}</p>
+        ${slaText ? `<p class="ticket-sla"><i data-lucide="timer" class="w-3 h-3"></i>${slaText}</p>` : ''}
+      </div>`;
+    }).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function saveTickets() { try { localStorage.setItem('mtr_tickets', JSON.stringify(tickets)); } catch (e) {} }
+
+  // sla_escalation: fallback_action = AUTO_DISPATCH_MAINTOWN_ARTISAN once the
+  // urgency-based timeout (4hr emergency / 24hr standard) has elapsed without
+  // owner action. Checked whenever the Report Issue or Post-Lease screens open.
+  function checkTicketSLAEscalation() {
+    let escalated = false;
+    tickets.forEach(t => {
+      if (t.status === 'PENDING_OWNER_ACTION' && t.slaDeadline && Date.now() > t.slaDeadline) {
+        t.status = 'AUTO_DISPATCHED_ARTISAN';
+        escalated = true;
+        pushPlatformNotification('tenant', 'maintenance', 'Artisan Auto-Dispatched',
+          `Your ${t.category} ticket exceeded its SLA window — MainTown has auto-dispatched a vetted artisan for ${t.propertyTitle}.`,
+          { screen: 'screen-report-issue' }, 'ARTISAN_AUTO_DISPATCHED');
+      }
+    });
+    if (escalated) { saveTickets(); renderIssueTicketList(); renderTicketList(); }
+  }
+
+  // ==================================================================
   // ---- Dual Chat Thread Preservation & Post-Lease Handover ----
   // Trigger condition: Tenant completes the full escrow payment flow AND
   // activates their move-in date in the Post-Lease Hub. At that point:
   //  1. The existing Agent-Tenant thread (feeType 'agent') is left untouched —
+
   //     never archived/closed — so deal context & transaction history persist.
   //  2. A NEW, direct 1-on-1 Tenant-Landlord thread (feeType 'landlord') is
   //     instantiated (or reused if one already exists from an earlier chat tap),
