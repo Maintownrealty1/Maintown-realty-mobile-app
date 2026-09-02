@@ -4651,8 +4651,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const role = currentUserRole || 'tenant';
     let pendingCount = 0, confirmedCount = 0;
     if (typeof schedules !== 'undefined') {
-      pendingCount = schedules.filter(s => s.status === 'Pending Approval').length;
-      confirmedCount = schedules.filter(s => s.status === 'Confirmed' || s.status === 'Conducted').length;
+      // STRICT GUARD: Landlord/Agent dashboards must only ever count the
+      // inspection requests they actually own (landlord_id/agent_id) — this
+      // summary tile previously counted every schedule in the app regardless
+      // of ownership, so an Agent's count could include Direct-Landlord
+      // requests (and vice-versa). Tenants see their own bookings, unfiltered.
+      const owned = role === 'landlord'
+        ? schedules.filter(s => s.landlord_id === CURRENT_LANDLORD_ID)
+        : role === 'agent'
+          ? schedules.filter(s => s.agent_id === CURRENT_AGENT_ID)
+          : schedules;
+      pendingCount = owned.filter(s => s.status === 'Pending Approval').length;
+      confirmedCount = owned.filter(s => s.status === 'Confirmed' || s.status === 'Conducted').length;
     }
     const total = pendingCount + confirmedCount;
     if (!total) { wrap.innerHTML = ''; return; }
@@ -9562,6 +9572,15 @@ available in the Post-Lease Hub and this chat thread.`
 
   // ---- maintown_app_state: central shared store (inspections / notifications / chats) ----
   const DEMO_PROPERTY = '3 Bedroom Ikeja';
+  // Dynamic Recipient & Ownership Routing (demo mini-flow): this fixed demo
+  // property is Agent-managed, so — per the strict single-recipient guard —
+  // every request against it routes to John Adam ONLY. Frank Hood (Landlord)
+  // must never receive a notification or see it in his inspection feed.
+  const DEMO_PROPERTY_OWNER_ROLE = 'AGENT'; // 'AGENT' | 'LANDLORD'
+  const DEMO_PROPERTY_OWNER_ID = DEMO_PROPERTY_OWNER_ROLE === 'AGENT' ? 'john' : 'frank';
+  const DEMO_PROPERTY_OWNER_NAME = DEMO_PROPERTY_OWNER_ROLE === 'AGENT' ? 'John Adam' : 'Frank Hood';
+  const DEMO_PROPERTY_OWNER_LABEL = DEMO_PROPERTY_OWNER_ROLE === 'AGENT' ? 'Agent' : 'Landlord';
+  function demoInspectionOwnerId(insp) { return insp.agentId || insp.landlordId || null; }
   function defaultAppState() {
     const now = Date.now();
     return {
@@ -9570,15 +9589,17 @@ available in the Post-Lease Hub and this chat thread.`
           id: 'insp_demo_1',
           property: DEMO_PROPERTY,
           tenantId: 'angel',
-          agentId: 'john',
-          landlordId: 'frank',
+          // STRICT GUARD: only the actual owning role's id is set — the other
+          // stays null so it can never match either the notification dispatch
+          // below or a dashboard's ownership filter.
+          agentId: DEMO_PROPERTY_OWNER_ROLE === 'AGENT' ? 'john' : null,
+          landlordId: DEMO_PROPERTY_OWNER_ROLE === 'LANDLORD' ? 'frank' : null,
           status: 'PENDING_APPROVAL',
           createdAt: now
         }
       ],
       notifications: [
-        { id: 'notif_demo_1', userId: 'john',  role: 'agent',    type: 'INSPECTION_REQUESTED', message: 'Angel Tiwa requested a walkthrough for ' + DEMO_PROPERTY, unread: true, createdAt: now },
-        { id: 'notif_demo_2', userId: 'frank', role: 'landlord', type: 'INSPECTION_REQUESTED', message: 'Angel Tiwa requested a walkthrough for ' + DEMO_PROPERTY, unread: true, createdAt: now }
+        { id: 'notif_demo_1', userId: DEMO_PROPERTY_OWNER_ID, role: DEMO_PROPERTY_OWNER_ROLE.toLowerCase(), type: 'INSPECTION_REQUESTED', message: 'Angel Tiwa requested a walkthrough for ' + DEMO_PROPERTY, unread: true, createdAt: now }
       ],
       chats: [],
       // ---- MainTown AI Model B revenue ledger: cumulative one-time AI fees
@@ -9745,16 +9766,18 @@ available in the Post-Lease Hub and this chat thread.`
       id: 'insp_' + Date.now(),
       property: DEMO_PROPERTY,
       tenantId: 'angel',
-      agentId: 'john',
-      landlordId: 'frank',
+      // STRICT GUARD: set ONLY the owning role's id (Agent-managed listing here
+      // -> agentId only, landlordId stays null). Never populate both.
+      agentId: DEMO_PROPERTY_OWNER_ROLE === 'AGENT' ? 'john' : null,
+      landlordId: DEMO_PROPERTY_OWNER_ROLE === 'LANDLORD' ? 'frank' : null,
       status: 'PENDING_APPROVAL',
       createdAt: Date.now()
     };
     appState.inspections.push(insp);
-    pushNotification('john', 'agent', 'INSPECTION_REQUESTED', 'Angel Tiwa requested a walkthrough for ' + DEMO_PROPERTY);
-    pushNotification('frank', 'landlord', 'INSPECTION_REQUESTED', 'Angel Tiwa requested a walkthrough for ' + DEMO_PROPERTY);
+    // Dispatch EXCLUSIVELY to the actual owner — the other role is never touched.
+    pushNotification(DEMO_PROPERTY_OWNER_ID, DEMO_PROPERTY_OWNER_ROLE.toLowerCase(), 'INSPECTION_REQUESTED', 'Angel Tiwa requested a walkthrough for ' + DEMO_PROPERTY);
     saveAppState(appState);
-    showToast('Inspection requested — John Adam & Frank Hood have been notified');
+    showToast(`Inspection requested — ${DEMO_PROPERTY_OWNER_NAME} has been notified`);
     renderDemoFlowCard();
     updateDemoBellDot();
   }
@@ -9763,7 +9786,7 @@ available in the Post-Lease Hub and this chat thread.`
     const insp = appState.inspections.find(i => i.id === inspId);
     if (!insp) return;
     insp.status = 'CONFIRMED';
-    appState.chats.push({ id: 'chat_' + inspId, inspectionId: inspId, participants: [insp.tenantId, insp.agentId], unlocked: true, createdAt: Date.now() });
+    appState.chats.push({ id: 'chat_' + inspId, inspectionId: inspId, participants: [insp.tenantId, demoInspectionOwnerId(insp)], unlocked: true, createdAt: Date.now() });
     pushNotification(insp.tenantId, 'tenant', 'INSPECTION_CONFIRMED', 'Your inspection for ' + insp.property + ' was confirmed. Chat unlocked.');
     // Mark this actor's own pending notification about this request as read.
     const uid = currentDemoUserId();
@@ -9797,7 +9820,7 @@ available in the Post-Lease Hub and this chat thread.`
   }
 
   function openDemoChat(inspId) {
-    showToast('Chat unlocked with John Adam — opening Messages');
+    showToast(`Chat unlocked with ${DEMO_PROPERTY_OWNER_NAME} — opening Messages`);
     navigateTo('screen-messages');
   }
 
@@ -9836,7 +9859,7 @@ available in the Post-Lease Hub and this chat thread.`
         wrap.innerHTML = `
           <div class="demo-flow-card">
             <div class="demo-flow-header"><i data-lucide="calendar-clock" class="w-4 h-4" style="color:#c084fc;"></i><p class="demo-flow-title">Your Inspections</p></div>
-            <p class="demo-flow-sub">Shared live with John Adam (Agent) &amp; Frank Hood (Landlord).</p>
+            <p class="demo-flow-sub">Shared live with ${DEMO_PROPERTY_OWNER_NAME} (${DEMO_PROPERTY_OWNER_LABEL}).</p>
             ${myInspections.map(i => {
               const meta = DEMO_STATUS_META[i.status] || DEMO_STATUS_META.PENDING_APPROVAL;
               return `
@@ -9844,13 +9867,13 @@ available in the Post-Lease Hub and this chat thread.`
                 <div class="demo-flow-item-top">
                   <div>
                     <p class="demo-flow-item-title">${i.property}</p>
-                    <p class="demo-flow-item-sub">Agent: John Adam · Landlord: Frank Hood</p>
+                    <p class="demo-flow-item-sub">${DEMO_PROPERTY_OWNER_LABEL}: ${DEMO_PROPERTY_OWNER_NAME}</p>
                   </div>
                   <span class="demo-flow-pill ${meta.cls}">${meta.label}</span>
                 </div>
                 ${i.status === 'CONFIRMED' ? `
                   <div class="demo-flow-actions">
-                    <button type="button" class="demo-flow-btn message" data-demo-action="message" data-insp-id="${i.id}"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Message Agent</button>
+                    <button type="button" class="demo-flow-btn message" data-demo-action="message" data-insp-id="${i.id}"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Message ${DEMO_PROPERTY_OWNER_LABEL}</button>
                     <button type="button" class="demo-flow-btn complete" data-demo-action="complete" data-insp-id="${i.id}"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Complete Inspection</button>
                   </div>` : ''}
               </div>`;
@@ -9858,6 +9881,9 @@ available in the Post-Lease Hub and this chat thread.`
           </div>`;
       }
     } else if (uid === 'john' || uid === 'frank') {
+      // STRICT GUARD: each host account only ever sees inspections it actually
+      // owns — an Agent-managed request must never surface on the Landlord's
+      // feed, and a Direct-Landlord request must never surface on the Agent's.
       const pending = appState.inspections.filter(i => i.status === 'PENDING_APPROVAL' && (uid === 'john' ? i.agentId === 'john' : i.landlordId === 'frank'));
       const other = appState.inspections.filter(i => i.status !== 'PENDING_APPROVAL' && (uid === 'john' ? i.agentId === 'john' : i.landlordId === 'frank'));
       if (!pending.length && !other.length) { wrap.innerHTML = ''; return; }
