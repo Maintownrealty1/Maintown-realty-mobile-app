@@ -7994,11 +7994,43 @@ available in the Post-Lease Hub and this chat thread.`
     saveSchedules();
     renderInspectionsSummaryCard();
     renderChatLog(conv);
-    showToast('Satisfied — proceeding to Rent/Buy checkout');
 
+    // Agent Dashboard Alert: fire the moment the escrow split actually lands in
+    // the Agent's MainTown Wallet — this was previously silent, so John Adam's
+    // dashboard never reflected a satisfied inspection's payout in real time.
+    if (isAgentFee && agentPayout > 0) {
+      pushPlatformNotification('agent', 'payment', 'Inspection Fee Credited',
+        `${formatMoney(agentPayout, 'ngn')} inspection fee credited to your MainTown Wallet.`,
+        { screen: 'screen-post-lease' }, 'INSPECTION_FEE_CREDITED', {
+          metadata: {
+            propertyTitle: conv.listingTitle,
+            escrowStatus: 'RELEASED',
+            nextTrigger: listing && listing.type === 'land' ? 'Awaiting purchase checkout' : 'Awaiting rent checkout'
+          },
+          financial_breakdown: [
+            { label: 'Total Inspection Escrow', value: formatMoney(conv.fee, 'ngn') },
+            { label: 'Credited to Agent Wallet', value: formatMoney(agentPayout, 'ngn') },
+            { label: 'MainTown Realty Revenue', value: formatMoney(maintownRevenue, 'ngn') }
+          ]
+        });
+    }
+
+    showToast('Satisfied — proceeding to checkout');
+
+    // Final Checkout Routing: this previously called openCheckout(listing) for
+    // EVERY listing type, but openCheckout()'s land branch reads straight from
+    // checkoutLandPayment.mode — calling it without a landPayment payload threw
+    // on every land/purchase listing and silently broke the pipeline right at
+    // the last step. Land/Purchase listings must go through the Land Payment
+    // Modal first (outright vs. installment) so a valid payload exists before
+    // Checkout renders; Rent listings need no such payload and go straight in.
     if (listing) {
-      openCheckout(listing);
-      navigateTo('screen-6');
+      if (listing.type === 'land') {
+        openLandPaymentModal(listing); // -> LandPurchaseCheckoutModal -> HandoverView
+      } else {
+        openCheckout(listing); // -> RentCheckoutModal
+        navigateTo('screen-6');
+      }
     }
   });
 
