@@ -24,6 +24,26 @@
     background: #0B0F19;
     color: #ffffff;
     min-height: 100vh;
+    transition: background 0.15s ease;
+  }
+
+  /* ==================================================================
+     ---- Light Mode ----
+     The entire app is built on a hardcoded dark palette (no CSS custom
+     properties), so a full manual light-theme reskin of every component
+     isn't practical here. Instead, `body.light-theme` inverts + hue-rotates
+     the whole app in one pass (dark backgrounds -> light, light text ->
+     dark, borders/accents flip consistently) — then photos, avatars, and
+     video are re-inverted back to their true colors so they don't render
+     as negatives. This keeps every existing screen, card, and modal in
+     sync automatically, with no per-component maintenance burden.
+     ================================================================== */
+  body.light-theme {
+    filter: invert(1) hue-rotate(180deg);
+  }
+  body.light-theme img,
+  body.light-theme video {
+    filter: invert(1) hue-rotate(180deg);
   }
   .app-shell {
     width: 100%;
@@ -2914,6 +2934,19 @@
     <p class="profile-field-status" id="profile-phone-status"></p>
   </div>
 
+  <!-- Dark Mode / Light Mode Switch -->
+  <div class="pr-toggle-row" style="margin-top: 4px;">
+    <div class="pr-toggle-icon"><i data-lucide="moon" class="w-4 h-4" id="settings-theme-icon"></i></div>
+    <div class="pr-toggle-text">
+      <p class="pr-toggle-title">Dark Mode</p>
+      <p class="pr-toggle-sub" id="settings-theme-sub">App appearance is set to Dark</p>
+    </div>
+    <label class="pr-switch">
+      <input type="checkbox" id="settings-theme-toggle">
+      <span class="pr-switch-track"><span class="pr-switch-thumb"></span></span>
+    </label>
+  </div>
+
   <button type="button" id="profile-logout-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: 0 8px 20px rgba(239,68,68,0.25); display:flex; align-items:center; justify-content:center; gap:6px; margin-top: 16px;">
     <i data-lucide="log-out" class="w-4 h-4"></i> Log Out
   </button>
@@ -3645,6 +3678,31 @@
 </div>
 
 <script>
+  // ==================================================================
+  // ---- Dark Mode / Light Mode ----
+  // Applied first, before anything else runs, so there's no flash of the
+  // wrong theme on load. Persists to localStorage and is toggled from the
+  // "Dark Mode" switch in Account & General Settings (Profile screen).
+  // ==================================================================
+  function loadSavedTheme() {
+    try { return localStorage.getItem('mtr_theme'); } catch (e) { return null; }
+  }
+  function saveTheme(theme) {
+    try { localStorage.setItem('mtr_theme', theme); } catch (e) {}
+  }
+  function applyTheme(theme) {
+    document.body.classList.toggle('light-theme', theme === 'light');
+    saveTheme(theme);
+    const toggle = document.getElementById('settings-theme-toggle');
+    const icon = document.getElementById('settings-theme-icon');
+    const sub = document.getElementById('settings-theme-sub');
+    if (toggle) toggle.checked = theme === 'light';
+    if (icon) icon.setAttribute('data-lucide', theme === 'light' ? 'sun' : 'moon');
+    if (sub) sub.textContent = `App appearance is set to ${theme === 'light' ? 'Light' : 'Dark'}`;
+    if (window.lucide) lucide.createIcons();
+  }
+  applyTheme(loadSavedTheme() || 'dark');
+
   // ---- Property image fallback system ----
   // Inline SVG data-URIs so a fallback ALWAYS renders even with no network access.
   const PROPERTY_IMG_FALLBACK = {
@@ -7580,7 +7638,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
     emptyHint.style.display = 'none';
     const role = currentUserRole || 'tenant';
     const isLandlordOrAgent = role === 'landlord' || role === 'agent';
-    list.innerHTML = schedules.map(s => {
+    // STRICT GUARD: a Host only ever sees the inspection requests they actually
+    // own, keyed off `landlord_id`/`agent_id` set at booking time — same rule
+    // as the Inspections Manager list. Tenants see their own bookings.
+    const visibleSchedules = role === 'landlord'
+      ? schedules.filter(s => s.landlord_id === CURRENT_LANDLORD_ID)
+      : role === 'agent'
+        ? schedules.filter(s => s.agent_id === CURRENT_AGENT_ID)
+        : schedules;
+    if (!visibleSchedules.length) {
+      list.innerHTML = '';
+      emptyHint.style.display = 'block';
+      return;
+    }
+    list.innerHTML = visibleSchedules.map(s => {
       const isPending = s.status === 'Pending Approval';
       const isDeclined = s.status === 'Declined';
       const badgeClass = isPending ? 'insp-status-pending' : isDeclined ? 'insp-status-declined' : (s.status === 'Conducted' ? 'insp-status-conducted' : 'insp-status-confirmed');
@@ -7589,7 +7660,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // Chat Locking Logic: locked for ALL parties while "Pending Approval", and
       // permanently locked once "Declined" — unlocked only once "Confirmed"/"Conducted".
       const chatLockedHtml = `<button type="button" class="insp-secondary-full-btn" disabled><i data-lucide="lock" class="w-4 h-4"></i>${isPending ? 'Chat Locked (Awaiting Confirmation)' : 'Chat Locked'}</button>`;
-      // Landlord/Agent: view-only requests, routed entirely through direct chat with the
+      // Host Confirm/Decline: while a request is still Pending Approval, the
+      // owning Landlord/Agent confirms (unlocks chat) or declines it right here
+      // — this is the only host-facing inspection surface left in the app now
+      // that the Landlord's separate inline Inspections Manager was removed.
+      const hostPendingActionsHtml = `
+        <button type="button" class="insp-mgr-btn insp-mgr-accept" data-action="accept" data-sched-id="${s.id}"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>Confirm</button>
+        <button type="button" class="insp-mgr-btn insp-mgr-decline" data-action="decline" data-sched-id="${s.id}"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>Decline</button>`;
+      // Landlord/Agent: once confirmed, routed entirely through direct chat with the
       // tenant — no scheduling controls and no access to the tenant's payment/split flow.
       // Tenant: the Chat Manager action now lives as a ghost icon button inside the
       // contact row (see hostInfoHtml below) once a host is shown, so only the primary
@@ -7598,9 +7676,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // permanently-locked chat button, letting the tenant pick a new date/time.
       const rescheduleHtml = `<button type="button" class="insp-primary-btn insp-reschedule-btn" data-sched-id="${s.id}"><i data-lucide="calendar-clock" class="w-4 h-4"></i>Reschedule Inspection</button>`;
       const actionsHtml = isLandlordOrAgent
-        ? ((isPending || isDeclined)
-            ? chatLockedHtml
-            : `<button type="button" class="insp-secondary-full-btn insp-chat-btn" data-sched-id="${s.id}"><i data-lucide="message-square" class="w-4 h-4"></i>Message Tenant</button>`)
+        ? (isPending
+            ? hostPendingActionsHtml
+            : (isDeclined
+                ? chatLockedHtml
+                : `<button type="button" class="insp-secondary-full-btn insp-chat-btn" data-sched-id="${s.id}"><i data-lucide="message-square" class="w-4 h-4"></i>Message Tenant</button>`))
         : (isPending
             ? chatLockedHtml
             : isDeclined
@@ -7670,6 +7750,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const chatBtn = e.target.closest('.insp-chat-btn');
     const completeBtn = e.target.closest('.insp-complete-btn');
     const rescheduleBtn = e.target.closest('.insp-reschedule-btn');
+    const acceptBtn = e.target.closest('[data-action="accept"]');
+    const declineBtn = e.target.closest('[data-action="decline"]');
+    if (acceptBtn) {
+      acceptSchedule(acceptBtn.dataset.schedId);
+      return;
+    }
+    if (declineBtn) {
+      declineInspectionSchedule(declineBtn.dataset.schedId);
+      return;
+    }
     if (rescheduleBtn) {
       declineOrRescheduleSchedule(rescheduleBtn.dataset.schedId);
       return;
@@ -9283,6 +9373,8 @@ available in the Post-Lease Hub and this chat thread.`
     const phoneStatus = document.getElementById('profile-phone-status');
     phoneStatus.textContent = ''; phoneStatus.className = 'profile-field-status';
 
+    document.getElementById('settings-theme-toggle').checked = document.body.classList.contains('light-theme');
+
     if (window.lucide) lucide.createIcons();
   }
 
@@ -9447,6 +9539,10 @@ available in the Post-Lease Hub and this chat thread.`
   }
 
   const screenLogin = document.getElementById('screen-login');
+
+  document.getElementById('settings-theme-toggle').addEventListener('change', (e) => {
+    applyTheme(e.target.checked ? 'light' : 'dark');
+  });
 
   document.getElementById('profile-logout-btn').addEventListener('click', () => performLogout());
 
