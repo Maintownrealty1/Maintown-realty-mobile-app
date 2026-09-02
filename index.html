@@ -537,16 +537,21 @@
   .insp-mgr-info { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
   /* ---- Chat-locked action button (tenant Schedules screen + Messages composer reuse .s5-action-btn) ---- */
   .s5-action-btn:disabled { cursor: not-allowed; opacity: 0.55; background: rgba(148,163,184,0.08); color: #64748b; border-color: rgba(148,163,184,0.2); }
-  /* ---- Host Info row: Confirmed Inspection Card banner (Tenant view) ---- */
+  /* ---- Host Info row: Confirmed Inspection Card contact row (Tenant view) ---- */
+  .insp-contact-wrap { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .host-info-row {
-    display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-top: 10px;
-    background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.25); border-radius: 12px; cursor: pointer;
+    display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1; min-width: 0;
   }
   .host-info-avatar { width: 36px; height: 36px; border-radius: 999px; object-fit: cover; background: #1e293b; border: 1px solid #334155; flex-shrink: 0; }
   .host-info-avatar-fallback { display: flex; align-items: center; justify-content: center; color: #94a3b8; }
   .host-info-text { flex: 1; min-width: 0; }
   .host-info-name { font-size: 12.5px; font-weight: 600; color: #fff; margin: 0 0 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .host-info-role { font-size: 10.5px; color: #34d399; margin: 0; }
+  .insp-ghost-chat-btn {
+    width: 36px; height: 36px; border-radius: 999px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(148,163,184,0.08); border: 1px solid rgba(148,163,184,0.25); color: #c084fc; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .insp-ghost-chat-btn:hover { background: rgba(147,51,234,0.15); border-color: rgba(147,51,234,0.4); }
   /* ---- Chat header: Host/peer online-role status line + tappable peer info ---- */
   .msg-peer-info.tappable { cursor: pointer; }
   .msg-peer-status { font-size: 10.5px; color: #34d399; margin: 0 0 2px; display: flex; align-items: center; gap: 4px; }
@@ -1154,19 +1159,40 @@
   /* ===================================================================
      INSPECTION SCHEDULES VIEW
      =================================================================== */
-  .insp-mgmt-card { background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 16px; padding: 14px; margin-bottom: 14px; }
-  .insp-mgmt-top { display: flex; gap: 12px; margin-bottom: 12px; }
-  .insp-mgmt-img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; flex-shrink: 0; background: #1e293b; font-size: 0; color: transparent; text-indent: -9999px; }
+  .insp-mgmt-card { position: relative; background: #131927; border: 1px solid #1e293b; border-radius: 20px; padding: 20px; margin-bottom: 16px; }
+  .insp-badge-corner { position: absolute; top: 18px; right: 18px; }
+  .insp-mgmt-top { display: flex; gap: 12px; margin-bottom: 10px; padding-right: 78px; }
+  .insp-mgmt-img { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; flex-shrink: 0; background: #1e293b; font-size: 0; color: transparent; text-indent: -9999px; }
   .insp-mgmt-text { flex: 1; min-width: 0; }
-  .insp-mgmt-title { font-size: 13.5px; font-weight: 600; color: #fff; margin: 0 0 2px; }
-  .insp-mgmt-loc { font-size: 11.5px; color: #64748b; margin: 0 0 6px; display: flex; align-items: center; gap: 4px; }
+  .insp-mgmt-title { font-size: 14.5px; font-weight: 600; color: #fff; margin: 0 0 3px; }
+  .insp-mgmt-loc { font-size: 11.5px; color: #64748b; margin: 0; display: flex; align-items: center; gap: 4px; }
+  .insp-meta-line { font-size: 12px; color: #94a3b8; margin: 0 0 10px; display: flex; align-items: center; gap: 6px; }
+  .insp-escrow-badge {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; color: #94a3b8;
+    background: rgba(148,163,184,0.08); border: 1px solid rgba(148,163,184,0.2); padding: 5px 11px; border-radius: 999px;
+  }
+  .insp-divider { border-top: 1px solid rgba(30,41,59,0.5); margin: 14px 0; }
+  .insp-primary-btn {
+    width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 13px; border-radius: 12px; font-size: 13.5px; font-weight: 600; color: #fff; background: #8b5cf6;
+    border: none; cursor: pointer; box-shadow: 0 8px 24px rgba(139,92,246,0.35); transition: box-shadow 0.15s ease;
+  }
+  .insp-primary-btn:hover { box-shadow: 0 10px 28px rgba(139,92,246,0.5); }
+  .insp-primary-btn:disabled { cursor: not-allowed; opacity: 0.55; box-shadow: none; background: rgba(148,163,184,0.1); color: #64748b; }
+  .insp-secondary-full-btn {
+    width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 600; color: #e2e8f0;
+    background: rgba(30,41,59,0.6); border: 1px solid #1e293b; cursor: pointer; transition: border-color 0.15s ease;
+  }
+  .insp-secondary-full-btn:hover { border-color: #334155; }
+  .insp-secondary-full-btn:disabled { cursor: not-allowed; opacity: 0.55; background: rgba(148,163,184,0.08); color: #64748b; border-color: rgba(148,163,184,0.2); }
   .insp-mgmt-badges { display: flex; flex-wrap: wrap; gap: 6px; }
   .insp-date-badge {
     display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600;
     padding: 4px 8px; border-radius: 999px; background: rgba(147,51,234,0.15); color: #c084fc;
     border: 1px solid rgba(147,51,234,0.35);
   }
-  .insp-mgmt-actions { display: flex; gap: 8px; }
+  .insp-mgmt-actions { display: flex; flex-direction: column; gap: 8px; }
 
   /* ===================================================================
      DEV / ADMIN TESTING BYPASS
@@ -4171,6 +4197,35 @@ This voucher is auto-generated and serves as proof of settlement.`;
     return symbol + Math.round(amount).toLocaleString('en-US');
   }
 
+  // Combines a schedule's raw date ("YYYY-MM-DD") and 24h time ("HH:MM") into a single
+  // light-weight display line, e.g. "Sept 20, 2026 • 04:34 AM". Falls back gracefully
+  // when either value is missing or still "TBD".
+  function formatInspDateTime(dateStr, timeStr) {
+    const hasDate = dateStr && dateStr !== 'TBD';
+    const hasTime = timeStr && timeStr !== 'TBD';
+    let dateLabel = hasDate ? dateStr : '';
+    if (hasDate) {
+      const d = new Date(dateStr + 'T00:00:00');
+      if (!isNaN(d.getTime())) {
+        dateLabel = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+    }
+    let timeLabel = hasTime ? timeStr : '';
+    if (hasTime) {
+      const m = /^(\d{1,2}):(\d{2})$/.exec(timeStr);
+      if (m) {
+        let hh = parseInt(m[1], 10);
+        const ampm = hh >= 12 ? 'PM' : 'AM';
+        hh = hh % 12; if (hh === 0) hh = 12;
+        timeLabel = `${hh}:${m[2]} ${ampm}`;
+      }
+    }
+    if (hasDate && hasTime) return `${dateLabel} • ${timeLabel}`;
+    if (hasDate) return dateLabel;
+    if (hasTime) return timeLabel;
+    return 'Date & time TBD';
+  }
+
   // ==================================================================
   // ---- Rent / Land Payment Formula (Year 1 vs Renewal) ----
   // Applies identically to rentals AND land/property purchases:
@@ -6210,38 +6265,39 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const isDeclined = s.status === 'Declined';
       const badgeClass = isPending ? 'insp-status-pending' : isDeclined ? 'insp-status-declined' : (s.status === 'Conducted' ? 'insp-status-conducted' : 'insp-status-confirmed');
       const badgeIcon = isPending ? 'clock' : isDeclined ? 'x-circle' : (s.status === 'Conducted' ? 'clipboard-check' : 'check-circle-2');
+      const dateTimeLine = formatInspDateTime(s.date, s.time);
       // Chat Locking Logic: locked for ALL parties while "Pending Approval", and
       // permanently locked once "Declined" — unlocked only once "Confirmed"/"Conducted".
-      const chatLockedHtml = `<button type="button" class="s5-action-btn" disabled><i data-lucide="lock" class="w-4 h-4"></i>${isPending ? 'Chat Locked (Awaiting Confirmation)' : 'Chat Locked'}</button>`;
+      const chatLockedHtml = `<button type="button" class="insp-secondary-full-btn" disabled><i data-lucide="lock" class="w-4 h-4"></i>${isPending ? 'Chat Locked (Awaiting Confirmation)' : 'Chat Locked'}</button>`;
       // Landlord/Agent: view-only requests, routed entirely through direct chat with the
       // tenant — no scheduling controls and no access to the tenant's payment/split flow.
+      // Tenant: the Chat Manager action now lives as a ghost icon button inside the
+      // contact row (see hostInfoHtml below) once a host is shown, so only the primary
+      // Complete Inspection action remains here.
       const actionsHtml = isLandlordOrAgent
         ? ((isPending || isDeclined)
             ? chatLockedHtml
-            : `<button type="button" class="s5-action-btn primary insp-chat-btn" data-sched-id="${s.id}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>`)
+            : `<button type="button" class="insp-secondary-full-btn insp-chat-btn" data-sched-id="${s.id}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>`)
         : ((isPending || isDeclined)
             ? chatLockedHtml
-            : `<button type="button" class="s5-action-btn insp-chat-btn" data-conv-id="${s.conversationId}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>
-               <button type="button" class="s5-action-btn primary insp-complete-btn" data-conv-id="${s.conversationId}"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Complete &amp; Decide Split</button>`);
-      // Host Profile Integration: Confirmed Inspection Card banner — Tenant view only,
-      // and only while status is exactly "Confirmed" (Green badge).
-      const hostInfoHtml = (!isLandlordOrAgent && s.status === 'Confirmed') ? hostInfoRowHTML(s) : '';
+            : `<button type="button" class="insp-primary-btn insp-complete-btn" data-conv-id="${s.conversationId}"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Complete Inspection</button>`);
+      // Host Profile Integration: contact row with ghost chat button — Tenant view only,
+      // shown once a host is assigned (Confirmed or Conducted).
+      const hostInfoHtml = (!isLandlordOrAgent && (s.status === 'Confirmed' || s.status === 'Conducted')) ? hostInfoRowHTML(s) : '';
       return `
       <div class="insp-mgmt-card" data-sched-id="${s.id}">
+        <span class="s5-status-badge insp-badge-corner ${badgeClass}"><i data-lucide="${badgeIcon}" class="w-3 h-3"></i>${s.status}</span>
         <div class="insp-mgmt-top">
           <img class="insp-mgmt-img" src="${s.img}" alt="${s.title}" onerror="handleImgError(this,'rent')">
           <div class="insp-mgmt-text">
             <p class="insp-mgmt-title">${s.title}</p>
             <p class="insp-mgmt-loc"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${s.location}</p>
-            <div class="insp-mgmt-badges">
-              <span class="insp-date-badge"><i data-lucide="calendar" class="w-3 h-3"></i>${s.date || 'TBD'}</span>
-              <span class="insp-date-badge"><i data-lucide="clock" class="w-3 h-3"></i>${s.time || 'TBD'}</span>
-              <span class="insp-date-badge"><i data-lucide="shield-check" class="w-3 h-3"></i>${formatMoney(s.fee, 'ngn')} escrow</span>
-              <span class="s5-status-badge ${badgeClass}"><i data-lucide="${badgeIcon}" class="w-3 h-3"></i>${s.status}</span>
-            </div>
           </div>
         </div>
-        ${hostInfoHtml}
+        <p class="insp-meta-line"><i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i>${dateTimeLine}</p>
+        <span class="insp-escrow-badge"><i data-lucide="lock" class="w-3 h-3"></i>${formatMoney(s.fee, 'ngn')} Escrow</span>
+        ${hostInfoHtml ? `<div class="insp-divider"></div>${hostInfoHtml}` : ''}
+        <div class="insp-divider"></div>
         <div class="insp-mgmt-actions">${actionsHtml}</div>
       </div>`;
     }).join('');
@@ -6270,13 +6326,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ? `<img class="host-info-avatar" src="${host.photo}" alt="${host.name}">`
       : `<div class="host-info-avatar host-info-avatar-fallback"><i data-lucide="user" class="w-4 h-4"></i></div>`;
     return `
-      <div class="host-info-row" data-action="hostPreview" data-sched-id="${s.id}">
-        ${avatarHtml}
-        <div class="host-info-text">
-          <p class="host-info-name">${host.name}</p>
-          <p class="host-info-role">${host.label} • Verified</p>
+      <div class="insp-contact-wrap">
+        <div class="host-info-row" data-action="hostPreview" data-sched-id="${s.id}">
+          ${avatarHtml}
+          <div class="host-info-text">
+            <p class="host-info-name">${host.name}</p>
+            <p class="host-info-role">${host.label} • Verified</p>
+          </div>
         </div>
-        <i data-lucide="chevron-right" class="w-4 h-4" style="color:#64748b;"></i>
+        <button type="button" class="insp-ghost-chat-btn insp-chat-btn" data-conv-id="${s.conversationId}" title="Chat Manager" aria-label="Chat Manager">
+          <i data-lucide="message-square" class="w-4 h-4"></i>
+        </button>
       </div>`;
   }
 
