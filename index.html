@@ -518,6 +518,45 @@
   .dash-summary-title { font-size: 13px; font-weight: 600; color: #fbbf24; margin: 0 0 1px; }
   .dash-summary-sub { font-size: 11px; color: #94a3b8; margin: 0; }
 
+  /* ---- Login: inline validation message for unrecognized demo credentials ---- */
+  .login-error-msg {
+    display: none; align-items: center; gap: 6px; font-size: 12px; font-weight: 500;
+    color: #f87171; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.35);
+    border-radius: 10px; padding: 10px 12px; margin: -6px 0 16px;
+  }
+  .login-error-msg.show { display: flex; }
+
+  /* ---- Demo Flow Card: cross-role shared-state inspection sync (Angel/John/Frank) ---- */
+  .demo-flow-card {
+    background: rgba(147,51,234,0.06); border: 1px solid rgba(147,51,234,0.3); border-radius: 16px;
+    padding: 16px; margin-bottom: 20px;
+  }
+  .demo-flow-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .demo-flow-title { font-size: 13px; font-weight: 700; color: #c084fc; margin: 0; }
+  .demo-flow-sub { font-size: 11.5px; color: #94a3b8; margin: 0 0 12px; }
+  .demo-flow-item {
+    background: rgba(15,23,42,0.7); border: 1px solid #1e293b; border-radius: 12px;
+    padding: 12px; margin-bottom: 10px;
+  }
+  .demo-flow-item:last-child { margin-bottom: 0; }
+  .demo-flow-item-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .demo-flow-item-title { font-size: 12.5px; font-weight: 600; color: #fff; margin: 0; }
+  .demo-flow-item-sub { font-size: 11px; color: #64748b; margin: 2px 0 0; }
+  .demo-flow-pill {
+    display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; letter-spacing: 0.02em;
+    padding: 3px 9px; border-radius: 999px; text-transform: uppercase; flex-shrink: 0;
+  }
+  .demo-flow-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .demo-flow-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px 10px; border-radius: 10px; font-size: 11.5px; font-weight: 600; cursor: pointer; border: none;
+  }
+  .demo-flow-btn.confirm { background: linear-gradient(90deg, #10b981, #059669); color: #fff; }
+  .demo-flow-btn.decline { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.35); }
+  .demo-flow-btn.message { background: linear-gradient(90deg, #9333ea, #7e22ce); color: #fff; }
+  .demo-flow-btn.complete { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+  .demo-flow-btn.request { background: linear-gradient(90deg, #9333ea, #7e22ce); color: #fff; width: 100%; }
+
   /* ---- Inspections Manager (Landlord / Agent cross-role actions) ---- */
   .insp-status-pending { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); }
   .insp-status-confirmed { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
@@ -529,12 +568,21 @@
     padding: 9px 10px; border-radius: 10px; font-size: 11.5px; font-weight: 600; cursor: pointer; border: none;
   }
   .insp-mgr-btn:disabled { cursor: not-allowed; opacity: 0.7; }
-  .insp-mgr-accept { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
-  .insp-mgr-decline { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.35); }
+  /* Confirm: filled primary button, emerald accent */
+  .insp-mgr-accept { background: #10b981; color: #ffffff; border: 1px solid #10b981; box-shadow: 0 6px 16px rgba(16,185,129,0.3); }
+  .insp-mgr-accept:hover { background: #059669; border-color: #059669; }
+  /* Decline: subtle outlined button, red border only */
+  .insp-mgr-decline { background: transparent; color: #f87171; border: 1px solid rgba(248,113,113,0.5); }
+  .insp-mgr-decline:hover { background: rgba(248,113,113,0.08); border-color: #f87171; }
   .insp-mgr-conduct { background: rgba(147,51,234,0.15); color: #c084fc; border: 1px solid rgba(147,51,234,0.4); }
   .insp-mgr-chat { background: rgba(147,51,234,0.15); color: #c084fc; border: 1px solid rgba(147,51,234,0.4); }
   .insp-mgr-chat:disabled { background: rgba(148,163,184,0.1); color: #64748b; border: 1px solid rgba(148,163,184,0.25); }
-  .insp-mgr-info { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
+  /* View Client Info: plain text button, no fill/border */
+  .insp-mgr-info {
+    flex: 0 0 auto; min-width: auto; background: none; border: none; color: #94a3b8;
+    text-decoration: underline; text-underline-offset: 3px; padding: 9px 4px; font-weight: 500;
+  }
+  .insp-mgr-info:hover { color: #cbd5e1; }
   /* ---- Chat-locked action button (tenant Schedules screen + Messages composer reuse .s5-action-btn) ---- */
   .s5-action-btn:disabled { cursor: not-allowed; opacity: 0.55; background: rgba(148,163,184,0.08); color: #64748b; border-color: rgba(148,163,184,0.2); }
   /* ---- Host Info row: Confirmed Inspection Card contact row (Tenant view) ---- */
@@ -966,6 +1014,25 @@
   .notif-tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .notif-tab { flex-shrink: 0; padding: 8px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600; color: #94a3b8; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; cursor: pointer; transition: all .15s ease; }
   .notif-tab.active { color: #fff; background: rgba(147,51,234,0.25); border-color: #a855f7; }
+
+  /* ---- Notification Detail Modal: description + breakdown card ---- */
+  .notif-detail-desc { font-size: 13.5px; color: #cbd5e1; line-height: 1.5; margin: 0 0 16px; }
+  .notif-breakdown-card {
+    background: rgba(15,23,42,0.7); border: 1px solid #1e293b; border-radius: 16px; padding: 4px 14px;
+  }
+  .notif-breakdown-title {
+    font-size: 11.5px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em;
+    margin: 12px 0 2px;
+  }
+  .notif-breakdown-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid #1e293b; font-size: 13px;
+  }
+  .notif-breakdown-row:last-child { border-bottom: none; }
+  .notif-breakdown-row span { color: #64748b; }
+  .notif-breakdown-row strong { color: #fff; font-weight: 500; text-align: right; }
+  .notif-breakdown-row.total strong { color: #34d399; font-weight: 700; }
+  .notif-breakdown-row.deduction strong { color: #f87171; }
   .notif-item { position: relative; display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 14px; margin-bottom: 10px; cursor: pointer; transition: border-color .15s ease, transform .15s ease; }
   .notif-item:hover { border-color: #334155; transform: scale(1.01); }
   .notif-item.unread { border-color: rgba(168,85,247,0.4); background: rgba(59,7,100,0.15); }
@@ -1609,27 +1676,28 @@
     <input class="field-input" id="login-password" type="password" placeholder="Enter your password">
   </div>
 
+  <p class="login-error-msg" id="login-error-msg"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span id="login-error-text"></span></p>
+
   <button type="button" id="login-submit-btn" class="btn-primary">Log In</button>
 
-  <!-- Demo-only: quick relogin using the most recently saved onboarding profile, so
-       testers aren't forced to repeat the full 3-step onboarding flow after logging out. -->
-  <div id="login-demo-section" style="display:none; margin-top: 26px;">
-    <p class="s5-section-label" style="margin-bottom: 12px;"><i data-lucide="zap" class="w-4 h-4 text-purple-400"></i>Demo Quick Access</p>
-    <div class="role-card selected" style="cursor:default; margin-bottom: 14px;">
-      <span class="role-icon"><i data-lucide="user-circle" class="w-6 h-6 text-purple-400"></i></span>
-      <div class="role-text">
-        <p class="role-name" id="login-demo-name">—</p>
-        <p class="role-sub" id="login-demo-role">—</p>
-      </div>
+  <!-- Pre-onboarded demo accounts: type any of these names or emails above, then tap
+       Log In. Each routes straight into its role dashboard — no onboarding, no password
+       check. State (inspections, notifications, chats) is shared across all three via
+       the maintown_app_state localStorage store, so actions taken as one account are
+       visible immediately after logging in as another. -->
+  <div id="login-demo-section" style="margin-top: 26px;">
+    <p class="s5-section-label" style="margin-bottom: 10px;"><i data-lucide="zap" class="w-4 h-4 text-purple-400"></i>Demo Accounts</p>
+    <div class="demo-flow-item" style="margin-bottom: 8px;">
+      <p class="demo-flow-item-title" style="margin-bottom:2px;">John Adam</p>
+      <p class="demo-flow-item-sub">john@maintown.com — Agent</p>
     </div>
-    <button type="button" id="login-quick-btn" class="btn-primary" style="display:flex; align-items:center; justify-content:center; gap:6px;">
-      <i data-lucide="rocket" class="w-4 h-4"></i> Quick Demo Login
-    </button>
-    <p class="role-hint" style="margin: 14px 0 8px;">Or jump in as a different role (same demo profile):</p>
-    <div style="display:flex; gap:8px;">
-      <button type="button" class="s5-action-btn login-role-switch-btn" data-role="tenant" style="flex:1;">Tenant</button>
-      <button type="button" class="s5-action-btn login-role-switch-btn" data-role="landlord" style="flex:1;">Landlord</button>
-      <button type="button" class="s5-action-btn login-role-switch-btn" data-role="agent" style="flex:1;">Agent</button>
+    <div class="demo-flow-item" style="margin-bottom: 8px;">
+      <p class="demo-flow-item-title" style="margin-bottom:2px;">Frank Hood</p>
+      <p class="demo-flow-item-sub">frank@maintown.com — Landlord</p>
+    </div>
+    <div class="demo-flow-item" style="margin-bottom: 0;">
+      <p class="demo-flow-item-title" style="margin-bottom:2px;">Angel Tiwa</p>
+      <p class="demo-flow-item-sub">angel@maintown.com — Tenant</p>
     </div>
   </div>
 
@@ -1665,6 +1733,8 @@
   </div>
 
   <div id="dash-inspections-summary"><!-- populated dynamically --></div>
+
+  <div id="demo-flow-card"><!-- populated dynamically: cross-role shared inspection state --></div>
 
   <p class="dash-section-title">Quick Actions</p>
   <div class="dash-grid" id="dash-grid">
@@ -2001,6 +2071,94 @@
 
 </div>
 <!-- ===================== END SCREEN 6 ===================== -->
+
+<!-- ===================== SCREEN 6H: Executive Handover & Title Transfer (Land / Property Purchase) ===================== -->
+<div id="screen-land-handover" class="screen-view hidden pb-24">
+
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="s6h-back-btn">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="landmark" class="w-3.5 h-3.5"></i><span>Title Transfer</span></p>
+    </div>
+  </div>
+
+  <h1 class="s5-role-title" style="margin-bottom: 18px;">Executive Handover</h1>
+
+  <!-- Header & Proof of Settlement -->
+  <div class="dash-card" style="background: linear-gradient(135deg, #7e22ce, #4c1d95); margin-bottom: 20px;">
+    <p class="dash-card-label" style="display: flex; align-items: center; gap: 5px;"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i>Status</p>
+    <p class="dash-card-value">Purchase Settled &amp; Escrow Secured</p>
+    <p class="dash-card-sub" id="s6h-property-title">—</p>
+    <p class="dash-card-sub" id="s6h-property-location">—</p>
+  </div>
+  <div class="s5-hold-preview" style="margin-bottom: 20px;">
+    <div class="s5-hold-row"><span>Transaction ID</span><strong id="s6h-txn-id">—</strong></div>
+    <div class="s5-hold-row"><span>Total Amount Settled</span><strong id="s6h-total-settled" style="color:#c084fc; font-size: 14px;">—</strong></div>
+  </div>
+
+  <!-- Document & Deed Status Hub -->
+  <p class="s5-section-label" style="margin-top: 0;"><i data-lucide="file-check-2" class="w-4 h-4 text-purple-400"></i>Document &amp; Deed Status Hub</p>
+
+  <div class="s5-list-item" style="margin-bottom: 10px;">
+    <div class="s5-list-icon"><i data-lucide="file-text" class="w-5 h-5"></i></div>
+    <div class="s5-list-text">
+      <p class="s5-list-title">Deed of Assignment</p>
+      <p class="s5-list-sub"><span class="s5-status-badge insp-status-confirmed" style="margin-top: 4px;">Verified</span></p>
+    </div>
+    <button type="button" id="s6h-deed-view-btn" class="s5-back-btn" title="View Deed PDF" style="width:auto; padding:0 14px; gap:6px; display:flex; align-items:center; white-space:nowrap;">
+      <i data-lucide="eye" class="w-4 h-4"></i><span style="font-size:11.5px; font-weight:600;">View PDF</span>
+    </button>
+  </div>
+
+  <div class="s5-list-item" style="margin-bottom: 10px;">
+    <div class="s5-list-icon"><i data-lucide="map" class="w-5 h-5"></i></div>
+    <div class="s5-list-text">
+      <p class="s5-list-title">Survey Plan &amp; Land Boundary Details</p>
+      <p class="s5-list-sub" id="s6h-survey-ref">—</p>
+    </div>
+  </div>
+
+  <div class="s5-list-item" style="margin-bottom: 20px;">
+    <div class="s5-list-icon"><i data-lucide="stamp" class="w-5 h-5"></i></div>
+    <div class="s5-list-text">
+      <p class="s5-list-title">Governor's Consent / C of O Filing</p>
+      <p class="s5-list-sub"><span class="s5-status-badge insp-status-pending" id="s6h-cofo-status" style="margin-top: 4px;">In Progress (Estimated 14 Days)</span></p>
+    </div>
+  </div>
+
+  <!-- Physical Access / Boundary Marker Schedule -->
+  <p class="s5-section-label"><i data-lucide="calendar-check" class="w-4 h-4 text-purple-400"></i>Physical Access &amp; Boundary Marker Schedule</p>
+  <div class="s5-hold-preview" style="margin-bottom: 20px;">
+    <div class="s5-hold-row"><span id="s6h-appt-label">Boundary Pegging Appointment</span><strong id="s6h-appt-date">—</strong></div>
+  </div>
+
+  <p class="s5-section-label"><i data-lucide="user-round" class="w-4 h-4 text-purple-400"></i>Handover Officer / Seller</p>
+  <div class="assigned-people-row" style="margin-bottom: 24px;">
+    <div class="assigned-person-card" id="s6h-officer-card" role="button" tabindex="0" style="flex: 1;">
+      <img id="s6h-officer-avatar" class="assigned-person-avatar" alt="Handover Officer" style="display:none;">
+      <div id="s6h-officer-avatar-fallback" class="assigned-person-avatar" style="display:flex; align-items:center; justify-content:center;">
+        <i data-lucide="user-round" class="w-5 h-5 text-slate-500"></i>
+      </div>
+      <p class="assigned-person-role" id="s6h-officer-role">Handover Officer</p>
+      <p class="assigned-person-name" id="s6h-officer-name">—</p>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <button type="button" id="s6h-message-btn" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+    <i data-lucide="message-circle" class="w-4 h-4"></i> Message Landlord / Agent
+  </button>
+  <button type="button" id="s6h-receipt-btn" class="doc-action-btn" style="margin-bottom: 12px;">
+    <i data-lucide="receipt" class="w-4 h-4"></i> View Digital Receipt &amp; Deed
+  </button>
+  <button type="button" id="s6h-active-props-btn" class="btn-secondary" style="color:#94a3b8;">
+    Go to Active Properties
+  </button>
+
+</div>
+<!-- ===================== END SCREEN 6H ===================== -->
 
 <!-- ===================== SCREEN 7: Post-Lease Management & Default Enforcement Hub ===================== -->
 <div id="screen-post-lease" class="screen-view hidden pb-24">
@@ -2488,6 +2646,34 @@
 
 </div>
 
+<!-- ===================== Notification Detail Modal ===================== -->
+<!-- Opens for EVERY notification card tap (replaces the old generic role-guard
+     toast/redirect). Shows the full event with a type-specific breakdown —
+     financial ledger for payouts, escrow context for funds-received, and lease
+     details + a direct chat CTA for move-in confirmations. -->
+<div id="notification-detail-modal" class="sheet-overlay">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <h2 class="sheet-title"><i data-lucide="bell" class="w-4 h-4" id="notif-detail-icon"></i><span id="notif-detail-title">—</span></h2>
+        <p class="sheet-subtitle" id="notif-detail-time">—</p>
+      </div>
+      <button type="button" class="sheet-close-btn" id="notif-detail-close-btn">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+
+    <p class="notif-detail-desc" id="notif-detail-desc">—</p>
+
+    <div id="notif-detail-breakdown"><!-- populated dynamically per notification type --></div>
+
+    <button type="button" class="btn-primary notif-detail-cta" id="notif-detail-cta-btn" style="display:none; margin-top:16px; align-items:center; justify-content:center; gap:6px;">
+      <i data-lucide="message-square" class="w-4 h-4"></i><span id="notif-detail-cta-label">Go to Active Chat</span>
+    </button>
+  </div>
+</div>
+
 <!-- Simulated Voice / Video Call overlay -->
 <div id="call-overlay" class="call-overlay">
   <div>
@@ -2950,6 +3136,29 @@
 
     <button type="button" id="lp-continue-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Continue to Checkout</button>
     <button type="button" id="lp-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
+<!-- Digital Receipt & Deed — read-only breakdown modal (Executive Handover screen) -->
+<div id="land-receipt-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap"><i data-lucide="receipt" class="w-6 h-6 text-purple-400"></i></div>
+    <h2 class="modal-title">Digital Receipt &amp; Deed</h2>
+    <p class="modal-sub" id="s6h-modal-property">—</p>
+
+    <div class="receipt-box">
+      <div class="s5-hold-row"><span id="s6h-modal-row1-label">Agreed Purchase Value</span><strong id="s6h-modal-row1-value">—</strong></div>
+      <div class="s5-hold-row"><span id="s6h-modal-row2-label">Legal Title &amp; Deed Processing Fee</span><strong id="s6h-modal-row2-value">—</strong></div>
+      <div class="s5-hold-row"><span id="s6h-modal-row3-label">MainTown Escrow Guarantee Fee</span><strong id="s6h-modal-row3-value">—</strong></div>
+      <div class="s5-hold-divider"></div>
+      <div class="s5-hold-row"><span>Total Amount Settled</span><strong id="s6h-modal-total" style="color: #c084fc; font-size: 15px;">—</strong></div>
+      <div class="s5-hold-divider"></div>
+      <div class="s5-hold-row"><span>Transaction ID</span><strong id="s6h-modal-txn">—</strong></div>
+      <div class="s5-hold-row"><span>Date</span><strong id="s6h-modal-date">—</strong></div>
+      <div class="s5-hold-row"><span>Deed of Assignment</span><strong style="color:#34d399;">Verified</strong></div>
+    </div>
+
+    <button type="button" id="s6h-modal-close-btn" class="btn-secondary" style="margin-top: 12px;">Close</button>
   </div>
 </div>
 
@@ -3624,6 +3833,14 @@
       setTimeout(() => openClosedDealsModal(currentUserRole), 200);
     }
 
+    if (screenId === 'screen-land-handover' && (currentUserRole || 'tenant') !== 'tenant') {
+      showToast('Executive Handover is a Tenant-only screen — showing your Tenant Overview instead');
+      screenId = 'screen-4';
+      document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+      document.getElementById(screenId).classList.remove('hidden');
+      setTimeout(() => openClosedDealsModal(currentUserRole), 200);
+    }
+
     if (screenId === 'screen-4') {
       populateScreen4();
     }
@@ -3638,6 +3855,10 @@
 
     if (screenId === 'screen-post-lease') {
       populateScreen7();
+    }
+
+    if (screenId === 'screen-land-handover') {
+      populateScreenLandHandover();
     }
 
     if (screenId === 'screen-pay-rent') {
@@ -4187,6 +4408,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       </div>`).join('');
 
     renderInspectionsSummaryCard();
+    if (typeof renderDemoFlowCard === 'function') renderDemoFlowCard();
     if (window.lucide) lucide.createIcons();
   }
 
@@ -4664,6 +4886,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // ==================================================================
 
   let checkoutListing = null;
+  let landHandoverTxnId = null;
+  let landHandoverAppt = null;
   let checkoutSource = 'wallet';
   let checkoutOtpTimer = null;
   let checkoutLandPayment = null; // { mode, months, monthly, commission, legal, upfront, remainingMonths, remainingTotal }
@@ -5321,10 +5545,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Fired to both the Landlord and Agent the moment escrow funds are received.
     if (checkoutListing) {
       const propertyTitle = checkoutListing.title;
+      const tenantNameForNotif = (document.getElementById('reg-fullname')?.value || '').trim() || 'Tenant';
       ['landlord', 'agent'].forEach(forRole => {
         pushPlatformNotification(forRole, 'payment', 'Escrow Funds Received',
           `Escrow funds received for ${propertyTitle}. Awaiting move-in confirmation.`,
-          { screen: 'screen-post-lease' }, 'ESCROW_FUNDS_RECEIVED');
+          { screen: 'screen-post-lease' }, 'ESCROW_FUNDS_RECEIVED', {
+            metadata: {
+              propertyTitle,
+              tenantName: tenantNameForNotif,
+              escrowStatus: 'Funds Held in MainTown Escrow',
+              nextTrigger: 'Awaiting move-in confirmation'
+            }
+          });
       });
     }
   }
@@ -5395,6 +5627,25 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('s6-invoice-ref').textContent = `Ref: ${txRef}`;
     document.getElementById('s6-invoice-date').textContent = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
+    // Land & Property purchases route to the Executive Handover screen instead of
+    // the (rental-only) Post-Lease Hub — swap the CTA label/icon and mint the
+    // Handover screen's own Transaction ID + boundary-marker appointment here,
+    // once, so both stay stable for the rest of this session.
+    const gotoBtn = document.getElementById('s6-goto-postlease-btn');
+    if (checkoutListing && checkoutListing.type === 'land') {
+      if (!landHandoverTxnId) {
+        landHandoverTxnId = `#MT-ORD-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+      }
+      if (!landHandoverAppt) {
+        const appt = new Date();
+        appt.setDate(appt.getDate() + 7);
+        landHandoverAppt = appt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + ' · 11:00 AM';
+      }
+      gotoBtn.innerHTML = '<i data-lucide="key-round" class="w-4 h-4"></i> View Handover &amp; Title Transfer';
+    } else {
+      gotoBtn.innerHTML = '<i data-lucide="arrow-right-circle" class="w-4 h-4"></i> Proceed to Post-Lease Hub';
+    }
+
     showToast('PIN verified — escrow funds released to landlord');
     document.getElementById('s6-success-panel').classList.add('hidden');
     document.getElementById('s6-invoice-panel').classList.remove('hidden');
@@ -5420,11 +5671,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Notification Trigger: Escrow & Financial Alerts — Payout Disbursed Alert.
     // Fired to both the Landlord and Agent the moment funds are released from escrow.
     if (checkoutListing) {
+      const grossRentLabel = document.getElementById('s6-invoice-rent').textContent;
+      const feeLabel = document.getElementById('s6-invoice-fee').textContent;
       const disbursedAmount = document.getElementById('s6-invoice-total').textContent || document.getElementById('s6-total-amount').textContent;
       ['landlord', 'agent'].forEach(forRole => {
+        const bankData = payoutHistoryData[forRole] && payoutHistoryData[forRole].bank;
+        const destination = bankData ? `${bankData.name} ${bankData.masked}` : 'MainTown Settlement Account';
         pushPlatformNotification(forRole, 'payment', 'Payout Disbursed',
           `Payout of ${disbursedAmount} has been disbursed to your account.`,
-          { screen: 'screen-post-lease' }, 'PAYOUT_DISBURSED');
+          { screen: 'screen-post-lease' }, 'PAYOUT_DISBURSED', {
+            financial_breakdown: [
+              { label: 'Gross Rent', value: grossRentLabel },
+              { label: forRole === 'agent' ? 'Platform Retention' : 'MainTown Legal / Platform Fee', value: `− ${feeLabel}`, deduction: true },
+              { label: 'Net Payout Amount', value: disbursedAmount, total: true },
+              { label: 'Destination', value: destination }
+            ]
+          });
       });
     }
 
@@ -5475,7 +5737,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   document.getElementById('s6-goto-postlease-btn').addEventListener('click', () => {
-    navigateTo('screen-post-lease');
+    if (checkoutListing && checkoutListing.type === 'land') {
+      navigateTo('screen-land-handover');
+    } else {
+      navigateTo('screen-post-lease');
+    }
   });
 
   document.getElementById('s7-back-btn').addEventListener('click', () => navigateTo('screen-6'));
@@ -5544,6 +5810,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Complete & Decide Split / payment flow.
   // Renders the Chat Manager button in its correct state for the given schedule:
   // locked (disabled) while "Pending Approval" or after "Declined", unlocked once "Confirmed"/"Conducted".
+  // Maps an internal schedule status to the exact badge copy the spec calls for.
+  // `forTenant` swaps the pending label to "AWAITING APPROVAL" for the Tenant's own view.
+  function inspectionStatusBadgeLabel(status, forTenant) {
+    if (status === 'Pending Approval') return forTenant ? 'AWAITING APPROVAL' : 'PENDING APPROVAL';
+    if (status === 'Confirmed') return 'CONFIRMED';
+    if (status === 'Declined') return 'DECLINED';
+    if (status === 'Conducted') return 'CONDUCTED';
+    return (status || '').toUpperCase();
+  }
+
   function chatManagerButtonHTML(s, dataAttrHtml) {
     if (s.status === 'Pending Approval') {
       return `<button type="button" class="insp-mgr-btn insp-mgr-chat" disabled><i data-lucide="lock" class="w-3.5 h-3.5"></i>Chat Locked (Awaiting Confirmation)</button>`;
@@ -5551,7 +5827,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (s.status === 'Declined') {
       return `<button type="button" class="insp-mgr-btn insp-mgr-chat" disabled><i data-lucide="lock" class="w-3.5 h-3.5"></i>Chat Locked</button>`;
     }
-    return `<button type="button" class="insp-mgr-btn insp-mgr-chat" data-action="chat" ${dataAttrHtml}><i data-lucide="message-square" class="w-3.5 h-3.5"></i>Chat Manager</button>`;
+    return `<button type="button" class="insp-mgr-btn insp-mgr-chat" data-action="chat" ${dataAttrHtml}><i data-lucide="message-square" class="w-3.5 h-3.5"></i>Message Tenant</button>`;
   }
 
   function inspectionsManagerCardHTML(s) {
@@ -5562,8 +5838,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Host action controls: only the Host (Landlord/Agent who posted the listing) ever sees
     // these, and only while the request is still "Pending Approval".
     const hostActionsHtml = isPending
-      ? `<button type="button" class="insp-mgr-btn insp-mgr-accept" data-action="accept" data-sched-id="${s.id}"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>Accept Inspection</button>
-         <button type="button" class="insp-mgr-btn insp-mgr-decline" data-action="decline" data-sched-id="${s.id}"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>Decline Inspection</button>`
+      ? `<button type="button" class="insp-mgr-btn insp-mgr-accept" data-action="accept" data-sched-id="${s.id}"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>Confirm</button>
+         <button type="button" class="insp-mgr-btn insp-mgr-decline" data-action="decline" data-sched-id="${s.id}"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>Decline</button>`
       : '';
     return `
       <div class="insp-mgmt-card" data-sched-id="${s.id}">
@@ -5576,12 +5852,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
               <span class="insp-date-badge"><i data-lucide="calendar" class="w-3 h-3"></i>${s.date || 'TBD'}</span>
               <span class="insp-date-badge"><i data-lucide="clock" class="w-3 h-3"></i>${s.time || 'TBD'}</span>
               <span class="insp-date-badge"><i data-lucide="shield-check" class="w-3 h-3"></i>${formatMoney(s.fee, 'ngn')} escrow</span>
-              <span class="s5-status-badge ${badgeClass}">${s.status}</span>
+              <span class="s5-status-badge ${badgeClass}">${inspectionStatusBadgeLabel(s.status, false)}</span>
             </div>
           </div>
         </div>
         <div class="insp-mgmt-actions-row">
-          <button type="button" class="insp-mgr-btn insp-mgr-info" data-action="viewTenant" data-sched-id="${s.id}"><i data-lucide="user" class="w-3.5 h-3.5"></i>View Tenant Info</button>
+          <button type="button" class="insp-mgr-btn insp-mgr-info" data-action="viewTenant" data-sched-id="${s.id}">View Client Info</button>
           ${chatManagerButtonHTML(s, `data-sched-id="${s.id}"`)}
           ${hostActionsHtml}
         </div>
@@ -6098,19 +6374,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   // category: 'inspection' | 'payment' | 'message'
   // route: { screen: 'screen-inspections' | 'screen-post-lease' | 'screen-messages' | 'screen-5', convId?: number }
-  // Notification types that are purely informational financial/system receipts —
-  // rendered as static, non-clickable cards (no hover glow/scale, no chevron,
-  // no onClick routing). Every other type remains fully clickable/actionable.
-  const NOTIF_STATIC_TYPES = ['PAYOUT_DISBURSED', 'ESCROW_FUNDS_RECEIVED', 'MOVE_IN_CONFIRMED'];
 
-  function pushPlatformNotification(forRole, category, title, body, route, type) {
+  function pushPlatformNotification(forRole, category, title, body, route, type, details) {
     const notif = {
       id: Date.now() + Math.random(),
       forRole, category, title, body,
       route: route || null,
       type: type || null,
       unread: true,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      // Optional structured payload for the Notification Detail Modal —
+      // `metadata` for context (property/tenant/escrow info) and
+      // `financial_breakdown` for itemized payout ledgers.
+      metadata: (details && details.metadata) || null,
+      financial_breakdown: (details && details.financial_breakdown) || null
     };
     platformNotifications.unshift(notif);
     savePlatformNotifications();
@@ -6147,10 +6424,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } else {
       emptyHint.style.display = 'none';
       const categoryIcon = { inspection: 'calendar-check', payment: 'wallet', message: 'message-square', maintenance: 'wrench' };
-      list.innerHTML = items.map(n => {
-        const isStatic = NOTIF_STATIC_TYPES.includes(n.type);
-        return `
-        <div class="notif-item ${n.unread ? 'unread' : ''} ${isStatic ? 'notif-static' : ''}" data-id="${n.id}" data-static="${isStatic}">
+      // Every notification card is fully clickable — tapping any of them opens
+      // its own Notification Detail Modal (see openNotificationDetailModal).
+      list.innerHTML = items.map(n => `
+        <div class="notif-item ${n.unread ? 'unread' : ''}" data-id="${n.id}">
           <div class="notif-icon"><i data-lucide="${categoryIcon[n.category] || 'bell'}" class="w-4 h-4"></i></div>
           <div class="notif-text">
             <p class="notif-title">${n.title}</p>
@@ -6158,9 +6435,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <p class="notif-time">${new Date(n.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
           </div>
           ${n.unread ? '<span class="notif-unread-dot"></span>' : ''}
-          ${!isStatic ? '<i data-lucide="chevron-right" class="w-4 h-4 notif-chevron"></i>' : ''}
-        </div>`;
-      }).join('');
+          <i data-lucide="chevron-right" class="w-4 h-4 notif-chevron"></i>
+        </div>`).join('');
     }
     document.querySelectorAll('.notif-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === notificationFilterTab));
     if (window.lucide) lucide.createIcons();
@@ -6174,27 +6450,111 @@ This voucher is auto-generated and serves as proof of settlement.`;
     });
   });
 
-  // Interactive Feeds: tapping any notification item marks it read and routes
-  // directly to its corresponding feature (chat thread, inspection details, etc.)
-  // — except for static, informational receipt cards (Payout Disbursed, Escrow
-  // Funds Received, Move-In Confirmed), which never navigate anywhere.
+  // ==================================================================
+  // ---- Notification Detail Modal ----
+  // Replaces the old generic role-guard toast/redirect entirely: every
+  // notification card now opens this bottom sheet with the full event
+  // detail instead of forcing navigation to a screen the current role
+  // may not even have access to.
+  // ==================================================================
+  const notificationDetailModal = document.getElementById('notification-detail-modal');
+  const categoryDetailIcon = { inspection: 'calendar-check', payment: 'wallet', message: 'message-square', maintenance: 'wrench' };
+
+  function formatNotifTimestamp(ts) {
+    return new Date(ts).toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+    }).replace(',', ' •');
+  }
+
+  function notifBreakdownRowHTML(label, value, opts) {
+    opts = opts || {};
+    const cls = ['notif-breakdown-row', opts.total ? 'total' : '', opts.deduction ? 'deduction' : ''].join(' ').trim();
+    return `<div class="${cls}"><span>${label}</span><strong>${value}</strong></div>`;
+  }
+
+  function buildNotifBreakdownHTML(notif) {
+    if (notif.type === 'PAYOUT_DISBURSED' && Array.isArray(notif.financial_breakdown)) {
+      const rows = notif.financial_breakdown.map(r => notifBreakdownRowHTML(r.label, r.value, { total: r.total, deduction: r.deduction })).join('');
+      return `<p class="notif-breakdown-title">Financial Breakdown</p><div class="notif-breakdown-card">${rows}</div>`;
+    }
+    if (notif.type === 'ESCROW_FUNDS_RECEIVED' && notif.metadata) {
+      const m = notif.metadata;
+      const rows = [
+        notifBreakdownRowHTML('Property', m.propertyTitle || '—'),
+        notifBreakdownRowHTML('Tenant', m.tenantName || '—'),
+        notifBreakdownRowHTML('Escrow Status', m.escrowStatus || 'Funds Held'),
+        notifBreakdownRowHTML('Next Trigger', m.nextTrigger || 'Awaiting move-in confirmation')
+      ].join('');
+      return `<p class="notif-breakdown-title">Escrow Details</p><div class="notif-breakdown-card">${rows}</div>`;
+    }
+    if (notif.type === 'MOVE_IN_CONFIRMED' && notif.metadata) {
+      const m = notif.metadata;
+      const rows = [
+        notifBreakdownRowHTML('Property', m.propertyTitle || '—'),
+        notifBreakdownRowHTML('Active Lease Start', m.leaseStart || '—'),
+        notifBreakdownRowHTML('Tenant', m.tenantName || '—')
+      ].join('');
+      return `<p class="notif-breakdown-title">Lease Details</p><div class="notif-breakdown-card">${rows}</div>`;
+    }
+    return '';
+  }
+
+  function openNotificationDetailModal(notifId) {
+    const notif = platformNotifications.find(n => String(n.id) === String(notifId));
+    if (!notif) return;
+
+    if (notif.unread) {
+      notif.unread = false;
+      savePlatformNotifications();
+      renderNotificationCenter();
+    }
+
+    document.getElementById('notif-detail-icon').setAttribute('data-lucide', categoryDetailIcon[notif.category] || 'bell');
+    document.getElementById('notif-detail-title').textContent = notif.title;
+    document.getElementById('notif-detail-time').textContent = formatNotifTimestamp(notif.timestamp);
+    document.getElementById('notif-detail-desc').textContent = notif.body;
+    document.getElementById('notif-detail-breakdown').innerHTML = buildNotifBreakdownHTML(notif);
+
+    // CTA: only shown when there's somewhere useful (and role-appropriate) to go —
+    // a direct chat thread for Move-In Confirmed / message notifications, or the
+    // Inspection Schedules feed for inspection alerts. No CTA is shown for routes
+    // that belong to a screen the current role can't access (e.g. Tenant-only
+    // "Manage Your Tenancy"), which is what used to trigger the old redirect toast.
+    const ctaBtn = document.getElementById('notif-detail-cta-btn');
+    const ctaLabel = document.getElementById('notif-detail-cta-label');
+    ctaBtn.style.display = 'none';
+    ctaBtn.onclick = null;
+    if (notif.route && notif.route.screen === 'screen-messages' && notif.route.convId) {
+      ctaLabel.textContent = notif.type === 'MOVE_IN_CONFIRMED' ? 'Go to Active Chat' : 'Go to Chat';
+      ctaBtn.style.display = 'flex';
+      ctaBtn.onclick = () => {
+        notificationDetailModal.classList.remove('open');
+        navigateTo('screen-messages');
+        openThreadDetail(notif.route.convId);
+      };
+    } else if (notif.route && notif.route.screen === 'screen-inspections') {
+      ctaLabel.textContent = 'View Inspection Schedules';
+      ctaBtn.style.display = 'flex';
+      ctaBtn.onclick = () => {
+        notificationDetailModal.classList.remove('open');
+        navigateTo('screen-inspections');
+      };
+    }
+
+    notificationDetailModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('notif-detail-close-btn').addEventListener('click', () => {
+    notificationDetailModal.classList.remove('open');
+  });
+
+  // Every notification card — including Payout Disbursed / Escrow Funds Received /
+  // Move-In Confirmed — opens its own detail modal on tap. No forced page redirects.
   document.getElementById('notif-list').addEventListener('click', (e) => {
     const item = e.target.closest('.notif-item');
     if (!item) return;
-    const notif = platformNotifications.find(n => String(n.id) === item.dataset.id);
-    if (!notif) return;
-    notif.unread = false;
-    savePlatformNotifications();
-    renderNotificationCenter();
-    if (NOTIF_STATIC_TYPES.includes(notif.type)) return; // static card — no click routing
-    if (notif.route) {
-      if (notif.route.screen === 'screen-messages' && notif.route.convId) {
-        navigateTo('screen-messages');
-        openThreadDetail(notif.route.convId);
-      } else if (notif.route.screen) {
-        navigateTo(notif.route.screen);
-      }
-    }
+    openNotificationDetailModal(item.dataset.id);
   });
 
   document.getElementById('notif-back-btn').addEventListener('click', () => navigateTo('screen-4'));
@@ -6392,7 +6752,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       tenantOccupation: (document.getElementById('reg-occupation')?.value || '').trim() || 'Not specified',
       tenantPhoto: currentUserSelfieDataUrl || null,
       tenantPhone: (document.getElementById('reg-phone')?.value || '').trim() || null,
-      tenantEmail: (document.getElementById('reg-email')?.value || '').trim() || null
+      tenantEmail: (document.getElementById('reg-email')?.value || '').trim() || null,
+      // ---- Persistence-spec aliases (see Inspection & Walkthrough data model) ----
+      inspection_id: `insp_${inspId}`, property_id: inspectionListing.id, property_title: inspectionListing.title,
+      address: inspectionListing.location, scheduled_date: date, scheduled_time: time, escrow_amount: fee,
+      tenant_id: 'user_tenant_01', landlord_id: isAgent ? null : 'user_landlord_01', agent_id: isAgent ? 'user_agent_01' : null,
+      chat_unlocked: false
     });
     saveSchedules();
 
@@ -6444,6 +6809,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const sched = schedules.find(s => String(s.id) === String(scheduleId));
     if (!sched || sched.status !== 'Pending Approval') return;
     sched.status = 'Confirmed';
+    sched.chat_unlocked = true;
 
     const convId = Date.now();
     sched.conversationId = convId;
@@ -6487,6 +6853,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const sched = schedules.find(s => String(s.id) === String(scheduleId));
     if (!sched || sched.status !== 'Pending Approval') return;
     sched.status = 'Declined';
+    sched.chat_unlocked = false;
     saveSchedules();
 
     const insp = inspections.find(i => i.id === sched.inspectionId);
@@ -6733,7 +7100,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
         tenantOccupation: (document.getElementById('reg-occupation')?.value || '').trim() || 'Not specified',
         tenantPhoto: currentUserSelfieDataUrl || null,
         tenantPhone: (document.getElementById('reg-phone')?.value || '').trim() || null,
-        tenantEmail: (document.getElementById('reg-email')?.value || '').trim() || null
+        tenantEmail: (document.getElementById('reg-email')?.value || '').trim() || null,
+        // ---- Persistence-spec aliases (see Inspection & Walkthrough data model) ----
+        inspection_id: `insp_${inspId}`, property_id: item.id, property_title: item.title,
+        address: item.location, scheduled_date: item.date, scheduled_time: item.time, escrow_amount: fee,
+        tenant_id: 'user_tenant_01', landlord_id: isAgent ? null : 'user_landlord_01', agent_id: isAgent ? 'user_agent_01' : null,
+        chat_unlocked: true
       });
 
       // Inspection Activation & Dashboard Cards Sync: notify the Agent & Landlord
@@ -6780,19 +7152,24 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // Tenant: the Chat Manager action now lives as a ghost icon button inside the
       // contact row (see hostInfoHtml below) once a host is shown, so only the primary
       // Complete Inspection action remains here.
+      // Declined (Tenant only): the CTA becomes "Reschedule Inspection" instead of the
+      // permanently-locked chat button, letting the tenant pick a new date/time.
+      const rescheduleHtml = `<button type="button" class="insp-primary-btn insp-reschedule-btn" data-sched-id="${s.id}"><i data-lucide="calendar-clock" class="w-4 h-4"></i>Reschedule Inspection</button>`;
       const actionsHtml = isLandlordOrAgent
         ? ((isPending || isDeclined)
             ? chatLockedHtml
-            : `<button type="button" class="insp-secondary-full-btn insp-chat-btn" data-sched-id="${s.id}"><i data-lucide="message-square" class="w-4 h-4"></i>Chat Manager</button>`)
-        : ((isPending || isDeclined)
+            : `<button type="button" class="insp-secondary-full-btn insp-chat-btn" data-sched-id="${s.id}"><i data-lucide="message-square" class="w-4 h-4"></i>Message Tenant</button>`)
+        : (isPending
             ? chatLockedHtml
-            : `<button type="button" class="insp-primary-btn insp-complete-btn" data-conv-id="${s.conversationId}"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Complete Inspection</button>`);
+            : isDeclined
+              ? rescheduleHtml
+              : `<button type="button" class="insp-primary-btn insp-complete-btn" data-conv-id="${s.conversationId}"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Complete Inspection</button>`);
       // Host Profile Integration: contact row with ghost chat button — Tenant view only,
       // shown once a host is assigned (Confirmed or Conducted).
       const hostInfoHtml = (!isLandlordOrAgent && (s.status === 'Confirmed' || s.status === 'Conducted')) ? hostInfoRowHTML(s) : '';
       return `
       <div class="insp-mgmt-card" data-sched-id="${s.id}">
-        <span class="s5-status-badge insp-badge-corner ${badgeClass}"><i data-lucide="${badgeIcon}" class="w-3 h-3"></i>${s.status}</span>
+        <span class="s5-status-badge insp-badge-corner ${badgeClass}"><i data-lucide="${badgeIcon}" class="w-3 h-3"></i>${inspectionStatusBadgeLabel(s.status, !isLandlordOrAgent)}</span>
         <div class="insp-mgmt-top">
           <img class="insp-mgmt-img" src="${s.img}" alt="${s.title}" onerror="handleImgError(this,'rent')">
           <div class="insp-mgmt-text">
@@ -6840,7 +7217,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <p class="host-info-role">${host.label} • Verified</p>
           </div>
         </div>
-        <button type="button" class="insp-ghost-chat-btn insp-chat-btn" data-conv-id="${s.conversationId}" title="Chat Manager" aria-label="Chat Manager">
+        <button type="button" class="insp-ghost-chat-btn insp-chat-btn" data-conv-id="${s.conversationId}" title="Message ${host.label}" aria-label="Message ${host.label}">
           <i data-lucide="message-square" class="w-4 h-4"></i>
         </button>
       </div>`;
@@ -6850,6 +7227,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const hostRow = e.target.closest('.host-info-row');
     const chatBtn = e.target.closest('.insp-chat-btn');
     const completeBtn = e.target.closest('.insp-complete-btn');
+    const rescheduleBtn = e.target.closest('.insp-reschedule-btn');
+    if (rescheduleBtn) {
+      declineOrRescheduleSchedule(rescheduleBtn.dataset.schedId);
+      return;
+    }
     if (hostRow) {
       openHostPreviewModal(hostRow.dataset.schedId);
     } else if (chatBtn) {
@@ -6976,7 +7358,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } else {
       chatBtn.style.display = 'flex';
       chatBtn.disabled = false;
-      chatBtn.innerHTML = `<i data-lucide="message-square" class="w-4 h-4"></i> Chat Tenant`;
+      chatBtn.innerHTML = `<i data-lucide="message-square" class="w-4 h-4"></i> Message Tenant`;
     }
     tenantBioModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
@@ -7778,7 +8160,14 @@ available in the Post-Lease Hub and this chat thread.`
       if (landlordConv) {
         pushPlatformNotification('landlord', 'message', 'Move-In Confirmed',
           `Move-in confirmed! ${tenantName} has activated their lease for ${propertyTitle}. Direct chat is now open.`,
-          { screen: 'screen-messages', convId: landlordConv.id }, 'MOVE_IN_CONFIRMED');
+          { screen: 'screen-messages', convId: landlordConv.id }, 'MOVE_IN_CONFIRMED', {
+            metadata: {
+              propertyTitle,
+              leaseStart: formatted,
+              tenantName,
+              convId: landlordConv.id
+            }
+          });
       }
     }
   });
@@ -7868,6 +8257,74 @@ available in the Post-Lease Hub and this chat thread.`
     renderTicketList();
     if (window.lucide) lucide.createIcons();
   }
+
+  // ==================================================================
+  // ---- SCREEN 6H: Executive Handover & Title Transfer (Land/Property) ----
+  // ==================================================================
+  function populateScreenLandHandover() {
+    const listing = checkoutListing || landListingsList()[0] || null;
+
+    document.getElementById('s6h-property-title').textContent = listing ? listing.title : 'Your Property';
+    document.getElementById('s6h-property-location').textContent = listing ? listing.location : '—';
+
+    const txnId = landHandoverTxnId || `#MT-ORD-${new Date().getFullYear()}-90218`;
+    document.getElementById('s6h-txn-id').textContent = txnId;
+    document.getElementById('s6h-total-settled').textContent = document.getElementById('s6-invoice-total').textContent;
+
+    // Survey Plan & Land Boundary Details — a stable coordinate reference derived
+    // from the listing id, so the same property always shows the same reference.
+    const seed = listing && listing.id ? String(listing.id).replace(/\D/g, '').slice(-4) : '0483';
+    const planNo = seed && seed.length ? seed.padStart(4, '0') : '0483';
+    document.getElementById('s6h-survey-ref').textContent = `Survey Plan No. LA/2026/SP-${planNo} · Beacon Ref: 6.45${planNo.slice(0,2)}°N, 3.39${planNo.slice(2,4)}°E`;
+
+    document.getElementById('s6h-appt-date').textContent = landHandoverAppt || 'To be scheduled';
+
+    // Handover Officer / Seller — reuse the listing's landlord/agent identity.
+    const officerName = (listing && listing.landlordName) || (listing && listing.agentName) || 'MainTown Handover Desk';
+    const officerPhoto = (listing && listing.landlordPhoto) || (listing && listing.agentPhoto) || null;
+    const officerRole = (listing && listing.landlordName) ? 'Seller / Landlord' : (listing && listing.agentName) ? 'Handling Agent' : 'Handover Officer';
+    document.getElementById('s6h-officer-name').textContent = officerName;
+    document.getElementById('s6h-officer-role').textContent = officerRole;
+    const officerAvatar = document.getElementById('s6h-officer-avatar');
+    const officerAvatarFallback = document.getElementById('s6h-officer-avatar-fallback');
+    if (officerPhoto) {
+      officerAvatar.src = officerPhoto; officerAvatar.style.display = 'block'; officerAvatarFallback.style.display = 'none';
+    } else {
+      officerAvatar.style.display = 'none'; officerAvatarFallback.style.display = 'flex';
+    }
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('s6h-back-btn').addEventListener('click', () => navigateTo('screen-4'));
+
+  document.getElementById('s6h-message-btn').addEventListener('click', () => {
+    showToast('Chat unlocked — opening Messages');
+    navigateTo('screen-messages');
+  });
+
+  document.getElementById('s6h-deed-view-btn').addEventListener('click', () => {
+    showToast('Opening Deed of Assignment.pdf (read-only)');
+  });
+
+  document.getElementById('s6h-active-props-btn').addEventListener('click', () => navigateTo('screen-4'));
+
+  const landReceiptModal = document.getElementById('land-receipt-modal');
+  document.getElementById('s6h-receipt-btn').addEventListener('click', () => {
+    document.getElementById('s6h-modal-property').textContent = document.getElementById('s6h-property-title').textContent;
+    document.getElementById('s6h-modal-row1-label').textContent = document.getElementById('s6-invoice-row1-label').textContent;
+    document.getElementById('s6h-modal-row2-label').textContent = document.getElementById('s6-invoice-row2-label').textContent;
+    document.getElementById('s6h-modal-row3-label').textContent = document.getElementById('s6-invoice-row3-label').textContent;
+    document.getElementById('s6h-modal-row1-value').textContent = document.getElementById('s6-invoice-rent').textContent;
+    document.getElementById('s6h-modal-row2-value').textContent = document.getElementById('s6-invoice-deposit').textContent;
+    document.getElementById('s6h-modal-row3-value').textContent = document.getElementById('s6-invoice-fee').textContent;
+    document.getElementById('s6h-modal-total').textContent = document.getElementById('s6-invoice-total').textContent;
+    document.getElementById('s6h-modal-txn').textContent = landHandoverTxnId || document.getElementById('s6h-txn-id').textContent;
+    document.getElementById('s6h-modal-date').textContent = document.getElementById('s6-invoice-date').textContent;
+    landReceiptModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  });
+  document.getElementById('s6h-modal-close-btn').addEventListener('click', () => landReceiptModal.classList.remove('open'));
 
   // ==================================================================
   // ---- SCREEN PAY-RENT: Financial Hub & Checkout ----
@@ -8420,21 +8877,9 @@ available in the Post-Lease Hub and this chat thread.`
   }
 
   function populateLoginScreen() {
-    const account = loadSavedAccount();
-    const lastRole = loadLastActiveRole();
     document.getElementById('login-password').value = '';
-    const demoSection = document.getElementById('login-demo-section');
-    if (account && account.fullName) {
-      demoSection.style.display = 'block';
-      document.getElementById('login-demo-name').textContent = account.fullName;
-      // Reflect whichever role the session was last active in (falls back to
-      // the account's original signup role if none was ever recorded).
-      document.getElementById('login-demo-role').textContent = roleDisplayNames[lastRole || account.role] || 'Tenant';
-      document.getElementById('login-email').value = account.email || '';
-    } else {
-      demoSection.style.display = 'none';
-      document.getElementById('login-email').value = '';
-    }
+    document.getElementById('login-email').value = '';
+    hideLoginError();
   }
 
   function enterAppAsRole(role) {
@@ -8461,6 +8906,9 @@ available in the Post-Lease Hub and this chat thread.`
     document.querySelectorAll('.modal-overlay.open, .sheet-overlay.open').forEach(m => m.classList.remove('open'));
     saveLastActiveRole(currentUserRole);
     currentUserRole = null;
+    // Clear the persistent pre-onboarded demo session so the next load shows the
+    // Login screen instead of auto-mounting this account again (see checkAutoRelogin).
+    clearCurrentUser();
 
     document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
     appBottomNav.classList.add('hidden');
@@ -8491,27 +8939,21 @@ available in the Post-Lease Hub and this chat thread.`
 
   document.getElementById('profile-logout-btn').addEventListener('click', () => performLogout());
 
-  document.getElementById('login-quick-btn').addEventListener('click', () => {
-    const account = loadSavedAccount();
-    const lastRole = loadLastActiveRole();
-    enterAppAsRole(lastRole || (account ? account.role : 'tenant'));
-  });
-  document.querySelectorAll('.login-role-switch-btn').forEach(btn => {
-    btn.addEventListener('click', () => enterAppAsRole(btn.dataset.role));
-  });
-  // Demo-mode sign-in: any password is accepted for the saved demo profile —
-  // there is no backend, so this intentionally never validates the password
-  // field against anything, letting testers type any dummy value. Logging in
-  // restores the exact role/dashboard the session was last active in.
+  // ---- Pre-onboarded demo login: match the typed name/email against the demo
+  // user database (case-insensitive). A match routes straight into that role's
+  // dashboard with no onboarding and no password check; no match shows an
+  // inline validation message instead of proceeding. ----
   document.getElementById('login-submit-btn').addEventListener('click', () => {
-    const account = loadSavedAccount();
-    const lastRole = loadLastActiveRole();
-    if (account) {
-      enterAppAsRole(lastRole || account.role);
+    const typed = document.getElementById('login-email').value;
+    const demoUser = findDemoUserByCredential(typed);
+    if (demoUser) {
+      hideLoginError();
+      loginAsDemoUser(demoUser);
     } else {
-      showToast('No saved demo account yet — please create an account');
+      showLoginError('Account not found. Use a demo account (John Adam, Frank Hood, or Angel Tiwa).');
     }
   });
+  document.getElementById('login-email').addEventListener('input', () => hideLoginError());
   document.getElementById('login-signup-link').addEventListener('click', () => startFreshOnboarding());
 
   // ---- Welcome / Splash screen: entry point ahead of onboarding & login ----
@@ -8531,6 +8973,310 @@ available in the Post-Lease Hub and this chat thread.`
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (window.lucide) lucide.createIcons();
   });
+
+  // ==================================================================
+  // ---- DEMO MODE: Pre-Onboarded Multi-Account Login & Shared State ----
+  // Three hardcoded demo identities with fixed roles. Typing a matching name
+  // or email on the Login screen signs straight into that role's dashboard —
+  // no onboarding, no password check. All three share one localStorage-backed
+  // state object (maintown_app_state) so actions taken while logged in as one
+  // account (e.g. Angel requesting an inspection) are visible immediately the
+  // next time another account (e.g. John or Frank) logs in.
+  // ==================================================================
+  const DEMO_USERS = {
+    john:  { id: 'john',  name: 'John Adam',  email: 'john@maintown.com',  role: 'agent',    onboarded: true },
+    frank: { id: 'frank', name: 'Frank Hood', email: 'frank@maintown.com', role: 'landlord', onboarded: true },
+    angel: { id: 'angel', name: 'Angel Tiwa', email: 'angel@maintown.com', role: 'tenant',    onboarded: true }
+  };
+
+  function findDemoUserByCredential(input) {
+    const q = (input || '').trim().toLowerCase();
+    if (!q) return null;
+    return Object.values(DEMO_USERS).find(u =>
+      u.name.toLowerCase() === q || u.email.toLowerCase() === q
+    ) || null;
+  }
+
+  function showLoginError(message) {
+    const el = document.getElementById('login-error-msg');
+    document.getElementById('login-error-text').textContent = message;
+    el.classList.add('show');
+  }
+  function hideLoginError() {
+    document.getElementById('login-error-msg').classList.remove('show');
+  }
+
+  // ---- currentUser: the active pre-onboarded demo session ----
+  function loadCurrentUser() {
+    try { const raw = localStorage.getItem('currentUser'); return raw ? JSON.parse(raw) : null; }
+    catch (e) { return null; }
+  }
+  function saveCurrentUser(user) {
+    try { localStorage.setItem('currentUser', JSON.stringify(user)); } catch (e) {}
+  }
+  function clearCurrentUser() {
+    try { localStorage.removeItem('currentUser'); } catch (e) {}
+  }
+
+  // ---- maintown_app_state: central shared store (inspections / notifications / chats) ----
+  const DEMO_PROPERTY = '3 Bedroom Ikeja';
+  function defaultAppState() {
+    const now = Date.now();
+    return {
+      inspections: [
+        {
+          id: 'insp_demo_1',
+          property: DEMO_PROPERTY,
+          tenantId: 'angel',
+          agentId: 'john',
+          landlordId: 'frank',
+          status: 'PENDING_APPROVAL',
+          createdAt: now
+        }
+      ],
+      notifications: [
+        { id: 'notif_demo_1', userId: 'john',  role: 'agent',    type: 'INSPECTION_REQUESTED', message: 'Angel Tiwa requested a walkthrough for ' + DEMO_PROPERTY, unread: true, createdAt: now },
+        { id: 'notif_demo_2', userId: 'frank', role: 'landlord', type: 'INSPECTION_REQUESTED', message: 'Angel Tiwa requested a walkthrough for ' + DEMO_PROPERTY, unread: true, createdAt: now }
+      ],
+      chats: []
+    };
+  }
+  function loadAppState() {
+    try {
+      const raw = localStorage.getItem('maintown_app_state');
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    const fresh = defaultAppState();
+    saveAppState(fresh);
+    return fresh;
+  }
+  function saveAppState(state) {
+    try { localStorage.setItem('maintown_app_state', JSON.stringify(state)); } catch (e) {}
+  }
+  let appState = loadAppState();
+
+  function pushNotification(userId, role, type, message) {
+    appState.notifications.push({
+      id: 'notif_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      userId, role, type, message, unread: true, createdAt: Date.now()
+    });
+  }
+
+  // ---- Login: mount the matched demo account's dashboard, bypassing onboarding ----
+  function loginAsDemoUser(user) {
+    saveCurrentUser(user);
+    currentUserRole = user.role;
+    saveLastActiveRole(user.role);
+    const fullnameEl = document.getElementById('reg-fullname'); if (fullnameEl) fullnameEl.value = user.name;
+    const emailEl = document.getElementById('reg-email'); if (emailEl) emailEl.value = user.email;
+    currentUserSelfieDataUrl = null;
+
+    screenWelcome.classList.add('hidden-screen');
+    screenLogin.classList.add('hidden-screen');
+    screen1.classList.add('hidden-screen');
+    screen2.classList.add('hidden-screen');
+    screen3.classList.add('hidden-screen');
+
+    appState = loadAppState(); // pick up the freshest shared state before rendering
+    navigateTo('screen-4');
+    showToast(`Welcome, ${user.name} (${roleDisplayNames[user.role]})`);
+  }
+
+  // ---- Auto-relogin: on page load, if a demo session is saved, mount it directly ----
+  function checkAutoRelogin() {
+    const savedUser = loadCurrentUser();
+    if (savedUser && DEMO_USERS[savedUser.id]) {
+      loginAsDemoUser(DEMO_USERS[savedUser.id]);
+    }
+  }
+
+  // ==================================================================
+  // ---- Demo Flow Card: renders on Screen 4 (dashboard) for whichever
+  // demo account is currently logged in, driven entirely by appState. ----
+  // ==================================================================
+  function currentDemoUserId() {
+    const saved = loadCurrentUser();
+    return saved ? saved.id : null;
+  }
+
+  function requestDemoInspection() {
+    const uid = currentDemoUserId();
+    if (!uid || uid !== 'angel') return;
+    const existing = appState.inspections.find(i => i.tenantId === uid && i.property === DEMO_PROPERTY && i.status !== 'DECLINED' && i.status !== 'COMPLETED');
+    if (existing) { showToast('You already have an active request for this property'); return; }
+    const insp = {
+      id: 'insp_' + Date.now(),
+      property: DEMO_PROPERTY,
+      tenantId: 'angel',
+      agentId: 'john',
+      landlordId: 'frank',
+      status: 'PENDING_APPROVAL',
+      createdAt: Date.now()
+    };
+    appState.inspections.push(insp);
+    pushNotification('john', 'agent', 'INSPECTION_REQUESTED', 'Angel Tiwa requested a walkthrough for ' + DEMO_PROPERTY);
+    pushNotification('frank', 'landlord', 'INSPECTION_REQUESTED', 'Angel Tiwa requested a walkthrough for ' + DEMO_PROPERTY);
+    saveAppState(appState);
+    showToast('Inspection requested — John Adam & Frank Hood have been notified');
+    renderDemoFlowCard();
+    updateDemoBellDot();
+  }
+
+  function confirmDemoInspection(inspId) {
+    const insp = appState.inspections.find(i => i.id === inspId);
+    if (!insp) return;
+    insp.status = 'CONFIRMED';
+    appState.chats.push({ id: 'chat_' + inspId, inspectionId: inspId, participants: [insp.tenantId, insp.agentId], unlocked: true, createdAt: Date.now() });
+    pushNotification(insp.tenantId, 'tenant', 'INSPECTION_CONFIRMED', 'Your inspection for ' + insp.property + ' was confirmed. Chat unlocked.');
+    // Mark this actor's own pending notification about this request as read.
+    const uid = currentDemoUserId();
+    appState.notifications.filter(n => n.userId === uid && n.type === 'INSPECTION_REQUESTED' && n.unread).forEach(n => n.unread = false);
+    saveAppState(appState);
+    showToast('Inspection confirmed — Angel Tiwa has been notified');
+    renderDemoFlowCard();
+    updateDemoBellDot();
+  }
+
+  function declineDemoInspection(inspId) {
+    const insp = appState.inspections.find(i => i.id === inspId);
+    if (!insp) return;
+    insp.status = 'DECLINED';
+    pushNotification(insp.tenantId, 'tenant', 'INSPECTION_DECLINED', 'Your inspection request for ' + insp.property + ' was declined.');
+    const uid = currentDemoUserId();
+    appState.notifications.filter(n => n.userId === uid && n.type === 'INSPECTION_REQUESTED' && n.unread).forEach(n => n.unread = false);
+    saveAppState(appState);
+    showToast('Inspection declined');
+    renderDemoFlowCard();
+    updateDemoBellDot();
+  }
+
+  function completeDemoInspection(inspId) {
+    const insp = appState.inspections.find(i => i.id === inspId);
+    if (!insp) return;
+    insp.status = 'COMPLETED';
+    saveAppState(appState);
+    showToast('Inspection marked complete');
+    renderDemoFlowCard();
+  }
+
+  function openDemoChat(inspId) {
+    showToast('Chat unlocked with John Adam — opening Messages');
+    navigateTo('screen-messages');
+  }
+
+  function updateDemoBellDot() {
+    const uid = currentDemoUserId();
+    if (!uid) return;
+    const hasUnread = appState.notifications.some(n => n.userId === uid && n.unread);
+    const dot = document.getElementById('dash-bell-dot');
+    if (dot && hasUnread) dot.classList.add('show');
+  }
+
+  const DEMO_STATUS_META = {
+    PENDING_APPROVAL: { label: 'Pending Approval', cls: 'insp-status-pending' },
+    CONFIRMED:         { label: 'Confirmed',        cls: 'insp-status-confirmed' },
+    DECLINED:          { label: 'Declined',          cls: 'insp-status-declined' },
+    COMPLETED:         { label: 'Completed',         cls: 'insp-status-conducted' }
+  };
+
+  function renderDemoFlowCard() {
+    const wrap = document.getElementById('demo-flow-card');
+    if (!wrap) return;
+    const uid = currentDemoUserId();
+    if (!uid) { wrap.innerHTML = ''; return; }
+    appState = loadAppState();
+
+    if (uid === 'angel') {
+      const myInspections = appState.inspections.filter(i => i.tenantId === 'angel');
+      if (!myInspections.length) {
+        wrap.innerHTML = `
+          <div class="demo-flow-card">
+            <div class="demo-flow-header"><i data-lucide="calendar-clock" class="w-4 h-4" style="color:#c084fc;"></i><p class="demo-flow-title">Book a Walkthrough</p></div>
+            <p class="demo-flow-sub">${DEMO_PROPERTY} is ready for a viewing request.</p>
+            <button type="button" class="demo-flow-btn request" data-demo-action="request"><i data-lucide="calendar-plus" class="w-4 h-4"></i> Request Inspection</button>
+          </div>`;
+      } else {
+        wrap.innerHTML = `
+          <div class="demo-flow-card">
+            <div class="demo-flow-header"><i data-lucide="calendar-clock" class="w-4 h-4" style="color:#c084fc;"></i><p class="demo-flow-title">Your Inspections</p></div>
+            <p class="demo-flow-sub">Shared live with John Adam (Agent) &amp; Frank Hood (Landlord).</p>
+            ${myInspections.map(i => {
+              const meta = DEMO_STATUS_META[i.status] || DEMO_STATUS_META.PENDING_APPROVAL;
+              return `
+              <div class="demo-flow-item">
+                <div class="demo-flow-item-top">
+                  <div>
+                    <p class="demo-flow-item-title">${i.property}</p>
+                    <p class="demo-flow-item-sub">Agent: John Adam · Landlord: Frank Hood</p>
+                  </div>
+                  <span class="demo-flow-pill ${meta.cls}">${meta.label}</span>
+                </div>
+                ${i.status === 'CONFIRMED' ? `
+                  <div class="demo-flow-actions">
+                    <button type="button" class="demo-flow-btn message" data-demo-action="message" data-insp-id="${i.id}"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Message Agent</button>
+                    <button type="button" class="demo-flow-btn complete" data-demo-action="complete" data-insp-id="${i.id}"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Complete Inspection</button>
+                  </div>` : ''}
+              </div>`;
+            }).join('')}
+          </div>`;
+      }
+    } else if (uid === 'john' || uid === 'frank') {
+      const pending = appState.inspections.filter(i => i.status === 'PENDING_APPROVAL' && (uid === 'john' ? i.agentId === 'john' : i.landlordId === 'frank'));
+      const other = appState.inspections.filter(i => i.status !== 'PENDING_APPROVAL' && (uid === 'john' ? i.agentId === 'john' : i.landlordId === 'frank'));
+      if (!pending.length && !other.length) { wrap.innerHTML = ''; return; }
+      wrap.innerHTML = `
+        <div class="demo-flow-card">
+          <div class="demo-flow-header"><i data-lucide="bell-ring" class="w-4 h-4" style="color:#c084fc;"></i><p class="demo-flow-title">${pending.length ? pending.length + ' Pending Inspection' + (pending.length > 1 ? 's' : '') : 'Inspection Requests'}</p></div>
+          <p class="demo-flow-sub">Requests from Angel Tiwa (Tenant), synced across accounts.</p>
+          ${pending.map(i => `
+            <div class="demo-flow-item">
+              <div class="demo-flow-item-top">
+                <div>
+                  <p class="demo-flow-item-title">${i.property}</p>
+                  <p class="demo-flow-item-sub">Requested by Angel Tiwa</p>
+                </div>
+                <span class="demo-flow-pill insp-status-pending">Pending</span>
+              </div>
+              <div class="demo-flow-actions">
+                <button type="button" class="demo-flow-btn confirm" data-demo-action="confirm" data-insp-id="${i.id}"><i data-lucide="check" class="w-3.5 h-3.5"></i> Confirm</button>
+                <button type="button" class="demo-flow-btn decline" data-demo-action="decline" data-insp-id="${i.id}"><i data-lucide="x" class="w-3.5 h-3.5"></i> Decline</button>
+              </div>
+            </div>`).join('')}
+          ${other.map(i => {
+            const meta = DEMO_STATUS_META[i.status] || DEMO_STATUS_META.CONFIRMED;
+            return `
+            <div class="demo-flow-item">
+              <div class="demo-flow-item-top">
+                <div>
+                  <p class="demo-flow-item-title">${i.property}</p>
+                  <p class="demo-flow-item-sub">Angel Tiwa</p>
+                </div>
+                <span class="demo-flow-pill ${meta.cls}">${meta.label}</span>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>`;
+    } else {
+      wrap.innerHTML = '';
+    }
+    updateDemoBellDot();
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('demo-flow-card').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-demo-action]');
+    if (!btn) return;
+    const action = btn.dataset.demoAction;
+    const inspId = btn.dataset.inspId;
+    if (action === 'request') requestDemoInspection();
+    if (action === 'confirm') confirmDemoInspection(inspId);
+    if (action === 'decline') declineDemoInspection(inspId);
+    if (action === 'complete') completeDemoInspection(inspId);
+    if (action === 'message') openDemoChat(inspId);
+  });
+
+  // ---- Boot: auto-relogin into a saved demo session, else the Welcome screen shows as-is ----
+  checkAutoRelogin();
 
   // ---- Initial icon render (Screen 1 role cards, OTP modal, etc.) ----
   if (window.lucide) lucide.createIcons();
