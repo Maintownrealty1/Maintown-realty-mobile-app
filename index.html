@@ -2072,7 +2072,7 @@
 </div>
 <!-- ===================== END SCREEN 6 ===================== -->
 
-<!-- ===================== SCREEN 6H: Executive Handover & Title Transfer (Land / Property Purchase) ===================== -->
+<!-- ===================== SCREEN 6H: Executive Post-Purchase Handover (Land / Property Purchase) ===================== -->
 <div id="screen-land-handover" class="screen-view hidden pb-24">
 
   <div class="s5-topbar">
@@ -2084,22 +2084,23 @@
     </div>
   </div>
 
-  <h1 class="s5-role-title" style="margin-bottom: 18px;">Executive Handover</h1>
+  <!-- Header & Settlement Proof -->
+  <span class="inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-wide px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" style="margin-bottom: 12px;">
+    <i data-lucide="shield-check" class="w-3 h-3"></i>PURCHASE SETTLED &amp; ESCROW SECURED
+  </span>
+  <h1 class="s5-role-title" style="margin-bottom: 16px;">Handover &amp; Title Transfer In Progress</h1>
 
-  <!-- Header & Proof of Settlement -->
-  <div class="dash-card" style="background: linear-gradient(135deg, #7e22ce, #4c1d95); margin-bottom: 20px;">
-    <p class="dash-card-label" style="display: flex; align-items: center; gap: 5px;"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i>Status</p>
-    <p class="dash-card-value">Purchase Settled &amp; Escrow Secured</p>
-    <p class="dash-card-sub" id="s6h-property-title">—</p>
-    <p class="dash-card-sub" id="s6h-property-location">—</p>
+  <div style="background:#131927; border:1px solid #1e293b; border-radius:16px; padding:16px; margin-bottom:20px;">
+    <p class="s5-card-title" id="s6h-property-title" style="font-size:15px;">—</p>
+    <p class="s5-card-location" style="margin-bottom:0;"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span id="s6h-property-location">—</span></p>
   </div>
   <div class="s5-hold-preview" style="margin-bottom: 20px;">
     <div class="s5-hold-row"><span>Transaction ID</span><strong id="s6h-txn-id">—</strong></div>
-    <div class="s5-hold-row"><span>Total Amount Settled</span><strong id="s6h-total-settled" style="color:#c084fc; font-size: 14px;">—</strong></div>
+    <div class="s5-hold-row"><span>Total Escrow Amount Settled</span><strong id="s6h-total-settled" style="color:#c084fc; font-size: 14px;">—</strong></div>
   </div>
 
-  <!-- Document & Deed Status Hub -->
-  <p class="s5-section-label" style="margin-top: 0;"><i data-lucide="file-check-2" class="w-4 h-4 text-purple-400"></i>Document &amp; Deed Status Hub</p>
+  <!-- Document & Title Tracker -->
+  <p class="s5-section-label" style="margin-top: 0;"><i data-lucide="file-check-2" class="w-4 h-4 text-purple-400"></i>Document &amp; Title Tracker</p>
 
   <div class="s5-list-item" style="margin-bottom: 10px;">
     <div class="s5-list-icon"><i data-lucide="file-text" class="w-5 h-5"></i></div>
@@ -2107,8 +2108,8 @@
       <p class="s5-list-title">Deed of Assignment</p>
       <p class="s5-list-sub"><span class="s5-status-badge insp-status-confirmed" style="margin-top: 4px;">Verified</span></p>
     </div>
-    <button type="button" id="s6h-deed-view-btn" class="s5-back-btn" title="View Deed PDF" style="width:auto; padding:0 14px; gap:6px; display:flex; align-items:center; white-space:nowrap;">
-      <i data-lucide="eye" class="w-4 h-4"></i><span style="font-size:11.5px; font-weight:600;">View PDF</span>
+    <button type="button" id="s6h-deed-view-btn" class="s5-back-btn" title="Download Deed PDF" style="width:auto; padding:0 14px; gap:6px; display:flex; align-items:center; white-space:nowrap;">
+      <i data-lucide="download" class="w-4 h-4"></i><span style="font-size:11.5px; font-weight:600;">Download PDF</span>
     </button>
   </div>
 
@@ -2117,6 +2118,7 @@
     <div class="s5-list-text">
       <p class="s5-list-title">Survey Plan &amp; Land Boundary Details</p>
       <p class="s5-list-sub" id="s6h-survey-ref">—</p>
+      <p class="s5-list-sub"><span class="s5-status-badge insp-status-confirmed" style="margin-top: 4px;">Verified</span></p>
     </div>
   </div>
 
@@ -2128,13 +2130,26 @@
     </div>
   </div>
 
-  <!-- Physical Access / Boundary Marker Schedule -->
-  <p class="s5-section-label"><i data-lucide="calendar-check" class="w-4 h-4 text-purple-400"></i>Physical Access &amp; Boundary Marker Schedule</p>
-  <div class="s5-hold-preview" style="margin-bottom: 20px;">
+  <!-- Physical Access / Site Marker Schedule -->
+  <p class="s5-section-label"><i data-lucide="calendar-check" class="w-4 h-4 text-purple-400"></i>Physical Access &amp; Site Marker Schedule</p>
+  <div class="s5-hold-preview" style="margin-bottom: 12px;">
     <div class="s5-hold-row"><span id="s6h-appt-label">Boundary Pegging Appointment</span><strong id="s6h-appt-date">—</strong></div>
+    <div class="s5-hold-row" id="s6h-appt-location-row" style="display:none;"><span>Location</span><strong id="s6h-appt-location">—</strong></div>
   </div>
 
-  <p class="s5-section-label"><i data-lucide="user-round" class="w-4 h-4 text-purple-400"></i>Handover Officer / Seller</p>
+  <!-- Digital Smart Lock PIN — Building/unit purchases only -->
+  <div id="s6h-smartlock-box" class="s5-list-item" style="display:none; margin-bottom: 20px;">
+    <div class="s5-list-icon"><i data-lucide="scan-line" class="w-5 h-5"></i></div>
+    <div class="s5-list-text">
+      <p class="s5-list-title">Digital Smart Lock PIN</p>
+      <p class="s5-list-sub" id="s6h-smartlock-pin">Not generated yet</p>
+    </div>
+    <button type="button" id="s6h-smartlock-btn" class="s5-back-btn" title="Generate Smart Lock PIN" style="width:auto; padding:0 14px; gap:6px; display:flex; align-items:center; white-space:nowrap;">
+      <i data-lucide="key-round" class="w-4 h-4"></i><span style="font-size:11.5px; font-weight:600;">Generate PIN</span>
+    </button>
+  </div>
+
+  <p class="s5-section-label"><i data-lucide="user-round" class="w-4 h-4 text-purple-400"></i>Assigned Handover Officer / Seller</p>
   <div class="assigned-people-row" style="margin-bottom: 24px;">
     <div class="assigned-person-card" id="s6h-officer-card" role="button" tabindex="0" style="flex: 1;">
       <img id="s6h-officer-avatar" class="assigned-person-avatar" alt="Handover Officer" style="display:none;">
@@ -2148,13 +2163,13 @@
 
   <!-- Action Buttons -->
   <button type="button" id="s6h-message-btn" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-    <i data-lucide="message-circle" class="w-4 h-4"></i> Message Landlord / Agent
+    <i data-lucide="message-circle" class="w-4 h-4"></i> Message Seller / Agent
   </button>
-  <button type="button" id="s6h-receipt-btn" class="doc-action-btn" style="margin-bottom: 12px;">
-    <i data-lucide="receipt" class="w-4 h-4"></i> View Digital Receipt &amp; Deed
+  <button type="button" id="s6h-active-props-btn" class="doc-action-btn" style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom: 12px;">
+    <i data-lucide="briefcase" class="w-4 h-4"></i> Go to My Asset Portfolio
   </button>
-  <button type="button" id="s6h-active-props-btn" class="btn-secondary" style="color:#94a3b8;">
-    Go to Active Properties
+  <button type="button" id="s6h-receipt-btn" class="btn-secondary">
+    View Digital Receipt &amp; Deed
   </button>
 
 </div>
@@ -8261,6 +8276,13 @@ available in the Post-Lease Hub and this chat thread.`
   // ==================================================================
   // ---- SCREEN 6H: Executive Handover & Title Transfer (Land/Property) ----
   // ==================================================================
+  // A listing counts as bare land only if "Land" appears as its own word in the
+  // title (e.g. "450sqm Land, Ibeju-Lekki"); anything else purchased outright
+  // (bungalow, duplex, flat, etc.) is treated as a building for handover purposes.
+  function isBareLandListing(listing) {
+    return !!(listing && /\bland\b/i.test(listing.title || ''));
+  }
+
   function populateScreenLandHandover() {
     const listing = checkoutListing || landListingsList()[0] || null;
 
@@ -8277,7 +8299,17 @@ available in the Post-Lease Hub and this chat thread.`
     const planNo = seed && seed.length ? seed.padStart(4, '0') : '0483';
     document.getElementById('s6h-survey-ref').textContent = `Survey Plan No. LA/2026/SP-${planNo} · Beacon Ref: 6.45${planNo.slice(0,2)}°N, 3.39${planNo.slice(2,4)}°E`;
 
+    // Physical Access / Site Marker Schedule — bare land gets a surveyor boundary-
+    // pegging appointment; buildings get a key-handover appointment + smart lock PIN.
+    const bareLand = isBareLandListing(listing);
+    document.getElementById('s6h-appt-label').textContent = bareLand ? 'Boundary Pegging Appointment' : 'Key Handover Appointment';
     document.getElementById('s6h-appt-date').textContent = landHandoverAppt || 'To be scheduled';
+    document.getElementById('s6h-appt-location-row').style.display = bareLand ? 'none' : 'flex';
+    if (!bareLand) document.getElementById('s6h-appt-location').textContent = (listing && listing.location) || '—';
+    document.getElementById('s6h-smartlock-box').style.display = bareLand ? 'none' : 'flex';
+    if (bareLand) {
+      document.getElementById('s6h-smartlock-pin').textContent = 'Not generated yet';
+    }
 
     // Handover Officer / Seller — reuse the listing's landlord/agent identity.
     const officerName = (listing && listing.landlordName) || (listing && listing.agentName) || 'MainTown Handover Desk';
@@ -8298,13 +8330,28 @@ available in the Post-Lease Hub and this chat thread.`
 
   document.getElementById('s6h-back-btn').addEventListener('click', () => navigateTo('screen-4'));
 
+  // Message Seller / Agent — routes straight into the active chat thread already
+  // tied to this listing (created when the tenant/buyer signed the agreement),
+  // instead of just landing on the generic thread list.
   document.getElementById('s6h-message-btn').addEventListener('click', () => {
-    showToast('Chat unlocked — opening Messages');
+    const listing = checkoutListing || landListingsList()[0] || null;
     navigateTo('screen-messages');
+    const conv = listing ? conversations.find(c => c.listingTitle === listing.title) : null;
+    if (conv) {
+      openThreadDetail(conv.id);
+    } else {
+      showToast('Chat unlocked — no messages yet');
+    }
   });
 
   document.getElementById('s6h-deed-view-btn').addEventListener('click', () => {
-    showToast('Opening Deed of Assignment.pdf (read-only)');
+    showToast('Downloading Deed of Assignment.pdf');
+  });
+
+  document.getElementById('s6h-smartlock-btn').addEventListener('click', () => {
+    const pin = String(Math.floor(100000 + Math.random() * 900000));
+    document.getElementById('s6h-smartlock-pin').textContent = `${pin} · Expires in 24 hours`;
+    showToast('Smart lock PIN generated');
   });
 
   document.getElementById('s6h-active-props-btn').addEventListener('click', () => navigateTo('screen-4'));
@@ -8325,6 +8372,7 @@ available in the Post-Lease Hub and this chat thread.`
     if (window.lucide) lucide.createIcons();
   });
   document.getElementById('s6h-modal-close-btn').addEventListener('click', () => landReceiptModal.classList.remove('open'));
+
 
   // ==================================================================
   // ---- SCREEN PAY-RENT: Financial Hub & Checkout ----
