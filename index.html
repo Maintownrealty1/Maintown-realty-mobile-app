@@ -1380,7 +1380,7 @@
     <button type="button" class="role-card" data-role="tenant">
       <span class="role-icon"><i data-lucide="building-2" class="w-6 h-6 text-purple-400"></i></span>
       <div class="role-text">
-        <p class="role-name">Tenant / Renter</p>
+        <p class="role-name">Tenant / Rent/Own</p>
         <p class="role-sub">Local & Diaspora</p>
       </div>
       <span class="check-mark">
@@ -3340,7 +3340,7 @@
   // (selfie: true) — Step 2 of registration/KYC for tenant, landlord, AND agent.
   const kycContent = {
     tenant: {
-      label: 'Tenant / Renter',
+      label: 'Tenant / Rent/Own',
       roleIcon: 'building-2',
       items: [
         { text: 'Government-issued ID (NIN, Driver\'s License, or Passport)', icon: 'id-card' },
@@ -3732,7 +3732,7 @@
   // ---- Legal terms content per role ----
   const legalContent = {
     tenant: {
-      label: 'Tenant / Diaspora Renter',
+      label: 'Tenant / Rent/Own',
       roleIcon: 'building-2',
       sections: [
         { title: 'Section 1: Rental & Auto-Debit Terms', body: 'Full agreement on holding deposit schedules, flex-rent recurring auto-debit card authorization, tokenized payment security, and cross-border currency conversion rules.' },
@@ -5621,8 +5621,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       declineInspectionSchedule(id);
     }
   }
-  document.getElementById('s5-landlord-inspections').addEventListener('click', handleInspectionsManagerClick);
-  document.getElementById('s5-agent-inspections').addEventListener('click', handleInspectionsManagerClick);
+  // Note: the Landlord Inventory screen's "Inspections Manager" section (and its
+  // #s5-landlord-inspections container) was removed — inspection management now
+  // lives exclusively in the dedicated Inspection Schedules tab. The Agent view
+  // still has its own inline Inspections Manager, so that binding remains.
+  const s5AgentInspectionsEl = document.getElementById('s5-agent-inspections');
+  if (s5AgentInspectionsEl) s5AgentInspectionsEl.addEventListener('click', handleInspectionsManagerClick);
 
   const titleVerifyModal = document.getElementById('title-verify-modal');
 
