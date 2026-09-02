@@ -2579,6 +2579,18 @@
   </div>
 </div>
 
+<!-- Credit Screening Fee Modal (Phase 1: Application & Credit Screening) -->
+<div id="screening-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap"><i data-lucide="shield-check" class="w-6 h-6"></i></div>
+    <h2 class="modal-title">Credit &amp; Background Screening</h2>
+    <p class="modal-sub">Complete your ₦5,000 background and credit verification to unlock flexible payment options.</p>
+    <div class="rent-badge" style="margin-bottom:16px;"><i data-lucide="wallet" class="w-3.5 h-3.5"></i><span>Screening Fee: ₦5,000 · 100% to MainTown Realty</span></div>
+    <button type="button" id="screening-pay-btn" class="btn-primary" style="margin-top:0; margin-bottom:10px;">Pay ₦5,000 &amp; Continue</button>
+    <button type="button" id="screening-cancel-btn" class="btn-secondary">Not now</button>
+  </div>
+</div>
+
 <!-- Inspection Booking Modal (Calendar & Time Picker) -->
 <div id="inspection-booking-modal" class="modal-overlay">
   <div class="modal-card">
@@ -3750,6 +3762,82 @@ This voucher is auto-generated and serves as proof of settlement.`;
   let currentCurrency = 'ngn';
   let currentListingType = 'rent'; // 'rent' | 'land'
 
+  // ==================================================================
+  // ---- Revenue & Escrow Orchestrator: Transaction Ledger ----
+  // Simulated/demo implementation of the MainTown monetization spec.
+  // IMPORTANT: this is frontend-only — no real funds move. Every fee event
+  // (screening, inspection escrow, lease closing) pushes a structured JSON
+  // record here so the flow can be inspected/demoed end-to-end.
+  // ==================================================================
+  let transactionLedger = [];
+  try {
+    const storedLedger = JSON.parse(localStorage.getItem('mtr_ledger'));
+    transactionLedger = Array.isArray(storedLedger) ? storedLedger : [];
+  } catch (e) { transactionLedger = []; }
+  function saveLedger() {
+    try { localStorage.setItem('mtr_ledger', JSON.stringify(transactionLedger)); } catch (e) {}
+  }
+  // Maps this app's existing `listedBy: 'agent'|'landlord'` field onto the
+  // spec's AGENT | DIRECT_LANDLORD listing_type.
+  function ledgerListingType(listing) {
+    return (listing && listing.listedBy === 'agent') ? 'AGENT' : 'DIRECT_LANDLORD';
+  }
+  function logTransaction(entry) {
+    const record = {
+      transaction_id: 'MT-TXN-' + Date.now().toString(36).toUpperCase(),
+      listing_id: entry.listingId != null ? `PROP-${entry.listingId}` : null,
+      listing_type: entry.listingType || null,       // AGENT | DIRECT_LANDLORD
+      deal_stage: entry.dealStage,                    // APPLICATION | INSPECTION | CLOSING
+      escrow_status: entry.escrowStatus,               // NONE | FUNDS_HELD | RELEASED | REFUNDED
+      financial_breakdown: {
+        gross_collected: entry.gross || 0,
+        maintown_revenue: entry.maintownRevenue || 0,
+        agent_payout: entry.agentPayout || 0,
+        landlord_payout: entry.landlordPayout || 0
+      },
+      status: entry.status,                            // PENDING_PAYMENT | IN_ESCROW | COMPLETED | DISPUTED
+      timestamp: new Date().toISOString()
+    };
+    transactionLedger.unshift(record);
+    saveLedger();
+    console.log('[MainTown Ledger]', record);
+    return record;
+  }
+
+  // ==================================================================
+  // ---- Phase 1: Upfront Credit Screening Fee (₦5,000 — 100% MainTown) ----
+  // Blocks inspection scheduling and lease/land-purchase requests until the
+  // one-time screening checkout has been completed for this demo session.
+  // ==================================================================
+  let screeningCompleted = false;
+  try { screeningCompleted = localStorage.getItem('mtr_screening_completed') === 'true'; } catch (e) {}
+  let screeningPendingAction = null;
+
+  function requireScreening(action) {
+    if (screeningCompleted) { action(); return; }
+    screeningPendingAction = action;
+    document.getElementById('screening-modal')?.classList.add('open');
+  }
+
+  document.getElementById('screening-cancel-btn')?.addEventListener('click', () => {
+    document.getElementById('screening-modal')?.classList.remove('open');
+    screeningPendingAction = null;
+  });
+
+  document.getElementById('screening-pay-btn')?.addEventListener('click', () => {
+    screeningCompleted = true;
+    try { localStorage.setItem('mtr_screening_completed', 'true'); } catch (e) {}
+    logTransaction({
+      dealStage: 'APPLICATION', escrowStatus: 'RELEASED', gross: 5000,
+      maintownRevenue: 5000, status: 'COMPLETED'
+    });
+    document.getElementById('screening-modal')?.classList.remove('open');
+    showToast('Credit screening complete — flexible payment options unlocked');
+    const action = screeningPendingAction;
+    screeningPendingAction = null;
+    if (action) action();
+  });
+
   // ---- Global persistent listings feed (localStorage-backed Dynamic Feed Sync) ----
   // ---- Host Availability Engine: helpers for generating & reading per-listing
   //      inspection availability (host-defined dates + open time-slot windows). ----
@@ -4010,10 +4098,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (wtBtn) {
       openWalkthroughModal(wtBtn.dataset.title);
     } else if (bvBtn) {
-      openInspectionModal(bvBtn.dataset.title);
+      // Phase 1 gate: block inspection scheduling until credit screening is paid.
+      requireScreening(() => openInspectionModal(bvBtn.dataset.title));
     } else if (landBtn) {
       const listing = landListingsList().find(l => String(l.id) === landBtn.dataset.listingId);
-      if (listing) openLandPaymentModal(listing);
+      // Phase 1 gate: block lease/land-purchase requests until credit screening is paid.
+      if (listing) requireScreening(() => openLandPaymentModal(listing));
     } else if (cartBtn) {
       const listing = rentListings().find(l => String(l.id) === cartBtn.dataset.listingId);
       if (listing) addToCart(listing);
@@ -4101,6 +4191,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const remainingMonths = 11;
     const remainingTotal = monthly * remainingMonths;
     return { monthly, commission, legal, upfront, remainingMonths, remainingTotal, grandTotal: totalAmount + commission + legal, isRenewal: false };
+  }
+
+  // Phase 3 (Lease Drafting & Final Closing): annotates a Year-1 breakdown with
+  // the MainTown/Agent commission split. Legal fee is always 100% MainTown.
+  //   Agent-listed      -> maintown_take = legal_fee + 40% of commission | agent_take = 60% of commission
+  //   Direct-landlord    -> maintown_take = legal_fee + 100% of commission
+  function annotateCommissionSplit(breakdown, listing) {
+    if (!breakdown) return breakdown;
+    const isAgentListing = !!(listing && listing.listedBy === 'agent');
+    breakdown.isAgentListing = isAgentListing;
+    breakdown.maintownCommission = isAgentListing ? Math.round(breakdown.commission * 0.40) : breakdown.commission;
+    breakdown.agentCommission = isAgentListing ? (breakdown.commission - breakdown.maintownCommission) : 0;
+    breakdown.maintownTake = breakdown.legal + breakdown.maintownCommission;
+    breakdown.agentTake = breakdown.agentCommission;
+    return breakdown;
   }
 
   function computeRenewalBreakdown(totalAmount) {
@@ -4214,7 +4319,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // (monthly rent × 12) for older/seed listings that predate that field.
       const monthlyNgn = parseFloat((listing.ngn || '').replace(/[^0-9.]/g, '')) || 0;
       const annualNgn = listing.annualPrice || (monthlyNgn * 12);
-      checkoutRentBreakdown = computeYear1Breakdown(annualNgn);
+      checkoutRentBreakdown = annotateCommissionSplit(computeYear1Breakdown(annualNgn), listing);
       const rate = currentCurrency === 'usd' ? (1 / 1600) : 1;
 
       document.getElementById('s6-rent-amount').textContent = formatMoney(checkoutRentBreakdown.monthly * rate, currentCurrency);
@@ -4645,6 +4750,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
       </div>`).join('');
   }
 
+  // Phase 3 helper: returns the annotated Year-1 breakdown that applies to the
+  // current checkout (rent, or land installment) — null for land outright,
+  // which has no commission/legal-fee model in this spec.
+  function getActiveClosingBreakdown() {
+    if (!checkoutListing) return null;
+    if (checkoutListing.type === 'land') {
+      return (checkoutLandPayment && checkoutLandPayment.mode === 'installment') ? checkoutLandPayment : null;
+    }
+    return checkoutRentBreakdown;
+  }
+
   function approveCheckoutPayment() {
     clearInterval(checkoutOtpTimer);
     checkoutOtpModal.classList.remove('open');
@@ -4656,6 +4772,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('s6-payment-section').classList.add('hidden');
     document.getElementById('s6-success-panel').classList.remove('hidden');
     if (window.lucide) lucide.createIcons();
+
+    // Ledger: Phase 3, Step — lease funds deposited into Escrow Vault.
+    const closingBreakdown = getActiveClosingBreakdown();
+    if (checkoutListing && closingBreakdown) {
+      logTransaction({
+        listingId: checkoutListing.id, listingType: ledgerListingType(checkoutListing),
+        dealStage: 'CLOSING', escrowStatus: 'FUNDS_HELD',
+        gross: closingBreakdown.upfront, status: 'IN_ESCROW'
+      });
+    }
 
     // Notification Trigger: Escrow & Financial Alerts — Payment Held Alert.
     // Fired to both the Landlord and Agent the moment escrow funds are received.
@@ -4739,6 +4865,23 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('s6-success-panel').classList.add('hidden');
     document.getElementById('s6-invoice-panel').classList.remove('hidden');
     if (window.lucide) lucide.createIcons();
+
+    // Ledger: Phase 3, Step — LexiDraft lease generated & payout allocations released.
+    // maintown_take = legal_fee + (agent-listed ? 40% of commission : 100% of commission)
+    // agent_take    = agent-listed ? 60% of commission : 0
+    // landlord_take = net monthly rent (100% held in escrow, released on handover)
+    const closingBreakdownForRelease = getActiveClosingBreakdown();
+    if (checkoutListing && closingBreakdownForRelease) {
+      logTransaction({
+        listingId: checkoutListing.id, listingType: ledgerListingType(checkoutListing),
+        dealStage: 'CLOSING', escrowStatus: 'RELEASED',
+        gross: closingBreakdownForRelease.upfront,
+        maintownRevenue: closingBreakdownForRelease.maintownTake,
+        agentPayout: closingBreakdownForRelease.agentTake,
+        landlordPayout: closingBreakdownForRelease.monthly,
+        status: 'COMPLETED'
+      });
+    }
 
     // Notification Trigger: Escrow & Financial Alerts — Payout Disbursed Alert.
     // Fired to both the Landlord and Agent the moment funds are released from escrow.
@@ -5356,11 +5499,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (landModalMode === 'outright') {
       payload = { mode: 'outright', totalPrice: landModalListing.totalPrice, processingFee: fee };
     } else {
-      const b = computeYear1Breakdown(landModalListing.totalPrice);
+      const b = annotateCommissionSplit(computeYear1Breakdown(landModalListing.totalPrice), landModalListing);
       payload = {
         mode: 'installment', months: 12,
         monthly: b.monthly, commission: b.commission, legal: b.legal,
-        upfront: b.upfront, remainingMonths: b.remainingMonths, remainingTotal: b.remainingTotal
+        upfront: b.upfront, remainingMonths: b.remainingMonths, remainingTotal: b.remainingTotal,
+        maintownTake: b.maintownTake, agentTake: b.agentTake
       };
     }
     landPaymentModal.classList.remove('open');
@@ -5633,11 +5777,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderInspectionSlotChips();
     updateInspectionSelectionSummary();
 
+    // Phase 2 (Inspection Booking & Escrow Release): flat ₦12,000 inspection
+    // deposit applies to every listing. Split on release differs by listing type:
+    //   Agent-listed      -> ₦10,000 to Agent | ₦2,000 to MainTown
+    //   Direct-landlord    -> ₦12,000 (100%) to MainTown
     const isAgent = inspectionListing.listedBy === 'agent';
-    document.getElementById('ib-fee-badge-text').textContent = isAgent ? 'Inspection Fee: ₦12,000' : 'MainTown Service Fee: ₦5,000';
+    document.getElementById('ib-fee-badge-text').textContent = 'Inspection Fee: ₦12,000';
     document.getElementById('ib-notice-text').textContent = isAgent
-      ? 'Held in escrow. If satisfied, 100% is released to the Agent. If not satisfied, 50% (₦6,000) is refunded to your Wallet and 50% (₦6,000) goes to the Agent for field transport.'
-      : 'Direct Landlord listing — ₦0 agent inspection fee applies, only the flat ₦5,000 MainTown service fee.';
+      ? 'Held in escrow. If satisfied, ₦10,000 releases to the Agent and ₦2,000 to MainTown Realty. If not satisfied, 50% (₦6,000) is refunded to your Wallet and 50% (₦6,000) goes to the Agent for field transport.'
+      : 'Held in escrow. Direct Landlord listing — if satisfied, the full ₦12,000 is retained by MainTown Realty. If not satisfied, the full ₦12,000 is refunded to your Wallet.';
 
     inspectionBookingModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
@@ -5652,8 +5800,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const date = ibSelectedDate;
     const time = ibSelectedSlot;
     const isAgent = inspectionListing.listedBy === 'agent';
-    const fee = isAgent ? 12000 : 5000;
+    const fee = 12000; // Phase 2: flat inspection deposit regardless of listing type
     const inspId = Date.now();
+
+    // Ledger: Phase 2, Step 2A — hold inspection deposit in escrow.
+    logTransaction({
+      listingId: inspectionListing.id, listingType: ledgerListingType(inspectionListing),
+      dealStage: 'INSPECTION', escrowStatus: 'FUNDS_HELD', gross: fee, status: 'IN_ESCROW'
+    });
 
     // Unified record: written to BOTH the legacy `inspections` log AND the
     // shared `schedules` array so it instantly appears in the tenant's
@@ -6852,7 +7006,22 @@ available in the Post-Lease Hub and this chat thread.`
     if (!conv) return;
     inspectionDecisionModal.classList.remove('open');
 
-    conv.messages.push({ from: 'system', text: `Inspection marked satisfied. 100% of the ${formatMoney(conv.fee, 'ngn')} deposit has been released to the ${conv.feeType === 'agent' ? 'Agent' : 'Landlord'}. Proceeding to checkout.` });
+    const listing = rentListings().find(l => l.title === conv.listingTitle) || landListingsList().find(l => l.title === conv.listingTitle);
+    const isAgentFee = conv.feeType === 'agent';
+    // Phase 2, Step 2B — Automated Split on satisfied/verified inspection.
+    const agentPayout = isAgentFee ? 10000 : 0;
+    const maintownRevenue = isAgentFee ? 2000 : 12000;
+    conv.messages.push({
+      from: 'system',
+      text: isAgentFee
+        ? `Inspection marked satisfied. ₦10,000 released to the Agent and ₦2,000 to MainTown Realty. Proceeding to checkout.`
+        : `Inspection marked satisfied. Full ₦12,000 retained by MainTown Realty (Direct Landlord listing). Proceeding to checkout.`
+    });
+    logTransaction({
+      listingId: listing ? listing.id : null, listingType: listing ? ledgerListingType(listing) : (isAgentFee ? 'AGENT' : 'DIRECT_LANDLORD'),
+      dealStage: 'INSPECTION', escrowStatus: 'RELEASED', gross: conv.fee,
+      maintownRevenue, agentPayout, status: 'COMPLETED'
+    });
     const insp = inspections.find(i => i.id === conv.inspectionId);
     if (insp) insp.status = 'completed';
     saveInspections();
@@ -6864,7 +7033,6 @@ available in the Post-Lease Hub and this chat thread.`
     renderChatLog(conv);
     showToast('Satisfied — proceeding to Rent/Buy checkout');
 
-    const listing = rentListings().find(l => l.title === conv.listingTitle) || landListingsList().find(l => l.title === conv.listingTitle);
     if (listing) {
       openCheckout(listing);
       navigateTo('screen-6');
@@ -6876,7 +7044,12 @@ available in the Post-Lease Hub and this chat thread.`
     if (!conv) return;
     inspectionDecisionModal.classList.remove('open');
 
+    // Phase 2, Step 2B — Dispute Handling (NO_SHOW_DISPUTE): Agent-listed
+    // inspections keep the existing 50/50 field-transport split; Direct
+    // Landlord inspections are collected 100% by MainTown, so a "not
+    // satisfied" outcome issues a FULL_REFUND to the renter.
     let receiptHtml;
+    const listingForLedger = rentListings().find(l => l.title === conv.listingTitle) || landListingsList().find(l => l.title === conv.listingTitle);
     if (conv.feeType === 'agent') {
       const half = Math.round(conv.fee / 2);
       receiptHtml = `
@@ -6886,13 +7059,22 @@ available in the Post-Lease Hub and this chat thread.`
           <div class="s5-hold-row"><span>Refunded to Tenant Wallet</span><strong>${formatMoney(half, 'ngn')}</strong></div>
           <div class="s5-hold-row"><span>Disbursed to Agent (field transport)</span><strong>${formatMoney(half, 'ngn')}</strong></div>
         </div>`;
+      logTransaction({
+        listingId: listingForLedger ? listingForLedger.id : null, listingType: 'AGENT',
+        dealStage: 'INSPECTION', escrowStatus: 'REFUNDED', gross: conv.fee,
+        agentPayout: half, status: 'DISPUTED'
+      });
     } else {
       receiptHtml = `
         <div class="receipt-box">
           <p class="s5-section-label" style="margin:0 0 8px;"><i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Refund Receipt</p>
-          <div class="s5-hold-row"><span>MainTown Service Fee</span><strong>${formatMoney(conv.fee, 'ngn')}</strong></div>
-          <div class="s5-hold-row"><span>Refund Status</span><strong>Non-refundable flat fee</strong></div>
+          <div class="s5-hold-row"><span>Inspection Deposit</span><strong>${formatMoney(conv.fee, 'ngn')}</strong></div>
+          <div class="s5-hold-row"><span>Refund Status</span><strong>FULL_REFUND to Tenant Wallet</strong></div>
         </div>`;
+      logTransaction({
+        listingId: listingForLedger ? listingForLedger.id : null, listingType: 'DIRECT_LANDLORD',
+        dealStage: 'INSPECTION', escrowStatus: 'REFUNDED', gross: conv.fee, status: 'DISPUTED'
+      });
     }
 
     conv.messages.push({ from: 'system', text: 'Inspection marked not satisfied. Cancellation requested — this thread has been archived.' });
@@ -6908,7 +7090,7 @@ available in the Post-Lease Hub and this chat thread.`
     renderChatLog(conv);
     document.getElementById('msg-chat-log').innerHTML += receiptHtml;
     document.getElementById('msg-thread-sub').textContent = 'Archived conversation';
-    showToast('Cancellation processed — 50/50 split executed');
+    showToast(conv.feeType === 'agent' ? 'Cancellation processed — 50/50 split executed' : 'Cancellation processed — full refund issued');
     renderInspectionsSummaryCard();
     if (window.lucide) lucide.createIcons();
   });
