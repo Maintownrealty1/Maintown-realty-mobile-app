@@ -1849,11 +1849,6 @@
     <!-- populated dynamically based on role -->
   </div>
 
-  <p class="dash-section-title">Recent Activity</p>
-  <div class="dash-list" id="dash-list">
-    <!-- populated dynamically based on role -->
-  </div>
-
 </div>
 <!-- ===================== END SCREEN 4 ===================== -->
 
@@ -4585,58 +4580,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="dash-tile-label">${a.label}</div>
       </div>`).join('');
 
-    const list = document.getElementById('dash-list');
-    let activityItems = data.activity.slice();
-    // Landlord Recent Activity: dynamic "Handover sign-off" item, driven by the
-    // real tenant-signed / dual-signed Tenancy Agreement state (see handover object).
-    if (role === 'landlord' && typeof handover !== 'undefined' && handover) {
-      activityItems = [{
-        icon: handover.status === 'completed' ? 'check-circle-2' : 'file-signature',
-        color: handover.status === 'completed' ? 'text-emerald-400' : 'text-amber-400',
-        title: handover.status === 'completed' ? 'Handover sign-off completed' : 'Tenant signed — awaiting your sign-off',
-        sub: handover.listingTitle,
-        action: 'handoverReview'
-      }, ...activityItems];
-    }
-
-    // ---- Inspection Activation & Dashboard Cards Sync: when a Tenant activates an
-    // inspection slot, a clickable client/tenant notification card is pushed into
-    // #dash-list for the Landlord & Agent dashboards — red unread dot, Tenant's Full
-    // Name, Occupation, and KYC Portrait Photo. Clicking opens the tenant bio modal. ----
-    const notifHtml = (role === 'landlord' || role === 'agent')
-      ? inspectionNotifications.filter(n => n.forRole === role && n.type !== 'tenantAlert').map(n => `
-        <div class="dash-list-item ${n.unread ? 'unread' : ''}" data-action="tenantBio" data-notif-id="${n.id}" style="cursor:pointer;">
-          <span class="dash-unread-dot"></span>
-          ${n.tenantPhoto
-            ? `<img class="dash-list-avatar" src="${n.tenantPhoto}" alt="${n.tenantName}">`
-            : `<div class="dash-list-icon"><i data-lucide="user" class="w-4 h-4 text-purple-400"></i></div>`}
-          <div class="dash-list-text">
-            <p class="dash-list-title">${n.tenantName} activated an inspection</p>
-            <p class="dash-list-sub">${n.listingTitle}</p>
-          </div>
-        </div>`).join('')
-      // Tenant Notification Center: Acceptance/Decline alerts — tapping deep-links to
-      // the Inspection Schedules feed to view the updated status badge.
-      : (role === 'tenant'
-          ? inspectionNotifications.filter(n => n.forRole === 'tenant' && n.type === 'tenantAlert').map(n => `
-            <div class="dash-list-item ${n.unread ? 'unread' : ''}" data-action="inspections" data-notif-id="${n.id}" style="cursor:pointer;">
-              <span class="dash-unread-dot"></span>
-              <div class="dash-list-icon"><i data-lucide="${n.kind === 'declined' ? 'x-circle' : 'check-circle-2'}" class="w-4 h-4 ${n.kind === 'declined' ? 'text-red-400' : 'text-emerald-400'}"></i></div>
-              <div class="dash-list-text">
-                <p class="dash-list-title">${n.kind === 'declined' ? 'Inspection declined' : 'Inspection confirmed'}</p>
-                <p class="dash-list-sub">${n.message}</p>
-              </div>
-            </div>`).join('')
-          : '');
-
-    list.innerHTML = notifHtml + activityItems.map(item => `
-      <div class="dash-list-item" ${item.action ? `data-action="${item.action}" style="cursor:pointer;"` : ''}>
-        <div class="dash-list-icon"><i data-lucide="${item.icon}" class="w-4 h-4 ${item.color}"></i></div>
-        <div class="dash-list-text">
-          <p class="dash-list-title">${item.title}</p>
-          <p class="dash-list-sub">${item.sub}</p>
-        </div>
-      </div>`).join('');
+    // Recent Activity was removed from the dashboard home view — every event
+    // that used to render here (tenant-activated-inspection cards, confirm/
+    // decline alerts, handover sign-off) now routes exclusively through the
+    // Notification Bell (see notifyDashboardOfInspectionActivation,
+    // pushTenantInspectionAlert, createHandoverForTenantSignOff below).
 
     renderInspectionsSummaryCard();
     if (typeof renderDemoFlowCard === 'function') renderDemoFlowCard();
@@ -5630,8 +5578,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       status: 'tenant-signed'
     };
     saveHandover();
-    document.getElementById('dash-bell-dot').classList.add('show');
-    if (!document.getElementById('screen-4').classList.contains('hidden')) populateScreen4();
+    // Recent Activity was removed from the dashboard home view — this event now
+    // routes exclusively through the Notification Bell.
+    pushPlatformNotification('landlord', 'message', 'Signed Agreement Received',
+      `Tenant signed the agreement for ${checkoutListing.title} — awaiting your countersignature.`,
+      { screen: 'handoverReview' }, 'TENANT_SIGNED_AGREEMENT');
     showToast('Landlord notified — signed agreement sent for their sign-off');
   }
 
@@ -5765,6 +5716,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     handover.landlordSignedAt = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     handover.status = 'completed';
     saveHandover();
+
+    // Notify the Tenant exclusively through the bell — the executed copy is
+    // ready to download from their Post-Lease Hub.
+    pushPlatformNotification('tenant', 'message', 'Agreement Fully Executed',
+      `Your dual-signed agreement for ${handover.listingTitle} is ready to download.`,
+      { screen: 'screen-post-lease' }, 'AGREEMENT_EXECUTED');
 
     showToast('Agreement signed & sent — executed copy available to both parties');
     populateScreen4();
@@ -6922,6 +6879,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
         notificationDetailModal.classList.remove('open');
         navigateTo('screen-inspections');
       };
+    } else if (notif.route && notif.route.screen === 'tenantBio' && notif.route.notifId) {
+      ctaLabel.textContent = 'View Tenant Details';
+      ctaBtn.style.display = 'flex';
+      ctaBtn.onclick = () => {
+        notificationDetailModal.classList.remove('open');
+        openTenantBioModal(notif.route.notifId);
+      };
+    } else if (notif.route && notif.route.screen === 'handoverReview') {
+      ctaLabel.textContent = 'Review & Sign Agreement';
+      ctaBtn.style.display = 'flex';
+      ctaBtn.onclick = () => {
+        notificationDetailModal.classList.remove('open');
+        openHandoverReviewModal();
+      };
     }
 
     notificationDetailModal.classList.add('open');
@@ -6956,15 +6927,23 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const tenantEmail = (document.getElementById('reg-email')?.value || '').trim() || null;
     const { role: ownerRole } = getListingOwnership(listing);
     const forRole = ownerRole === 'AGENT' ? 'agent' : 'landlord';
+    const notifId = Date.now() + Math.random();
     inspectionNotifications.unshift({
-      id: Date.now() + Math.random(),
+      id: notifId,
       forRole,
       listingTitle: listing.title,
       tenantName, tenantOccupation, tenantPhoto, tenantPhone, tenantEmail,
       unread: true
     });
     saveInspectionNotifications();
-    if (!document.getElementById('screen-4').classList.contains('hidden')) populateScreen4();
+
+    // Recent Activity was removed from the dashboard home view — this event
+    // now surfaces EXCLUSIVELY through the Notification Bell. The route
+    // carries the tenant-bio notifId so the CTA opens the tenant's KYC/bio
+    // card directly (see openNotificationDetailModal's 'tenantBio' handling).
+    pushPlatformNotification(forRole, 'inspection', 'New Inspection Request',
+      `${tenantName} activated an inspection for ${listing.title}.`,
+      { screen: 'tenantBio', notifId }, 'INSPECTION_ACTIVATED');
   }
 
   // ==================================================================
@@ -7327,9 +7306,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (window.lucide) lucide.createIcons();
   }
 
-  // ---- Tenant Notifications: Acceptance/Decline Push Alert + In-App Notification Center ----
-  // Pushes an unread card into the Tenant's dashboard Notification Center (#dash-list) and
-  // fires a simulated push alert (toast) — deep-links back to the Inspection Schedules feed.
+  // ---- Tenant Notifications: Acceptance/Decline Push Alert + Notification Bell ----
+  // Fires a simulated push alert (toast) and feeds the unified Notification
+  // Bell — deep-links back to the Inspection Schedules feed.
   function pushTenantInspectionAlert(sched, kind) {
     const message = kind === 'confirmed'
       ? `Your inspection request for ${sched.title} has been confirmed for ${sched.date || 'the scheduled date'} at ${sched.time || 'the scheduled time'}. Chat is now unlocked.`
@@ -7737,30 +7716,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
   document.getElementById('hostprev-close-btn').addEventListener('click', () => hostPreviewModal.classList.remove('open'));
 
-  // Dashboard "Inspection scheduled" activity card -> jump straight into Schedules view
-  // Dashboard "Handover sign-off" activity card (Landlord) -> open the Agreement Review & Sign-Off sheet
-  // Dashboard tenant/client notification card (Landlord/Agent) -> open the Tenant Bio modal
-  document.getElementById('dash-list').addEventListener('click', (e) => {
-    const item = e.target.closest('.dash-list-item');
-    if (!item) return;
-    if (item.dataset.action === 'inspections') {
-      if (item.dataset.notifId) markTenantAlertRead(item.dataset.notifId);
-      navigateTo('screen-inspections');
-    }
-    else if (item.dataset.action === 'handoverReview') openHandoverReviewModal();
-    else if (item.dataset.action === 'tenantBio') openTenantBioModal(item.dataset.notifId);
-  });
-
-  // Marks a Tenant Notification Center alert (Acceptance/Decline) as read without a
-  // full dashboard re-render, mirroring openTenantBioModal's read-state handling.
-  function markTenantAlertRead(notifId) {
-    const notif = inspectionNotifications.find(n => String(n.id) === String(notifId));
-    if (!notif || !notif.unread) return;
-    notif.unread = false;
-    saveInspectionNotifications();
-    const cardEl = document.querySelector(`.dash-list-item[data-notif-id="${notifId}"]`);
-    if (cardEl) cardEl.classList.remove('unread');
-  }
+  // The dashboard's inline "Recent Activity" feed was removed — inspection
+  // activation cards, confirm/decline alerts, and handover sign-off events now
+  // route exclusively through the Notification Bell (see openNotificationDetailModal's
+  // 'tenantBio' / 'handoverReview' / 'screen-inspections' route handling).
 
   const tenantBioModal = document.getElementById('tenant-bio-modal');
   let bioModalSchedId = null; // set when opened from the Inspections Manager, so "Chat Tenant" knows which schedule/conversation to open
