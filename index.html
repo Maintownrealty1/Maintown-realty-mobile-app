@@ -1862,8 +1862,6 @@
 
   <div id="dash-inspections-summary"><!-- populated dynamically --></div>
 
-  <div id="demo-flow-card"><!-- populated dynamically: cross-role shared inspection state --></div>
-
   <p class="dash-section-title">Quick Actions</p>
   <div class="dash-grid" id="dash-grid">
     <!-- populated dynamically based on role -->
@@ -4645,7 +4643,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // pushTenantInspectionAlert, createHandoverForTenantSignOff below).
 
     renderInspectionsSummaryCard();
-    if (typeof renderDemoFlowCard === 'function') renderDemoFlowCard();
     if (window.lucide) lucide.createIcons();
   }
 
@@ -9625,37 +9622,11 @@ available in the Post-Lease Hub and this chat thread.`
     try { localStorage.removeItem('currentUser'); } catch (e) {}
   }
 
-  // ---- maintown_app_state: central shared store (inspections / notifications / chats) ----
-  const DEMO_PROPERTY = '3 Bedroom Ikeja';
-  // Dynamic Recipient & Ownership Routing (demo mini-flow): this fixed demo
-  // property is Agent-managed, so — per the strict single-recipient guard —
-  // every request against it routes to John Adam ONLY. Frank Hood (Landlord)
-  // must never receive a notification or see it in his inspection feed.
-  const DEMO_PROPERTY_OWNER_ROLE = 'AGENT'; // 'AGENT' | 'LANDLORD'
-  const DEMO_PROPERTY_OWNER_ID = DEMO_PROPERTY_OWNER_ROLE === 'AGENT' ? 'john' : 'frank';
-  const DEMO_PROPERTY_OWNER_NAME = DEMO_PROPERTY_OWNER_ROLE === 'AGENT' ? 'John Adam' : 'Frank Hood';
-  const DEMO_PROPERTY_OWNER_LABEL = DEMO_PROPERTY_OWNER_ROLE === 'AGENT' ? 'Agent' : 'Landlord';
-  function demoInspectionOwnerId(insp) { return insp.agentId || insp.landlordId || null; }
+  // ---- maintown_app_state: central shared store (platform revenue ledger, etc.) ----
   function defaultAppState() {
-    const now = Date.now();
     return {
-      inspections: [
-        {
-          id: 'insp_demo_1',
-          property: DEMO_PROPERTY,
-          tenantId: 'angel',
-          // STRICT GUARD: only the actual owning role's id is set — the other
-          // stays null so it can never match either the notification dispatch
-          // below or a dashboard's ownership filter.
-          agentId: DEMO_PROPERTY_OWNER_ROLE === 'AGENT' ? 'john' : null,
-          landlordId: DEMO_PROPERTY_OWNER_ROLE === 'LANDLORD' ? 'frank' : null,
-          status: 'PENDING_APPROVAL',
-          createdAt: now
-        }
-      ],
-      notifications: [
-        { id: 'notif_demo_1', userId: DEMO_PROPERTY_OWNER_ID, role: DEMO_PROPERTY_OWNER_ROLE.toLowerCase(), type: 'INSPECTION_REQUESTED', message: 'Angel Tiwa requested a walkthrough for ' + DEMO_PROPERTY, unread: true, createdAt: now }
-      ],
+      inspections: [],
+      notifications: [],
       chats: [],
       // ---- MainTown AI Model B revenue ledger: cumulative one-time AI fees
       // collected at checkout (Risk & Flex Scoring on rentals, Title Vetting &
@@ -9678,13 +9649,6 @@ available in the Post-Lease Hub and this chat thread.`
     try { localStorage.setItem('maintown_app_state', JSON.stringify(state)); } catch (e) {}
   }
   let appState = loadAppState();
-
-  function pushNotification(userId, role, type, message) {
-    appState.notifications.push({
-      id: 'notif_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-      userId, role, type, message, unread: true, createdAt: Date.now()
-    });
-  }
 
   // ==================================================================
   // ---- MainTown AI Model B Revenue Ledger ----
@@ -9722,6 +9686,12 @@ available in the Post-Lease Hub and this chat thread.`
   // the bell badge, persists the change, and broadcasts a state-updated
   // event so every mounted component re-renders in sync.
   // ==================================================================
+  // ---- currentDemoUserId: id of the logged-in demo account (john/frank/angel), if any ----
+  function currentDemoUserId() {
+    const saved = loadCurrentUser();
+    return saved ? saved.id : null;
+  }
+
   function autoClearActivityFeed() {
     const uid = currentDemoUserId();
     const role = currentUserRole || 'tenant';
@@ -9803,195 +9773,6 @@ available in the Post-Lease Hub and this chat thread.`
     }
   }
 
-  // ==================================================================
-  // ---- Demo Flow Card: renders on Screen 4 (dashboard) for whichever
-  // demo account is currently logged in, driven entirely by appState. ----
-  // ==================================================================
-  function currentDemoUserId() {
-    const saved = loadCurrentUser();
-    return saved ? saved.id : null;
-  }
-
-  function requestDemoInspection() {
-    const uid = currentDemoUserId();
-    if (!uid || uid !== 'angel') return;
-    const existing = appState.inspections.find(i => i.tenantId === uid && i.property === DEMO_PROPERTY && i.status !== 'DECLINED' && i.status !== 'COMPLETED');
-    if (existing) { showToast('You already have an active request for this property'); return; }
-    const insp = {
-      id: 'insp_' + Date.now(),
-      property: DEMO_PROPERTY,
-      tenantId: 'angel',
-      // STRICT GUARD: set ONLY the owning role's id (Agent-managed listing here
-      // -> agentId only, landlordId stays null). Never populate both.
-      agentId: DEMO_PROPERTY_OWNER_ROLE === 'AGENT' ? 'john' : null,
-      landlordId: DEMO_PROPERTY_OWNER_ROLE === 'LANDLORD' ? 'frank' : null,
-      status: 'PENDING_APPROVAL',
-      createdAt: Date.now()
-    };
-    appState.inspections.push(insp);
-    // Dispatch EXCLUSIVELY to the actual owner — the other role is never touched.
-    pushNotification(DEMO_PROPERTY_OWNER_ID, DEMO_PROPERTY_OWNER_ROLE.toLowerCase(), 'INSPECTION_REQUESTED', 'Angel Tiwa requested a walkthrough for ' + DEMO_PROPERTY);
-    saveAppState(appState);
-    showToast(`Inspection requested — ${DEMO_PROPERTY_OWNER_NAME} has been notified`);
-    renderDemoFlowCard();
-    updateDemoBellDot();
-  }
-
-  function confirmDemoInspection(inspId) {
-    const insp = appState.inspections.find(i => i.id === inspId);
-    if (!insp) return;
-    insp.status = 'CONFIRMED';
-    appState.chats.push({ id: 'chat_' + inspId, inspectionId: inspId, participants: [insp.tenantId, demoInspectionOwnerId(insp)], unlocked: true, createdAt: Date.now() });
-    pushNotification(insp.tenantId, 'tenant', 'INSPECTION_CONFIRMED', 'Your inspection for ' + insp.property + ' was confirmed. Chat unlocked.');
-    // Mark this actor's own pending notification about this request as read.
-    const uid = currentDemoUserId();
-    appState.notifications.filter(n => n.userId === uid && n.type === 'INSPECTION_REQUESTED' && n.unread).forEach(n => n.unread = false);
-    saveAppState(appState);
-    showToast('Inspection confirmed — Angel Tiwa has been notified');
-    renderDemoFlowCard();
-    updateDemoBellDot();
-  }
-
-  function declineDemoInspection(inspId) {
-    const insp = appState.inspections.find(i => i.id === inspId);
-    if (!insp) return;
-    insp.status = 'DECLINED';
-    pushNotification(insp.tenantId, 'tenant', 'INSPECTION_DECLINED', 'Your inspection request for ' + insp.property + ' was declined.');
-    const uid = currentDemoUserId();
-    appState.notifications.filter(n => n.userId === uid && n.type === 'INSPECTION_REQUESTED' && n.unread).forEach(n => n.unread = false);
-    saveAppState(appState);
-    showToast('Inspection declined');
-    renderDemoFlowCard();
-    updateDemoBellDot();
-  }
-
-  function completeDemoInspection(inspId) {
-    const insp = appState.inspections.find(i => i.id === inspId);
-    if (!insp) return;
-    insp.status = 'COMPLETED';
-    saveAppState(appState);
-    showToast('Inspection marked complete');
-    renderDemoFlowCard();
-  }
-
-  function openDemoChat(inspId) {
-    showToast(`Chat unlocked with ${DEMO_PROPERTY_OWNER_NAME} — opening Messages`);
-    navigateTo('screen-messages');
-  }
-
-  function updateDemoBellDot() {
-    const uid = currentDemoUserId();
-    if (!uid) return;
-    const hasUnread = appState.notifications.some(n => n.userId === uid && n.unread);
-    const dot = document.getElementById('dash-bell-dot');
-    if (dot && hasUnread) dot.classList.add('show');
-  }
-
-  const DEMO_STATUS_META = {
-    PENDING_APPROVAL: { label: 'Pending Approval', cls: 'insp-status-pending' },
-    CONFIRMED:         { label: 'Confirmed',        cls: 'insp-status-confirmed' },
-    DECLINED:          { label: 'Declined',          cls: 'insp-status-declined' },
-    COMPLETED:         { label: 'Completed',         cls: 'insp-status-conducted' }
-  };
-
-  function renderDemoFlowCard() {
-    const wrap = document.getElementById('demo-flow-card');
-    if (!wrap) return;
-    const uid = currentDemoUserId();
-    if (!uid) { wrap.innerHTML = ''; return; }
-    appState = loadAppState();
-
-    if (uid === 'angel') {
-      const myInspections = appState.inspections.filter(i => i.tenantId === 'angel');
-      if (!myInspections.length) {
-        wrap.innerHTML = `
-          <div class="demo-flow-card">
-            <div class="demo-flow-header"><i data-lucide="calendar-clock" class="w-4 h-4" style="color:#c084fc;"></i><p class="demo-flow-title">Book a Walkthrough</p></div>
-            <p class="demo-flow-sub">${DEMO_PROPERTY} is ready for a viewing request.</p>
-            <button type="button" class="demo-flow-btn request" data-demo-action="request"><i data-lucide="calendar-plus" class="w-4 h-4"></i> Request Inspection</button>
-          </div>`;
-      } else {
-        wrap.innerHTML = `
-          <div class="demo-flow-card">
-            <div class="demo-flow-header"><i data-lucide="calendar-clock" class="w-4 h-4" style="color:#c084fc;"></i><p class="demo-flow-title">Your Inspections</p></div>
-            <p class="demo-flow-sub">Shared live with ${DEMO_PROPERTY_OWNER_NAME} (${DEMO_PROPERTY_OWNER_LABEL}).</p>
-            ${myInspections.map(i => {
-              const meta = DEMO_STATUS_META[i.status] || DEMO_STATUS_META.PENDING_APPROVAL;
-              return `
-              <div class="demo-flow-item">
-                <div class="demo-flow-item-top">
-                  <div>
-                    <p class="demo-flow-item-title">${i.property}</p>
-                    <p class="demo-flow-item-sub">${DEMO_PROPERTY_OWNER_LABEL}: ${DEMO_PROPERTY_OWNER_NAME}</p>
-                  </div>
-                  <span class="demo-flow-pill ${meta.cls}">${meta.label}</span>
-                </div>
-                ${i.status === 'CONFIRMED' ? `
-                  <div class="demo-flow-actions">
-                    <button type="button" class="demo-flow-btn message" data-demo-action="message" data-insp-id="${i.id}"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Message ${DEMO_PROPERTY_OWNER_LABEL}</button>
-                    <button type="button" class="demo-flow-btn complete" data-demo-action="complete" data-insp-id="${i.id}"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Complete Inspection</button>
-                  </div>` : ''}
-              </div>`;
-            }).join('')}
-          </div>`;
-      }
-    } else if (uid === 'john' || uid === 'frank') {
-      // STRICT GUARD: each host account only ever sees inspections it actually
-      // owns — an Agent-managed request must never surface on the Landlord's
-      // feed, and a Direct-Landlord request must never surface on the Agent's.
-      const pending = appState.inspections.filter(i => i.status === 'PENDING_APPROVAL' && (uid === 'john' ? i.agentId === 'john' : i.landlordId === 'frank'));
-      const other = appState.inspections.filter(i => i.status !== 'PENDING_APPROVAL' && (uid === 'john' ? i.agentId === 'john' : i.landlordId === 'frank'));
-      if (!pending.length && !other.length) { wrap.innerHTML = ''; return; }
-      wrap.innerHTML = `
-        <div class="demo-flow-card">
-          <div class="demo-flow-header"><i data-lucide="bell-ring" class="w-4 h-4" style="color:#c084fc;"></i><p class="demo-flow-title">${pending.length ? pending.length + ' Pending Inspection' + (pending.length > 1 ? 's' : '') : 'Inspection Requests'}</p></div>
-          <p class="demo-flow-sub">Requests from Angel Tiwa (Tenant), synced across accounts.</p>
-          ${pending.map(i => `
-            <div class="demo-flow-item">
-              <div class="demo-flow-item-top">
-                <div>
-                  <p class="demo-flow-item-title">${i.property}</p>
-                  <p class="demo-flow-item-sub">Requested by Angel Tiwa</p>
-                </div>
-                <span class="demo-flow-pill insp-status-pending">Pending</span>
-              </div>
-              <div class="demo-flow-actions">
-                <button type="button" class="demo-flow-btn confirm" data-demo-action="confirm" data-insp-id="${i.id}"><i data-lucide="check" class="w-3.5 h-3.5"></i> Confirm</button>
-                <button type="button" class="demo-flow-btn decline" data-demo-action="decline" data-insp-id="${i.id}"><i data-lucide="x" class="w-3.5 h-3.5"></i> Decline</button>
-              </div>
-            </div>`).join('')}
-          ${other.map(i => {
-            const meta = DEMO_STATUS_META[i.status] || DEMO_STATUS_META.CONFIRMED;
-            return `
-            <div class="demo-flow-item">
-              <div class="demo-flow-item-top">
-                <div>
-                  <p class="demo-flow-item-title">${i.property}</p>
-                  <p class="demo-flow-item-sub">Angel Tiwa</p>
-                </div>
-                <span class="demo-flow-pill ${meta.cls}">${meta.label}</span>
-              </div>
-            </div>`;
-          }).join('')}
-        </div>`;
-    } else {
-      wrap.innerHTML = '';
-    }
-    updateDemoBellDot();
-    if (window.lucide) lucide.createIcons();
-  }
-
-  document.getElementById('demo-flow-card').addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-demo-action]');
-    if (!btn) return;
-    const action = btn.dataset.demoAction;
-    const inspId = btn.dataset.inspId;
-    if (action === 'request') requestDemoInspection();
-    if (action === 'confirm') confirmDemoInspection(inspId);
-    if (action === 'decline') declineDemoInspection(inspId);
-    if (action === 'complete') completeDemoInspection(inspId);
-    if (action === 'message') openDemoChat(inspId);
-  });
 
   // ---- Boot: auto-relogin into a saved demo session, else the Welcome screen shows as-is ----
   checkAutoRelogin();
