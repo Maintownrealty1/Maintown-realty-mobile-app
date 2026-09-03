@@ -814,6 +814,16 @@
   }
   .site-video-chapter svg { width: 12px; height: 12px; }
 
+  /* ---- Virtual Walkthrough On-Demand Video Player Modal (Rent listings) ----
+       Dark bg-black/90 backdrop behind the HD player, matching the spec's
+       modal design — Play/Pause/Progress/Fullscreen/Mute all come free from
+       the native <video controls> element. ---- */
+  .wt-video-frame {
+    width: 100%; border-radius: 14px; overflow: hidden; background: rgba(0,0,0,0.9); margin-bottom: 16px;
+    aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center;
+  }
+  .wt-video-frame video { width: 100%; height: 100%; display: block; object-fit: cover; background: #000; }
+
   /* ---- Escrow Payment Mode selector (Site Inspection Booking — Land/Property) ---- */
   .ib-escrow-mode-row { display: flex; gap: 8px; margin-bottom: 4px; }
   .ib-escrow-pill {
@@ -1447,6 +1457,24 @@
   }
   .insp-secondary-full-btn:hover { border-color: #334155; }
   .insp-secondary-full-btn:disabled { cursor: not-allowed; opacity: 0.55; background: rgba(148,163,184,0.08); color: #64748b; border-color: rgba(148,163,184,0.2); }
+  .insp-status-cancelled { background: rgba(148,163,184,0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.35); }
+  /* ---- Tenant/Buyer Inspection Cancellation: ghost danger button on the
+       Inspection Schedules card, shown alongside the locked-chat/complete
+       actions while a request is PENDING or CONFIRMED. ---- */
+  .insp-cancel-btn {
+    width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 600; color: #f87171;
+    background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.3); cursor: pointer; transition: all 0.15s ease;
+  }
+  .insp-cancel-btn:hover { background: rgba(248,113,113,0.16); border-color: rgba(248,113,113,0.5); }
+  /* ---- Inspection Cancellation Confirmation Modal: single-select reason tags ---- */
+  .insp-reason-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; justify-content: center; }
+  .insp-reason-chip {
+    padding: 9px 14px; border-radius: 999px; font-size: 12px; font-weight: 500; color: #cbd5e1;
+    background: rgba(30,41,59,0.6); border: 1px solid #1e293b; cursor: pointer; transition: all 0.15s ease;
+  }
+  .insp-reason-chip:hover { border-color: #334155; }
+  .insp-reason-chip.selected { background: rgba(139,92,246,0.18); border-color: #a855f7; color: #fff; }
 
   /* ==================================================================
      ---- SCREEN PAY-RENT: Financial Hub & Checkout ----
@@ -3137,6 +3165,29 @@
   </div>
 </div>
 
+<!-- Tenant/Buyer Inspection Cancellation Confirmation Modal — triggered from the
+     "Cancel Inspection" button on any PENDING/SCHEDULED/CONFIRMED card in the
+     tenant's Inspection Schedules view. -->
+<div id="insp-cancel-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <i data-lucide="calendar-x" class="w-8 h-8 text-red-400"></i>
+    </div>
+    <h2 class="modal-title">Cancel Inspection?</h2>
+    <p class="modal-sub">Are you sure you want to cancel this physical inspection request for <strong id="insp-cancel-listing-title">—</strong>?</p>
+
+    <div class="insp-reason-grid">
+      <button type="button" class="insp-reason-chip" data-reason="Change of plans">Change of plans</button>
+      <button type="button" class="insp-reason-chip" data-reason="Found another property">Found another property</button>
+      <button type="button" class="insp-reason-chip" data-reason="Schedule conflict">Schedule conflict</button>
+      <button type="button" class="insp-reason-chip" data-reason="Other">Other</button>
+    </div>
+
+    <button type="button" id="insp-cancel-confirm-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: 0 8px 20px rgba(239,68,68,0.25); margin-top: 18px;">Yes, Cancel Inspection</button>
+    <button type="button" id="insp-cancel-keep-btn" class="btn-secondary">Keep Inspection</button>
+  </div>
+</div>
+
 <!-- Host Preview Modal — Tenant tap on the Host Info row inside a Confirmed Inspection card -->
 <div id="host-preview-modal" class="modal-overlay">
   <div class="modal-card">
@@ -3275,31 +3326,30 @@
   </div>
 </div>
 
-<!-- Virtual Walkthrough Scheduling Modal (Tenant) -->
+<!-- On-Demand Virtual Walkthrough Video Player Modal (Tenant) — replaces the old
+     live-scheduling/holding-deposit flow. Launches immediately with the
+     property's pre-uploaded walkthrough video (or a fallback tour clip) and
+     never exposes a direct checkout/payment button of its own; the footer
+     only ever hands off into the standard Inspection Gate flow. -->
 <div id="walkthrough-modal" class="modal-overlay">
-  <div class="modal-card">
+  <div class="modal-card" style="max-width: 420px;">
     <div class="modal-icon-wrap">
       <i data-lucide="video" class="w-6 h-6 text-purple-400"></i>
     </div>
-    <h2 class="modal-title">Schedule Virtual Walkthrough</h2>
-    <p class="modal-sub" id="wt-property-name">Select a time slot for your live video tour</p>
+    <h2 class="modal-title">Virtual Property Walkthrough</h2>
+    <p class="modal-sub" id="wt-property-name">—</p>
 
-    <div class="s5-timeslot-grid" id="wt-timeslot-grid">
-      <div class="s5-timeslot" data-slot="Today, 4:00 PM"><i data-lucide="clock" class="w-3.5 h-3.5"></i>Today, 4:00 PM</div>
-      <div class="s5-timeslot" data-slot="Today, 6:30 PM"><i data-lucide="clock" class="w-3.5 h-3.5"></i>Today, 6:30 PM</div>
-      <div class="s5-timeslot" data-slot="Tomorrow, 10:00 AM"><i data-lucide="clock" class="w-3.5 h-3.5"></i>Tomorrow, 10:00 AM</div>
-      <div class="s5-timeslot" data-slot="Tomorrow, 2:00 PM"><i data-lucide="clock" class="w-3.5 h-3.5"></i>Tomorrow, 2:00 PM</div>
+    <div class="wt-video-frame">
+      <video id="wt-video-el" controls playsinline preload="metadata" poster=""></video>
     </div>
 
-    <div class="s5-hold-preview">
-      <div class="s5-hold-row"><span>Holding deposit</span><strong id="wt-hold-amount">₦50,000</strong></div>
-      <div class="s5-hold-divider"></div>
-      <div class="s5-hold-row"><span>Held in escrow</span><strong>Yes, refundable</strong></div>
-      <div class="s5-hold-row"><span>Released to landlord</span><strong>On sign-off only</strong></div>
-    </div>
-
-    <button type="button" id="wt-confirm-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;" disabled>Confirm & Proceed to Escrow</button>
-    <button type="button" id="wt-cancel-btn" class="btn-secondary">Cancel</button>
+    <button type="button" id="wt-book-inspection-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:6px;">
+      <i data-lucide="calendar-check" class="w-4 h-4"></i> Book Physical Inspection
+    </button>
+    <button type="button" id="wt-cart-fee-btn" class="btn-secondary" style="margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:6px;">
+      <i data-lucide="shopping-bag" class="w-4 h-4"></i><span id="wt-cart-fee-label">Add to Inspection Cart</span>
+    </button>
+    <button type="button" id="wt-close-btn" class="btn-secondary">Close</button>
   </div>
 </div>
 
@@ -5113,7 +5163,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
   ];
 
   let agentListings = [];
-  let selectedTimeslot = null;
 
   // ==================================================================
   // ---- Host Availability Engine: Add/remove inspection date + time-slot
@@ -5391,44 +5440,88 @@ This voucher is auto-generated and serves as proof of settlement.`;
     });
   });
 
-  // ---- Virtual Walkthrough modal ----
+  // ==================================================================
+  // ---- Virtual Walkthrough: On-Demand Video Player Modal ----
+  //      Clicking "Virtual Walkthrough" on any rent listing launches the
+  //      pre-uploaded property video immediately — no live-scheduling step,
+  //      no holding deposit, and no direct checkout button inside this modal.
+  //      The footer only ever hands off into the standard, unchanged
+  //      Inspection Gate: Pay AI Fee -> View Payment Options ->
+  //      Schedule Physical Inspection -> Inspection Satisfaction Gate ->
+  //      Final Checkout.
+  // ==================================================================
   const walkthroughModal = document.getElementById('walkthrough-modal');
-  const wtConfirmBtn = document.getElementById('wt-confirm-btn');
   let walkthroughListing = null;
+  // Fallback Logic: if a listing has no pre-uploaded walkthrough video URL in
+  // state, fall back to a smooth embedded royalty-free tour clip rather than
+  // showing a broken/empty player.
+  const WT_FALLBACK_VIDEO_URL = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
 
   function openWalkthroughModal(title) {
-    selectedTimeslot = null;
     walkthroughListing = rentListings().find(p => p.title === title) || null;
-    document.getElementById('wt-property-name').textContent = `Select a time slot for ${title}`;
-    document.getElementById('wt-hold-amount').textContent = currentCurrency === 'usd' ? '$60' : '₦50,000';
-    document.querySelectorAll('.s5-timeslot').forEach(s => s.classList.remove('selected'));
-    wtConfirmBtn.disabled = true;
+    const listing = walkthroughListing;
+    document.getElementById('wt-property-name').textContent = listing ? `${listing.title} — ${listing.location}` : title;
+
+    const videoEl = document.getElementById('wt-video-el');
+    videoEl.pause();
+    // Video Source Handling: prefer the listing's pre-uploaded walkthrough
+    // video (checked under both persistence-spec field names), otherwise
+    // fall back to the royalty-free tour clip.
+    videoEl.src = (listing && (listing.virtual_walkthrough_url || listing.video_url || listing.videoUrl)) || WT_FALLBACK_VIDEO_URL;
+    videoEl.poster = (listing && listing.img) || '';
+    videoEl.currentTime = 0;
+
+    updateWtCartFeeButtonLabel();
     walkthroughModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
   }
 
-  document.querySelectorAll('.s5-timeslot').forEach(slot => {
-    slot.addEventListener('click', () => {
-      document.querySelectorAll('.s5-timeslot').forEach(s => s.classList.remove('selected'));
-      slot.classList.add('selected');
-      selectedTimeslot = slot.dataset.slot;
-      wtConfirmBtn.disabled = false;
-    });
+  // The cart/fee footer button does double duty exactly like the Land feed's
+  // "View Payment Options" button: shows the AI Fee prompt pre-screening,
+  // and the plain cart action once the Phase 1 gate has been cleared.
+  function updateWtCartFeeButtonLabel() {
+    const label = document.getElementById('wt-cart-fee-label');
+    if (label) label.textContent = screeningCompleted ? 'Add to Inspection Cart' : 'Pay ₦5,000 AI Fee to Unlock';
+  }
+
+  document.getElementById('wt-close-btn').addEventListener('click', () => {
+    document.getElementById('wt-video-el').pause();
+    walkthroughModal.classList.remove('open');
   });
 
-  document.getElementById('wt-cancel-btn').addEventListener('click', () => walkthroughModal.classList.remove('open'));
-  wtConfirmBtn.addEventListener('click', () => {
-    if (wtConfirmBtn.disabled) return;
+  document.getElementById('wt-book-inspection-btn').addEventListener('click', () => {
+    document.getElementById('wt-video-el').pause();
     walkthroughModal.classList.remove('open');
-    const listing = walkthroughListing || rentListings()[0];
-    // Action Button Guard: booking/checkout is a Tenant-only action. A Landlord/Agent
-    // reaching this trigger sees Verification & Escrow Status instead of Checkout.
+    const listing = walkthroughListing;
+    if (!listing) return;
+    // Action Button Guard: booking is a Tenant-only action — a Landlord/Agent
+    // reaching this trigger sees Verification & Escrow Status instead.
     if ((currentUserRole || 'tenant') !== 'tenant') {
       openEscrowStatusModal(listing);
       return;
     }
-    showToast(`Inspection confirmed — ${selectedTimeslot}`);
-    openCheckout(listing);
-    navigateTo('screen-6');
+    // Preserve Inspection Gate Architecture: routes through the same Phase 1
+    // credit-screening gate and Inspection Booking Modal used everywhere else
+    // — never a shortcut straight to checkout.
+    requireScreening(() => openInspectionModal(listing));
+  });
+
+  document.getElementById('wt-cart-fee-btn').addEventListener('click', () => {
+    const listing = walkthroughListing;
+    if (!listing) return;
+    if ((currentUserRole || 'tenant') !== 'tenant') {
+      document.getElementById('wt-video-el').pause();
+      walkthroughModal.classList.remove('open');
+      openEscrowStatusModal(listing);
+      return;
+    }
+    // Same Phase 1 Credit Screening gate used everywhere else in the app —
+    // paying the ₦5,000 AI Fee unlocks flexible payment options, then saves
+    // the property straight into the Inspection Cart.
+    requireScreening(() => {
+      addToCart(listing);
+      updateWtCartFeeButtonLabel();
+    });
   });
 
   // ==================================================================
@@ -6443,6 +6536,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (status === 'Confirmed') return 'CONFIRMED';
     if (status === 'Declined') return 'DECLINED';
     if (status === 'Conducted') return 'CONDUCTED';
+    if (status === 'Cancelled By Tenant') return 'CANCELLED';
     return (status || '').toUpperCase();
   }
 
@@ -7786,6 +7880,121 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
 
   // ==================================================================
+  // ---- Tenant/Buyer Inspection Cancellation ----
+  //      Lets the Tenant/Buyer cancel their own PENDING or CONFIRMED
+  //      inspection request straight from the Inspection Schedules card.
+  //      Re-locks the Inspection-First Checkout Gate for that listing and
+  //      dual-notifies the assigned Landlord/Agent (plus a read-only
+  //      transparency copy to the linked Landlord on Agent listings).
+  // ==================================================================
+  const inspCancelModal = document.getElementById('insp-cancel-modal');
+  let cancelTargetSchedId = null;
+  let cancelSelectedReason = null;
+
+  function openInspectionCancelModal(scheduleId) {
+    const sched = schedules.find(s => String(s.id) === String(scheduleId));
+    if (!sched || !(sched.status === 'Pending Approval' || sched.status === 'Confirmed')) return;
+    cancelTargetSchedId = scheduleId;
+    cancelSelectedReason = null;
+    document.getElementById('insp-cancel-listing-title').textContent = sched.title;
+    document.querySelectorAll('.insp-reason-chip').forEach(c => c.classList.remove('selected'));
+    inspCancelModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.querySelectorAll('.insp-reason-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.insp-reason-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      cancelSelectedReason = chip.dataset.reason;
+    });
+  });
+
+  document.getElementById('insp-cancel-keep-btn').addEventListener('click', () => {
+    inspCancelModal.classList.remove('open');
+  });
+
+  document.getElementById('insp-cancel-confirm-btn').addEventListener('click', () => {
+    const sched = schedules.find(s => String(s.id) === String(cancelTargetSchedId));
+    inspCancelModal.classList.remove('open');
+    if (!sched || !(sched.status === 'Pending Approval' || sched.status === 'Confirmed')) return;
+    cancelInspectionByTenant(sched, cancelSelectedReason);
+  });
+
+  // Dual Notification & Dashboard Sync: routes the cancellation alert to
+  // whoever is actually the Approval Authority for this listing —
+  // listing.agentId for Agent listings, listing.ownerId for Direct Landlord
+  // listings — mirroring getListingOwnership()'s routing rule. Agent listings
+  // additionally get a read-only confirmation notification logged to the
+  // linked Landlord for full transparency.
+  function dispatchInspectionCancellationNotifications(sched) {
+    const listing = rentListings().find(l => l.title === sched.title) || landListingsList().find(l => l.title === sched.title);
+    const tenantName = sched.tenantName || 'Tenant';
+    const dateLabel = sched.date ? (sched.time ? `${sched.date} at ${sched.time}` : sched.date) : 'the scheduled date';
+    const isAgentManaged = listing
+      ? (listing.listedByRole ? listing.listedByRole === 'AGENT' : listing.listedBy === 'agent')
+      : sched.feeType === 'agent';
+    const route = { screen: 'screen-inspections' };
+    const details = { metadata: { propertyTitle: sched.title, tenantName, scheduledDate: sched.date || null, scheduledTime: sched.time || null } };
+
+    if (isAgentManaged) {
+      const agentId = (listing && listing.agentId) || sched.agent_id || null;
+      const agentMsg = `${tenantName} has cancelled the inspection scheduled for ${sched.title} on ${dateLabel}.`;
+      pushPlatformNotification('agent', 'inspection', 'Inspection Cancelled', agentMsg, route, 'INSPECTION_CANCELLED_BY_TENANT', details, agentId);
+
+      // Read-only transparency copy to the Landlord who actually owns this
+      // Agent-listed property — never a duplicate "action required" alert.
+      const landlordId = (listing && listing.ownerId) || null;
+      const landlordMsg = `${tenantName} cancelled their inspection for ${sched.title} (listed by your Agent) on ${dateLabel}. For your records.`;
+      pushPlatformNotification('landlord', 'inspection', 'Inspection Cancelled (Agent Listing)', landlordMsg, route, 'INSPECTION_CANCELLED_BY_TENANT', details, landlordId);
+    } else {
+      const landlordId = (listing && listing.ownerId) || sched.landlord_id || null;
+      const landlordMsg = `${tenantName} has cancelled the inspection scheduled for ${sched.title} on ${dateLabel}.`;
+      pushPlatformNotification('landlord', 'inspection', 'Inspection Cancelled', landlordMsg, route, 'INSPECTION_CANCELLED_BY_TENANT', details, landlordId);
+    }
+  }
+
+  function cancelInspectionByTenant(sched, reason) {
+    sched.status = 'Cancelled By Tenant';
+    sched.chat_unlocked = false;
+    sched.cancellationReason = reason || null;
+    sched.cancelledAt = Date.now();
+    saveSchedules();
+
+    // Inspection-First Checkout Gate: flip the mirrored `inspections` record
+    // away from any 'completed' state so hasSatisfiedInspectionForListing()
+    // re-locks the final checkout gate for this listing until a new physical
+    // inspection is booked and satisfied.
+    const insp = inspections.find(i => i.id === sched.inspectionId);
+    if (insp) insp.status = 'cancelled';
+    saveInspections();
+
+    // Mirror the cancellation into the shared cross-account app state for
+    // Land/Property Sale site inspections (see appState.inspections push at
+    // booking time), keeping the demo dashboards' shared store in sync.
+    if (sched.transactionType === 'LAND_SALE') {
+      appState = loadAppState();
+      const mirrored = (appState.inspections || []).find(i => i.inspection_id === `insp_land_${sched.inspectionId}`);
+      if (mirrored) {
+        mirrored.status = 'CANCELLED_BY_TENANT';
+        saveAppState(appState);
+      }
+    }
+
+    dispatchInspectionCancellationNotifications(sched);
+
+    showToast('Inspection cancelled — the host has been notified.');
+    renderSchedulesScreen();
+    renderInspectionsSummaryCard();
+    renderLandlordInspectionsManager();
+    renderAgentInspectionsManager();
+    // Dashboard Sync: instantly refreshes the Landlord/Agent notification
+    // badges and schedule calendars wherever they're currently mounted.
+    window.dispatchEvent(new Event('maintown_state_updated'));
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // ==================================================================
   // ---- Inspection Cart Engine (Multi-Home Selection) ----
   // ==================================================================
   let cart = [];
@@ -8001,8 +8210,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     list.innerHTML = visibleSchedules.map(s => {
       const isPending = s.status === 'Pending Approval';
       const isDeclined = s.status === 'Declined';
-      const badgeClass = isPending ? 'insp-status-pending' : isDeclined ? 'insp-status-declined' : (s.status === 'Conducted' ? 'insp-status-conducted' : 'insp-status-confirmed');
-      const badgeIcon = isPending ? 'clock' : isDeclined ? 'x-circle' : (s.status === 'Conducted' ? 'clipboard-check' : 'check-circle-2');
+      const isCancelled = s.status === 'Cancelled By Tenant';
+      const badgeClass = isPending ? 'insp-status-pending' : isDeclined ? 'insp-status-declined' : isCancelled ? 'insp-status-cancelled' : (s.status === 'Conducted' ? 'insp-status-conducted' : 'insp-status-confirmed');
+      const badgeIcon = isPending ? 'clock' : isDeclined ? 'x-circle' : isCancelled ? 'ban' : (s.status === 'Conducted' ? 'clipboard-check' : 'check-circle-2');
       const dateTimeLine = formatInspDateTime(s.date, s.time);
       // Chat Locking Logic: locked for ALL parties while "Pending Approval", and
       // permanently locked once "Declined" — unlocked only once "Confirmed"/"Conducted".
@@ -8022,17 +8232,26 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // Declined (Tenant only): the CTA becomes "Reschedule Inspection" instead of the
       // permanently-locked chat button, letting the tenant pick a new date/time.
       const rescheduleHtml = `<button type="button" class="insp-primary-btn insp-reschedule-btn" data-sched-id="${s.id}"><i data-lucide="calendar-clock" class="w-4 h-4"></i>Reschedule Inspection</button>`;
+      // Tenant/Buyer Cancellation: available only while a request is PENDING
+      // (Pending Approval) or SCHEDULED/CONFIRMED — never once Declined,
+      // Conducted, or already Cancelled.
+      const cancelBtnHtml = `<button type="button" class="insp-cancel-btn" data-sched-id="${s.id}"><i data-lucide="x-circle" class="w-4 h-4"></i>Cancel Inspection</button>`;
+      const cancelledHtml = `<button type="button" class="insp-secondary-full-btn" disabled><i data-lucide="ban" class="w-4 h-4"></i>Cancelled — Book a New Inspection to Continue</button>`;
       const actionsHtml = isLandlordOrAgent
         ? (isPending
             ? hostPendingActionsHtml
-            : (isDeclined
+            : ((isDeclined || isCancelled)
                 ? chatLockedHtml
                 : `<button type="button" class="insp-secondary-full-btn insp-chat-btn" data-sched-id="${s.id}"><i data-lucide="message-square" class="w-4 h-4"></i>Message Tenant</button>`))
         : (isPending
-            ? chatLockedHtml
+            ? `${chatLockedHtml}${cancelBtnHtml}`
             : isDeclined
               ? rescheduleHtml
-              : `<button type="button" class="insp-primary-btn insp-complete-btn" data-conv-id="${s.conversationId}"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Complete Inspection</button>`);
+              : isCancelled
+                ? cancelledHtml
+                : (s.status === 'Confirmed'
+                    ? `<button type="button" class="insp-primary-btn insp-complete-btn" data-conv-id="${s.conversationId}"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Complete Inspection</button>${cancelBtnHtml}`
+                    : `<button type="button" class="insp-primary-btn insp-complete-btn" data-conv-id="${s.conversationId}"><i data-lucide="check-circle-2" class="w-4 h-4"></i>Complete Inspection</button>`));
       // Host Profile Integration: contact row with ghost chat button — Tenant view only,
       // shown once a host is assigned (Confirmed or Conducted).
       const hostInfoHtml = (!isLandlordOrAgent && (s.status === 'Confirmed' || s.status === 'Conducted')) ? hostInfoRowHTML(s) : '';
@@ -8099,6 +8318,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const rescheduleBtn = e.target.closest('.insp-reschedule-btn');
     const acceptBtn = e.target.closest('[data-action="accept"]');
     const declineBtn = e.target.closest('[data-action="decline"]');
+    const cancelBtn = e.target.closest('.insp-cancel-btn');
+    if (cancelBtn) {
+      openInspectionCancelModal(cancelBtn.dataset.schedId);
+      return;
+    }
     if (acceptBtn) {
       acceptSchedule(acceptBtn.dataset.schedId);
       return;
