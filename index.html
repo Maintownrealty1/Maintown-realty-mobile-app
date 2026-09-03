@@ -904,6 +904,54 @@
   }
   .s5-action-btn.land-pay-btn.locked:hover { border-color: rgba(245,158,11,0.7); }
 
+  /* ---- Automatic Property Status Switcher: SOLD / RENTED safety guards ---- */
+  .s5-card.is-unavailable .s5-card-img-wrap img { filter: grayscale(0.55) brightness(0.5); }
+  .s5-status-banner-overlay {
+    position: absolute; inset: 0; z-index: 6; display: flex; align-items: center; justify-content: center;
+    background: rgba(2,6,23,0.45);
+  }
+  .s5-status-banner-tag {
+    display: inline-flex; align-items: center; gap: 6px; padding: 7px 18px; border-radius: 999px;
+    font-size: 12.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    border: 1px solid; backdrop-filter: blur(2px); transform: rotate(-6deg);
+  }
+  .s5-status-banner-tag.sold { background: rgba(127,29,29,0.92); border-color: rgba(248,113,113,0.65); color: #fecaca; }
+  .s5-status-banner-tag.rented { background: rgba(120,53,15,0.92); border-color: rgba(251,191,36,0.65); color: #fde68a; }
+  .s5-unavailable-notice {
+    display: flex; align-items: flex-start; gap: 8px; margin-top: 10px; padding: 10px 12px;
+    border-radius: 10px; font-size: 12px; font-weight: 600; line-height: 1.4;
+  }
+  .s5-unavailable-notice.sold { background: rgba(127,29,29,0.18); border: 1px solid rgba(248,113,113,0.35); color: #fca5a5; }
+  .s5-unavailable-notice.rented { background: rgba(120,53,15,0.18); border: 1px solid rgba(251,191,36,0.35); color: #fcd34d; }
+  .s5-action-btn[disabled], .s5-action-btn.status-disabled {
+    opacity: 0.4; cursor: not-allowed; pointer-events: none; filter: grayscale(0.3);
+  }
+
+  /* ---- Wallet Top-Up Modal: Virtual Bank Account + Quick Deposit presets ---- */
+  .fw-vba-card {
+    background: rgba(147,51,234,0.08); border: 1px solid rgba(147,51,234,0.3); border-radius: 14px;
+    padding: 14px 16px; margin-bottom: 16px;
+  }
+  .fw-vba-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #c4b5fd; margin: 0 0 10px; }
+  .fw-vba-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; }
+  .fw-vba-row + .fw-vba-row { border-top: 1px dashed rgba(148,163,184,0.18); }
+  .fw-vba-row-label { font-size: 11px; color: #94a3b8; margin: 0; }
+  .fw-vba-row-value { font-size: 13.5px; font-weight: 700; color: #f1f5f9; margin: 0; }
+  .fw-copy-btn {
+    display: inline-flex; align-items: center; gap: 5px; background: rgba(147,51,234,0.15);
+    border: 1px solid rgba(147,51,234,0.4); color: #d8b4fe; font-size: 11px; font-weight: 700;
+    padding: 6px 10px; border-radius: 8px; cursor: pointer; white-space: nowrap;
+  }
+  .fw-copy-btn:hover { background: rgba(147,51,234,0.28); }
+  .fw-copy-btn.copied { background: rgba(16,185,129,0.18); border-color: rgba(52,211,153,0.5); color: #6ee7b7; }
+  .fw-quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .fw-quick-btn {
+    background: rgba(30,41,59,0.6); border: 1px solid #1e293b; color: #e2e8f0; font-size: 12.5px; font-weight: 700;
+    padding: 10px 8px; border-radius: 10px; cursor: pointer; text-align: center; transition: border-color 0.15s ease;
+  }
+  .fw-quick-btn:hover, .fw-quick-btn.active { border-color: #9333ea; background: rgba(147,51,234,0.12); }
+  .fw-quick-btn .fw-quick-sub { display: block; font-size: 9.5px; font-weight: 600; color: #94a3b8; margin-top: 2px; }
+
   /* ---- Walkthrough Video Preview (Land / Property Purchase cards) ---- */
   .s5-video-preview-btn {
     position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 8px;
@@ -2374,6 +2422,7 @@
     <div class="s5-card-body">
       <p class="s5-card-title" id="s6-property-title">—</p>
       <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span id="s6-property-location">—</span></p>
+      <p class="s5-unavailable-notice sold hidden" id="s6-unavailable-notice" style="display:none;"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i><span id="s6-unavailable-notice-text"></span></p>
     </div>
   </div>
 
@@ -3987,15 +4036,48 @@
   </div>
 </div>
 
-<!-- ---- Fund Wallet Modal (simulated bank transfer / card deposit) ---- -->
+<!-- ---- Fund Wallet Modal (Instant Deposit Simulator: simulated bank transfer / card deposit) ---- -->
 <div id="fund-wallet-modal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-icon-wrap"><i data-lucide="arrow-down-circle" class="w-6 h-6"></i></div>
     <h2 class="modal-title">Fund Wallet</h2>
     <p class="modal-sub">Instant top-up via bank transfer or card deposit</p>
 
+    <!-- Simulated Virtual Bank Account block -->
+    <div class="fw-vba-card">
+      <p class="fw-vba-label"><i data-lucide="landmark" class="w-3 h-3" style="display:inline-block; vertical-align:-2px; margin-right:4px;"></i>Virtual Bank Account</p>
+      <div class="fw-vba-row">
+        <div>
+          <p class="fw-vba-row-label">Bank Name</p>
+          <p class="fw-vba-row-value">MainTown / Wema Bank</p>
+        </div>
+      </div>
+      <div class="fw-vba-row">
+        <div>
+          <p class="fw-vba-row-label">Account Number</p>
+          <p class="fw-vba-row-value" id="fw-vba-account-number">9940123849</p>
+        </div>
+        <button type="button" class="fw-copy-btn" id="fw-copy-account-btn"><i data-lucide="copy" class="w-3.5 h-3.5"></i>Copy Account</button>
+      </div>
+      <div class="fw-vba-row">
+        <div>
+          <p class="fw-vba-row-label">Account Name</p>
+          <p class="fw-vba-row-value">MainTown Escrow Wallet</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Deposit presets -->
+    <p class="field-label" style="margin-bottom:8px;">Quick Deposit</p>
+    <div class="fw-quick-grid">
+      <button type="button" class="fw-quick-btn" data-quick-amount="5000">₦5,000<span class="fw-quick-sub">AI Fee</span></button>
+      <button type="button" class="fw-quick-btn" data-quick-amount="50000">₦50,000</button>
+      <button type="button" class="fw-quick-btn" data-quick-amount="1000000">₦1,000,000</button>
+      <button type="button" class="fw-quick-btn" data-quick-amount="10000000">₦10,000,000</button>
+    </div>
+
     <div class="field">
-      <label class="field-label">Amount (NGN)</label>
+      <label class="field-label">Custom Amount (NGN)</label>
       <input class="field-input" id="fw-amount" type="number" min="100" step="100" placeholder="e.g. 50000" inputmode="numeric">
     </div>
     <div class="field">
@@ -4005,7 +4087,7 @@
         <option value="card">Debit / Credit Card</option>
       </select>
     </div>
-    <button type="button" class="btn-primary" id="fw-confirm-btn">Fund Wallet</button>
+    <button type="button" class="btn-primary" id="fw-confirm-btn"><i data-lucide="zap" class="w-4 h-4" style="display:inline-block; vertical-align:-3px; margin-right:4px;"></i>Simulate Instant Deposit</button>
     <button type="button" class="btn-secondary" id="fw-cancel-btn">Cancel</button>
   </div>
 </div>
@@ -4040,6 +4122,7 @@
 <div id="txn-receipt-modal" class="modal-overlay">
   <div class="modal-card">
     <div class="receipt-header">
+      <p style="font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#c4b5fd; margin:0 0 10px; display:flex; align-items:center; justify-content:center; gap:5px;"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i>MainTown Realty</p>
       <div class="modal-icon-wrap" style="margin-bottom: 10px;"><i data-lucide="receipt" class="w-6 h-6"></i></div>
       <span class="txn-status-badge settled" id="receipt-status-badge">SUCCESSFUL</span>
       <p class="receipt-amount" id="receipt-amount">₦0</p>
@@ -5498,6 +5581,26 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function rentListings() { return listings.filter(l => l.type === 'rent' && l.status !== 'draft'); }
   function landListingsList() { return listings.filter(l => l.type === 'land' && l.status !== 'draft'); }
 
+  // ---- Automatic Property Status Switcher (AVAILABLE -> SOLD / RENTED) ----
+  // listing.status doubles as both the publish-state flag ('draft' / 'live')
+  // and — once a checkout completes — the post-sale availability flag
+  // ('SOLD' for Land/Property Sale, 'RENTED' for Rental Checkout). This
+  // helper is the single source of truth every safety guard below reads from.
+  function isListingUnavailable(listing) {
+    return !!listing && (listing.status === 'SOLD' || listing.status === 'RENTED');
+  }
+  function unavailableStatusLabel(listing) {
+    return listing && listing.status === 'SOLD' ? 'SOLD' : 'RENTED';
+  }
+  // Marks a listing SOLD/RENTED after a successful checkout, persists it to
+  // the shared mtr_listings store, and syncs every active screen/role.
+  function markListingUnavailableAfterCheckout(listing) {
+    if (!listing) return;
+    listing.status = listing.type === 'land' ? 'SOLD' : 'RENTED';
+    saveListings();
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  }
+
   // Seed inventory belongs explicitly to the demo Landlord (Frank Hood, id
   // 'frank') — every entry is tagged with ownerId so My Properties can filter
   // to whoever is actually logged in instead of always showing this data.
@@ -5649,12 +5752,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function renderTenantFeed(currency) {
     const feed = document.getElementById('s5-listing-feed');
     const data = rentListings();
-    feed.innerHTML = data.map(p => `
-      <div class="s5-card" data-listing-id="${p.id}">
+    feed.innerHTML = data.map(p => {
+      const unavailable = isListingUnavailable(p);
+      return `
+      <div class="s5-card${unavailable ? ' is-unavailable' : ''}" data-listing-id="${p.id}">
         <div class="s5-card-img-wrap">
           <img src="${p.img}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'rent')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Verified</span>
           ${p.hasVideo ? `<span class="s5-live-media-badge"><i data-lucide="video" class="w-3 h-3"></i>Walkthrough Video</span>` : ''}
+          ${unavailable ? `<div class="s5-status-banner-overlay"><span class="s5-status-banner-tag rented">RENTED</span></div>` : ''}
         </div>
         <div class="s5-card-body">
           <p class="s5-card-title">${p.title}</p>
@@ -5662,11 +5768,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <p class="s5-card-price">${currency === 'usd' ? p.usd : p.ngn} <span>rent</span></p>
           <div class="s5-card-actions">
             <button type="button" class="s5-action-btn wt-btn" data-title="${p.title}"><i data-lucide="video" class="w-4 h-4"></i>Virtual Walkthrough</button>
-            <button type="button" class="s5-action-btn primary bv-btn" data-title="${p.title}"><i data-lucide="calendar" class="w-4 h-4"></i>Book Inspection</button>
+            <button type="button" class="s5-action-btn primary bv-btn${unavailable ? ' status-disabled' : ''}" data-title="${p.title}" ${unavailable ? 'disabled' : ''}><i data-lucide="calendar" class="w-4 h-4"></i>Book Inspection</button>
           </div>
-          <button type="button" class="s5-action-btn cart-add-btn" data-listing-id="${p.id}" style="width:100%; margin-top:8px;"><i data-lucide="shopping-bag" class="w-4 h-4"></i>Add to Inspection Cart</button>
+          <button type="button" class="s5-action-btn cart-add-btn${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;" ${unavailable ? 'disabled' : ''}><i data-lucide="shopping-bag" class="w-4 h-4"></i>Add to Inspection Cart</button>
+          ${unavailable ? `<p class="s5-unavailable-notice rented"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i>This property is no longer available as it has been successfully RENTED.</p>` : ''}
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     if (window.lucide) lucide.createIcons();
   }
 
@@ -5675,8 +5783,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const data = landListingsList();
     feed.innerHTML = data.map(p => {
       const photos = (p.photos && p.photos.length) ? p.photos : [p.img];
+      const unavailable = isListingUnavailable(p);
       return `
-      <div class="s5-card" data-listing-id="${p.id}">
+      <div class="s5-card${unavailable ? ' is-unavailable' : ''}" data-listing-id="${p.id}">
         <div class="s5-card-img-wrap" data-listing-id="${p.id}" data-slide-index="0">
           <img class="s5-slide-img" src="${photos[0]}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'land')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Title Verified</span>
@@ -5689,15 +5798,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <span class="s5-video-play-circle"><svg viewBox="0 0 24 24" fill="currentColor" style="color:#fff;"><path d="M8 5v14l11-7z"/></svg></span>
             <span class="s5-video-preview-label">Watch Site Walkthrough Video</span>
           </button>` : ''}
+          ${unavailable ? `<div class="s5-status-banner-overlay"><span class="s5-status-banner-tag sold">SOLD</span></div>` : ''}
         </div>
         <div class="s5-card-body">
           <p class="s5-card-title">${p.title}</p>
           <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
           <p class="s5-card-price">${formatMoney(p.totalPrice, 'ngn')} <span>total price</span></p>
-          <button type="button" class="s5-action-btn primary site-inspect-btn" data-listing-id="${p.id}" style="width:100%;"><i data-lucide="calendar-check" class="w-4 h-4"></i>Schedule Site Inspection</button>
-          <button type="button" class="s5-action-btn land-pay-btn${screeningCompleted ? '' : ' locked'}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;">${screeningCompleted
-            ? '<i data-lucide="layers" class="w-4 h-4"></i>View Payment Options'
-            : '<i data-lucide="lock" class="w-4 h-4"></i>View Payment Options — Pay ₦5,000 AI Fee to Unlock'}</button>
+          <button type="button" class="s5-action-btn primary site-inspect-btn${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%;" ${unavailable ? 'disabled' : ''}><i data-lucide="calendar-check" class="w-4 h-4"></i>Schedule Site Inspection</button>
+          <button type="button" class="s5-action-btn land-pay-btn${(screeningCompleted && !unavailable) ? '' : ' locked'}${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;" ${unavailable ? 'disabled' : ''}>${unavailable
+            ? '<i data-lucide="lock" class="w-4 h-4"></i>Sold — Unavailable'
+            : (screeningCompleted
+              ? '<i data-lucide="layers" class="w-4 h-4"></i>View Payment Options'
+              : '<i data-lucide="lock" class="w-4 h-4"></i>View Payment Options — Pay ₦5,000 AI Fee to Unlock')}</button>
+          ${unavailable ? `<p class="s5-unavailable-notice sold"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i>This property is no longer available as it has been successfully SOLD.</p>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -5728,23 +5841,28 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (wtBtn) {
       openWalkthroughModal(wtBtn.dataset.title);
     } else if (bvBtn) {
+      if (bvBtn.disabled) return;
       // Phase 1 gate: block inspection scheduling until credit screening is paid.
       requireScreening(() => openInspectionModal(bvBtn.dataset.title));
     } else if (videoBtn) {
       const listing = landListingsList().find(l => String(l.id) === videoBtn.dataset.listingId);
       if (listing) openSiteVideoModal(listing);
     } else if (siteInspectBtn) {
+      if (siteInspectBtn.disabled) return;
       const listing = landListingsList().find(l => String(l.id) === siteInspectBtn.dataset.listingId);
       // Phase 1 gate + Inspection Approval Circle: same escrow-backed booking
       // flow used for rentals, generalized to Land/Property Sale listings.
-      if (listing) requireScreening(() => openInspectionModal(listing));
+      if (listing && !isListingUnavailable(listing)) requireScreening(() => openInspectionModal(listing));
     } else if (landBtn) {
+      if (landBtn.disabled) return;
       const listing = landListingsList().find(l => String(l.id) === landBtn.dataset.listingId);
-      // Phase 1 gate: block lease/land-purchase requests until credit screening is paid.
-      if (listing) requireScreening(() => openLandPaymentModal(listing));
+      // Phase 1 gate: block lease/land-purchase requests until credit screening is paid,
+      // and never once the listing has already been marked SOLD.
+      if (listing && !isListingUnavailable(listing)) requireScreening(() => openLandPaymentModal(listing));
     } else if (cartBtn) {
+      if (cartBtn.disabled) return;
       const listing = rentListings().find(l => String(l.id) === cartBtn.dataset.listingId);
-      if (listing) addToCart(listing);
+      if (listing && !isListingUnavailable(listing)) addToCart(listing);
     }
   });
 
@@ -5997,6 +6115,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function updateAuthorizeState() {
     const btn = document.getElementById('s6-authorize-btn');
+    // Action Disabling: lock "Authorize & Pay" if the listing was marked
+    // SOLD/RENTED by another role while this checkout screen stayed open.
+    if (isListingUnavailable(checkoutListing)) {
+      btn.disabled = true;
+      return;
+    }
     let landOk = true;
     if (checkoutListing && checkoutListing.type === 'land') {
       const box = document.getElementById('s6-signoff-box');
@@ -6009,7 +6133,30 @@ This voucher is auto-generated and serves as proof of settlement.`;
     btn.disabled = !(landOk && checkoutAgreementUploaded);
   }
 
+  // Shows/hides the "no longer available" banner on the Checkout / Property
+  // Details summary card and locks the Authorize & Pay button underneath it.
+  function refreshCheckoutAvailabilityNotice() {
+    const notice = document.getElementById('s6-unavailable-notice');
+    const noticeText = document.getElementById('s6-unavailable-notice-text');
+    if (!notice || !noticeText) return;
+    if (isListingUnavailable(checkoutListing)) {
+      const label = unavailableStatusLabel(checkoutListing);
+      notice.className = `s5-unavailable-notice ${label === 'SOLD' ? 'sold' : 'rented'}`;
+      noticeText.textContent = `This property is no longer available as it has been successfully ${label}.`;
+      notice.style.display = 'flex';
+    } else {
+      notice.style.display = 'none';
+    }
+    updateAuthorizeState();
+  }
+
   function openCheckout(listing, landPayment) {
+    // Safety guard: never let an already-SOLD/RENTED listing re-enter checkout
+    // (e.g. via a stale cart/inspection reference from another open screen).
+    if (isListingUnavailable(listing)) {
+      showToast(`This property is no longer available — it has already been ${unavailableStatusLabel(listing)}.`);
+      return;
+    }
     checkoutListing = listing;
     checkoutLandPayment = landPayment || null;
     selectPaySource('wallet');
@@ -6027,6 +6174,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     s6PropImg.alt = listing.title;
     document.getElementById('s6-property-title').textContent = listing.title;
     document.getElementById('s6-property-location').textContent = listing.location;
+    refreshCheckoutAvailabilityNotice();
 
     const signoffSection = document.getElementById('s6-landsignoff-section');
     const signInput = document.getElementById('s6-landsign-input');
@@ -6697,6 +6845,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
 
     showToast('Payment authorized — funds moved to escrow');
+
+    // ---- Automatic Property Status Switcher: AVAILABLE -> SOLD / RENTED ----
+    // Post-checkout trigger: on successful 6-digit PIN checkout completion,
+    // flip the listing's status so it immediately shows as unavailable on
+    // the Public Search Grid / Property Details across every active role.
+    if (checkoutListing) {
+      markListingUnavailableAfterCheckout(checkoutListing);
+    }
+
     renderCommissionSplit();
     document.getElementById('s6-status-code').textContent = checkoutListing && checkoutListing.type === 'land'
       ? 'PAYMENT_SUCCESSFUL / FUNDS_IN_ESCROW (LAND)'
@@ -11727,14 +11884,51 @@ available in the Post-Lease Hub and this chat thread.`
     if (window.lucide) lucide.createIcons();
   });
 
-  // ---- Fund Wallet (simulated instant bank transfer / card deposit) ----
+  // ---- Fund Wallet / Instant Deposit Simulator (simulated bank transfer / card deposit) ----
   document.getElementById('wallet-fund-btn').addEventListener('click', () => {
     document.getElementById('fw-amount').value = '';
+    document.querySelectorAll('.fw-quick-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('fund-wallet-modal').classList.add('open');
+    if (window.lucide) lucide.createIcons();
   });
   document.getElementById('fw-cancel-btn').addEventListener('click', () => {
     document.getElementById('fund-wallet-modal').classList.remove('open');
   });
+
+  // 1-click "Copy Account" — copies the simulated Virtual Bank Account number.
+  document.getElementById('fw-copy-account-btn').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    const acctNumber = document.getElementById('fw-vba-account-number').textContent.trim();
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(acctNumber);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = acctNumber; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      }
+      showToast('Account number copied');
+    } catch (e) {
+      showToast('Could not copy — please copy manually');
+    }
+    btn.classList.add('copied');
+    const originalHtml = '<i data-lucide="copy" class="w-3.5 h-3.5"></i>Copy Account';
+    btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i>Copied';
+    if (window.lucide) lucide.createIcons();
+    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = originalHtml; if (window.lucide) lucide.createIcons(); }, 1800);
+  });
+
+  // Quick Deposit presets — fill (and visually select) the custom amount field.
+  document.querySelectorAll('.fw-quick-btn').forEach(qbtn => {
+    qbtn.addEventListener('click', () => {
+      document.querySelectorAll('.fw-quick-btn').forEach(b => b.classList.remove('active'));
+      qbtn.classList.add('active');
+      document.getElementById('fw-amount').value = qbtn.dataset.quickAmount;
+    });
+  });
+
+  // "Simulate Instant Deposit" — immediately credits currentUser.walletBalance,
+  // appends a CREDIT transaction record, and syncs state across the app.
   document.getElementById('fw-confirm-btn').addEventListener('click', () => {
     const amt = parseFloat(document.getElementById('fw-amount').value);
     if (!(amt > 0)) { showToast('Enter a valid amount to fund your wallet'); return; }
@@ -11743,13 +11937,14 @@ available in the Post-Lease Hub and this chat thread.`
     creditWallet(uid, amt);
     recordTransaction({
       userId: uid, direction: 'credit', category: 'TOPUP',
-      title: method === 'card' ? 'Instant Card Deposit Top-Up' : 'Instant Bank Transfer Top-Up',
+      title: 'Wallet Top-Up via Bank Transfer',
       amount: amt, status: 'SUCCESSFUL',
-      meta: { sender: method === 'card' ? 'Debit/Credit Card' : 'Bank Transfer', recipient: 'MainTown Wallet', feeType: 'Wallet Top-Up' }
+      meta: { sender: method === 'card' ? 'Debit/Credit Card' : 'Bank Transfer', recipient: 'MainTown Escrow Wallet', feeType: 'Wallet Top-Up' }
     });
     document.getElementById('fund-wallet-modal').classList.remove('open');
     showToast(`${formatMoney(amt, 'ngn')} added to your wallet`);
     refreshWalletDashboard();
+    window.dispatchEvent(new Event('maintown_state_updated'));
   });
 
   // ---- Withdraw (simulated bank payout — Landlords/Agents & any wallet holder) ----
@@ -11850,6 +12045,25 @@ available in the Post-Lease Hub and this chat thread.`
     const walletSheetEl = document.getElementById('wallet-dashboard-sheet');
     if (walletSheetEl && walletSheetEl.classList.contains('open') && typeof refreshWalletDashboard === 'function') {
       refreshWalletDashboard();
+    }
+    // Automatic Property Status Switcher: re-render the Public Search Grid the
+    // instant a listing's status flips to SOLD/RENTED (or reloads for another
+    // active role), and re-lock the checkout screen if it's mid-flow.
+    const s5FeedEl = document.getElementById('s5-listing-feed');
+    const screen5El = document.getElementById('screen-5');
+    if (s5FeedEl && screen5El && !screen5El.classList.contains('hidden')) {
+      if (typeof listings !== 'undefined') {
+        try {
+          const stored = JSON.parse(localStorage.getItem('mtr_listings'));
+          if (Array.isArray(stored)) { listings.length = 0; listings.push(...stored); }
+        } catch (e) {}
+      }
+      if (currentListingType === 'land' && typeof renderLandFeed === 'function') renderLandFeed();
+      else if (typeof renderTenantFeed === 'function') renderTenantFeed(currentCurrency);
+    }
+    const screen6El = document.getElementById('screen-6');
+    if (screen6El && !screen6El.classList.contains('hidden') && typeof refreshCheckoutAvailabilityNotice === 'function') {
+      refreshCheckoutAvailabilityNotice();
     }
   });
 
