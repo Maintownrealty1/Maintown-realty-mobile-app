@@ -2203,6 +2203,29 @@
     </div>
   </div>
 
+  <!-- My Assets Portfolio Card: only shown once a buyer owns 1+ completed Land/Property purchases -->
+  <div id="dash-assets-card" class="bg-purple-900/40 border border-purple-500/30 rounded-2xl p-4 mb-5 text-white" style="display:none;">
+    <div class="flex justify-between items-center mb-2">
+      <span class="text-[11px] text-purple-300 font-semibold tracking-wider uppercase">Acquired Assets &amp; Land Portfolio</span>
+      <span id="dash-assets-count-badge" class="bg-emerald-500/20 text-emerald-400 text-[11px] px-2.5 py-1 rounded-full border border-emerald-500/40 font-medium">0 Assets</span>
+    </div>
+    <div class="mt-1">
+      <h3 class="text-base font-bold text-white m-0" id="dash-assets-title">—</h3>
+      <p class="text-xs text-gray-300 flex items-center gap-1 mt-1 m-0">
+        <i data-lucide="map-pin" class="w-3 h-3"></i><span id="dash-assets-location">—</span>
+      </p>
+    </div>
+    <div class="mt-3 pt-3 border-t border-purple-500/20 flex justify-between items-center text-xs" style="border-top:1px solid rgba(168,85,247,0.2);">
+      <div class="flex items-center gap-2">
+        <span class="h-2 w-2 rounded-full bg-amber-400" style="display:inline-block;"></span>
+        <span class="text-gray-200">C of O Status: <strong class="text-amber-300" id="dash-assets-cofo">—</strong></span>
+      </div>
+      <button type="button" id="dash-assets-view-btn" class="text-purple-300 font-medium" style="background:none; border:none; text-decoration:underline; cursor:pointer;">
+        View Asset Hub &rarr;
+      </button>
+    </div>
+  </div>
+
   <div id="dash-inspections-summary"><!-- populated dynamically --></div>
 
   <p class="dash-section-title">Quick Actions</p>
@@ -2676,6 +2699,78 @@
 
 </div>
 <!-- ===================== END SCREEN 6H ===================== -->
+
+<!-- ===================== SCREEN AH: My Assets — Portfolio & Asset Details Hub ===================== -->
+<div id="screen-asset-hub" class="screen-view hidden pb-24">
+
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="ah-back-btn">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i><span>My Assets</span></p>
+    </div>
+  </div>
+
+  <h1 class="s5-role-title" style="margin-bottom: 4px;">Asset Portfolio</h1>
+  <p class="s5-role-sub" style="margin-bottom: 18px;" id="ah-portfolio-sub">Track allocation, C of O filing, and title documents for everything you've acquired.</p>
+
+  <!-- Portfolio list — one row per owned asset, tap to view its details below -->
+  <div id="ah-asset-list" style="margin-bottom: 22px;"><!-- populated dynamically --></div>
+
+  <!-- Selected Asset Details -->
+  <div id="ah-detail-section" style="display:none;">
+    <div style="background:#131927; border:1px solid #1e293b; border-radius:16px; padding:16px; margin-bottom:20px;">
+      <p class="s5-card-title" id="ah-detail-title" style="font-size:15px;">—</p>
+      <p class="s5-card-location" style="margin-bottom:0;"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i><span id="ah-detail-location">—</span></p>
+    </div>
+    <div class="s5-hold-preview" style="margin-bottom: 20px;">
+      <div class="s5-hold-row"><span>Transaction ID</span><strong id="ah-detail-txn">—</strong></div>
+      <div class="s5-hold-row"><span>Amount</span><strong id="ah-detail-amount" style="color:#c084fc; font-size: 14px;">—</strong></div>
+      <div class="s5-hold-row"><span>Purchase Date</span><strong id="ah-detail-date">—</strong></div>
+    </div>
+
+    <p class="s5-section-label" style="margin-top: 0;"><i data-lucide="file-check-2" class="w-4 h-4 text-purple-400"></i>Document &amp; Title Tracker</p>
+
+    <div class="s5-list-item" style="margin-bottom: 10px;">
+      <div class="s5-list-icon"><i data-lucide="file-text" class="w-5 h-5"></i></div>
+      <div class="s5-list-text">
+        <p class="s5-list-title">Deed of Assignment</p>
+        <p class="s5-list-sub"><span class="s5-status-badge" id="ah-deed-status" style="margin-top: 4px;">—</span></p>
+      </div>
+      <button type="button" id="ah-deed-download-btn" class="s5-back-btn" title="Download Deed PDF" style="width:auto; padding:0 14px; gap:6px; display:flex; align-items:center; white-space:nowrap;">
+        <i data-lucide="download" class="w-4 h-4"></i><span style="font-size:11.5px; font-weight:600;">Download PDF</span>
+      </button>
+    </div>
+
+    <div class="s5-list-item" style="margin-bottom: 10px;">
+      <div class="s5-list-icon"><i data-lucide="landmark" class="w-5 h-5"></i></div>
+      <div class="s5-list-text">
+        <p class="s5-list-title">Physical Land Allocation</p>
+        <p class="s5-list-sub"><span class="s5-status-badge insp-status-pending" id="ah-allocation-status" style="margin-top: 4px;">—</span></p>
+      </div>
+    </div>
+
+    <div class="s5-list-item" style="margin-bottom: 20px;">
+      <div class="s5-list-icon"><i data-lucide="stamp" class="w-5 h-5"></i></div>
+      <div class="s5-list-text">
+        <p class="s5-list-title">Governor's Consent / C of O Filing</p>
+        <p class="s5-list-sub"><span class="s5-status-badge insp-status-pending" id="ah-cofo-status" style="margin-top: 4px;">—</span></p>
+      </div>
+    </div>
+
+    <button type="button" id="ah-message-btn" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+      <i data-lucide="message-circle" class="w-4 h-4"></i> Message Seller / Agent
+    </button>
+    <button type="button" id="ah-handover-btn" class="btn-secondary">
+      View Handover &amp; Title Transfer Screen
+    </button>
+  </div>
+
+  <p class="role-hint" id="ah-empty-state" style="display:none; text-align:center; margin-top: 40px;">No assets acquired yet — completed Land &amp; Property purchases will appear here.</p>
+
+</div>
+<!-- ===================== END SCREEN AH ===================== -->
 
 <!-- ===================== SCREEN 7: Post-Lease Management & Default Enforcement Hub ===================== -->
 <div id="screen-post-lease" class="screen-view hidden pb-24">
@@ -4340,6 +4435,30 @@
 
 <script>
   // ==================================================================
+  // ---- One-Time Seed Migration (Deduplication & Zero-Balance Reset) ----
+  // Bumping SEED_VERSION forces every existing session to start clean
+  // exactly once: any localStorage saved under an older seed version — e.g.
+  // a duplicated auto-provisioned "Frank Hood" landlord record, or the old
+  // hardcoded ₦2,500,000 tenant wallet seed — is cleared here, before any
+  // other code on the page reads from localStorage. Runs at most once per
+  // version bump; normal reloads after that are untouched. The theme
+  // preference is a UI setting, not seed data, so it survives the reset.
+  // ==================================================================
+  (function runSeedMigration() {
+    var SEED_VERSION = 'v2-zero-balance-dedup';
+    var SEED_VERSION_KEY = 'mtr_seed_version';
+    try {
+      if (localStorage.getItem(SEED_VERSION_KEY) === SEED_VERSION) return;
+      var preserve = { mtr_theme: localStorage.getItem('mtr_theme') };
+      localStorage.clear();
+      Object.keys(preserve).forEach(function (k) {
+        if (preserve[k] !== null) localStorage.setItem(k, preserve[k]);
+      });
+      localStorage.setItem(SEED_VERSION_KEY, SEED_VERSION);
+    } catch (e) {}
+  })();
+
+  // ==================================================================
   // ---- Dark Mode / Light Mode ----
   // Applied first, before anything else runs, so there's no flash of the
   // wrong theme on load. Persists to localStorage and is toggled from the
@@ -4775,6 +4894,13 @@
       setTimeout(() => openClosedDealsModal(currentUserRole), 200);
     }
 
+    if (screenId === 'screen-asset-hub' && (currentUserRole || 'tenant') !== 'tenant') {
+      showToast('My Assets is a Tenant/Buyer-only screen — showing your Tenant Overview instead');
+      screenId = 'screen-4';
+      document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+      document.getElementById(screenId).classList.remove('hidden');
+    }
+
     if (screenId === 'screen-4') {
       if (typeof autoClearActivityFeed === 'function') autoClearActivityFeed();
       populateScreen4();
@@ -4795,6 +4921,10 @@
 
     if (screenId === 'screen-land-handover') {
       populateScreenLandHandover();
+    }
+
+    if (screenId === 'screen-asset-hub') {
+      populateScreenAssetHub();
     }
 
     if (screenId === 'screen-pay-rent') {
@@ -5008,8 +5138,6 @@
     tenant: {
       initial: 'T',
       cardLabel: 'Current Rent Plan',
-      cardValue: '₦180,000 / mo',
-      cardSub: 'Next payment due in 12 days',
       actions: [
         { icon: 'search', label: 'Find a Home', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
         { icon: 'wallet', label: 'Pay Rent', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'payRent' },
@@ -5025,8 +5153,6 @@
     landlord: {
       initial: 'L',
       cardLabel: 'Portfolio Earnings',
-      cardValue: '₦1,240,000',
-      cardSub: '3 active tenants across 2 properties',
       actions: [
         { icon: 'plus-circle', label: 'List Property', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
         { icon: 'wallet', label: 'Payouts', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'payoutHistory' },
@@ -5041,8 +5167,6 @@
     agent: {
       initial: 'A',
       cardLabel: 'Commission Earned',
-      cardValue: '₦345,000',
-      cardSub: '5 listings under management',
       actions: [
         { icon: 'plus-circle', label: 'Add Listing', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
         { icon: 'calendar-check', label: 'Walkthroughs', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'browse' },
@@ -5056,6 +5180,52 @@
       ]
     }
   };
+
+  // ==================================================================
+  // ---- Dynamic Inflow/Outflow Engine ----
+  // Computes the Home dashboard's top metric card straight from real state
+  // (appState.payouts, appState.leases, the live `listings` array, and this
+  // session's activeLease) instead of a hardcoded mock string. Every account
+  // starts at a genuine ₦0 / empty state until an actual transaction or
+  // checkout creates real data to report.
+  // ==================================================================
+  function computeDashboardCard(role, uid) {
+    appState = loadAppState();
+
+    if (role === 'tenant') {
+      // Only reflects a *rental* checkout (land/property purchases live in
+      // the My Assets card instead) — see buildActiveLeaseFromCheckout().
+      const hasRentPlan = activeLease && typeof activeLease.monthlyAmount === 'number' && activeLease.monthlyAmount > 0
+        && !(typeof checkoutListing !== 'undefined' && checkoutListing && checkoutListing.type === 'land' && activeLease.title === checkoutListing.title);
+      if (!hasRentPlan) {
+        return { value: '₦0 / mo', sub: 'No active rent plan yet — find a home to get started' };
+      }
+      return { value: `${formatMoney(activeLease.monthlyAmount, 'ngn')} / mo`, sub: activeLease.dueLabel || 'No further payments due' };
+    }
+
+    if (role === 'landlord') {
+      const payouts = (appState.payouts || []).filter(p => p.landlordId === uid);
+      const earnings = payouts.reduce((sum, p) => sum + (p.amount || 0), 0);
+      const myLeases = (appState.leases || []).filter(l => l.ownerId === uid);
+      const tenantCount = myLeases.length;
+      const propertyCount = new Set(myLeases.map(l => l.listingId)).size;
+      const sub = tenantCount === 0
+        ? 'No active tenants yet'
+        : `${tenantCount} active ${tenantCount === 1 ? 'tenant' : 'tenants'} across ${propertyCount} ${propertyCount === 1 ? 'property' : 'properties'}`;
+      return { value: formatMoney(earnings, 'ngn'), sub };
+    }
+
+    if (role === 'agent') {
+      const payouts = (appState.payouts || []).filter(p => p.agentId === uid);
+      const commission = payouts.reduce((sum, p) => sum + (p.amount || 0), 0);
+      const managedCount = (typeof listings !== 'undefined' ? listings : []).filter(l => l.agentId === uid).length;
+      const sub = managedCount === 0 ? 'No listings under management yet' : `${managedCount} ${managedCount === 1 ? 'listing' : 'listings'} under management`;
+      return { value: formatMoney(commission, 'ngn'), sub };
+    }
+
+    return { value: '₦0', sub: '—' };
+  }
+
 
   const roleDisplayNames = { tenant: 'Tenant', landlord: 'Landlord', agent: 'Agent' };
 
@@ -5081,6 +5251,46 @@
       ? all.filter(p => p.agentId === uid)
       : all.filter(p => p.landlordId === uid);
     return mine.slice().sort((a, b) => b.timestamp - a.timestamp);
+  }
+
+  // ==================================================================
+  // ---- Buyer Asset Portfolio (maintown_app_state.assets) ----
+  // Returns this session's own completed Land & Property purchases, newest
+  // first — never another account's — filtered against the active
+  // session's own id, mirroring the myPayouts() pattern above.
+  // ==================================================================
+  function myAssets() {
+    appState = loadAppState();
+    const uid = getCurrentUserId();
+    const all = Array.isArray(appState.assets) ? appState.assets : [];
+    return all.filter(a => a.ownerId === uid).slice().sort((a, b) => b.purchaseDate - a.purchaseDate);
+  }
+
+  // Records a completed Land/Property purchase as an owned asset the first
+  // time its listing closes for this buyer (guards against double-recording
+  // if buildActiveLeaseFromCheckout ever re-runs for the same listing).
+  function recordAssetAcquisition(listing, lease) {
+    if (!listing || listing.type !== 'land') return;
+    appState = loadAppState();
+    const uid = getCurrentUserId();
+    if (!Array.isArray(appState.assets)) appState.assets = [];
+    const already = appState.assets.find(a => a.listingId === listing.id && a.ownerId === uid);
+    if (already) return;
+    appState.assets.unshift({
+      id: `AST-${Date.now().toString(36).toUpperCase()}`,
+      ownerId: uid,
+      listingId: listing.id,
+      title: listing.title,
+      location: listing.location,
+      amountLabel: lease ? lease.amountLabel : 'Paid in Full (Outright)',
+      paymentMode: (lease && /installment/i.test(lease.amountLabel || '')) ? 'installment' : 'outright',
+      cofOStatus: 'In Progress (Estimated 14 Days)',
+      allocationStatus: 'Pending Physical Allocation',
+      deedAvailable: false,
+      purchaseDate: Date.now(),
+      txnId: landHandoverTxnId || null
+    });
+    saveAppState(appState);
   }
 
   const payoutHistoryModal = document.getElementById('payout-history-modal');
@@ -5290,8 +5500,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ? `<img src="${currentUserSelfieDataUrl}" alt="${name}">`
       : `<span id="dash-avatar-initial">${data.initial}</span>`;
     document.getElementById('dash-card-label').textContent = data.cardLabel;
-    document.getElementById('dash-card-value').textContent = data.cardValue;
-    document.getElementById('dash-card-sub').textContent = data.cardSub;
+    const metric = computeDashboardCard(role, getCurrentUserId());
+    document.getElementById('dash-card-value').textContent = metric.value;
+    document.getElementById('dash-card-sub').textContent = metric.sub;
 
     const topCard = document.getElementById('dash-top-card');
     const tapHint = document.getElementById('dash-card-tap-hint');
@@ -5313,8 +5524,36 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // pushTenantInspectionAlert, createHandoverForTenantSignOff below).
 
     renderInspectionsSummaryCard();
+    renderMyAssetsCard();
     if (window.lucide) lucide.createIcons();
   }
+
+  // ---- "My Assets" Portfolio Overview Card: shows only for buyers who have
+  // completed at least one Land/Property purchase (see recordAssetAcquisition
+  // in buildActiveLeaseFromCheckout). Previews the most recently acquired
+  // asset and its live C of O status; tapping routes to the full Asset Hub. ----
+  function renderMyAssetsCard() {
+    const card = document.getElementById('dash-assets-card');
+    if (!card) return;
+    const role = currentUserRole || 'tenant';
+    if (role !== 'tenant') { card.style.display = 'none'; return; }
+
+    const owned = myAssets();
+    if (!owned.length) { card.style.display = 'none'; return; }
+
+    const latest = owned[0];
+    document.getElementById('dash-assets-count-badge').textContent = `${owned.length} Active ${owned.length === 1 ? 'Asset' : 'Assets'}`;
+    document.getElementById('dash-assets-title').textContent = latest.title;
+    document.getElementById('dash-assets-location').textContent = latest.location;
+    document.getElementById('dash-assets-cofo').textContent = latest.cofOStatus;
+    card.style.display = 'block';
+  }
+
+  document.getElementById('dash-assets-view-btn').addEventListener('click', () => {
+    const owned = myAssets();
+    activeAssetId = owned.length ? owned[0].id : null;
+    navigateTo('screen-asset-hub');
+  });
 
   // ---- Clean single summary action card: "Active Inspections (N Pending)" ----
   // Replaces bulky inline booking cards — routes straight to the Inspection Schedules Hub.
@@ -6067,6 +6306,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   let checkoutListing = null;
   let landHandoverTxnId = null;
   let landHandoverAppt = null;
+  let activeAssetId = null; // which asset the Asset Hub screen (screen-asset-hub) is currently showing detail for
   // Tracks whichever land/property listing is currently active on the
   // Executive Handover screen, so the Physical Handover Date confirm handler
   // (bound once, outside populateScreenLandHandover) always dual-notifies the
@@ -7086,6 +7326,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         remainingMonths: isInstallment ? checkoutLandPayment.remainingMonths : 0,
         autoDebitSchedule: null
       };
+      recordAssetAcquisition(checkoutListing, activeLease);
     } else {
       activeLease = {
         ...ownershipFields,
@@ -7129,6 +7370,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (!landHandoverTxnId) {
         landHandoverTxnId = `#MT-ORD-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
       }
+      // Backfill the freshly-minted Transaction ID onto the asset record
+      // recordAssetAcquisition() just created (it ran before this ID existed).
+      (function backfillAssetTxnId() {
+        appState = loadAppState();
+        const uid = getCurrentUserId();
+        const asset = (appState.assets || []).find(a => a.listingId === checkoutListing.id && a.ownerId === uid);
+        if (asset && !asset.txnId) { asset.txnId = landHandoverTxnId; saveAppState(appState); }
+      })();
       if (!landHandoverAppt) {
         const appt = new Date();
         appt.setDate(appt.getDate() + 7);
@@ -10459,6 +10708,97 @@ available in the Post-Lease Hub and this chat thread.`
 
   document.getElementById('s6h-back-btn').addEventListener('click', () => navigateTo('screen-4'));
 
+  // ==================================================================
+  // ---- SCREEN AH: My Assets — Portfolio & Asset Details Hub ----
+  // Lists every completed Land/Property purchase owned by the current
+  // buyer (myAssets(), sourced from maintown_app_state.assets) and shows
+  // a detail panel — Deed of Assignment, Physical Allocation, and C of O
+  // Filing status — for whichever one is selected via activeAssetId. ----
+  // ==================================================================
+  function populateScreenAssetHub() {
+    const owned = myAssets();
+    const listEl = document.getElementById('ah-asset-list');
+    const detailSection = document.getElementById('ah-detail-section');
+    const emptyState = document.getElementById('ah-empty-state');
+
+    document.getElementById('ah-portfolio-sub').textContent = owned.length
+      ? `${owned.length} ${owned.length === 1 ? 'asset' : 'assets'} acquired`
+      : 'Track allocation, C of O filing, and title documents for everything you\'ve acquired.';
+
+    if (!owned.length) {
+      listEl.innerHTML = '';
+      detailSection.style.display = 'none';
+      emptyState.style.display = 'block';
+      return;
+    }
+    emptyState.style.display = 'none';
+
+    if (!activeAssetId || !owned.find(a => a.id === activeAssetId)) {
+      activeAssetId = owned[0].id;
+    }
+
+    listEl.innerHTML = owned.map(a => `
+      <div class="s5-list-item asset-hub-row" data-asset-id="${a.id}" style="margin-bottom:10px; cursor:pointer; ${a.id === activeAssetId ? 'border-color:#a855f7;' : ''}">
+        <div class="s5-list-icon"><i data-lucide="landmark" class="w-5 h-5"></i></div>
+        <div class="s5-list-text">
+          <p class="s5-list-title">${a.title}</p>
+          <p class="s5-list-sub">${a.location}</p>
+        </div>
+        <span class="s5-status-badge insp-status-pending">${a.cofOStatus.startsWith('In Progress') ? 'C of O Pending' : a.cofOStatus}</span>
+      </div>`).join('');
+
+    renderAssetHubDetail();
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function renderAssetHubDetail() {
+    const owned = myAssets();
+    const asset = owned.find(a => a.id === activeAssetId);
+    const detailSection = document.getElementById('ah-detail-section');
+    if (!asset) { detailSection.style.display = 'none'; return; }
+    detailSection.style.display = 'block';
+
+    document.getElementById('ah-detail-title').textContent = asset.title;
+    document.getElementById('ah-detail-location').textContent = asset.location;
+    document.getElementById('ah-detail-txn').textContent = asset.txnId || '—';
+    document.getElementById('ah-detail-amount').textContent = asset.amountLabel;
+    document.getElementById('ah-detail-date').textContent = new Date(asset.purchaseDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+    const deedBadge = document.getElementById('ah-deed-status');
+    deedBadge.textContent = asset.deedAvailable ? 'Verified' : 'Processing';
+    deedBadge.className = 's5-status-badge ' + (asset.deedAvailable ? 'insp-status-confirmed' : 'insp-status-pending');
+    document.getElementById('ah-deed-download-btn').disabled = !asset.deedAvailable;
+    document.getElementById('ah-deed-download-btn').style.opacity = asset.deedAvailable ? '1' : '0.5';
+
+    document.getElementById('ah-allocation-status').textContent = asset.allocationStatus;
+    document.getElementById('ah-cofo-status').textContent = asset.cofOStatus;
+  }
+
+  document.getElementById('ah-asset-list').addEventListener('click', (e) => {
+    const row = e.target.closest('.asset-hub-row');
+    if (!row) return;
+    activeAssetId = row.dataset.assetId;
+    populateScreenAssetHub();
+  });
+
+  document.getElementById('ah-back-btn').addEventListener('click', () => navigateTo('screen-4'));
+
+  document.getElementById('ah-deed-download-btn').addEventListener('click', () => {
+    const asset = myAssets().find(a => a.id === activeAssetId);
+    if (asset && asset.deedAvailable) showToast('Downloading Deed of Assignment.pdf');
+  });
+
+  document.getElementById('ah-message-btn').addEventListener('click', () => {
+    const asset = myAssets().find(a => a.id === activeAssetId);
+    navigateTo('screen-messages');
+    const conv = asset ? conversations.find(c => c.listingTitle === asset.title) : null;
+    if (conv) { openThreadDetail(conv.id); } else { showToast('Chat unlocked — no messages yet'); }
+  });
+
+  document.getElementById('ah-handover-btn').addEventListener('click', () => {
+    navigateTo('screen-land-handover');
+  });
+
   // Buyer/Client confirms a Physical Handover Date (Boundary Pegging or Key
   // Handover appointment) on the Executive Handover screen — dual-notifies
   // the assigned Agent AND the linked Landlord simultaneously, exactly like
@@ -10500,6 +10840,14 @@ available in the Post-Lease Hub and this chat thread.`
 
   document.getElementById('s6h-deed-view-btn').addEventListener('click', () => {
     showToast('Downloading Deed of Assignment.pdf');
+    // The Deed becomes available for re-download from the Asset Hub once the
+    // buyer has pulled it at least once from the Handover screen.
+    if (landHandoverListing) {
+      appState = loadAppState();
+      const uid = getCurrentUserId();
+      const asset = (appState.assets || []).find(a => a.listingId === landHandoverListing.id && a.ownerId === uid);
+      if (asset && !asset.deedAvailable) { asset.deedAvailable = true; saveAppState(appState); }
+    }
   });
 
   document.getElementById('s6h-smartlock-btn').addEventListener('click', () => {
@@ -10508,7 +10856,10 @@ available in the Post-Lease Hub and this chat thread.`
     showToast('Smart lock PIN generated');
   });
 
-  document.getElementById('s6h-active-props-btn').addEventListener('click', () => navigateTo('screen-4'));
+  document.getElementById('s6h-active-props-btn').addEventListener('click', () => {
+    activeAssetId = landHandoverListing ? (myAssets().find(a => a.listingId === landHandoverListing.id) || {}).id || null : null;
+    navigateTo('screen-asset-hub');
+  });
 
   const landReceiptModal = document.getElementById('land-receipt-modal');
   document.getElementById('s6h-receipt-btn').addEventListener('click', () => {
@@ -11260,11 +11611,16 @@ available in the Post-Lease Hub and this chat thread.`
   // Every account that can be one-tap logged into right now: the three fixed
   // demo identities plus any auto-provisioned Landlord who has already
   // completed the Claim flow (status ACTIVE) — those aren't in DEMO_USERS.
+  // Deduplicated by email against DEMO_USERS, so a stray auto-provisioned
+  // record that shares a seed account's email (e.g. an old, already-corrupted
+  // localStorage state from before provisionLandlord checked DEMO_USERS
+  // first) never renders as a second "Frank Hood" row.
   function getQuickLoginAccounts() {
     const accounts = Object.values(DEMO_USERS).map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role }));
+    const demoEmails = new Set(Object.values(DEMO_USERS).map(u => normalizeContact(u.email)));
     appState = loadAppState();
     Object.values(appState.users || {}).forEach(u => {
-      if (u.role === 'landlord' && u.status === 'ACTIVE') {
+      if (u.role === 'landlord' && u.status === 'ACTIVE' && !demoEmails.has(normalizeContact(u.email))) {
         accounts.push({ id: u.id, name: u.name, email: u.email, role: 'landlord' });
       }
     });
@@ -11429,6 +11785,11 @@ available in the Post-Lease Hub and this chat thread.`
       // to (landlordId and/or agentId), so the modal can filter dynamically
       // by the active session user instead of showing static demo data.
       payouts: [],
+      // ---- Buyer Asset Portfolio ledger. One entry per completed Land &
+      // Property purchase (outright or installment), keyed by ownerId (the
+      // buyer). Powers the "My Assets" dashboard card and the Asset Hub
+      // screen — see recordAssetAcquisition() / myAssets() below.
+      assets: [],
       // ---- Bank-Grade Wallet Dashboard live ledger. Every wallet-balance
       // mutation (Fund Wallet top-up, Withdraw, AI Fee debit, Rent/Purchase
       // Payment debit, Landlord Payout credit, Agent Commission credit)
@@ -11559,16 +11920,19 @@ available in the Post-Lease Hub and this chat thread.`
   // Every party that can hold platform funds — Buyer/Tenant, Landlord,
   // Agent — has a walletBalance persisted on their appState.users record,
   // keyed by their DEMO_USERS id or auto-provisioned landlord id. A demo
-  // account's wallet is lazily seeded the first time it's touched: the
-  // Tenant/Buyer starts with the ₦2,500,000 shown at Checkout; Landlord and
-  // Agent accounts start at ₦0 since they only ever receive settlement
-  // credits, never spend from their own wallet in this app.
+  // account's wallet is lazily seeded the first time it's touched, and every
+  // role starts at a genuine ₦0 (Zero-Balance Initialization) — the Tenant/
+  // Buyer must Fund Wallet before paying rent or checking out; Landlord and
+  // Agent balances only grow from real settlement credits.
   // ==================================================================
   function ensureWalletRecord(id) {
     if (!id) return null;
     appState = loadAppState();
     const demo = (typeof DEMO_USERS !== 'undefined') ? DEMO_USERS[id] : null;
-    const startingBalance = demo && demo.role === 'tenant' ? 2500000 : 0;
+    // Zero-Balance Initialization: every account — Tenant/Buyer, Landlord,
+    // Agent — starts at a genuine ₦0. Balances only grow from real wallet
+    // funding or real settlement credits (see Fund Wallet / recordPayout).
+    const startingBalance = 0;
     if (!appState.users[id]) {
       appState.users[id] = {
         id,
@@ -11659,9 +12023,21 @@ available in the Post-Lease Hub and this chat thread.`
   function normalizeContact(v) { return (v || '').trim().toLowerCase(); }
 
   // Looks up an existing Landlord by email or phone (case-insensitive email match).
+  // Checks the fixed DEMO_USERS seed accounts FIRST — an Agent uploading a
+  // listing for "Frank Hood" / frank@maintown.com must resolve back to the
+  // existing seed identity, not spawn a second, separately-provisioned
+  // "Frank Hood" record with a different id (the source of the duplicate
+  // Quick Switch entry). ensureWalletRecord() guarantees the seed account
+  // already has a real appState.users[id] row to attach settlement details to.
   function findLandlordUserByContact(email, phone) {
     const emailKey = normalizeContact(email);
     const phoneKey = (phone || '').trim();
+
+    const demoMatch = Object.values(DEMO_USERS).find(u =>
+      u.role === 'landlord' && emailKey && normalizeContact(u.email) === emailKey
+    );
+    if (demoMatch) return ensureWalletRecord(demoMatch.id);
+
     return Object.values(appState.users).find(u =>
       u.role === 'landlord' && (
         (emailKey && normalizeContact(u.email) === emailKey) ||
