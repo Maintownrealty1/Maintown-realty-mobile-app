@@ -733,6 +733,22 @@
   .s5-video-play-circle svg { width: 12px; height: 12px; }
   .s5-video-preview-label { font-size: 11.5px; font-weight: 600; color: #fff; text-align: left; }
 
+  /* ---- Photo Slideshow (Land / Property Purchase cards) ---- */
+  .s5-slide-nav {
+    position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
+    width: 26px; height: 26px; border-radius: 999px; border: none; cursor: pointer;
+    background: rgba(0,0,0,0.45); color: #fff; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s ease;
+  }
+  .s5-slide-nav:hover { background: rgba(0,0,0,0.7); }
+  .s5-slide-nav.prev { left: 8px; }
+  .s5-slide-nav.next { right: 8px; }
+  .s5-slide-counter {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 2;
+    background: rgba(0,0,0,0.55); color: #fff; font-size: 10px; font-weight: 600;
+    padding: 3px 8px; border-radius: 999px; letter-spacing: 0.3px;
+  }
+
   /* ---- Site Video Modal (Land Boundary / Drone Footage / Access Roads) ---- */
   .site-video-frame {
     width: 100%; border-radius: 14px; overflow: hidden; background: #000; margin-bottom: 14px;
@@ -1823,9 +1839,58 @@
   </div>
 
   <p class="role-hint" style="margin-top: 24px;">New here? <span id="login-signup-link" style="color:#c084fc; cursor:pointer; font-weight:600;">Create an account</span></p>
+  <p class="role-hint" style="margin-top: 10px;">Provisioned as a Landlord by an Agent? <span id="claim-landlord-link" style="color:#c084fc; cursor:pointer; font-weight:600;">Claim Landlord Account / Use Temp Code</span></p>
 
 </div>
 <!-- ===================== END SCREEN LOGIN ===================== -->
+
+<!-- Claim Landlord Account Modal — first-time login for a Landlord auto-provisioned
+     by an Agent's listing upload. Step 1 verifies the temp code; Step 2 sets a
+     permanent password + Wallet Transaction PIN and activates the account. -->
+<div id="claim-landlord-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap"><i data-lucide="key-round" class="w-8 h-8 text-purple-400"></i></div>
+    <h2 class="modal-title">Claim Landlord Account</h2>
+
+    <div id="claim-step-1">
+      <p class="modal-sub" style="margin-bottom:16px;">Enter the email and temporary access code you received.</p>
+      <div class="field">
+        <label class="field-label">Email</label>
+        <input class="field-input" id="claim-email" type="email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label class="field-label">Temp Access Code</label>
+        <input class="field-input" id="claim-temp-code" type="text" placeholder="e.g. MT-849201">
+      </div>
+      <p class="login-error-msg" id="claim-step1-error"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span id="claim-step1-error-text"></span></p>
+      <button type="button" id="claim-verify-btn" class="btn-primary" style="margin-top:8px;">Verify Code</button>
+      <button type="button" id="claim-cancel-btn-1" class="btn-secondary">Cancel</button>
+    </div>
+
+    <div id="claim-step-2" style="display:none;">
+      <p class="modal-sub" style="margin-bottom:16px;">Set a permanent password and a 6-digit Wallet Transaction PIN.</p>
+      <div class="field">
+        <label class="field-label">New Password</label>
+        <input class="field-input" id="claim-new-password" type="password" placeholder="At least 6 characters">
+      </div>
+      <div class="field">
+        <label class="field-label">Confirm Password</label>
+        <input class="field-input" id="claim-confirm-password" type="password" placeholder="Re-enter password">
+      </div>
+      <div class="field">
+        <label class="field-label">Wallet Transaction PIN (6 digits)</label>
+        <input class="field-input" id="claim-wallet-pin" type="password" inputmode="numeric" maxlength="6" placeholder="6-digit PIN">
+      </div>
+      <div class="field">
+        <label class="field-label">Confirm PIN</label>
+        <input class="field-input" id="claim-confirm-pin" type="password" inputmode="numeric" maxlength="6" placeholder="Re-enter PIN">
+      </div>
+      <p class="login-error-msg" id="claim-step2-error"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span id="claim-step2-error-text"></span></p>
+      <button type="button" id="claim-activate-btn" class="btn-primary" style="margin-top:8px;">Activate Account</button>
+      <button type="button" id="claim-cancel-btn-2" class="btn-secondary">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <!-- ===================== SCREEN 4: Main App Dashboard ===================== -->
 <div id="screen-4" class="screen-view hidden pb-24" style="min-height: calc(100vh - 72px);">
@@ -1991,6 +2056,14 @@
         <div class="field">
           <label class="field-label">Landlord Email</label>
           <input class="field-input" id="s5-landlord-email" type="email" required placeholder="landlord@example.com">
+        </div>
+        <div class="field">
+          <label class="field-label">Landlord Settlement Bank Account Number</label>
+          <input class="field-input" id="s5-landlord-bank-account" type="text" required placeholder="10-digit NUBAN account number" inputmode="numeric" maxlength="10">
+        </div>
+        <div class="field">
+          <label class="field-label">Landlord Settlement Bank Name</label>
+          <input class="field-input" id="s5-landlord-bank-name" type="text" required placeholder="e.g. GTBank, Access Bank">
         </div>
 
         <p class="s5-section-label"><i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>Inspection Availability</p>
@@ -2357,6 +2430,10 @@
   <div class="field">
     <label class="field-label">Move-In Date</label>
     <input class="field-input" id="s7-movein-date" type="date">
+  </div>
+  <div class="avail-time-row">
+    <input class="field-input" id="s7-movein-time-start" type="time" aria-label="Preferred move-in window start">
+    <input class="field-input" id="s7-movein-time-end" type="time" aria-label="Preferred move-in window end">
   </div>
   <button type="button" id="s7-movein-confirm-btn" class="s5-add-btn">
     <i data-lucide="calendar-check" class="w-4 h-4"></i> Confirm Move-In Date
@@ -4401,59 +4478,65 @@
 
   const roleDisplayNames = { tenant: 'Tenant', landlord: 'Landlord', agent: 'Agent' };
 
-  // ---- Payout / Commission History data (per role) ----
-  const payoutHistoryData = {
-    landlord: {
-      sheetTitle: 'Payout History',
-      subtitle: 'Rent settlements to your bank',
-      bank: { name: 'Zenith Bank', masked: '•••• 4920' },
-      feeLabel: 'Escrow / Platform Fee',
-      transactions: [
-        { property: '2 Bedroom Ikeja — Rent Payment', gross: 650000, fee: 65000, net: 585000, date: 'Aug 20, 2026 · 14:30', status: 'settled', txnId: 'FLW-TXN-904821' },
-        { property: 'Duplex, Victoria Island — Rent Payment', gross: 480000, fee: 48000, net: 432000, date: 'Aug 12, 2026 · 10:05', status: 'settled', txnId: 'FLW-TXN-897765' },
-        { property: 'Mini Flat, Yaba — Rent Payment', gross: 260000, fee: 26000, net: 234000, date: 'Aug 28, 2026 · 16:40', status: 'pending', txnId: 'FLW-TXN-915032' }
-      ]
-    },
-    agent: {
-      sheetTitle: 'Commission History',
-      subtitle: 'Commission settlements to your bank',
-      bank: { name: 'GTBank', masked: '•••• 2217' },
-      feeLabel: 'Platform Retention (40%)',
-      transactions: [
-        { property: 'Duplex, Victoria Island — Agent Commission', gross: 230000, fee: 92000, net: 138000, date: 'Aug 20, 2026 · 14:30', status: 'pending', txnId: 'FLW-TXN-904821' },
-        { property: '2 Bedroom Ikeja — Agent Commission', gross: 180000, fee: 72000, net: 108000, date: 'Aug 10, 2026 · 09:20', status: 'settled', txnId: 'FLW-TXN-891204' },
-        { property: 'Studio Apartment, Yaba — Agent Commission', gross: 95000, fee: 38000, net: 57000, date: 'Jul 30, 2026 · 13:15', status: 'settled', txnId: 'FLW-TXN-873390' }
-      ]
-    }
+  // ---- Payout / Commission History — sourced from the shared, per-user
+  // maintown_app_state.payouts ledger (see recordPayout above) instead of a
+  // static role-level mock. Static copy that never varies by user (sheet
+  // titles, fee labels) stays here; the actual transaction rows are always
+  // pulled fresh and filtered to whoever is logged in.
+  const payoutHistoryCopy = {
+    landlord: { sheetTitle: 'Payout History', subtitle: 'Rent settlements to your bank', feeLabel: 'Escrow / Platform Fee' },
+    agent: { sheetTitle: 'Commission History', subtitle: 'Commission settlements to your bank', feeLabel: 'Platform Retention' }
   };
+
+  // Returns this session's own payout rows, newest first — never another
+  // account's — by matching payout.landlordId / payout.agentId against the
+  // active session's own id. A newly claimed Landlord with nothing disbursed
+  // yet simply gets an empty array here (handled by the empty state below).
+  function myPayouts(role) {
+    appState = loadAppState();
+    const uid = getCurrentUserId();
+    const all = Array.isArray(appState.payouts) ? appState.payouts : [];
+    const mine = role === 'agent'
+      ? all.filter(p => p.agentId === uid)
+      : all.filter(p => p.landlordId === uid);
+    return mine.slice().sort((a, b) => b.timestamp - a.timestamp);
+  }
 
   const payoutHistoryModal = document.getElementById('payout-history-modal');
 
   function openPayoutHistory(role) {
-    const data = payoutHistoryData[role];
-    if (!data) return; // tenant role has no payout/commission history
+    const copy = payoutHistoryCopy[role];
+    if (!copy) return; // tenant role has no payout/commission history
 
-    document.getElementById('ph-title').textContent = data.sheetTitle;
-    document.getElementById('ph-subtitle').textContent = data.subtitle;
-    document.getElementById('ph-bank-account').textContent = `${data.bank.name} ${data.bank.masked}`;
+    document.getElementById('ph-title').textContent = copy.sheetTitle;
+    document.getElementById('ph-subtitle').textContent = copy.subtitle;
 
+    const txns = myPayouts(role);
     const list = document.getElementById('ph-txn-list');
-    list.innerHTML = data.transactions.map((t, i) => `
+
+    document.getElementById('ph-bank-account').textContent = txns.length ? txns[0].bankAccount : 'No settlement account on file yet';
+
+    if (!txns.length) {
+      list.innerHTML = `<p class="role-hint" style="text-align:left;">No transaction or payout history recorded yet.</p>`;
+      payoutHistoryModal.classList.add('open');
+      if (window.lucide) lucide.createIcons();
+      return;
+    }
+
+    list.innerHTML = txns.map((t, i) => `
       <div class="txn-row">
         <div class="txn-row-top">
           <div>
-            <p class="txn-title">${t.property}</p>
-            <p class="txn-date">${t.date}</p>
+            <p class="txn-title">${t.listingTitle || 'Settlement'}</p>
+            <p class="txn-date">${new Date(t.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
           </div>
-          <span class="txn-status-badge ${t.status}">${t.status === 'settled' ? 'Settled to Bank' : 'In Escrow (Pending Handover)'}</span>
+          <span class="txn-status-badge settled">${t.status === 'DISBURSED' ? 'Settled to Bank' : t.status}</span>
         </div>
         <div class="txn-breakdown">
-          <div class="txn-breakdown-row"><span>Gross Amount</span><span>${formatMoney(t.gross, 'ngn')}</span></div>
-          <div class="txn-breakdown-row"><span>${data.feeLabel}</span><span>-${formatMoney(t.fee, 'ngn')}</span></div>
-          <div class="txn-breakdown-row net"><span>Net Amount ${t.status === 'settled' ? 'Settled' : 'Payable'}</span><span>${formatMoney(t.net, 'ngn')}</span></div>
+          <div class="txn-breakdown-row net"><span>Net Amount Settled</span><span>${formatMoney(t.amount, 'ngn')}</span></div>
         </div>
         <div class="txn-footer">
-          <span class="txn-ref">${t.txnId}</span>
+          <span class="txn-ref">${t.id}</span>
           <button type="button" class="txn-download-btn" data-role="${role}" data-idx="${i}">
             <i data-lucide="download" class="w-3 h-3"></i> Download Receipt
           </button>
@@ -4471,6 +4554,12 @@
   function getClosedDeals(role) {
     if (!activeLease || !activeLease.moveInConfirmed) return [];
     if (role === 'agent' && !activeLease.listedByAgent) return [];
+    // Post-Lease & Handover Views: only show this lease to the Landlord/Agent
+    // who actually owns the underlying listing (listing.ownerId/agentId ===
+    // currentUserId), so one account never sees another's closed deals.
+    const uid = getCurrentUserId();
+    if (role === 'landlord' && activeLease.ownerId && activeLease.ownerId !== uid) return [];
+    if (role === 'agent' && activeLease.agentId && activeLease.agentId !== uid) return [];
     const rentTerm = activeLease.remainingMonths ? `${activeLease.remainingMonths + 1} months` : 'Outright / Full Payment';
     return [{
       tenantName: activeLease.tenantName || 'Tenant',
@@ -4570,30 +4659,27 @@
     const btn = e.target.closest('.txn-download-btn');
     if (!btn) return;
     const role = btn.dataset.role;
-    const t = payoutHistoryData[role].transactions[Number(btn.dataset.idx)];
+    const t = myPayouts(role)[Number(btn.dataset.idx)];
+    if (!t) return;
     downloadReceipt(role, t);
   });
 
   function downloadReceipt(role, t) {
-    const data = payoutHistoryData[role];
-    const statusLabel = t.status === 'settled' ? 'Settled to Bank' : 'In Escrow (Pending Handover)';
+    const copy = payoutHistoryCopy[role];
     const receiptText =
 `MAINTOWN REALTY — SETTLEMENT VOUCHER
 =====================================
-${data.sheetTitle}
+${copy.sheetTitle}
 
-Listing: ${t.property}
-Date: ${t.date}
-Status: ${statusLabel}
+Listing: ${t.listingTitle || 'Settlement'}
+Date: ${new Date(t.timestamp).toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+Status: Settled to Bank
 
-Gross Amount:            ${formatMoney(t.gross, 'ngn')}
-${data.feeLabel}:  -${formatMoney(t.fee, 'ngn')}
--------------------------------------
-Net Amount Settled:      ${formatMoney(t.net, 'ngn')}
+Net Amount Settled:      ${formatMoney(t.amount, 'ngn')}
 
-Linked Account: ${data.bank.name} ${data.bank.masked}
-Settlement Method: Automated Bank Settlement via Flutterwave Escrow
-Transaction Audit Reference: ${t.txnId}
+Linked Account: ${t.bankAccount}
+Settlement Method: Automated Bank Settlement via MainTown Escrow
+Transaction Audit Reference: ${t.id}
 =====================================
 This voucher is auto-generated and serves as proof of settlement.`;
 
@@ -4601,7 +4687,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `receipt-${t.txnId}.txt`;
+    a.download = `receipt-${t.id}.txt`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -4659,10 +4745,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // summary tile previously counted every schedule in the app regardless
       // of ownership, so an Agent's count could include Direct-Landlord
       // requests (and vice-versa). Tenants see their own bookings, unfiltered.
+      const uid = getCurrentUserId();
       const owned = role === 'landlord'
-        ? schedules.filter(s => s.landlord_id === CURRENT_LANDLORD_ID)
+        ? schedules.filter(s => s.landlord_id === uid)
         : role === 'agent'
-          ? schedules.filter(s => s.agent_id === CURRENT_AGENT_ID)
+          ? schedules.filter(s => s.agent_id === uid)
           : schedules;
       pendingCount = owned.filter(s => s.status === 'Pending Approval').length;
       confirmedCount = owned.filter(s => s.status === 'Confirmed' || s.status === 'Conducted').length;
@@ -4786,16 +4873,28 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // and inspection record should derive ownership through this ONE function
   // so routing can never drift out of sync between call sites.
   // ==================================================================
-  const CURRENT_LANDLORD_ID = 'user_landlord_01'; // Frank Hood
-  const CURRENT_AGENT_ID = 'user_agent_01';        // John Adam
+  // ---- Active session user id: the single source of truth for "who is
+  // currently logged in" — replaces the old hardcoded CURRENT_LANDLORD_ID /
+  // CURRENT_AGENT_ID demo constants everywhere a dashboard, inspection
+  // manager, or property view needs to know whose data to show. Reads the
+  // same localStorage-backed session record used by loginAsDemoUser/
+  // checkAutoRelogin (defined further below — safe to call from here since
+  // function declarations are hoisted for the whole script). ----
+  function getCurrentUserId() {
+    const u = (typeof loadCurrentUser === 'function') ? loadCurrentUser() : null;
+    return u ? u.id : null;
+  }
 
   function getListingOwnership(listing) {
     const role = (listing && listing.listedByRole)
       ? listing.listedByRole
       : ((listing && listing.listedBy === 'agent') ? 'AGENT' : 'LANDLORD');
-    const ownerId = (listing && listing.ownerId)
-      ? listing.ownerId
-      : (role === 'AGENT' ? CURRENT_AGENT_ID : CURRENT_LANDLORD_ID);
+    // No hardcoded fallback: a listing's ownership is data attached at
+    // creation time (see DEFAULT_LISTINGS and the listing-creation handlers
+    // below, which now always stamp ownerId/agentId). If a legacy record
+    // truly has neither, ownership is unknown rather than silently assigned
+    // to whichever demo landlord/agent used to be hardcoded here.
+    const ownerId = (listing && listing.ownerId) ? listing.ownerId : null;
     return { role, ownerId };
   }
 
@@ -4891,12 +4990,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
     return sampleAvailability();
   }
 
+  // Each demo listing is explicitly stamped with its real owner (ownerId)
+  // and, for agent-managed listings, the uploading agent (agentId) — using
+  // the actual DEMO_USERS ids ('frank', 'john') rather than relying on any
+  // hardcoded fallback constant. This is what lets My Properties / the
+  // Inspection Manager / Post-Lease views filter correctly by whoever is
+  // actually logged in, instead of always showing Frank Hood's data.
   const DEFAULT_LISTINGS = [
-    { id: 1, type: 'rent', title: '2-Bed Flat, Lekki Phase 1', location: 'Lekki Phase 1, Lagos', ngn: '₦180,000 / mo', usd: '$220 / mo', img: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=240&fit=crop&q=80', listedBy: 'agent', availability: sampleAvailability() },
-    { id: 2, type: 'rent', title: 'Studio Apartment, Yaba', location: 'Yaba, Lagos', ngn: '₦95,000 / mo', usd: '$115 / mo', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=240&fit=crop&q=80', listedBy: 'landlord', availability: sampleAvailability() },
-    { id: 3, type: 'rent', title: '3-Bed Duplex, Ikeja GRA', location: 'Ikeja GRA, Lagos', ngn: '₦350,000 / mo', usd: '$430 / mo', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=240&fit=crop&q=80', listedBy: 'agent', availability: sampleAvailability() },
-    { id: 4, type: 'land', title: '450sqm Land, Ibeju-Lekki', location: 'Ibeju-Lekki, Lagos', totalPrice: 8500000, img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=240&fit=crop&q=80', listedBy: 'agent', availability: sampleAvailability(), hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
-    { id: 5, type: 'land', title: '3-Bed Bungalow, Epe (Outright/Installment)', location: 'Epe, Lagos', totalPrice: 22000000, img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=240&fit=crop&q=80', listedBy: 'landlord', availability: sampleAvailability(), hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' }
+    { id: 1, type: 'rent', title: '2-Bed Flat, Lekki Phase 1', location: 'Lekki Phase 1, Lagos', ngn: '₦180,000 / mo', usd: '$220 / mo', img: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=240&fit=crop&q=80', listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', availability: sampleAvailability() },
+    { id: 2, type: 'rent', title: 'Studio Apartment, Yaba', location: 'Yaba, Lagos', ngn: '₦95,000 / mo', usd: '$115 / mo', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=240&fit=crop&q=80', listedBy: 'landlord', listedByRole: 'LANDLORD', ownerId: 'frank', availability: sampleAvailability() },
+    { id: 3, type: 'rent', title: '3-Bed Duplex, Ikeja GRA', location: 'Ikeja GRA, Lagos', ngn: '₦350,000 / mo', usd: '$430 / mo', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=240&fit=crop&q=80', listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', availability: sampleAvailability() },
+    { id: 4, type: 'land', title: '450sqm Land, Ibeju-Lekki', location: 'Ibeju-Lekki, Lagos', totalPrice: 8500000, img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=240&fit=crop&q=80', photos: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1500534623283-312aade485b7?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1501183638710-841dd1904471?w=400&h=240&fit=crop&q=80'], listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', availability: sampleAvailability(), hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
+    { id: 5, type: 'land', title: '3-Bed Bungalow, Epe (Outright/Installment)', location: 'Epe, Lagos', totalPrice: 22000000, img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=240&fit=crop&q=80', photos: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=240&fit=crop&q=80'], listedBy: 'landlord', listedByRole: 'LANDLORD', ownerId: 'frank', availability: sampleAvailability(), hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' }
   ];
 
   let listings = [];
@@ -4918,9 +5023,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function rentListings() { return listings.filter(l => l.type === 'rent' && l.status !== 'draft'); }
   function landListingsList() { return listings.filter(l => l.type === 'land' && l.status !== 'draft'); }
 
+  // Seed inventory belongs explicitly to the demo Landlord (Frank Hood, id
+  // 'frank') — every entry is tagged with ownerId so My Properties can filter
+  // to whoever is actually logged in instead of always showing this data.
   let landlordProperties = [
-    { id: 1, title: '2-Bed Flat, Lekki Phase 1', address: 'Lekki Phase 1, Lagos', status: 'occupied' },
-    { id: 2, title: 'Studio Apartment, Yaba', address: 'Yaba, Lagos', status: 'vacant' }
+    { id: 1, title: '2-Bed Flat, Lekki Phase 1', address: 'Lekki Phase 1, Lagos', status: 'occupied', ownerId: 'frank' },
+    { id: 2, title: 'Studio Apartment, Yaba', address: 'Yaba, Lagos', status: 'vacant', ownerId: 'frank' }
   ];
 
   let agentListings = [];
@@ -5091,11 +5199,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function renderLandFeed() {
     const feed = document.getElementById('s5-listing-feed');
     const data = landListingsList();
-    feed.innerHTML = data.map(p => `
+    feed.innerHTML = data.map(p => {
+      const photos = (p.photos && p.photos.length) ? p.photos : [p.img];
+      return `
       <div class="s5-card" data-listing-id="${p.id}">
-        <div class="s5-card-img-wrap">
-          <img src="${p.img}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'land')">
+        <div class="s5-card-img-wrap" data-listing-id="${p.id}" data-slide-index="0">
+          <img class="s5-slide-img" src="${photos[0]}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'land')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Title Verified</span>
+          ${photos.length > 1 ? `
+          <button type="button" class="s5-slide-nav prev" data-listing-id="${p.id}" data-dir="-1" aria-label="Previous photo"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+          <button type="button" class="s5-slide-nav next" data-listing-id="${p.id}" data-dir="1" aria-label="Next photo"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+          <span class="s5-slide-counter">1 / ${photos.length}</span>` : ''}
           ${p.hasVideo ? `
           <button type="button" class="s5-video-preview-btn" data-listing-id="${p.id}">
             <span class="s5-video-play-circle"><svg viewBox="0 0 24 24" fill="currentColor" style="color:#fff;"><path d="M8 5v14l11-7z"/></svg></span>
@@ -5109,7 +5223,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <button type="button" class="s5-action-btn primary site-inspect-btn" data-listing-id="${p.id}" style="width:100%;"><i data-lucide="calendar-check" class="w-4 h-4"></i>Schedule Site Inspection</button>
           <button type="button" class="s5-action-btn land-pay-btn" data-listing-id="${p.id}" style="width:100%; margin-top:8px;"><i data-lucide="layers" class="w-4 h-4"></i>View Payment Options</button>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     if (window.lucide) lucide.createIcons();
   }
 
@@ -5120,6 +5235,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const cartBtn = e.target.closest('.cart-add-btn');
     const videoBtn = e.target.closest('.s5-video-preview-btn');
     const siteInspectBtn = e.target.closest('.site-inspect-btn');
+    const slideNavBtn = e.target.closest('.s5-slide-nav');
+    if (slideNavBtn) {
+      const listing = landListingsList().find(l => String(l.id) === slideNavBtn.dataset.listingId);
+      if (!listing) return;
+      const photos = (listing.photos && listing.photos.length) ? listing.photos : [listing.img];
+      const wrap = slideNavBtn.closest('.s5-card-img-wrap');
+      const dir = Number(slideNavBtn.dataset.dir);
+      let idx = (Number(wrap.dataset.slideIndex) + dir + photos.length) % photos.length;
+      wrap.dataset.slideIndex = idx;
+      wrap.querySelector('.s5-slide-img').src = photos[idx];
+      const counter = wrap.querySelector('.s5-slide-counter');
+      if (counter) counter.textContent = `${idx + 1} / ${photos.length}`;
+      return;
+    }
     if (wtBtn) {
       openWalkthroughModal(wtBtn.dataset.title);
     } else if (bvBtn) {
@@ -5954,9 +6083,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function buildActiveLeaseFromCheckout() {
     if (!checkoutListing) return;
+    const ownershipFields = {
+      listingId: checkoutListing.id,
+      ownerId: checkoutListing.ownerId || null,
+      agentId: checkoutListing.agentId || null,
+      listedByRole: checkoutListing.listedByRole || (checkoutListing.listedBy === 'agent' ? 'AGENT' : 'LANDLORD')
+    };
     if (checkoutListing.type === 'land') {
       const isInstallment = checkoutLandPayment && checkoutLandPayment.mode === 'installment';
       activeLease = {
+        ...ownershipFields,
         title: checkoutListing.title,
         amountLabel: isInstallment
           ? `${formatMoney(checkoutLandPayment.monthly, 'ngn')} / mo (installment)`
@@ -5969,6 +6105,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       };
     } else {
       activeLease = {
+        ...ownershipFields,
         title: checkoutListing.title,
         amountLabel: document.getElementById('s6-rent-amount').textContent + ' / mo',
         dueLabel: 'Move-in date pending — schedule below',
@@ -6039,6 +6176,23 @@ This voucher is auto-generated and serves as proof of settlement.`;
         landlordPayout: closingBreakdownForRelease.monthly,
         status: 'COMPLETED'
       });
+
+      // Automated Transaction Generation on Settlement: append per-recipient
+      // entries to the shared maintown_app_state.payouts ledger. A Landlord's
+      // bank payout only posts as DISBURSED once they've actually claimed
+      // their auto-provisioned account (ACTIVE + settlement bank on file) —
+      // a still-PENDING_CLAIM auto-provisioned Landlord has no verified
+      // settlement destination yet, so their payout stays held rather than
+      // being logged as disbursed. Demo/direct Landlords (not auto-
+      // provisioned at all) are always eligible. Agent commissions always
+      // record — Agents don't go through the claim flow.
+      const ownerLandlord = checkoutListing.ownerId ? appState.users[checkoutListing.ownerId] : null;
+      const landlordSettlementReady = !ownerLandlord || (ownerLandlord.role === 'landlord' && ownerLandlord.status === 'ACTIVE' && ownerLandlord.settlementBank);
+      recordPayout({
+        listing: checkoutListing,
+        landlordAmount: landlordSettlementReady ? closingBreakdownForRelease.monthly : 0,
+        agentAmount: closingBreakdownForRelease.agentTake
+      });
     }
 
     // Notification Trigger: Escrow & Financial Alerts — Payout Disbursed Alert.
@@ -6048,8 +6202,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const feeLabel = document.getElementById('s6-invoice-fee').textContent;
       const disbursedAmount = document.getElementById('s6-invoice-total').textContent || document.getElementById('s6-total-amount').textContent;
       ['landlord', 'agent'].forEach(forRole => {
-        const bankData = payoutHistoryData[forRole] && payoutHistoryData[forRole].bank;
-        const destination = bankData ? `${bankData.name} ${bankData.masked}` : 'MainTown Settlement Account';
+        const recipientId = forRole === 'agent' ? checkoutListing.agentId : checkoutListing.ownerId;
+        const destination = resolveSettlementAccountLabel(recipientId);
         pushPlatformNotification(forRole, 'payment', 'Payout Disbursed',
           `Payout of ${disbursedAmount} has been disbursed to your account.`,
           { screen: 'screen-post-lease' }, 'PAYOUT_DISBURSED', {
@@ -6123,13 +6277,29 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('ri-back-btn').addEventListener('click', () => navigateTo('screen-4'));
 
   // ---- Landlord view: property list + deferred title verification ----
+  // Dynamic Dashboard Filtering: My Properties only ever shows properties
+  // owned by whoever is actually logged in (property.ownerId === currentUserId).
+  // A newly claimed / auto-provisioned Landlord with zero listings yet sees a
+  // clean empty state instead of falling back to Frank Hood's sample data.
+  function myProperties() {
+    const uid = getCurrentUserId();
+    return landlordProperties.filter(p => p.ownerId === uid);
+  }
+
   function renderLandlordList() {
     const statusMap = {
       occupied: { cls: 's5-status-occupied', label: 'Occupied' },
       vacant: { cls: 's5-status-vacant', label: 'Vacant' }
     };
     const list = document.getElementById('s5-landlord-list');
-    list.innerHTML = landlordProperties.map(p => {
+    const myProps = myProperties();
+    if (!myProps.length) {
+      list.innerHTML = `<p class="role-hint" style="text-align:left;">No properties or inspection requests yet.</p>`;
+      if (window.lucide) lucide.createIcons();
+      renderLandlordInspectionsManager();
+      return;
+    }
+    list.innerHTML = myProps.map(p => {
       let rightHtml;
       if (p.status === 'escrow') {
         // Inventory Card: instead of a static "Escrow Pending" badge, surface an
@@ -6248,13 +6418,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function renderInspectionsManagerInto(containerId, forRole) {
     const wrap = document.getElementById(containerId);
     if (!wrap) return;
+    const uid = getCurrentUserId();
     const visible = forRole === 'landlord'
-      ? schedules.filter(s => s.landlord_id === CURRENT_LANDLORD_ID)
+      ? schedules.filter(s => s.landlord_id === uid)
       : forRole === 'agent'
-        ? schedules.filter(s => s.agent_id === CURRENT_AGENT_ID)
+        ? schedules.filter(s => s.agent_id === uid)
         : schedules;
     if (!visible.length) {
-      wrap.innerHTML = `<p class="role-hint" style="text-align:left;">No inspection requests yet.</p>`;
+      wrap.innerHTML = `<p class="role-hint" style="text-align:left;">No properties or inspection requests yet.</p>`;
       return;
     }
     wrap.innerHTML = visible.map(inspectionsManagerCardHTML).join('');
@@ -6331,13 +6502,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const thumbs = document.getElementById('tv-photo-thumbs');
     thumbs.innerHTML = '';
     tvPendingPhotoCount = e.target.files.length;
+    tvPendingPhotoUrls = [];
     if (e.target.files.length) {
       box.classList.add('has-file');
       label.textContent = `${e.target.files.length} photo(s) selected`;
-      Array.from(e.target.files).slice(0, 6).forEach(file => {
-        const img = document.createElement('img');
-        img.src = URL.createObjectURL(file);
-        thumbs.appendChild(img);
+      Array.from(e.target.files).forEach((file, i) => {
+        const url = URL.createObjectURL(file);
+        tvPendingPhotoUrls.push(url);
+        if (i < 6) {
+          const img = document.createElement('img');
+          img.src = url;
+          thumbs.appendChild(img);
+        }
       });
     }
   });
@@ -6347,6 +6523,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const label = document.getElementById('tv-video-upload-label');
     const meta = document.getElementById('tv-video-upload-meta');
     tvPendingHasVideo = e.target.files.length > 0;
+    tvPendingVideoUrl = e.target.files.length ? URL.createObjectURL(e.target.files[0]) : null;
     if (e.target.files.length) {
       box.classList.add('has-file');
       label.textContent = e.target.files[0].name;
@@ -6376,7 +6553,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     const isPublished = document.getElementById('tv-publish-toggle').checked;
     const newId = Date.now();
-    landlordProperties.unshift({ id: newId, title, address, status: 'escrow', listingId: newId });
+    landlordProperties.unshift({ id: newId, title, address, status: 'escrow', listingId: newId, ownerId: getCurrentUserId() });
     renderLandlordList();
 
     // Media Visibility: photos/walkthrough video uploaded here are stored on the listing
@@ -6388,8 +6565,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const baseFields = {
       id: newId, title, location: address, listedBy: 'landlord', status: isPublished ? 'live' : 'draft',
       hasPhotos: tvPendingPhotoCount > 0, hasVideo: tvPendingHasVideo,
+      photos: tvPendingPhotoUrls.slice(), videoUrl: tvPendingVideoUrl,
       landlordName: currentUserName, landlordPhoto: currentUserSelfieDataUrl || null,
       agentName: null, agentPhoto: null,
+      // Dynamic Recipient & Ownership Routing: a Landlord-created listing is
+      // owned by whoever is actually logged in when they create it — not a
+      // hardcoded demo landlord.
+      ownerId: getCurrentUserId(),
+      listedByRole: 'LANDLORD',
       availability: tvPendingAvailability.map(a => ({ date: a.date, slots: a.slots.slice() }))
     };
     if (type === 'rent') {
@@ -6401,6 +6584,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     saveListings();
     tvPendingPhotoCount = 0;
     tvPendingHasVideo = false;
+    tvPendingPhotoUrls = [];
+    tvPendingVideoUrl = null;
     tvPendingAvailability = [];
     renderAvailabilityList(tvPendingAvailability, 'tv');
 
@@ -6429,14 +6614,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function renderAgentListings() {
     const wrap = document.getElementById('s5-agent-listings');
-    if (!agentListings.length) {
-      wrap.innerHTML = `<p class="role-hint" style="text-align:left;">No listings submitted yet.</p>`;
+    // Dynamic filtering: an Agent only ever sees the listings they themselves
+    // submitted (agentId === currentUserId), not every listing uploaded this
+    // session by any agent sharing this device.
+    const uid = getCurrentUserId();
+    const myListings = agentListings.filter(l => l.agentId === uid);
+    if (!myListings.length) {
+      wrap.innerHTML = `<p class="role-hint" style="text-align:left;">No properties or inspection requests yet.</p>`;
       renderAgentInspectionsManager();
       return;
     }
     // Media Visibility: a listing is either live on the Tenant Search Feed or saved
     // as a private draft — the row's action reflects whichever it currently is.
-    wrap.innerHTML = agentListings.map(l => {
+    wrap.innerHTML = myListings.map(l => {
       const isLive = l.status !== 'draft';
       const actionHtml = isLive
         ? `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`
@@ -6512,14 +6702,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   let s5PendingPhotoCount = 0;
   let s5PendingHasVideo = false;
+  let s5PendingPhotoUrls = [];
+  let s5PendingVideoUrl = null;
   let tvPendingPhotoCount = 0;
   let tvPendingHasVideo = false;
+  let tvPendingPhotoUrls = [];
+  let tvPendingVideoUrl = null;
 
   document.getElementById('s5-photo-upload').addEventListener('click', () => document.getElementById('s5-photo-file').click());
   document.getElementById('s5-photo-file').addEventListener('change', (e) => {
     const box = document.getElementById('s5-photo-upload');
     const label = document.getElementById('s5-photo-upload-label');
     s5PendingPhotoCount = e.target.files.length;
+    s5PendingPhotoUrls = Array.from(e.target.files).map(f => URL.createObjectURL(f));
     if (e.target.files.length) { box.classList.add('has-file'); label.textContent = `${e.target.files.length} photo(s) selected`; }
   });
   document.getElementById('s5-video-upload').addEventListener('click', () => document.getElementById('s5-video-file').click());
@@ -6527,6 +6722,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const box = document.getElementById('s5-video-upload');
     const label = document.getElementById('s5-video-upload-label');
     s5PendingHasVideo = e.target.files.length > 0;
+    s5PendingVideoUrl = e.target.files.length ? URL.createObjectURL(e.target.files[0]) : null;
     if (e.target.files.length) { box.classList.add('has-file'); label.textContent = e.target.files[0].name; }
   });
 
@@ -6563,10 +6759,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const landlordName = document.getElementById('s5-landlord-name').value.trim();
     const landlordPhone = document.getElementById('s5-landlord-phone').value.trim();
     const landlordEmail = document.getElementById('s5-landlord-email').value.trim();
+    const landlordBankAccount = document.getElementById('s5-landlord-bank-account').value.trim();
+    const landlordBankName = document.getElementById('s5-landlord-bank-name').value.trim();
 
-    if (!title || !address || !annual || !landlordName || !landlordPhone || !landlordEmail) {
+    if (!title || !address || !annual || !landlordName || !landlordPhone || !landlordEmail || !landlordBankAccount || !landlordBankName) {
       showToast('Please fill in all required fields');
       return;
+    }
+
+    // Auto-Provisioning: find-or-create the Landlord's profile in
+    // maintown_app_state.users. A brand-new Landlord is created with
+    // status PENDING_CLAIM and a temp access code; the listing routes to
+    // them via ownerId while agentId stays this Agent's id.
+    const landlordProvision = provisionLandlord(landlordName, landlordPhone, landlordEmail, landlordBankAccount, landlordBankName);
+    const landlordUser = landlordProvision.record;
+    if (landlordProvision.isNew) {
+      showToast(`Landlord profile created. Temp code ${landlordUser.tempCode} sent to ${landlordEmail}.`);
     }
 
     // Media Visibility: photos/walkthrough video uploaded here are stored on the listing
@@ -6580,9 +6788,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const baseFields = {
       id: newId, title, location: address, listedBy: 'agent', status: isPublished ? 'live' : 'draft',
       hasPhotos: s5PendingPhotoCount > 0, hasVideo: s5PendingHasVideo,
+      photos: s5PendingPhotoUrls.slice(), videoUrl: s5PendingVideoUrl,
       landlordName, landlordPhoto: null,
       agentName, agentPhoto: currentUserSelfieDataUrl || null,
-      availability: s5PendingAvailability.map(a => ({ date: a.date, slots: a.slots.slice() }))
+      availability: s5PendingAvailability.map(a => ({ date: a.date, slots: a.slots.slice() })),
+      // Dynamic Recipient & Ownership Routing: ownerId points at the (possibly
+      // just-provisioned) Landlord; agentId stays the uploading Agent's own id.
+      ownerId: landlordUser.id,
+      agentId: getCurrentUserId(),
+      listedByRole: 'AGENT'
     };
     let listingData;
     if (type === 'rent') {
@@ -6592,11 +6806,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       listingData = { ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land };
     }
 
-    agentListings.unshift({ id: newId + 1, title, address, type, annual, landlordName, landlordPhone, landlordEmail, status: isPublished ? 'live' : 'draft', listingId: newId, hasVideo: s5PendingHasVideo, listingData });
+    agentListings.unshift({ id: newId + 1, title, address, type, annual, landlordName, landlordPhone, landlordEmail, landlordBankAccount, landlordBankName, ownerId: landlordUser.id, agentId: getCurrentUserId(), status: isPublished ? 'live' : 'draft', listingId: newId, hasVideo: s5PendingHasVideo, listingData });
     listingsFeed.unshift(listingData);
     saveListings();
     s5PendingPhotoCount = 0;
     s5PendingHasVideo = false;
+    s5PendingPhotoUrls = [];
+    s5PendingVideoUrl = null;
     s5PendingAvailability = [];
     renderAvailabilityList(s5PendingAvailability, 's5');
 
@@ -6770,7 +6986,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // category: 'inspection' | 'payment' | 'message'
   // route: { screen: 'screen-inspections' | 'screen-post-lease' | 'screen-messages' | 'screen-5', convId?: number }
 
-  function pushPlatformNotification(forRole, category, title, body, route, type, details) {
+  function pushPlatformNotification(forRole, category, title, body, route, type, details, forUserId) {
     const notif = {
       id: Date.now() + Math.random(),
       forRole, category, title, body,
@@ -6778,6 +6994,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       type: type || null,
       unread: true,
       timestamp: Date.now(),
+      // When set, this notification targets one specific account (e.g. a
+      // provisioned Landlord's own id or an Agent's id) rather than a
+      // broadcast to "whoever is logged in as this role" — see
+      // dispatchMoveInNotifications() below.
+      forUserId: forUserId || null,
       // Optional structured payload for the Notification Detail Modal —
       // `metadata` for context (property/tenant/escrow info) and
       // `financial_breakdown` for itemized payout ledgers.
@@ -6788,9 +7009,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     savePlatformNotifications();
     document.getElementById('dash-bell-dot').classList.add('show');
     // Simulated real-time push: a toast banner fires immediately whenever the
-    // notification's target role is the one currently active in this session —
-    // mirroring a background push landing while the app is open in the foreground.
-    if ((currentUserRole || 'tenant') === forRole) showToast(body);
+    // notification's target (specific user id, or role broadcast) matches
+    // whoever is currently active in this session — mirroring a background
+    // push landing while the app is open in the foreground.
+    const isForCurrentSession = forUserId
+      ? forUserId === (typeof currentDemoUserId === 'function' ? currentDemoUserId() : null)
+      : (currentUserRole || 'tenant') === forRole;
+    if (isForCurrentSession) showToast(body);
     const notifScreen = document.getElementById('screen-notifications');
     if (notifScreen && !notifScreen.classList.contains('hidden')) renderNotificationCenter();
     return notif;
@@ -6800,17 +7025,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function updateBellDotForRole() {
     const role = currentUserRole || 'tenant';
-    const hasUnread = platformNotifications.some(n => n.forRole === role && n.unread) ||
+    const uid = typeof currentDemoUserId === 'function' ? currentDemoUserId() : null;
+    const matchesMe = (n) => n.forUserId ? n.forUserId === uid : n.forRole === role;
+    const hasUnread = platformNotifications.some(n => matchesMe(n) && n.unread) ||
       inspectionNotifications.some(n => n.forRole === role && n.unread);
     document.getElementById('dash-bell-dot').classList.toggle('show', hasUnread);
   }
 
   function renderNotificationCenter() {
     const role = currentUserRole || 'tenant';
+    const uid = typeof currentDemoUserId === 'function' ? currentDemoUserId() : null;
     const list = document.getElementById('notif-list');
     const emptyHint = document.getElementById('notif-empty-hint');
     const items = platformNotifications
-      .filter(n => n.forRole === role)
+      .filter(n => n.forUserId ? n.forUserId === uid : n.forRole === role)
       .filter(n => notificationFilterTab === 'all' || n.category === notificationFilterTab);
 
     if (!items.length) {
@@ -6890,6 +7118,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
         notifBreakdownRowHTML('Tenant', m.tenantName || '—')
       ].join('');
       return `<p class="notif-breakdown-title">Lease Details</p><div class="notif-breakdown-card">${rows}</div>`;
+    }
+    if (notif.type === 'MOVE_IN_DATE_CONFIRMED' && notif.metadata) {
+      const m = notif.metadata;
+      const rows = [
+        notifBreakdownRowHTML('Property', m.propertyTitle || '—'),
+        notifBreakdownRowHTML('Tenant', m.tenantName || '—'),
+        notifBreakdownRowHTML('Move-In Date', m.moveInDate || '—')
+      ].join('');
+      return `<p class="notif-breakdown-title">Move-In Details</p><div class="notif-breakdown-card">${rows}</div>`;
     }
     return '';
   }
@@ -7638,10 +7875,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // STRICT GUARD: a Host only ever sees the inspection requests they actually
     // own, keyed off `landlord_id`/`agent_id` set at booking time — same rule
     // as the Inspections Manager list. Tenants see their own bookings.
+    const scheduleUid = getCurrentUserId();
     const visibleSchedules = role === 'landlord'
-      ? schedules.filter(s => s.landlord_id === CURRENT_LANDLORD_ID)
+      ? schedules.filter(s => s.landlord_id === scheduleUid)
       : role === 'agent'
-        ? schedules.filter(s => s.agent_id === CURRENT_AGENT_ID)
+        ? schedules.filter(s => s.agent_id === scheduleUid)
         : schedules;
     if (!visibleSchedules.length) {
       list.innerHTML = '';
@@ -8484,6 +8722,11 @@ available in the Post-Lease Hub and this chat thread.`
       dealStage: 'INSPECTION', escrowStatus: 'RELEASED', gross: conv.fee,
       maintownRevenue, agentPayout, status: 'COMPLETED'
     });
+    // Automated Transaction Generation on Settlement: credit the Agent's cut
+    // of the inspection fee straight to the shared payout ledger.
+    if (isAgentFee && agentPayout > 0 && listing) {
+      recordPayout({ listing, agentAmount: agentPayout, listingTitle: conv.listingTitle });
+    }
     const insp = inspections.find(i => i.id === conv.inspectionId);
     if (insp) insp.status = 'completed';
     saveInspections();
@@ -8680,9 +8923,13 @@ available in the Post-Lease Hub and this chat thread.`
   document.getElementById('s7-movein-confirm-btn').addEventListener('click', () => {
     const dateVal = document.getElementById('s7-movein-date').value;
     if (!dateVal) { showToast('Please select a move-in date'); return; }
-    const formatted = new Date(dateVal + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const timeStart = document.getElementById('s7-movein-time-start').value;
+    const timeEnd = document.getElementById('s7-movein-time-end').value;
+    const formatted = new Date(dateVal + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+      + (timeStart ? ` (${timeStart}${timeEnd ? '–' + timeEnd : ''})` : '');
     const propertyTitle = checkoutListing ? checkoutListing.title : 'this property';
-    const listedByAgent = checkoutListing && checkoutListing.listedBy === 'agent';
+    const listedByAgent = checkoutListing && (checkoutListing.listedByRole ? checkoutListing.listedByRole === 'AGENT' : checkoutListing.listedBy === 'agent');
+    const tenantNameForMoveIn = (activeLease && activeLease.tenantName) || (document.getElementById('reg-fullname')?.value || '').trim() || 'Tenant';
 
     document.getElementById('s7-movein-confirmed-text').textContent = `Move-in scheduled for ${formatted}`;
     document.getElementById('s7-movein-confirmed').style.display = 'inline-flex';
@@ -8695,7 +8942,15 @@ available in the Post-Lease Hub and this chat thread.`
       activeLease.moveInConfirmed = true;
       activeLease.moveInDateLabel = formatted;
       activeLease.listedByAgent = listedByAgent;
-      activeLease.tenantName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Tenant';
+      activeLease.tenantName = tenantNameForMoveIn;
+    }
+
+    // Shared cross-account lease record: maintown_app_state.leases[listingId].moveInDate
+    // / moveInStatus, so this is visible on Landlord/Agent dashboards regardless of
+    // which account is currently logged in — and Dual Notification Dispatch, below.
+    if (checkoutListing) {
+      upsertLeaseMoveIn(checkoutListing, dateVal, formatted, tenantNameForMoveIn);
+      dispatchMoveInNotifications(checkoutListing, tenantNameForMoveIn, formatted);
     }
 
     // Auto-Debit Schedule: tied to the move-in date. Month 1 was already paid upfront
@@ -8721,15 +8976,14 @@ available in the Post-Lease Hub and this chat thread.`
     // messaging is now open.
     if (checkoutListing) {
       const landlordConv = activateLandlordDirectChat(checkoutListing);
-      const tenantName = (activeLease && activeLease.tenantName) || (document.getElementById('reg-fullname')?.value || '').trim() || 'Tenant';
       if (landlordConv) {
         pushPlatformNotification('landlord', 'message', 'Move-In Confirmed',
-          `Move-in confirmed! ${tenantName} has activated their lease for ${propertyTitle}. Direct chat is now open.`,
+          `Move-in confirmed! ${tenantNameForMoveIn} has activated their lease for ${propertyTitle}. Direct chat is now open.`,
           { screen: 'screen-messages', convId: landlordConv.id }, 'MOVE_IN_CONFIRMED', {
             metadata: {
               propertyTitle,
               leaseStart: formatted,
-              tenantName,
+              tenantName: tenantNameForMoveIn,
               convId: landlordConv.id
             }
           });
@@ -8816,6 +9070,8 @@ available in the Post-Lease Hub and this chat thread.`
         ? `Digitally executed — awaiting landlord countersignature`
         : `Digitally signed — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
     document.getElementById('s7-movein-date').value = '';
+    document.getElementById('s7-movein-time-start').value = '';
+    document.getElementById('s7-movein-time-end').value = '';
     document.getElementById('s7-movein-confirmed').style.display = 'none';
     renderAutoDebitSchedule();
     renderStageTracker();
@@ -9001,6 +9257,12 @@ available in the Post-Lease Hub and this chat thread.`
     prMonthsPaid = Math.min(12, prMonthsPaid + 1);
 
     showToast(`Payment of ${prFormat(prSelectedRent)} received via ${methodLabel} — 100% Escrow Guarantee`);
+
+    // Automated Transaction Generation on Settlement: this monthly rent
+    // payment settles straight to the Landlord who owns the lease.
+    if (activeLease) {
+      recordPayout({ listing: activeLease, landlordAmount: prSelectedRent, listingTitle: propertyTitle });
+    }
 
     // Notification Trigger: mirrors the existing Escrow Funds Received alert pattern.
     ['landlord', 'agent'].forEach(forRole => {
@@ -9628,6 +9890,17 @@ available in the Post-Lease Hub and this chat thread.`
       inspections: [],
       notifications: [],
       chats: [],
+      // Auto-provisioned Landlord accounts (Agent-listing flow), keyed by landlord id.
+      users: {},
+      // Lease records keyed by listingId — tracks move-in scheduling status
+      // (moveInDate / moveInStatus) so it's visible across Landlord/Agent
+      // dashboards regardless of which account is currently logged in.
+      leases: [],
+      // Per-recipient settlement ledger (Transaction & Payout History modal).
+      // Every entry is keyed to whichever account it was actually disbursed
+      // to (landlordId and/or agentId), so the modal can filter dynamically
+      // by the active session user instead of showing static demo data.
+      payouts: [],
       // ---- MainTown AI Model B revenue ledger: cumulative one-time AI fees
       // collected at checkout (Risk & Flex Scoring on rentals, Title Vetting &
       // Smart Escrow on land/property purchases). ----
@@ -9639,7 +9912,11 @@ available in the Post-Lease Hub and this chat thread.`
   function loadAppState() {
     try {
       const raw = localStorage.getItem('maintown_app_state');
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        // Backfill any keys added since this session's state was first saved
+        // (e.g. `leases`, `users`, `payouts`) so older stored state doesn't break new features.
+        return Object.assign(defaultAppState(), JSON.parse(raw));
+      }
     } catch (e) {}
     const fresh = defaultAppState();
     saveAppState(fresh);
@@ -9649,6 +9926,266 @@ available in the Post-Lease Hub and this chat thread.`
     try { localStorage.setItem('maintown_app_state', JSON.stringify(state)); } catch (e) {}
   }
   let appState = loadAppState();
+
+  // ==================================================================
+  // ---- Per-Landlord / Per-Agent Settlement Ledger (maintown_app_state.payouts) ----
+  // Resolves a human-readable "bank account on file" label for whoever a
+  // payout is being disbursed to. Falls back to a generic label when no
+  // settlement bank has been recorded yet (e.g. a still-PENDING_CLAIM
+  // auto-provisioned Landlord, or an Agent — no bank-on-file modeling exists
+  // for Agents yet) rather than inventing account details.
+  // ==================================================================
+  function resolveSettlementAccountLabel(userId) {
+    const rec = userId ? appState.users[userId] : null;
+    if (rec && rec.settlementBank && rec.settlementBank.accountNumber) {
+      const acct = String(rec.settlementBank.accountNumber);
+      return `${rec.settlementBank.bankName || 'Bank'} •••• ${acct.slice(-4)}`;
+    }
+    return 'Bank account on file';
+  }
+
+  // Appends one payout entry per actual recipient (Landlord and/or Agent) of
+  // a completed lease/purchase settlement or commission disbursement.
+  // `listing` supplies ownership (ownerId/agentId); `landlordAmount` and
+  // `agentAmount` are each optional — only recipients with a positive amount
+  // get a ledger entry, and each entry is stamped with only its own
+  // recipient id so per-user filtering in the Payout History modal never
+  // leaks one party's settlement into the other's view.
+  function recordPayout({ listing, landlordAmount, agentAmount, listingTitle }) {
+    appState = loadAppState();
+    if (!Array.isArray(appState.payouts)) appState.payouts = [];
+    const ts = Date.now();
+    const title = listingTitle || (listing && listing.title) || null;
+    const listingId = listing && listing.id != null ? listing.id : null;
+    let added = false;
+    if (listing && listing.ownerId && landlordAmount > 0) {
+      appState.payouts.push({
+        id: 'tx_' + ts + '_l' + Math.floor(Math.random() * 1000),
+        landlordId: listing.ownerId,
+        agentId: null,
+        listingId, listingTitle: title,
+        amount: landlordAmount,
+        bankAccount: resolveSettlementAccountLabel(listing.ownerId),
+        status: 'DISBURSED',
+        timestamp: ts
+      });
+      added = true;
+    }
+    if (listing && listing.agentId && agentAmount > 0) {
+      appState.payouts.push({
+        id: 'tx_' + ts + '_a' + Math.floor(Math.random() * 1000),
+        landlordId: null,
+        agentId: listing.agentId,
+        listingId, listingTitle: title,
+        amount: agentAmount,
+        bankAccount: resolveSettlementAccountLabel(listing.agentId),
+        status: 'DISBURSED',
+        timestamp: ts
+      });
+      added = true;
+    }
+    if (added) {
+      saveAppState(appState);
+      window.dispatchEvent(new Event('maintown_state_updated'));
+    }
+  }
+
+  // ==================================================================
+  // ---- Agent-Landlord Auto-Provisioning, Claim Account & Direct
+  // Settlement (maintown_app_state.users) ----
+  // ==================================================================
+  function generateTempCode() {
+    return 'MT-' + String(Math.floor(100000 + Math.random() * 900000));
+  }
+  function normalizeContact(v) { return (v || '').trim().toLowerCase(); }
+
+  // Looks up an existing Landlord by email or phone (case-insensitive email match).
+  function findLandlordUserByContact(email, phone) {
+    const emailKey = normalizeContact(email);
+    const phoneKey = (phone || '').trim();
+    return Object.values(appState.users).find(u =>
+      u.role === 'landlord' && (
+        (emailKey && normalizeContact(u.email) === emailKey) ||
+        (phoneKey && u.phone === phoneKey)
+      )
+    ) || null;
+  }
+
+  // Finds-or-creates the Landlord profile for an Agent-uploaded listing. Returns
+  // the (possibly newly provisioned) Landlord user record.
+  function provisionLandlord(name, phone, email, bankAccountNumber, bankName) {
+    const existing = findLandlordUserByContact(email, phone);
+    if (existing) {
+      // Keep settlement bank details current if the agent supplied new ones.
+      existing.settlementBank = { accountNumber: bankAccountNumber, bankName: bankName };
+      saveAppState(appState);
+      return { record: existing, isNew: false };
+    }
+    const id = 'landlord_' + Date.now();
+    const record = {
+      id, name, phone, email: normalizeContact(email), role: 'landlord',
+      status: 'PENDING_CLAIM',
+      tempCode: generateTempCode(),
+      settlementBank: { accountNumber: bankAccountNumber, bankName: bankName },
+      walletPin: null,
+      escrowLedger: [],
+      welcomeAlerts: [],
+      createdAt: Date.now()
+    };
+    // Simulated welcome alert (SMS/WhatsApp/Email) — logged on the record itself
+    // and surfaced to the Agent via toast, since there's no real messaging rail here.
+    record.welcomeAlerts.push({
+      channel: 'SMS/WhatsApp/Email',
+      message: `Welcome to MainTown Realty, ${name}! Your listing is live. Log in with ${record.email} and temp code ${record.tempCode} to claim your Landlord account and set up settlement.`,
+      sentAt: Date.now()
+    });
+    appState.users[id] = record;
+    saveAppState(appState);
+    window.dispatchEvent(new Event('maintown_state_updated'));
+    return { record, isNew: true };
+  }
+
+  // ==================================================================
+  // ---- Dual Notification for Agent-Managed Move-In Dates ----
+  // ==================================================================
+
+  // Upserts `maintown_app_state.leases[listingId]`'s move-in fields, keeping a
+  // shared, cross-account record of where each lease's move-in stands —
+  // independent of whichever single account happens to be logged in right now.
+  function upsertLeaseMoveIn(listing, moveInDate, moveInDateLabel, tenantName) {
+    if (!listing) return null;
+    let lease = appState.leases.find(l => l.listingId === listing.id);
+    if (!lease) {
+      lease = { listingId: listing.id };
+      appState.leases.push(lease);
+    }
+    Object.assign(lease, {
+      propertyTitle: listing.title,
+      ownerId: listing.ownerId || null,
+      agentId: listing.agentId || null,
+      listedByRole: listing.listedByRole || (listing.listedBy === 'agent' ? 'AGENT' : 'LANDLORD'),
+      tenantName: tenantName || 'Tenant',
+      moveInDate: moveInDate,
+      moveInDateLabel: moveInDateLabel,
+      moveInStatus: 'SCHEDULED',
+      updatedAt: Date.now()
+    });
+    saveAppState(appState);
+    window.dispatchEvent(new Event('maintown_state_updated'));
+    return lease;
+  }
+
+  // Dispatches the "Move-In Date Confirmed" notification per the listing's
+  // ownership routing: Agent-managed listings notify BOTH the assigned Agent
+  // and the linked/auto-onboarded Landlord; direct-Landlord listings notify
+  // only that Landlord. Routes to the specific account id (forUserId) so a
+  // provisioned-but-still-PENDING_CLAIM Landlord's alert is waiting for them
+  // the moment they claim their account, not just whoever is viewing the
+  // Landlord role right now.
+  function dispatchMoveInNotifications(listing, tenantName, dateLabel) {
+    if (!listing) return;
+    const propertyTitle = listing.title || 'this property';
+    const message = `Tenant ${tenantName} selected a move-in date for ${propertyTitle} on ${dateLabel}.`;
+    const isAgentManaged = listing.listedByRole
+      ? listing.listedByRole === 'AGENT'
+      : listing.listedBy === 'agent';
+    const route = { screen: 'screen-post-lease' };
+    const details = { metadata: { propertyTitle, tenantName, moveInDate: dateLabel } };
+
+    if (isAgentManaged) {
+      const agentId = listing.agentId || null;
+      pushPlatformNotification('agent', 'message', 'Move-In Date Confirmed', message, route, 'MOVE_IN_DATE_CONFIRMED', details, agentId);
+      const landlordId = listing.ownerId || null;
+      pushPlatformNotification('landlord', 'message', 'Move-In Date Confirmed', message, route, 'MOVE_IN_DATE_CONFIRMED', details, landlordId);
+    } else {
+      const landlordId = listing.ownerId || null;
+      pushPlatformNotification('landlord', 'message', 'Move-In Date Confirmed', message, route, 'MOVE_IN_DATE_CONFIRMED', details, landlordId);
+    }
+  }
+
+
+  const claimLandlordModal = document.getElementById('claim-landlord-modal');
+  let claimingLandlordId = null;
+
+  function showClaimStep1Error(msg) {
+    document.getElementById('claim-step1-error-text').textContent = msg;
+    document.getElementById('claim-step1-error').classList.add('show');
+  }
+  function hideClaimStep1Error() { document.getElementById('claim-step1-error').classList.remove('show'); }
+  function showClaimStep2Error(msg) {
+    document.getElementById('claim-step2-error-text').textContent = msg;
+    document.getElementById('claim-step2-error').classList.add('show');
+  }
+  function hideClaimStep2Error() { document.getElementById('claim-step2-error').classList.remove('show'); }
+
+  function openClaimLandlordModal() {
+    claimingLandlordId = null;
+    document.getElementById('claim-email').value = '';
+    document.getElementById('claim-temp-code').value = '';
+    document.getElementById('claim-new-password').value = '';
+    document.getElementById('claim-confirm-password').value = '';
+    document.getElementById('claim-wallet-pin').value = '';
+    document.getElementById('claim-confirm-pin').value = '';
+    hideClaimStep1Error();
+    hideClaimStep2Error();
+    document.getElementById('claim-step-1').style.display = 'block';
+    document.getElementById('claim-step-2').style.display = 'none';
+    claimLandlordModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('claim-landlord-link').addEventListener('click', openClaimLandlordModal);
+  document.getElementById('claim-cancel-btn-1').addEventListener('click', () => claimLandlordModal.classList.remove('open'));
+  document.getElementById('claim-cancel-btn-2').addEventListener('click', () => claimLandlordModal.classList.remove('open'));
+
+  document.getElementById('claim-verify-btn').addEventListener('click', () => {
+    hideClaimStep1Error();
+    const email = normalizeContact(document.getElementById('claim-email').value);
+    const code = document.getElementById('claim-temp-code').value.trim().toUpperCase();
+    const match = Object.values(appState.users).find(u =>
+      u.role === 'landlord' && normalizeContact(u.email) === email && (u.tempCode || '').toUpperCase() === code
+    );
+    if (!match) {
+      showClaimStep1Error('No pending Landlord account matches that email and temp code.');
+      return;
+    }
+    if (match.status === 'ACTIVE') {
+      showClaimStep1Error('This account has already been claimed. Please log in with your password instead.');
+      return;
+    }
+    claimingLandlordId = match.id;
+    document.getElementById('claim-step-1').style.display = 'none';
+    document.getElementById('claim-step-2').style.display = 'block';
+  });
+
+  document.getElementById('claim-activate-btn').addEventListener('click', () => {
+    hideClaimStep2Error();
+    const record = appState.users[claimingLandlordId];
+    if (!record) { showClaimStep2Error('Something went wrong — please restart the claim process.'); return; }
+    const pw = document.getElementById('claim-new-password').value;
+    const pwConfirm = document.getElementById('claim-confirm-password').value;
+    const pin = document.getElementById('claim-wallet-pin').value;
+    const pinConfirm = document.getElementById('claim-confirm-pin').value;
+    if (!pw || pw.length < 6) { showClaimStep2Error('Password must be at least 6 characters.'); return; }
+    if (pw !== pwConfirm) { showClaimStep2Error('Passwords do not match.'); return; }
+    if (!/^\d{6}$/.test(pin)) { showClaimStep2Error('Wallet PIN must be exactly 6 digits.'); return; }
+    if (pin !== pinConfirm) { showClaimStep2Error('PINs do not match.'); return; }
+
+    // Demo mode: password/PIN are stored as-entered on the local demo record
+    // (no real auth backend here) purely to flip the account to ACTIVE.
+    record.hasPassword = true;
+    record.walletPin = pin;
+    record.status = 'ACTIVE';
+    saveAppState(appState);
+    window.dispatchEvent(new Event('maintown_state_updated'));
+
+    claimLandlordModal.classList.remove('open');
+    showToast('Landlord account activated! Welcome to MainTown Realty.');
+
+    // Log the newly claimed Landlord straight into their dashboard (reuses the
+    // same session/navigation plumbing as the pre-onboarded demo accounts).
+    loginAsDemoUser({ id: record.id, name: record.name, email: record.email, role: 'landlord' });
+  });
+
 
   // ==================================================================
   // ---- MainTown AI Model B Revenue Ledger ----
@@ -9770,6 +10307,9 @@ available in the Post-Lease Hub and this chat thread.`
     const savedUser = loadCurrentUser();
     if (savedUser && DEMO_USERS[savedUser.id]) {
       loginAsDemoUser(DEMO_USERS[savedUser.id]);
+    } else if (savedUser && appState.users[savedUser.id] && appState.users[savedUser.id].status === 'ACTIVE') {
+      const u = appState.users[savedUser.id];
+      loginAsDemoUser({ id: u.id, name: u.name, email: u.email, role: 'landlord' });
     }
   }
 
