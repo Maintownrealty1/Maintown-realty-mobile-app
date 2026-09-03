@@ -2504,6 +2504,10 @@
     <button type="button" id="s6-authorize-btn" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
       <i data-lucide="shield-check" class="w-4 h-4"></i> Authorize &amp; Pay
     </button>
+    <!-- Live "what's still blocking checkout" hint — surfaces exactly why
+         Authorize & Pay is disabled instead of leaving a silently greyed-out
+         button. Populated by updateAuthorizeState(). -->
+    <p class="s5-list-sub" id="s6-authorize-blocked-notice" style="display:none; text-align:center; margin: 8px 0 0; color:#f0abfc;"></p>
   </div>
 
   <!-- ---- Success state: shown after OTP verification ---- -->
@@ -6185,22 +6189,46 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function updateAuthorizeState() {
     const btn = document.getElementById('s6-authorize-btn');
+    const notice = document.getElementById('s6-authorize-blocked-notice');
     // Action Disabling: lock "Authorize & Pay" if the listing was marked
     // SOLD/RENTED by another role while this checkout screen stayed open.
     if (isListingUnavailable(checkoutListing)) {
       btn.disabled = true;
+      if (notice) notice.style.display = 'none';
       return;
     }
     let landOk = true;
+    let landReason = '';
     if (checkoutListing && checkoutListing.type === 'land') {
       const box = document.getElementById('s6-signoff-box');
       const scrolledToBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 6;
       const signInput = document.getElementById('s6-landsign-input');
       signInput.disabled = !scrolledToBottom;
-      const signed = signInput.value.trim() === 'I agree to the Land Allocation & Milestone Terms';
+      // Bug fix: the phrase match was case-sensitive and whitespace-exact,
+      // so a capital/lowercase slip or a double space silently left the
+      // button disabled with no feedback. Normalize both sides (collapse
+      // whitespace, ignore case) before comparing.
+      const normalize = (s) => s.trim().replace(/\s+/g, ' ').toLowerCase();
+      const signed = normalize(signInput.value) === normalize('I agree to the Land Allocation & Milestone Terms');
       landOk = scrolledToBottom && signed;
+      if (!scrolledToBottom) landReason = 'Scroll the Land Allocation & Milestone Sign-Off box to the bottom to unlock the signature field.';
+      else if (!signed) landReason = 'Type the exact phrase to sign the Land Allocation & Milestone Terms.';
     }
-    btn.disabled = !(landOk && checkoutAgreementUploaded);
+    const allOk = landOk && checkoutAgreementUploaded;
+    btn.disabled = !allOk;
+    if (notice) {
+      if (allOk) {
+        notice.style.display = 'none';
+      } else if (landReason) {
+        notice.textContent = landReason;
+        notice.style.display = 'block';
+      } else if (!checkoutAgreementUploaded) {
+        notice.textContent = 'Sign the agreement above to unlock Authorize & Pay.';
+        notice.style.display = 'block';
+      } else {
+        notice.style.display = 'none';
+      }
+    }
   }
 
   // Shows/hides the "no longer available" banner on the Checkout / Property
