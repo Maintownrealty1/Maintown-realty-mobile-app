@@ -763,6 +763,12 @@
   }
   .s5-action-btn:hover { border-color: #334155; }
   .s5-action-btn.primary { background: linear-gradient(90deg, #9333ea, #7e22ce); border: none; color: #fff; }
+  /* ---- Inspection-First Checkout Gate: locked "View Payment Options" state
+       (Land/Property Details) until the ₦5,000 AI Assessment fee is paid ---- */
+  .s5-action-btn.land-pay-btn.locked {
+    background: rgba(245,158,11,0.08); border: 1px dashed rgba(245,158,11,0.4); color: #fbbf24;
+  }
+  .s5-action-btn.land-pay-btn.locked:hover { border-color: rgba(245,158,11,0.7); }
 
   /* ---- Walkthrough Video Preview (Land / Property Purchase cards) ---- */
   .s5-video-preview-btn {
@@ -3416,6 +3422,15 @@
       </div>
     </div>
 
+    <!-- Inspection-First Checkout Gate: shown whenever this listing has not yet
+         had a satisfied physical inspection on file. Mirrors the equivalent
+         copy in the Rent flow's Post-Inspection Decision Modal. Hidden once
+         hasSatisfiedInspectionForListing() returns true for this listing. -->
+    <div class="s5-notice-box" id="lp-inspection-gate-notice" style="display:none;">
+      <i data-lucide="shield-alert" class="w-5 h-5"></i>
+      <p>A physical inspection must be scheduled and marked <strong>Satisfied</strong> before final checkout &amp; payment authorization unlocks. Tapping below starts that inspection request.</p>
+    </div>
+
     <button type="button" id="lp-continue-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Continue to Checkout</button>
     <button type="button" id="lp-cancel-btn" class="btn-secondary">Cancel</button>
   </div>
@@ -4933,6 +4948,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     return u ? u.id : null;
   }
 
+  // Approval Authority routing (Inspection & Chat Thread Unlock Logic): the
+  // recipient id returned here is whoever must accept/decline the inspection
+  // request and confirm the chat unlock — listing.agentId for AGENT-listed
+  // properties, listing.ownerId (the direct Landlord) otherwise. Previously
+  // this always returned listing.ownerId regardless of role, which routed
+  // Agent-listed inspection requests (and their agent_id stamp) to the
+  // Landlord's account instead of the actual Agent's.
   function getListingOwnership(listing) {
     const role = (listing && listing.listedByRole)
       ? listing.listedByRole
@@ -4940,9 +4962,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // No hardcoded fallback: a listing's ownership is data attached at
     // creation time (see DEFAULT_LISTINGS and the listing-creation handlers
     // below, which now always stamp ownerId/agentId). If a legacy record
-    // truly has neither, ownership is unknown rather than silently assigned
-    // to whichever demo landlord/agent used to be hardcoded here.
-    const ownerId = (listing && listing.ownerId) ? listing.ownerId : null;
+    // truly has neither the expected id for its role, ownership is unknown
+    // rather than silently assigned to whichever demo landlord/agent used
+    // to be hardcoded here.
+    const ownerId = role === 'AGENT'
+      ? ((listing && listing.agentId) ? listing.agentId : null)
+      : ((listing && listing.ownerId) ? listing.ownerId : null);
     return { role, ownerId };
   }
 
@@ -4997,6 +5022,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     });
     document.getElementById('screening-modal')?.classList.remove('open');
     showToast('Credit screening complete — flexible payment options unlocked');
+    // Refresh the Land/Property feed so any locked "View Payment Options"
+    // buttons immediately redraw in their unlocked state — only when the
+    // feed currently on screen is actually the Land feed (this same gate
+    // also fires from Rent-listing inspection requests, which share no
+    // land-pay-btn markup to redraw).
+    if (typeof renderLandFeed === 'function' && document.querySelector('#s5-listing-feed .land-pay-btn')) {
+      try { renderLandFeed(); } catch (e) {}
+    }
     const action = screeningPendingAction;
     screeningPendingAction = null;
     if (action) action();
@@ -5269,7 +5302,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
           <p class="s5-card-price">${formatMoney(p.totalPrice, 'ngn')} <span>total price</span></p>
           <button type="button" class="s5-action-btn primary site-inspect-btn" data-listing-id="${p.id}" style="width:100%;"><i data-lucide="calendar-check" class="w-4 h-4"></i>Schedule Site Inspection</button>
-          <button type="button" class="s5-action-btn land-pay-btn" data-listing-id="${p.id}" style="width:100%; margin-top:8px;"><i data-lucide="layers" class="w-4 h-4"></i>View Payment Options</button>
+          <button type="button" class="s5-action-btn land-pay-btn${screeningCompleted ? '' : ' locked'}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;">${screeningCompleted
+            ? '<i data-lucide="layers" class="w-4 h-4"></i>View Payment Options'
+            : '<i data-lucide="lock" class="w-4 h-4"></i>View Payment Options — Pay ₦5,000 AI Fee to Unlock'}</button>
         </div>
       </div>`;
     }).join('');
@@ -6914,10 +6949,29 @@ This voucher is auto-generated and serves as proof of settlement.`;
   const landPaymentModal = document.getElementById('land-payment-modal');
   let landModalListing = null;
   let landModalMode = 'outright';
+  let landModalInspectionSatisfied = false;
+
+  // Inspection-First Checkout Gate: true only once a physical inspection for
+  // this listing has been marked Satisfied (inspections[].status === 'completed').
+  // Checked by title, matching the rest of the app's listing-lookup convention.
+  function hasSatisfiedInspectionForListing(listing) {
+    if (!listing) return false;
+    return inspections.some(i => i.listingTitle === listing.title && i.status === 'completed');
+  }
 
   function openLandPaymentModal(listing) {
     landModalListing = listing;
     landModalMode = 'outright';
+    landModalInspectionSatisfied = hasSatisfiedInspectionForListing(listing);
+    const continueBtn = document.getElementById('lp-continue-btn');
+    const gateNotice = document.getElementById('lp-inspection-gate-notice');
+    if (landModalInspectionSatisfied) {
+      gateNotice.style.display = 'none';
+      continueBtn.innerHTML = '<i data-lucide="arrow-right-circle" class="w-4 h-4"></i> Continue to Checkout';
+    } else {
+      gateNotice.style.display = 'flex';
+      continueBtn.innerHTML = '<i data-lucide="calendar-check" class="w-4 h-4"></i> Confirm &amp; Schedule Physical Inspection';
+    }
     document.getElementById('lp-property-name').textContent = listing.title;
     document.getElementById('lp-mode-outright').classList.add('active');
     document.getElementById('lp-mode-installment').classList.remove('active');
@@ -6966,6 +7020,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if ((currentUserRole || 'tenant') !== 'tenant') {
       landPaymentModal.classList.remove('open');
       openEscrowStatusModal(landModalListing);
+      return;
+    }
+    // Inspection-First Checkout Gate: no satisfied physical inspection on file
+    // yet for this listing — redirect into the mandatory inspection-booking
+    // flow instead of the final payment/checkout screen. Screening is already
+    // paid by this point (View Payment Options itself is screening-gated),
+    // so requireScreening() here just resolves straight through.
+    if (!landModalInspectionSatisfied) {
+      landPaymentModal.classList.remove('open');
+      requireScreening(() => openInspectionModal(landModalListing));
       return;
     }
     const fee = Math.round(landModalListing.totalPrice * 0.02);
