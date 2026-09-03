@@ -2470,20 +2470,23 @@
       <p>Funds are held securely in escrow and only released to the landlord after digital handover sign-off.</p>
     </div>
 
-    <!-- Tenancy Agreement Execution (in-app digital signature, mandatory pre-payment) -->
-    <p class="s5-section-label"><i data-lucide="file-signature" class="w-4 h-4 text-purple-400"></i>Execute Tenancy Agreement</p>
+    <!-- Agreement Execution (in-app digital signature, mandatory pre-payment) —
+         dynamically swapped between the Tenancy Agreement (rent) and the Land
+         Purchase Agreement (land/outright & installment sale) based on
+         listing.type in openCheckout(). -->
+    <p class="s5-section-label" id="s6-agreement-section-label"><i data-lucide="file-signature" class="w-4 h-4 text-purple-400"></i><span id="s6-agreement-title-text">Execute Tenancy Agreement</span></p>
     <div class="agreement-preview-card">
       <div class="agreement-preview-row">
         <i data-lucide="file-text" class="w-6 h-6 text-purple-400"></i>
         <div>
-          <p class="s5-list-title" style="margin:0;">Tenancy Agreement.pdf</p>
-          <p class="s5-list-sub" style="margin:0;">Standard MainTown Realty lease terms</p>
+          <p class="s5-list-title" style="margin:0;" id="s6-agreement-doc-name">Tenancy_Agreement.pdf</p>
+          <p class="s5-list-sub" style="margin:0;" id="s6-agreement-doc-sub">Standard MainTown Realty lease terms</p>
         </div>
       </div>
       <div class="agreement-sig-row">
         <div class="agreement-sig-block">
-          <p class="agreement-sig-label">Landlord Signature</p>
-          <div class="agreement-sig-preview landlord-sig">✓ Pre-attached</div>
+          <p class="agreement-sig-label" id="s6-agreement-cosign-label">Landlord Signature</p>
+          <div class="agreement-sig-preview landlord-sig" id="s6-agreement-cosign-status">✓ Pre-attached</div>
         </div>
         <div class="agreement-sig-block">
           <p class="agreement-sig-label">Your Signature</p>
@@ -3603,7 +3606,7 @@
     <div class="modal-icon-wrap">
       <i data-lucide="pen-tool" class="w-6 h-6 text-purple-400"></i>
     </div>
-    <h2 class="modal-title">Sign Tenancy Agreement</h2>
+    <h2 class="modal-title" id="signature-modal-title">Sign Tenancy Agreement</h2>
     <p class="modal-sub">Draw your signature below, or switch to a typed signature</p>
 
     <div class="sig-tabs">
@@ -6247,8 +6250,26 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const signoffSection = document.getElementById('s6-landsignoff-section');
     const signInput = document.getElementById('s6-landsign-input');
     const signoffBox = document.getElementById('s6-signoff-box');
+    const isLand = listing.type === 'land';
 
-    if (listing.type === 'land') {
+    // ---- Dynamic Contract Card Routing ----
+    // Swaps the agreement execution card between the Land Purchase Agreement
+    // (land/outright & installment sale) and the Tenancy Agreement (rent),
+    // based on listing.type — the card, its filename, subtitle, and the
+    // co-signer label ("Seller" for a land sale vs "Landlord" for a rental)
+    // all follow the same branch, mirroring the Purchase/Rent Breakdown
+    // label swap directly below.
+    document.getElementById('s6-agreement-title-text').textContent = isLand ? 'Execute Land Purchase Agreement' : 'Execute Tenancy Agreement';
+    document.getElementById('s6-agreement-doc-name').textContent = isLand ? 'Land_Purchase_Agreement.pdf' : 'Tenancy_Agreement.pdf';
+    document.getElementById('s6-agreement-doc-sub').textContent = isLand ? 'Standard MainTown Land Allocation & Title Transfer Terms' : 'Standard MainTown Realty lease terms';
+    document.getElementById('s6-agreement-cosign-label').textContent = isLand ? 'Seller Signature' : 'Landlord Signature';
+    // Pre-attached status: same demo convention as before (the counter-party's
+    // signature ships pre-attached on every listing) — driven off the
+    // listing's own signature flag when present, defaulting to pre-attached.
+    const cosignPreattached = listing.landlordSignature !== 'Pending';
+    document.getElementById('s6-agreement-cosign-status').textContent = cosignPreattached ? '✓ Pre-attached' : 'Pending';
+
+    if (isLand) {
       signoffSection.style.display = 'block';
       signInput.value = '';
       signInput.disabled = true;
@@ -6404,6 +6425,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     setSigMode('draw');
     sigTypeInput.value = '';
     sigHasStrokes = false;
+    // Mirrors the same listing.type branch used to swap the agreement card
+    // itself — keeps the signature modal's title in sync with whichever
+    // document (Tenancy vs Land Purchase Agreement) is actually being signed.
+    document.getElementById('signature-modal-title').textContent =
+      (checkoutListing && checkoutListing.type === 'land') ? 'Sign Land Purchase Agreement' : 'Sign Tenancy Agreement';
     signatureModal.classList.add('open');
     resizeSigCanvas();
     sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
