@@ -3554,11 +3554,12 @@
       <video id="wt-video-el" controls playsinline preload="metadata" poster=""></video>
     </div>
 
-    <button type="button" id="wt-book-inspection-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:6px;">
-      <i data-lucide="calendar-check" class="w-4 h-4"></i> Book Physical Inspection
-    </button>
-    <button type="button" id="wt-cart-fee-btn" class="btn-secondary" style="margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:6px;">
-      <i data-lucide="shopping-bag" class="w-4 h-4"></i><span id="wt-cart-fee-label">Add to Inspection Cart</span>
+    <!-- CTA Consolidation: "Book Physical Inspection" and "Add to Inspection Cart"
+         merged into the single "View Payment Options" CTA below — opens the same
+         consolidated drawer used everywhere else instead of a separate quick-action
+         footer, so there's only ever one entry point per listing. -->
+    <button type="button" id="wt-payment-options-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:6px;">
+      <i data-lucide="layers" class="w-4 h-4"></i> View Payment Options
     </button>
     <button type="button" id="wt-close-btn" class="btn-secondary">Close</button>
   </div>
@@ -3649,6 +3650,62 @@
     </button>
     <button type="button" id="pin-simulate-btn" class="btn-secondary" style="margin-bottom: 0;">Simulate Verification (1234)</button>
     <button type="button" id="pin-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
+<!-- ==================================================================
+     Consolidated Payment Options Drawer — the single destination for the
+     "View Payment Options" CTA on every property card (Search Feed & Land
+     Grid). Presents the unified, step-by-step options:
+       Option A: Schedule Site Inspection (Pay AI Inspection Fee / Hold Escrow)
+       Option B: Direct Purchase / Outright Checkout (land) or
+                 Add to Inspection Cart (rent)
+       Option C: Flexible Payment Plan (land, when enabled for the listing)
+     Selecting an option hands off into the existing, unchanged flows
+     (Inspection Booking Modal, Land Payment/Installment Modal, or Cart).
+     ================================================================== -->
+<div id="payment-options-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap"><i data-lucide="layers" class="w-6 h-6 text-purple-400"></i></div>
+    <h2 class="modal-title">Payment Options</h2>
+    <p class="modal-sub" id="po-property-name">Choose how you'd like to proceed</p>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom: 6px;">
+      <button type="button" class="pay-option po-option-btn" id="po-option-inspect" data-option="inspect">
+        <div class="pay-option-icon-wrap bg-purple-500/10"><i data-lucide="calendar-check" class="w-5 h-5 text-purple-400"></i></div>
+        <div class="pay-option-text">
+          <p class="pay-option-label">A · Schedule Site Inspection</p>
+          <p class="pay-option-detail">Pay the AI Inspection Fee &amp; hold escrow for your visit</p>
+        </div>
+        <div class="pay-option-check" style="display:flex;"><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></div>
+      </button>
+      <button type="button" class="pay-option po-option-btn" id="po-option-outright" data-option="outright">
+        <div class="pay-option-icon-wrap bg-blue-500/10"><i data-lucide="banknote" class="w-5 h-5 text-blue-400"></i></div>
+        <div class="pay-option-text">
+          <p class="pay-option-label">B · Direct Purchase / Outright Checkout</p>
+          <p class="pay-option-detail">Pay the full amount plus agency &amp; processing fees</p>
+        </div>
+        <div class="pay-option-check" style="display:flex;"><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></div>
+      </button>
+      <button type="button" class="pay-option po-option-btn" id="po-option-installment" data-option="installment">
+        <div class="pay-option-icon-wrap bg-emerald-500/10"><i data-lucide="calendar-range" class="w-5 h-5 text-emerald-400"></i></div>
+        <div class="pay-option-text">
+          <p class="pay-option-label">C · Flexible Payment Plan</p>
+          <p class="pay-option-detail">12-month installment plan with monthly auto-debit</p>
+        </div>
+        <div class="pay-option-check" style="display:flex;"><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></div>
+      </button>
+      <button type="button" class="pay-option po-option-btn" id="po-option-cart" data-option="cart">
+        <div class="pay-option-icon-wrap bg-blue-500/10"><i data-lucide="shopping-bag" class="w-5 h-5 text-blue-400"></i></div>
+        <div class="pay-option-text">
+          <p class="pay-option-label">B · Add to Inspection Cart</p>
+          <p class="pay-option-detail">Save this listing and batch it with other inspection requests</p>
+        </div>
+        <div class="pay-option-check" style="display:flex;"><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></div>
+      </button>
+    </div>
+
+    <button type="button" id="po-cancel-btn" class="btn-secondary" style="margin-top:6px;">Cancel</button>
   </div>
 </div>
 
@@ -3753,7 +3810,7 @@
       <span class="site-video-chapter"><i data-lucide="milestone" class="w-3 h-3"></i>Access Roads</span>
     </div>
 
-    <button type="button" id="sv-schedule-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Schedule Site Inspection</button>
+    <button type="button" id="sv-schedule-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;"><i data-lucide="layers" class="w-4 h-4"></i> View Payment Options</button>
     <button type="button" id="sv-close-btn" class="btn-secondary">Close</button>
   </div>
 </div>
@@ -5750,9 +5807,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <p class="s5-card-price">${currency === 'usd' ? p.usd : p.ngn} <span>rent</span></p>
           <div class="s5-card-actions">
             <button type="button" class="s5-action-btn wt-btn" data-title="${p.title}"><i data-lucide="video" class="w-4 h-4"></i>Virtual Walkthrough</button>
-            <button type="button" class="s5-action-btn primary bv-btn${unavailable ? ' status-disabled' : ''}" data-title="${p.title}" ${unavailable ? 'disabled' : ''}><i data-lucide="calendar" class="w-4 h-4"></i>Book Inspection</button>
           </div>
-          <button type="button" class="s5-action-btn cart-add-btn${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;" ${unavailable ? 'disabled' : ''}><i data-lucide="shopping-bag" class="w-4 h-4"></i>Add to Inspection Cart</button>
+          <!-- CTA Consolidation: "Book Inspection" and "Add to Inspection Cart" have been
+               merged into the single "View Payment Options" CTA below, which opens a
+               consolidated drawer offering Schedule Inspection / Add to Inspection Cart. -->
+          <button type="button" class="s5-action-btn primary payment-options-btn${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;" ${unavailable ? 'disabled' : ''}><i data-lucide="layers" class="w-4 h-4"></i>View Payment Options</button>
           ${unavailable ? `<p class="s5-unavailable-notice rented"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i>This property is no longer available as it has been successfully RENTED.</p>` : ''}
         </div>
       </div>`;
@@ -5786,8 +5845,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <p class="s5-card-title">${p.title}</p>
           <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
           <p class="s5-card-price">${formatMoney(p.totalPrice, 'ngn')} <span>total price</span></p>
-          <button type="button" class="s5-action-btn primary site-inspect-btn${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%;" ${unavailable ? 'disabled' : ''}><i data-lucide="calendar-check" class="w-4 h-4"></i>Schedule Site Inspection</button>
-          <button type="button" class="s5-action-btn land-pay-btn${(screeningCompleted && !unavailable) ? '' : ' locked'}${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;" ${unavailable ? 'disabled' : ''}>${unavailable
+          <!-- CTA Consolidation: the standalone "Schedule Site Inspection" button has been
+               removed. "View Payment Options" is now the single primary CTA on this card — it
+               opens the consolidated Payment Options drawer (Option A: Schedule Site Inspection,
+               Option B: Direct Purchase/Outright Checkout, Option C: Flexible Payment Plan)
+               instead of jumping straight into a single flow. -->
+          <button type="button" class="s5-action-btn primary land-pay-btn${(screeningCompleted && !unavailable) ? '' : ' locked'}${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%;" ${unavailable ? 'disabled' : ''}>${unavailable
             ? '<i data-lucide="lock" class="w-4 h-4"></i>Sold — Unavailable'
             : (screeningCompleted
               ? '<i data-lucide="layers" class="w-4 h-4"></i>View Payment Options'
@@ -5801,11 +5864,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   document.getElementById('s5-listing-feed').addEventListener('click', (e) => {
     const wtBtn = e.target.closest('.wt-btn');
-    const bvBtn = e.target.closest('.bv-btn');
     const landBtn = e.target.closest('.land-pay-btn');
-    const cartBtn = e.target.closest('.cart-add-btn');
+    const paymentOptionsBtn = e.target.closest('.payment-options-btn');
     const videoBtn = e.target.closest('.s5-video-preview-btn');
-    const siteInspectBtn = e.target.closest('.site-inspect-btn');
     const slideNavBtn = e.target.closest('.s5-slide-nav');
     if (slideNavBtn) {
       const listing = landListingsList().find(l => String(l.id) === slideNavBtn.dataset.listingId);
@@ -5822,29 +5883,26 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     if (wtBtn) {
       openWalkthroughModal(wtBtn.dataset.title);
-    } else if (bvBtn) {
-      if (bvBtn.disabled) return;
-      // Phase 1 gate: block inspection scheduling until credit screening is paid.
-      requireScreening(() => openInspectionModal(bvBtn.dataset.title));
     } else if (videoBtn) {
       const listing = landListingsList().find(l => String(l.id) === videoBtn.dataset.listingId);
       if (listing) openSiteVideoModal(listing);
-    } else if (siteInspectBtn) {
-      if (siteInspectBtn.disabled) return;
-      const listing = landListingsList().find(l => String(l.id) === siteInspectBtn.dataset.listingId);
-      // Phase 1 gate + Inspection Approval Circle: same escrow-backed booking
-      // flow used for rentals, generalized to Land/Property Sale listings.
-      if (listing && !isListingUnavailable(listing)) requireScreening(() => openInspectionModal(listing));
     } else if (landBtn) {
       if (landBtn.disabled) return;
       const listing = landListingsList().find(l => String(l.id) === landBtn.dataset.listingId);
       // Phase 1 gate: block lease/land-purchase requests until credit screening is paid,
-      // and never once the listing has already been marked SOLD.
-      if (listing && !isListingUnavailable(listing)) requireScreening(() => openLandPaymentModal(listing));
-    } else if (cartBtn) {
-      if (cartBtn.disabled) return;
-      const listing = rentListings().find(l => String(l.id) === cartBtn.dataset.listingId);
-      if (listing && !isListingUnavailable(listing)) addToCart(listing);
+      // and never once the listing has already been marked SOLD. "View Payment Options"
+      // is the single CTA on Land/Property cards — it opens the consolidated drawer
+      // (Option A: Schedule Site Inspection, Option B: Direct Purchase/Outright
+      // Checkout, Option C: Flexible Payment Plan) instead of one fixed flow.
+      if (listing && !isListingUnavailable(listing)) requireScreening(() => openPaymentOptionsModal(listing));
+    } else if (paymentOptionsBtn) {
+      if (paymentOptionsBtn.disabled) return;
+      const listing = rentListings().find(l => String(l.id) === paymentOptionsBtn.dataset.listingId);
+      // Rent cards: "View Payment Options" opens the same consolidated drawer, scoped
+      // to Option A (Schedule Site Inspection) and Option B (Add to Inspection Cart).
+      // Matches the previous ungated entry point for Add to Cart — screening is only
+      // enforced for the Schedule Inspection sub-option, same as before.
+      if (listing && !isListingUnavailable(listing)) openPaymentOptionsModal(listing);
     }
   });
 
@@ -5870,8 +5928,62 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('sv-video-el').pause();
     siteVideoModal.classList.remove('open');
     const listing = siteVideoListing;
-    if (listing) requireScreening(() => openInspectionModal(listing));
+    // CTA Consolidation: routes into the same consolidated Payment Options
+    // drawer as the card's "View Payment Options" button, rather than jumping
+    // straight into inspection booking — keeps a single funnel everywhere.
+    if (listing) requireScreening(() => openPaymentOptionsModal(listing));
   });
+
+  // ==================================================================
+  // ---- Consolidated Payment Options Drawer ----
+  //      Single destination for the "View Payment Options" CTA on every
+  //      property card. Presents Option A (Schedule Site Inspection),
+  //      Option B (Direct Purchase/Outright Checkout on land, or Add to
+  //      Inspection Cart on rent), and Option C (Flexible Payment Plan,
+  //      land only, when enabled for the listing) — then hands off into
+  //      the existing, unchanged flows for each choice.
+  // ==================================================================
+  const paymentOptionsModal = document.getElementById('payment-options-modal');
+  let poListing = null;
+  let poIsLand = false;
+
+  function openPaymentOptionsModal(listing) {
+    poListing = listing;
+    poIsLand = listing.type === 'land';
+    document.getElementById('po-property-name').textContent = listing.title;
+    document.getElementById('po-option-inspect').style.display = 'flex';
+    document.getElementById('po-option-outright').style.display = poIsLand ? 'flex' : 'none';
+    document.getElementById('po-option-installment').style.display = (poIsLand && listing.installmentEnabled !== false) ? 'flex' : 'none';
+    document.getElementById('po-option-cart').style.display = poIsLand ? 'none' : 'flex';
+    paymentOptionsModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('payment-options-modal').addEventListener('click', (e) => {
+    const optBtn = e.target.closest('.po-option-btn');
+    if (!optBtn || !poListing) return;
+    const opt = optBtn.dataset.option;
+    const listing = poListing;
+    paymentOptionsModal.classList.remove('open');
+    // Action Button Guard: Landlord/Agent never proceeds through their own
+    // tenant-facing checkout — show Verification & Escrow Status instead.
+    if ((currentUserRole || 'tenant') !== 'tenant') {
+      openEscrowStatusModal(listing);
+      return;
+    }
+    if (opt === 'inspect') {
+      requireScreening(() => openInspectionModal(listing));
+    } else if (opt === 'outright' || opt === 'installment') {
+      requireScreening(() => {
+        openLandPaymentModal(listing);
+        if (opt === 'installment') document.getElementById('lp-mode-installment')?.click();
+      });
+    } else if (opt === 'cart') {
+      requireScreening(() => addToCart(listing));
+    }
+  });
+
+  document.getElementById('po-cancel-btn').addEventListener('click', () => paymentOptionsModal.classList.remove('open'));
 
   document.getElementById('s5-search-input').addEventListener('input', (e) => {
     if ((currentUserRole || 'tenant') !== 'tenant') return;
@@ -5889,10 +6001,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
   //      Clicking "Virtual Walkthrough" on any rent listing launches the
   //      pre-uploaded property video immediately — no live-scheduling step,
   //      no holding deposit, and no direct checkout button inside this modal.
-  //      The footer only ever hands off into the standard, unchanged
-  //      Inspection Gate: Pay AI Fee -> View Payment Options ->
-  //      Schedule Physical Inspection -> Inspection Satisfaction Gate ->
-  //      Final Checkout.
+  //      The footer's single "View Payment Options" CTA hands off into the
+  //      same consolidated Payment Options drawer used on every other card
+  //      and modal — no separate quick-action buttons here.
   // ==================================================================
   const walkthroughModal = document.getElementById('walkthrough-modal');
   let walkthroughListing = null;
@@ -5915,17 +6026,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     videoEl.poster = (listing && listing.img) || '';
     videoEl.currentTime = 0;
 
-    updateWtCartFeeButtonLabel();
     walkthroughModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
-  }
-
-  // The cart/fee footer button does double duty exactly like the Land feed's
-  // "View Payment Options" button: shows the AI Fee prompt pre-screening,
-  // and the plain cart action once the Phase 1 gate has been cleared.
-  function updateWtCartFeeButtonLabel() {
-    const label = document.getElementById('wt-cart-fee-label');
-    if (label) label.textContent = screeningCompleted ? 'Add to Inspection Cart' : 'Pay ₦5,000 AI Fee to Unlock';
   }
 
   document.getElementById('wt-close-btn').addEventListener('click', () => {
@@ -5933,39 +6035,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
     walkthroughModal.classList.remove('open');
   });
 
-  document.getElementById('wt-book-inspection-btn').addEventListener('click', () => {
+  document.getElementById('wt-payment-options-btn').addEventListener('click', () => {
     document.getElementById('wt-video-el').pause();
     walkthroughModal.classList.remove('open');
     const listing = walkthroughListing;
     if (!listing) return;
-    // Action Button Guard: booking is a Tenant-only action — a Landlord/Agent
-    // reaching this trigger sees Verification & Escrow Status instead.
+    // Action Button Guard: booking/payment is a Tenant-only action — a
+    // Landlord/Agent reaching this trigger sees Verification & Escrow Status
+    // instead, same as every other entry point into the drawer.
     if ((currentUserRole || 'tenant') !== 'tenant') {
       openEscrowStatusModal(listing);
       return;
     }
-    // Preserve Inspection Gate Architecture: routes through the same Phase 1
-    // credit-screening gate and Inspection Booking Modal used everywhere else
-    // — never a shortcut straight to checkout.
-    requireScreening(() => openInspectionModal(listing));
-  });
-
-  document.getElementById('wt-cart-fee-btn').addEventListener('click', () => {
-    const listing = walkthroughListing;
-    if (!listing) return;
-    if ((currentUserRole || 'tenant') !== 'tenant') {
-      document.getElementById('wt-video-el').pause();
-      walkthroughModal.classList.remove('open');
-      openEscrowStatusModal(listing);
-      return;
-    }
-    // Same Phase 1 Credit Screening gate used everywhere else in the app —
-    // paying the ₦5,000 AI Fee unlocks flexible payment options, then saves
-    // the property straight into the Inspection Cart.
-    requireScreening(() => {
-      addToCart(listing);
-      updateWtCartFeeButtonLabel();
-    });
+    // CTA Consolidation: opens the same consolidated Payment Options drawer
+    // used on the card itself — Option A (Schedule Site Inspection) and
+    // Option B (Add to Inspection Cart) for rent listings.
+    openPaymentOptionsModal(listing);
   });
 
   // ==================================================================
@@ -6141,6 +6226,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     checkoutListing = listing;
     checkoutLandPayment = landPayment || null;
+    checkoutAuthSubmitting = false;
     selectPaySource('wallet');
 
     checkoutAgreementUploaded = false;
@@ -6653,6 +6739,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   document.getElementById('checkout-otp-close').addEventListener('click', () => {
     checkoutOtpModal.classList.remove('open');
+    checkoutAuthSubmitting = false;
   });
 
   // Show/Hide PIN toggle — swaps every box between masked (password) and
@@ -6773,7 +6860,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     window.dispatchEvent(new Event('maintown_state_updated'));
   }
 
+  // ---- Duplicate Request Guard (checkout authorization) ----
+  // Mirrors the inspection-booking guard: blocks a double-tap on Verify/
+  // Simulate from firing two payment authorizations for the same checkout.
+  let checkoutAuthSubmitting = false;
+
   function approveCheckoutPayment() {
+    if (checkoutAuthSubmitting) return;
+    checkoutAuthSubmitting = true;
     clearInterval(checkoutOtpTimer);
     checkoutOtpModal.classList.remove('open');
 
@@ -8401,14 +8495,39 @@ This voucher is auto-generated and serves as proof of settlement.`;
         : 'Held in escrow. Direct Landlord listing — if satisfied, the full ₦5,000 is retained by MainTown Realty (₦0 to Agent). If not satisfied, the full ₦5,000 is refunded to your Wallet.';
     }
 
+    ibSubmitting = false;
     inspectionBookingModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
   }
 
-  document.getElementById('ib-cancel-btn').addEventListener('click', () => inspectionBookingModal.classList.remove('open'));
+  document.getElementById('ib-cancel-btn').addEventListener('click', () => {
+    inspectionBookingModal.classList.remove('open');
+    ibSubmitting = false;
+  });
+
+  // ---- Duplicate Request Guard ----
+  // isSubmitting flag prevents a rapid double-tap on Confirm from firing the
+  // handler twice, and hasPendingScheduleForListing() blocks a second active
+  // inspection request for the same listing (any user/role reachable in this
+  // single-device demo) while an earlier one is still Pending Approval or
+  // already Confirmed — mirrors the same-listing dedupe used elsewhere
+  // (hasSatisfiedInspectionForListing) rather than introducing a new key shape.
+  let ibSubmitting = false;
+  function hasPendingScheduleForListing(listing) {
+    if (!listing) return false;
+    return schedules.some(s => s.title === listing.title && (s.status === 'Pending Approval' || s.status === 'Confirmed'));
+  }
 
   document.getElementById('ib-confirm-btn').addEventListener('click', () => {
     if (!inspectionListing || !ibSelectedDate || !ibSelectedSlot) return;
+    if (ibSubmitting) return;
+    if (hasPendingScheduleForListing(inspectionListing)) {
+      showToast('You already have an active inspection request for this property');
+      inspectionBookingModal.classList.remove('open');
+      return;
+    }
+    ibSubmitting = true;
+    document.getElementById('ib-confirm-btn').disabled = true;
     // Data Integration: bind the selected calendar date + time chip directly
     // into the "Pending Approval" inspection request payload.
     const date = ibSelectedDate;
@@ -8507,6 +8626,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (document.getElementById('screen-inspections') && !document.getElementById('screen-inspections').classList.contains('hidden')) renderSchedulesScreen();
     renderLandlordInspectionsManager();
     renderAgentInspectionsManager();
+    ibSubmitting = false;
   });
 
   // ==================================================================
