@@ -1032,6 +1032,11 @@
   }
   .s5-list-live-btn { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
   .s5-list-publish-btn { background: rgba(147,51,234,0.15); color: #c084fc; border: 1px solid rgba(147,51,234,0.4); }
+  .s5-list-delete-btn {
+    background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.35);
+    width: 28px; height: 28px; padding: 0; justify-content: center;
+  }
+  .s5-list-delete-btn:hover { background: rgba(239,68,68,0.22); }
 
   .s5-list-item {
     display: flex; align-items: center; gap: 12px; padding: 13px 14px; background: rgba(15,23,42,0.8);
@@ -3510,6 +3515,25 @@
 
     <button type="button" id="insp-cancel-confirm-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: 0 8px 20px rgba(239,68,68,0.25); margin-top: 18px;">Yes, Cancel Inspection</button>
     <button type="button" id="insp-cancel-keep-btn" class="btn-secondary">Keep Inspection</button>
+  </div>
+</div>
+
+<!-- Landlord/Agent Delete Listing Confirmation Modal — triggered by the trash
+     icon on a listing row in "My Properties" (Landlord) or "My Listings"
+     (Agent). Removes the listing from the host's own management list AND
+     from the live tenant-facing feed. -->
+<div id="delete-listing-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <i data-lucide="trash-2" class="w-8 h-8 text-red-400"></i>
+    </div>
+    <h2 class="modal-title">Delete Listing?</h2>
+    <p class="modal-sub">This will permanently remove <strong id="del-listing-title">—</strong> from your listings and take it down from the Tenant Search Feed. This can't be undone.</p>
+
+    <button type="button" id="del-listing-confirm-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: 0 8px 20px rgba(239,68,68,0.25); margin-top: 4px;">
+      <i data-lucide="trash-2" class="w-4 h-4"></i> Yes, Delete Listing
+    </button>
+    <button type="button" id="del-listing-keep-btn" class="btn-secondary">Keep Listing</button>
   </div>
 </div>
 
@@ -7846,7 +7870,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <p class="s5-list-title">${p.title}</p>
             <p class="s5-list-sub">${p.address}</p>
           </div>
-          ${rightHtml}
+          <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
+            ${rightHtml}
+            <button type="button" class="s5-list-action-btn s5-list-delete-btn" data-action="delete" data-title="${p.title}" title="Delete listing"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          </div>
         </div>`;
     }).join('');
     if (window.lucide) lucide.createIcons();
@@ -7856,11 +7883,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('s5-landlord-list').addEventListener('click', (e) => {
     const viewBtn = e.target.closest('[data-action="viewLive"]');
     const pubBtn = e.target.closest('[data-action="publish"]');
+    const delBtn = e.target.closest('[data-action="delete"]');
     if (viewBtn) {
       openLiveListingPreview(viewBtn.dataset.title, 'landlord');
     } else if (pubBtn) {
       publishListingByTitle(pubBtn.dataset.title, 'landlord');
       renderLandlordList();
+    } else if (delBtn) {
+      openDeleteListingModal(delBtn.dataset.title, 'landlord');
     }
   });
 
@@ -8161,8 +8191,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <p class="s5-list-title">${l.title}</p>
           <p class="s5-list-sub">${l.address} · Landlord: ${l.landlordName}${l.hasVideo ? ' · 🎥 Walkthrough' : ''}</p>
         </div>
-        <div class="s5-list-status-col">
+        <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
           ${actionHtml}
+          <button type="button" class="s5-list-action-btn s5-list-delete-btn" data-action="delete" data-title="${l.title}" title="Delete listing"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
         </div>
       </div>`;
     }).join('');
@@ -8173,11 +8204,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('s5-agent-listings').addEventListener('click', (e) => {
     const viewBtn = e.target.closest('[data-action="viewLive"]');
     const pubBtn = e.target.closest('[data-action="publish"]');
+    const delBtn = e.target.closest('[data-action="delete"]');
     if (viewBtn) {
       openLiveListingPreview(viewBtn.dataset.title, 'agent');
     } else if (pubBtn) {
       publishListingByTitle(pubBtn.dataset.title, 'agent');
       renderAgentListings();
+    } else if (delBtn) {
+      openDeleteListingModal(delBtn.dataset.title, 'agent');
     }
   });
 
@@ -8221,6 +8255,57 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (currentListingType === 'land') renderLandFeed(); else renderTenantFeed(currentCurrency);
     }
     showToast(`"${title}" is now live on the Tenant Search Feed`);
+  }
+
+  // ==================================================================
+  // ---- Landlord/Agent: Manual Listing Deletion ----
+  // Lets a Host (Landlord or Agent) remove one of their own listings
+  // straight from "My Properties" / "My Listings" — pulling it from both
+  // their own management list and the live Tenant Search Feed.
+  // ==================================================================
+  const deleteListingModal = document.getElementById('delete-listing-modal');
+  let deleteListingTitle = null;
+  let deleteListingRole = null;
+
+  function openDeleteListingModal(title, role) {
+    deleteListingTitle = title;
+    deleteListingRole = role;
+    document.getElementById('del-listing-title').textContent = title;
+    deleteListingModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('del-listing-keep-btn').addEventListener('click', () => {
+    deleteListingModal.classList.remove('open');
+  });
+
+  document.getElementById('del-listing-confirm-btn').addEventListener('click', () => {
+    if (!deleteListingTitle || !deleteListingRole) { deleteListingModal.classList.remove('open'); return; }
+    deleteListingByTitle(deleteListingTitle, deleteListingRole);
+    deleteListingModal.classList.remove('open');
+  });
+
+  function deleteListingByTitle(title, role) {
+    // Remove from the shared tenant-facing feed & persist.
+    const idx = listings.findIndex(l => l.title === title && l.listedBy === role);
+    if (idx !== -1) listings.splice(idx, 1);
+    saveListings();
+
+    // Remove from the Host's own management list.
+    if (role === 'landlord') {
+      landlordProperties = landlordProperties.filter(p => p.title !== title);
+      renderLandlordList();
+    } else if (role === 'agent') {
+      agentListings = agentListings.filter(l => l.title !== title);
+      renderAgentListings();
+    }
+
+    // Re-render the live Tenant Search Feed if it's currently visible.
+    if (!document.getElementById('tenant-view').classList.contains('hidden')) {
+      if (currentListingType === 'land') renderLandFeed(); else renderTenantFeed(currentCurrency);
+    }
+    window.dispatchEvent(new Event('maintown_state_updated'));
+    showToast(`"${title}" has been deleted`);
   }
 
   let s5PendingPhotoCount = 0;
