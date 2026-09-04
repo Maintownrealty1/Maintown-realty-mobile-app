@@ -3887,17 +3887,24 @@
     </div>
 
     <div id="lp-installment-panel" style="display:none;">
+      <!-- Installment Frequency Selector: buyer chooses how often installments
+           are auto-debited. Recomputes the breakdown below live. -->
+      <div class="toggle-pill-row" id="lp-freq-row" style="margin-bottom:14px;">
+        <button type="button" class="toggle-pill active" id="lp-freq-monthly" data-freq="monthly">Monthly</button>
+        <button type="button" class="toggle-pill" id="lp-freq-quarterly" data-freq="quarterly">Quarterly</button>
+        <button type="button" class="toggle-pill" id="lp-freq-halfyearly" data-freq="halfyearly">Half-Yearly</button>
+      </div>
       <div class="s5-notice-box">
         <i data-lucide="info" class="w-5 h-5"></i>
-        <p>Fixed 12-month plan: pay Month 1 + 10% Commission + 5% Legal Fee now. The remaining 11 installments auto-debit monthly, 30 days apart, starting from your possession date.</p>
+        <p id="lp-installment-explainer">Fixed 12-month plan: pay Month 1 + 10% Commission + 5% Legal Fee now. The remaining 11 installments auto-debit monthly, 30 days apart, starting from your possession date.</p>
       </div>
       <div class="s5-hold-preview">
-        <div class="s5-hold-row"><span>Monthly Installment</span><strong id="lp-monthly">—</strong></div>
+        <div class="s5-hold-row"><span id="lp-monthly-label">Monthly Installment</span><strong id="lp-monthly">—</strong></div>
         <div class="s5-hold-row"><span>Agency Commission (10%)</span><strong id="lp-commission">—</strong></div>
         <div class="s5-hold-row"><span>Legal Fee (5%)</span><strong id="lp-legal">—</strong></div>
         <div class="s5-hold-divider"></div>
-        <div class="s5-hold-row"><span>Total Due Now (Month 1 + Fees)</span><strong id="lp-down" style="color:#c084fc;">—</strong></div>
-        <div class="s5-hold-row"><span>Remaining 11 Months</span><strong id="lp-firstdate">—</strong></div>
+        <div class="s5-hold-row"><span id="lp-down-label">Total Due Now (Month 1 + Fees)</span><strong id="lp-down" style="color:#c084fc;">—</strong></div>
+        <div class="s5-hold-row"><span id="lp-firstdate-label">Remaining 11 Months</span><strong id="lp-firstdate">—</strong></div>
       </div>
     </div>
 
@@ -6428,6 +6435,36 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // In renewal/subsequent years, only the Monthly Amount applies — no
   // commission, no legal fee — spread the same way (Month 1 upfront + 11 auto-debited).
   // ==================================================================
+  // ==================================================================
+  // ---- Land & Property Installment Frequency Plans ----
+  // Buyer picks how often installments auto-debit: Monthly (12x), Quarterly
+  // (4x, every 3 months), or Half-Yearly (2x, every 6 months). Same 10%
+  // Agency Commission + 5% Legal Fee (one-time, folded into Installment 1)
+  // applies regardless of frequency — only the installment count and spacing
+  // change.
+  // ==================================================================
+  const INSTALLMENT_PLANS = {
+    monthly:    { label: 'Monthly',     periodLabel: 'monthly',     count: 12, intervalMonths: 1 },
+    quarterly:  { label: 'Quarterly',   periodLabel: 'quarterly',   count: 4,  intervalMonths: 3 },
+    halfyearly: { label: 'Half-Yearly', periodLabel: 'half-yearly', count: 2,  intervalMonths: 6 },
+  };
+
+  function computeInstallmentBreakdown(totalAmount, frequency) {
+    const plan = INSTALLMENT_PLANS[frequency] || INSTALLMENT_PLANS.monthly;
+    const monthly = Math.round(totalAmount / plan.count);
+    const commission = Math.round(totalAmount * 0.10);
+    const legal = Math.round(totalAmount * 0.05);
+    const upfront = monthly + commission + legal;
+    const remainingMonths = plan.count - 1;
+    const remainingTotal = monthly * remainingMonths;
+    return {
+      frequency, label: plan.label, periodLabel: plan.periodLabel,
+      installmentCount: plan.count, intervalMonths: plan.intervalMonths,
+      monthly, commission, legal, upfront, remainingMonths, remainingTotal,
+      grandTotal: totalAmount + commission + legal, isRenewal: false,
+    };
+  }
+
   function computeYear1Breakdown(totalAmount) {
     const monthly = Math.round(totalAmount / 12);
     const commission = Math.round(totalAmount * 0.10);
@@ -6621,7 +6658,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         // Installment plan follows the SAME Year-1 formula as rentals: Total Price ÷ 12
         // + 10% Commission + 5% Legal, all due upfront alongside Month 1; the remaining
         // 11 installments auto-debit monthly (30 days apart) after the possession date.
-        document.getElementById('s6-row1-label').textContent = 'Downpayment (Monthly Installment)';
+        document.getElementById('s6-row1-label').textContent = `Downpayment (${checkoutLandPayment.label || 'Monthly'} Installment)`;
         document.getElementById('s6-row2-label').textContent = 'Agency Commission (10%)';
         document.getElementById('s6-row3-label').textContent = 'Legal Title & Deed Processing Fee (5%)';
         document.getElementById('s6-rent-amount').textContent = formatMoney(checkoutLandPayment.monthly, 'ngn');
@@ -8352,7 +8389,25 @@ This voucher is auto-generated and serves as proof of settlement.`;
   const landPaymentModal = document.getElementById('land-payment-modal');
   let landModalListing = null;
   let landModalMode = 'outright';
+  let landModalFreq = 'monthly'; // 'monthly' | 'quarterly' | 'halfyearly'
   let landModalInspectionSatisfied = false;
+
+  // Recomputes and re-renders the installment breakdown panel for whichever
+  // frequency (Monthly/Quarterly/Half-Yearly) is currently selected.
+  function renderInstallmentPanel() {
+    if (!landModalListing) return;
+    const b = computeInstallmentBreakdown(landModalListing.totalPrice, landModalFreq);
+    document.getElementById('lp-monthly-label').textContent = `${b.label} Installment`;
+    document.getElementById('lp-monthly').textContent = formatMoney(b.monthly, 'ngn') + ` / ${b.frequency === 'monthly' ? 'mo' : b.periodLabel}`;
+    document.getElementById('lp-commission').textContent = formatMoney(b.commission, 'ngn');
+    document.getElementById('lp-legal').textContent = formatMoney(b.legal, 'ngn');
+    document.getElementById('lp-down-label').textContent = `Total Due Now (Installment 1 + Fees)`;
+    document.getElementById('lp-down').textContent = formatMoney(b.upfront, 'ngn');
+    document.getElementById('lp-firstdate-label').textContent = `Remaining ${b.remainingMonths} Installment${b.remainingMonths === 1 ? '' : 's'}`;
+    document.getElementById('lp-firstdate').textContent = `${b.remainingMonths} × ${formatMoney(b.monthly, 'ngn')} = ${formatMoney(b.remainingTotal, 'ngn')}`;
+    document.getElementById('lp-installment-explainer').textContent =
+      `${b.label} plan: pay Installment 1 + 10% Commission + 5% Legal Fee now. The remaining ${b.remainingMonths} installment${b.remainingMonths === 1 ? '' : 's'} auto-debit ${b.periodLabel}, starting from your possession date.`;
+  }
 
   // Inspection-First Checkout Gate: true only once a physical inspection for
   // this listing has been marked Satisfied (inspections[].status === 'completed').
@@ -8365,6 +8420,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function openLandPaymentModal(listing) {
     landModalListing = listing;
     landModalMode = 'outright';
+    landModalFreq = 'monthly';
+    document.getElementById('lp-freq-monthly').classList.add('active');
+    document.getElementById('lp-freq-quarterly').classList.remove('active');
+    document.getElementById('lp-freq-halfyearly').classList.remove('active');
     landModalInspectionSatisfied = hasSatisfiedInspectionForListing(listing);
     const continueBtn = document.getElementById('lp-continue-btn');
     const gateNotice = document.getElementById('lp-inspection-gate-notice');
@@ -8386,14 +8445,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('lp-out-fee').textContent = formatMoney(fee, 'ngn');
     document.getElementById('lp-out-grand').textContent = formatMoney(listing.totalPrice + fee, 'ngn');
 
-    // Installment breakdown: same Year-1 formula used for rentals — Total Price ÷ 12,
-    // + 10% Agency Commission + 5% Legal Fee (one-time, on the full total price).
-    const b = computeYear1Breakdown(listing.totalPrice);
-    document.getElementById('lp-monthly').textContent = formatMoney(b.monthly, 'ngn') + ' / mo';
-    document.getElementById('lp-commission').textContent = formatMoney(b.commission, 'ngn');
-    document.getElementById('lp-legal').textContent = formatMoney(b.legal, 'ngn');
-    document.getElementById('lp-down').textContent = formatMoney(b.upfront, 'ngn');
-    document.getElementById('lp-firstdate').textContent = `${b.remainingMonths} × ${formatMoney(b.monthly, 'ngn')} = ${formatMoney(b.remainingTotal, 'ngn')}`;
+    // Installment breakdown: buyer-selectable frequency (Monthly/Quarterly/
+    // Half-Yearly) — same 10% Agency Commission + 5% Legal Fee formula as
+    // before, folded into Installment 1.
+    renderInstallmentPanel();
 
     landPaymentModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
@@ -8412,6 +8467,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('lp-mode-outright').classList.remove('active');
     document.getElementById('lp-outright-panel').style.display = 'none';
     document.getElementById('lp-installment-panel').style.display = 'block';
+  });
+
+  document.querySelectorAll('#lp-freq-row .toggle-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      landModalFreq = btn.dataset.freq;
+      document.querySelectorAll('#lp-freq-row .toggle-pill').forEach(b => b.classList.toggle('active', b === btn));
+      renderInstallmentPanel();
+    });
   });
 
   document.getElementById('lp-cancel-btn').addEventListener('click', () => landPaymentModal.classList.remove('open'));
@@ -8440,9 +8503,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (landModalMode === 'outright') {
       payload = { mode: 'outright', totalPrice: landModalListing.totalPrice, processingFee: fee };
     } else {
-      const b = annotateCommissionSplit(computeYear1Breakdown(landModalListing.totalPrice), landModalListing);
+      const b = annotateCommissionSplit(computeInstallmentBreakdown(landModalListing.totalPrice, landModalFreq), landModalListing);
       payload = {
-        mode: 'installment', months: 12,
+        mode: 'installment', months: b.installmentCount,
+        frequency: b.frequency, label: b.label, periodLabel: b.periodLabel, intervalMonths: b.intervalMonths,
         monthly: b.monthly, commission: b.commission, legal: b.legal,
         upfront: b.upfront, remainingMonths: b.remainingMonths, remainingTotal: b.remainingTotal,
         maintownTake: b.maintownTake, agentTake: b.agentTake
