@@ -1288,7 +1288,7 @@
     color: #94a3b8; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; cursor: pointer; transition: all 0.15s ease;
   }
   .sig-tab.active { background: rgba(147,51,234,0.15); border-color: rgba(147,51,234,0.4); color: #c084fc; }
-  #sig-canvas, #hr-sig-canvas {
+  #sig-canvas, #hr-sig-canvas, #tp-sig-canvas {
     width: 100%; height: 150px; border-radius: 12px; border: 1.5px dashed #334155; background: #0b0f19;
     touch-action: none; cursor: crosshair; margin-bottom: 8px; display: block;
   }
@@ -1311,6 +1311,18 @@
   .signoff-box::-webkit-scrollbar { width: 6px; }
   .signoff-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
   .signoff-box p { margin: 0 0 10px; }
+
+  /* Tenancy & Policy Agreement viewer — scroll-to-unlock gate before signing */
+  .tenancy-policy-box { max-height: 260px; overflow-y: auto; background: rgba(15,23,42,0.9); border: 1px solid #1e293b; border-radius: 14px; padding: 14px 16px; font-size: 12px; color: #94a3b8; line-height: 1.7; margin-bottom: 8px; }
+  .tenancy-policy-box::-webkit-scrollbar { width: 6px; }
+  .tenancy-policy-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
+  .tenancy-policy-box h1 { font-size: 14px; color: #e9d5ff; margin: 0 0 10px; }
+  .tenancy-policy-box p { margin: 0 0 10px; }
+  .tenancy-policy-box ul { margin: 0 0 10px; padding-left: 18px; }
+  .tenancy-policy-box li { margin-bottom: 6px; }
+  .tp-scroll-hint { display: flex; align-items: center; gap: 5px; justify-content: center; font-size: 11px; color: #c4b5fd; margin: 0 0 14px; transition: opacity 0.2s; }
+  .tp-scroll-hint.hidden { opacity: 0; height: 0; margin: 0; overflow: hidden; }
+  .tp-locked { opacity: 0.35; pointer-events: none; filter: grayscale(0.4); transition: opacity 0.2s, filter 0.2s; }
 
   .bell-btn { position: relative; width: 38px; height: 38px; border-radius: 12px; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; display: flex; align-items: center; justify-content: center; color: #cbd5e1; cursor: pointer; flex-shrink: 0; }
   .bell-dot { position: absolute; top: 6px; right: 7px; width: 8px; height: 8px; border-radius: 999px; background: #ef4444; display: none; }
@@ -3699,6 +3711,48 @@
   </div>
 </div>
 
+<!-- Tenancy & Policy Agreement Viewer — full text must be scrolled to the
+     bottom before the Canvas Signature Pad and OTP "Agree" button unlock.
+     Content is fetched live from GET /api/contracts/tenancy-policy. -->
+<div id="tenancy-policy-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <i data-lucide="scroll-text" class="w-6 h-6 text-purple-400"></i>
+    </div>
+    <h2 class="modal-title">Tenancy &amp; Policy Agreement</h2>
+    <p class="modal-sub">Please read the full agreement — scroll to the bottom to unlock signing</p>
+
+    <div class="tenancy-policy-box" id="tp-agreement-box">
+      <p style="text-align:center; color:#64748b;">Loading agreement…</p>
+    </div>
+    <p class="tp-scroll-hint" id="tp-scroll-hint"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i><span>Scroll to the bottom to continue</span></p>
+
+    <p class="s5-section-label" style="margin-top: 6px;"><i data-lucide="pen-tool" class="w-4 h-4 text-purple-400"></i>Your Signature</p>
+    <div id="tp-sig-lock-wrap" class="tp-locked">
+      <canvas id="tp-sig-canvas" width="320" height="130"></canvas>
+      <button type="button" id="tp-sig-clear-btn" class="btn-secondary" style="margin-bottom: 12px;">Clear</button>
+    </div>
+
+    <p class="s5-section-label"><i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i>Verification Code</p>
+    <p class="modal-sub" style="margin-top: -6px;">Enter the 6-digit code sent to your phone to confirm you agree</p>
+    <div id="tp-otp-lock-wrap" class="tp-locked">
+      <div class="otp-boxes" id="tp-otp-boxes">
+        <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+        <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+        <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+        <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+        <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+        <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
+      </div>
+    </div>
+
+    <button type="button" id="tp-agree-btn" class="btn-primary" style="margin-top:4px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:6px;" disabled>
+      <i data-lucide="check-circle" class="w-4 h-4"></i> Agree &amp; Continue
+    </button>
+    <button type="button" id="tp-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
 <!-- In-App Digital Signature Modal (canvas draw or typed signature — no external apps needed) -->
 <div id="signature-modal" class="modal-overlay">
   <div class="modal-card">
@@ -4434,6 +4488,13 @@
 </div>
 
 <script>
+  // ==================================================================
+  // ---- Backend API base URL — real routes this file now calls live at
+  // ---- this origin (see maintown-realty-backend/apps/api). Swap for the
+  // ---- deployed API's URL when this app is hosted for real.
+  // ==================================================================
+  const API_BASE_URL = window.MAINTOWN_API_BASE_URL || 'http://localhost:4000';
+
   // ==================================================================
   // ---- One-Time Seed Migration (Deduplication & Zero-Balance Reset) ----
   // Bumping SEED_VERSION forces every existing session to start clean
@@ -6612,6 +6673,169 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('s6-landsign-input').addEventListener('input', updateAuthorizeState);
 
   // ==================================================================
+  // ---- Tenancy & Policy Agreement Viewer (scroll-to-unlock gate) ----
+  // Fetches the full agreement text from the backend, requires the tenant
+  // to scroll all the way to the bottom before the canvas signature pad
+  // and OTP "Agree" button unlock, then hands off to the same
+  // checkoutTenantSignature/checkoutAgreementUploaded state the rest of
+  // the checkout flow already reads.
+  // ==================================================================
+  const tenancyPolicyModal = document.getElementById('tenancy-policy-modal');
+  const tpAgreementBox = document.getElementById('tp-agreement-box');
+  const tpScrollHint = document.getElementById('tp-scroll-hint');
+  const tpSigLockWrap = document.getElementById('tp-sig-lock-wrap');
+  const tpOtpLockWrap = document.getElementById('tp-otp-lock-wrap');
+  const tpSigCanvas = document.getElementById('tp-sig-canvas');
+  const tpSigCtx = tpSigCanvas.getContext('2d');
+  const tpAgreeBtn = document.getElementById('tp-agree-btn');
+  const tpOtpInputs = document.querySelectorAll('#tp-otp-boxes .otp-input');
+  let tpScrolledToBottom = false;
+  let tpSigHasStrokes = false;
+  let tpSigDrawing = false;
+
+  function resizeTpSigCanvas() {
+    const rect = tpSigCanvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    tpSigCanvas.width = Math.max(1, Math.round(rect.width * dpr));
+    tpSigCanvas.height = Math.max(1, Math.round(130 * dpr));
+    tpSigCtx.scale(dpr, dpr);
+    tpSigCtx.strokeStyle = '#ffffff';
+    tpSigCtx.lineWidth = 2.4;
+    tpSigCtx.lineCap = 'round';
+    tpSigCtx.lineJoin = 'round';
+  }
+  function tpSigPointerPos(e) {
+    const rect = tpSigCanvas.getBoundingClientRect();
+    const point = e.touches ? e.touches[0] : e;
+    return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+  }
+  function tpSigStart(e) {
+    if (tpSigLockWrap.classList.contains('tp-locked')) return;
+    e.preventDefault();
+    tpSigDrawing = true;
+    const p = tpSigPointerPos(e);
+    tpSigCtx.beginPath();
+    tpSigCtx.moveTo(p.x, p.y);
+  }
+  function tpSigMove(e) {
+    if (!tpSigDrawing) return;
+    e.preventDefault();
+    const p = tpSigPointerPos(e);
+    tpSigCtx.lineTo(p.x, p.y);
+    tpSigCtx.stroke();
+    tpSigHasStrokes = true;
+    updateTpAgreeState();
+  }
+  function tpSigEnd() { tpSigDrawing = false; }
+  tpSigCanvas.addEventListener('mousedown', tpSigStart);
+  tpSigCanvas.addEventListener('mousemove', tpSigMove);
+  window.addEventListener('mouseup', tpSigEnd);
+  tpSigCanvas.addEventListener('touchstart', tpSigStart, { passive: false });
+  tpSigCanvas.addEventListener('touchmove', tpSigMove, { passive: false });
+  tpSigCanvas.addEventListener('touchend', tpSigEnd);
+
+  document.getElementById('tp-sig-clear-btn').addEventListener('click', () => {
+    tpSigCtx.clearRect(0, 0, tpSigCanvas.width, tpSigCanvas.height);
+    tpSigHasStrokes = false;
+    updateTpAgreeState();
+  });
+
+  // OTP auto-advance — same pattern used by every other OTP widget in this app.
+  tpOtpInputs.forEach((input, index) => {
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/[^0-9]/g, '');
+      if (input.value && index < tpOtpInputs.length - 1) tpOtpInputs[index + 1].focus();
+      updateTpAgreeState();
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !input.value && index > 0) tpOtpInputs[index - 1].focus();
+    });
+  });
+
+  function tpOtpValue() {
+    return Array.from(tpOtpInputs).map(i => i.value).join('');
+  }
+
+  function updateTpAgreeState() {
+    const unlocked = tpScrolledToBottom;
+    tpSigLockWrap.classList.toggle('tp-locked', !unlocked);
+    tpOtpLockWrap.classList.toggle('tp-locked', !unlocked);
+    tpOtpInputs.forEach(i => { i.disabled = !unlocked; });
+    tpAgreeBtn.disabled = !(unlocked && tpSigHasStrokes && tpOtpValue().length === 6);
+  }
+
+  tpAgreementBox.addEventListener('scroll', () => {
+    const atBottom = tpAgreementBox.scrollTop + tpAgreementBox.clientHeight >= tpAgreementBox.scrollHeight - 6;
+    if (atBottom && !tpScrolledToBottom) {
+      tpScrolledToBottom = true;
+      tpScrollHint.classList.add('hidden');
+      updateTpAgreeState();
+    }
+  });
+
+  // Fetches the live Tenancy & Policy Agreement text from the backend
+  // (GET /api/contracts/tenancy-policy) and renders it inside the scroll box.
+  async function loadTenancyPolicyAgreement() {
+    tpAgreementBox.innerHTML = '<p style="text-align:center; color:#64748b;">Loading agreement…</p>';
+    const landlordName = (checkoutListing && checkoutListing.landlordName) || 'the Landlord';
+    const tenantName = (document.getElementById('reg-fullname')?.value || '').trim() || 'the Tenant';
+    const propertyAddress = (checkoutListing && (checkoutListing.location || checkoutListing.title)) || 'the property';
+    const monthlyRent = checkoutRentBreakdown ? formatMoney(checkoutRentBreakdown.monthly, 'ngn') : '—';
+
+    const params = new URLSearchParams({ landlordName, tenantName, propertyAddress, monthlyRent });
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/contracts/tenancy-policy?${params.toString()}`);
+      if (!res.ok) throw new Error((await res.json()).error || 'Could not load the agreement');
+      const data = await res.json();
+      tpAgreementBox.innerHTML = data.html;
+    } catch (err) {
+      // Backend not reachable (e.g. running the frontend on its own without
+      // the API up) — fall back to a plain notice rather than a dead modal.
+      tpAgreementBox.innerHTML = '<p style="color:#f87171;">Could not reach the agreement server. Make sure the MainTown Realty backend is running, then reopen this agreement.</p>';
+      showToast('Could not load the agreement — check your connection to the backend');
+    }
+  }
+
+  function openTenancyPolicyModal() {
+    tpScrolledToBottom = false;
+    tpSigHasStrokes = false;
+    tpScrollHint.classList.remove('hidden');
+    tpOtpInputs.forEach(i => { i.value = ''; i.disabled = true; });
+    tpSigLockWrap.classList.add('tp-locked');
+    tpOtpLockWrap.classList.add('tp-locked');
+    tpAgreeBtn.disabled = true;
+    tpAgreementBox.scrollTop = 0;
+
+    tenancyPolicyModal.classList.add('open');
+    resizeTpSigCanvas();
+    tpSigCtx.clearRect(0, 0, tpSigCanvas.width, tpSigCanvas.height);
+    loadTenancyPolicyAgreement();
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('tp-cancel-btn').addEventListener('click', () => {
+    tenancyPolicyModal.classList.remove('open');
+  });
+
+  document.getElementById('tp-agree-btn').addEventListener('click', () => {
+    if (tpAgreeBtn.disabled) return;
+    checkoutTenantSignature = { mode: 'draw', data: tpSigCanvas.toDataURL('image/png') };
+    checkoutAgreementUploaded = true;
+
+    const preview = document.getElementById('s6-tenant-sig-preview');
+    preview.classList.add('signed');
+    preview.innerHTML = `<img src="${checkoutTenantSignature.data}" alt="Tenant signature">`;
+
+    document.getElementById('s6-agreement-confirmed').style.display = 'inline-flex';
+    tenancyPolicyModal.classList.remove('open');
+    if (window.lucide) lucide.createIcons();
+    updateAuthorizeState();
+
+    dispatchAgreementToChat(checkoutListing);
+    showToast('Tenancy & Policy Agreement signed');
+  });
+
+  // ==================================================================
   // ---- In-App Digital Signature Modal (canvas draw or typed signature) ----
   // ==================================================================
   const signatureModal = document.getElementById('signature-modal');
@@ -6690,18 +6914,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('sig-tab-type').addEventListener('click', () => setSigMode('type'));
 
   document.getElementById('s6-sign-agreement-btn').addEventListener('click', () => {
-    setSigMode('draw');
-    sigTypeInput.value = '';
-    sigHasStrokes = false;
-    // Mirrors the same listing.type branch used to swap the agreement card
-    // itself — keeps the signature modal's title in sync with whichever
-    // document (Tenancy vs Land Purchase Agreement) is actually being signed.
-    document.getElementById('signature-modal-title').textContent =
-      (checkoutListing && checkoutListing.type === 'land') ? 'Sign Land Purchase Agreement' : 'Sign Tenancy Agreement';
-    signatureModal.classList.add('open');
-    resizeSigCanvas();
-    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
-    updateSigConfirmState();
+    // Land purchases keep the existing typed/drawn signature modal as-is.
+    // Rentals now route through the full Tenancy & Policy Agreement viewer —
+    // the tenant must scroll to the bottom before signing + OTP unlock.
+    if (checkoutListing && checkoutListing.type === 'land') {
+      setSigMode('draw');
+      sigTypeInput.value = '';
+      sigHasStrokes = false;
+      document.getElementById('signature-modal-title').textContent = 'Sign Land Purchase Agreement';
+      signatureModal.classList.add('open');
+      resizeSigCanvas();
+      sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+      updateSigConfirmState();
+      return;
+    }
+    openTenancyPolicyModal();
   });
   document.getElementById('sig-cancel-btn').addEventListener('click', () => signatureModal.classList.remove('open'));
 
