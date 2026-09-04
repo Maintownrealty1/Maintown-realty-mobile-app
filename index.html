@@ -12814,6 +12814,14 @@ available in the Post-Lease Hub and this chat thread.`
     renderWalletBalanceCard();
     renderWalletAnalytics();
     renderWalletTxnFeed();
+    // Fund Wallet is a Tenant/Buyer-only action (they're the ones paying
+    // in); Withdraw is a Landlord/Agent-only action (they're the ones
+    // cashing out settlements). Toggle visibility by the active role.
+    const isTenant = currentUserRole === 'tenant';
+    const fundBtn = document.getElementById('wallet-fund-btn');
+    const withdrawBtn = document.getElementById('wallet-withdraw-btn');
+    if (fundBtn) fundBtn.style.display = isTenant ? '' : 'none';
+    if (withdrawBtn) withdrawBtn.style.display = isTenant ? 'none' : '';
   }
 
   function openWalletDashboard() {
