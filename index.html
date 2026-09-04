@@ -4093,7 +4093,7 @@
       <!-- Platform AI Revenue (Model B) — ops/admin visibility into the cumulative
            one-time AI processing fees (₦5,000 rentals / ₦15,000 land) collected
            across every account sharing this demo's maintown_app_state store. -->
-      <div class="ai-revenue-card">
+      <div class="ai-revenue-card" id="ai-revenue-card" style="display:none;">
         <div class="ai-revenue-card-top">
           <span class="ai-revenue-label"><i data-lucide="line-chart"></i>Platform AI Revenue</span>
           <span class="ai-revenue-badge">Model B</span>
@@ -12497,8 +12497,18 @@ available in the Post-Lease Hub and this chat thread.`
   // Reads a fresh copy of appState so it's accurate even if a fee was
   // credited from another tab/session sharing this device's localStorage.
   function renderAiRevenueCard() {
+    const card = document.getElementById('ai-revenue-card');
     const el = document.getElementById('ai-revenue-amount');
-    if (!el) return;
+    if (!card || !el) return;
+
+    // Platform-wide cumulative revenue is an internal/ops metric. It must
+    // never be exposed to tenants, agents, or landlords — only an ADMIN
+    // role should see it. None of this app's standard signup roles
+    // (tenant/landlord/agent) qualify, so the card stays hidden for them.
+    const isAdmin = currentUserRole === 'admin';
+    card.style.display = isAdmin ? '' : 'none';
+    if (!isAdmin) return;
+
     appState = loadAppState();
     const total = (appState.platform_revenue && appState.platform_revenue.ai_processing_fees) || 0;
     el.textContent = formatMoney(total, 'ngn');
