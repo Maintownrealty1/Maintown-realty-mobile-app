@@ -6168,7 +6168,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <!-- CTA Consolidation: "Book Inspection" and "Add to Inspection Cart" have been
                merged into the single "View Payment Options" CTA below, which opens a
                consolidated drawer offering Schedule Inspection / Add to Inspection Cart. -->
-          <button type="button" class="s5-action-btn primary payment-options-btn${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;" ${unavailable ? 'disabled' : ''}><i data-lucide="layers" class="w-4 h-4"></i>View Payment Options</button>
+          <button type="button" class="s5-action-btn primary payment-options-btn${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;" ${unavailable ? 'disabled' : ''}><i data-lucide="key" class="w-4 h-4"></i>Rent Now</button>
           ${unavailable ? `<p class="s5-unavailable-notice rented"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i>This property is no longer available as it has been successfully RENTED.</p>` : ''}
         </div>
       </div>`;
@@ -6210,8 +6210,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <button type="button" class="s5-action-btn primary land-pay-btn${(screeningCompleted && !unavailable) ? '' : ' locked'}${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%;" ${unavailable ? 'disabled' : ''}>${unavailable
             ? '<i data-lucide="lock" class="w-4 h-4"></i>Sold — Unavailable'
             : (screeningCompleted
-              ? '<i data-lucide="layers" class="w-4 h-4"></i>View Payment Options'
-              : '<i data-lucide="lock" class="w-4 h-4"></i>View Payment Options — Pay ₦5,000 AI Fee to Unlock')}</button>
+              ? '<i data-lucide="shopping-bag" class="w-4 h-4"></i>Buy Now'
+              : '<i data-lucide="lock" class="w-4 h-4"></i>Buy Now — Pay ₦5,000 AI Fee to Unlock')}</button>
           ${unavailable ? `<p class="s5-unavailable-notice sold"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i>This property is no longer available as it has been successfully SOLD.</p>` : ''}
         </div>
       </div>`;
