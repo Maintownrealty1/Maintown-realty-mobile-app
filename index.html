@@ -6998,8 +6998,55 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
   });
 
-  // Fetches the live Tenancy & Policy Agreement text from the backend
-  // (GET /api/contracts/tenancy-policy) and renders it inside the scroll box.
+  // Builds the Tenancy & Policy Agreement text locally. This app is a
+  // self-contained prototype — listings, payments, wallet, etc. are all
+  // simulated client-side — so the agreement copy is generated the same
+  // way instead of depending on a real backend (the previous version
+  // called out to `${API_BASE_URL}/api/contracts/tenancy-policy`, a
+  // server that doesn't exist in this build, which meant the modal could
+  // never load and the whole rent-checkout flow was stuck).
+  function buildTenancyPolicyHtml({ landlordName, tenantName, propertyAddress, monthlyRent }) {
+    const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    return `
+      <h1>Tenancy &amp; Policy Agreement</h1>
+      <p>This Tenancy &amp; Policy Agreement ("Agreement") is made on <strong>${today}</strong> between <strong>${landlordName}</strong> ("Landlord/Owner") and <strong>${tenantName}</strong> ("Tenant"), covering the property located at <strong>${propertyAddress}</strong> ("the Property"), facilitated through MainTown Realty.</p>
+
+      <h1>1. Term &amp; Rent</h1>
+      <p>The Tenant agrees to occupy the Property for the agreed lease term at a monthly rent of <strong>${monthlyRent}</strong>, payable in advance through MainTown Realty's escrow wallet. Rent is disbursed to the Landlord only after the Tenant confirms move-in or the inspection window elapses.</p>
+
+      <h1>2. Escrow &amp; Payment Protection</h1>
+      <ul>
+        <li>Funds are held in escrow until the Tenant confirms the Property matches its listing.</li>
+        <li>Cross-border payments (for diaspora Tenants) are converted at the rate shown at checkout and are non-reversible once disbursed.</li>
+        <li>Refunds for a failed or disputed inspection follow MainTown Realty's Dispute Resolution policy.</li>
+      </ul>
+
+      <h1>3. Tenant Obligations</h1>
+      <ul>
+        <li>Keep the Property in good condition and report damages promptly.</li>
+        <li>Pay rent on or before each due date to avoid late fees or default flags.</li>
+        <li>Use the Property strictly for lawful residential purposes.</li>
+      </ul>
+
+      <h1>4. Landlord Obligations</h1>
+      <ul>
+        <li>Deliver the Property in the condition described in the listing.</li>
+        <li>Address maintenance requests raised through the app within a reasonable timeframe.</li>
+        <li>Not enter the Property without reasonable prior notice to the Tenant.</li>
+      </ul>
+
+      <h1>5. Default &amp; Termination</h1>
+      <p>Missed payments beyond the grace period may result in a default flag on the Tenant's account and possible lease termination, in line with MainTown Realty's Post-Lease Management policy. Either party may terminate early per the notice period stated in the lease terms shared at booking.</p>
+
+      <h1>6. Platform Role</h1>
+      <p>MainTown Realty acts solely as the payments, escrow and communications facilitator between Landlord and Tenant, and is not a party to the underlying tenancy itself.</p>
+
+      <h1>7. Signature</h1>
+      <p>By signing below and confirming with the verification code sent to your phone, both parties acknowledge they have read, understood and agree to be bound by the terms of this Agreement.</p>
+    `;
+  }
+
+  // Renders the Tenancy & Policy Agreement inside the scroll box.
   async function loadTenancyPolicyAgreement() {
     tpAgreementBox.innerHTML = '<p style="text-align:center; color:#64748b;">Loading agreement…</p>';
     const landlordName = (checkoutListing && checkoutListing.landlordName) || 'the Landlord';
@@ -7007,18 +7054,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const propertyAddress = (checkoutListing && (checkoutListing.location || checkoutListing.title)) || 'the property';
     const monthlyRent = checkoutRentBreakdown ? formatMoney(checkoutRentBreakdown.monthly, 'ngn') : '—';
 
-    const params = new URLSearchParams({ landlordName, tenantName, propertyAddress, monthlyRent });
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/contracts/tenancy-policy?${params.toString()}`);
-      if (!res.ok) throw new Error((await res.json()).error || 'Could not load the agreement');
-      const data = await res.json();
-      tpAgreementBox.innerHTML = data.html;
-    } catch (err) {
-      // Backend not reachable (e.g. running the frontend on its own without
-      // the API up) — fall back to a plain notice rather than a dead modal.
-      tpAgreementBox.innerHTML = '<p style="color:#f87171;">Could not reach the agreement server. Make sure the MainTown Realty backend is running, then reopen this agreement.</p>';
-      showToast('Could not load the agreement — check your connection to the backend');
-    }
+    tpAgreementBox.innerHTML = buildTenancyPolicyHtml({ landlordName, tenantName, propertyAddress, monthlyRent });
   }
 
   function openTenancyPolicyModal() {
