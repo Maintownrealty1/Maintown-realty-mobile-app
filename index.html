@@ -6989,14 +6989,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
     tpAgreeBtn.disabled = !(unlocked && tpSigHasStrokes && tpOtpValue().length === 6);
   }
 
-  tpAgreementBox.addEventListener('scroll', () => {
+  // Shared bottom-of-box check — used both on manual scroll and right after
+  // the agreement content loads. Guards against the box not being tall
+  // enough to overflow (e.g. shorter text, a wider/taller viewport): if
+  // there's nothing to scroll, the tenant would otherwise be stuck forever
+  // waiting for a 'scroll' event that can never fire.
+  function checkTpScrollBottom() {
     const atBottom = tpAgreementBox.scrollTop + tpAgreementBox.clientHeight >= tpAgreementBox.scrollHeight - 6;
     if (atBottom && !tpScrolledToBottom) {
       tpScrolledToBottom = true;
       tpScrollHint.classList.add('hidden');
       updateTpAgreeState();
     }
-  });
+  }
+
+  tpAgreementBox.addEventListener('scroll', checkTpScrollBottom);
 
   // Builds the Tenancy & Policy Agreement text locally. This app is a
   // self-contained prototype — listings, payments, wallet, etc. are all
@@ -7055,6 +7062,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const monthlyRent = checkoutRentBreakdown ? formatMoney(checkoutRentBreakdown.monthly, 'ngn') : '—';
 
     tpAgreementBox.innerHTML = buildTenancyPolicyHtml({ landlordName, tenantName, propertyAddress, monthlyRent });
+
+    // Re-check on the next frame, once layout has settled — if the text
+    // doesn't fill/overflow the box, unlock immediately instead of waiting
+    // on a scroll gesture that will never come.
+    requestAnimationFrame(checkTpScrollBottom);
   }
 
   function openTenancyPolicyModal() {
