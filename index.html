@@ -7468,7 +7468,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // from the buyer's wallet and funds move into MainTown escrow (the actual
   // Agent/Landlord/Platform revenue split happens later, at the "Authorize
   // Payout" step, once escrow actually releases — see
-  // applyLandWalletSettlement / releaseEscrowAndShowInvoice).
+  // applyEscrowWalletSettlement / releaseEscrowAndShowInvoice).
   const checkoutOtpModal = document.getElementById('checkout-otp-modal');
   const checkoutOtpInputs = document.querySelectorAll('#checkout-otp-modal .otp-input');
   const checkoutVerifyBtn = document.getElementById('checkout-verify-btn');
@@ -7610,18 +7610,33 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
 
   // ==================================================================
-  // ---- PART 1, Step 2: Wallet Settlement & Revenue Split Engine ----
-  // Fires once escrow actually releases (see releaseEscrowAndShowInvoice)
-  // for Land & Property Purchases only. Splits a closing breakdown exactly
-  // per Scenario A (Agent-Managed, listing.listedByRole === 'AGENT') and
+  // ---- Wallet Settlement & Revenue Split Engine ----
+  // Fires once escrow actually releases — for BOTH rentals and Land &
+  // Property Purchases (previously land-only; rentals settled straight to
+  // "DISBURSED" in the payout ledger and never touched the recipient's
+  // wallet at all, so there was nothing to see or withdraw on the Wallet
+  // dashboard for rent income). Splits a closing breakdown exactly per
+  // Scenario A (Agent-Managed, listing.listedByRole === 'AGENT') and
   // Scenario B (Direct Landlord): Agent's 60% share of the 10% commission to
   // agent.walletBalance, MainTown's 40% (or, direct-listed, the full 10%) to
   // platform_revenue.commissions, the Legal Processing Fee 100% to
-  // platform_revenue.legal_fees, and the net Land Owner Balance to
-  // landlord.walletBalance.
+  // platform_revenue.legal_fees, and the net Landlord/Land Owner Balance to
+  // landlord.walletBalance — same as a Land sale already did, so the
+  // landlord/agent now withdraws to their bank as an explicit Wallet action
+  // instead of the platform silently deciding the money already left.
   // ==================================================================
-  function applyLandWalletSettlement(listing, breakdown) {
-    if (!listing || !breakdown || listing.type !== 'land') return;
+  function creditPartyWallet(userId, amount, { title, category, propertyName, feeType }) {
+    if (!userId || !(amount > 0)) return;
+    creditWallet(userId, amount);
+    recordTransaction({
+      userId, direction: 'credit', category,
+      title, amount, status: 'SUCCESSFUL',
+      meta: { sender: 'MainTown Escrow', recipient: 'You', propertyName, feeType }
+    });
+  }
+
+  function applyEscrowWalletSettlement(listing, breakdown) {
+    if (!listing || !breakdown) return;
     // Derive fields defensively rather than assuming a specific breakdown
     // shape — the installment payload (built at the Land Payment modal) only
     // carries maintownTake/agentTake, not the isAgentListing/maintownCommission
@@ -7631,23 +7646,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const maintownCommission = Math.max(0, (breakdown.maintownTake || 0) - legal);
     const agentTake = breakdown.agentTake || 0;
     const isAgentManaged = listing.listedByRole ? listing.listedByRole === 'AGENT' : listing.listedBy === 'agent';
+    const isLand = listing.type === 'land';
 
-    if (listing.ownerId) {
-      creditWallet(listing.ownerId, breakdown.monthly);
-      recordTransaction({
-        userId: listing.ownerId, direction: 'credit', category: 'LANDLORD_PAYOUT',
-        title: `Landlord Payout - ${listing.title || 'Property'}`,
-        amount: breakdown.monthly, status: 'SUCCESSFUL',
-        meta: { sender: 'MainTown Escrow', recipient: 'You', propertyName: listing.title, feeType: 'Land Owner Net Balance' }
-      });
-    }
-    if (isAgentManaged && listing.agentId && agentTake > 0) {
-      creditWallet(listing.agentId, agentTake);
-      recordTransaction({
-        userId: listing.agentId, direction: 'credit', category: 'AGENT_COMMISSION',
+    creditPartyWallet(listing.ownerId, breakdown.monthly, {
+      title: `${isLand ? 'Land Owner' : 'Landlord'} Payout - ${listing.title || 'Property'}`,
+      category: 'LANDLORD_PAYOUT',
+      propertyName: listing.title,
+      feeType: isLand ? 'Land Owner Net Balance' : 'Net Rent Payout'
+    });
+    if (isAgentManaged) {
+      creditPartyWallet(listing.agentId, agentTake, {
         title: `Agent Commission Split - ${listing.title || 'Property'}`,
-        amount: agentTake, status: 'SUCCESSFUL',
-        meta: { sender: 'MainTown Escrow', recipient: 'You', propertyName: listing.title, feeType: 'Agent Commission Share' }
+        category: 'AGENT_COMMISSION',
+        propertyName: listing.title,
+        feeType: 'Agent Commission Share'
       });
     }
 
@@ -7931,12 +7943,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
         agentAmount: closingBreakdownForRelease.agentTake
       });
 
-      // PART 1, Step 2 — Wallet Settlement & Revenue Split Engine. Land &
-      // Property Purchases only (per spec scope); rentals keep the existing
-      // payout-ledger-only settlement above, unchanged.
-      if (checkoutListing.type === 'land') {
-        applyLandWalletSettlement(checkoutListing, closingBreakdownForRelease);
-      }
+      // Wallet Settlement & Revenue Split Engine — now runs for every
+      // escrow release (rentals included), not land-only, so the
+      // landlord/agent's MainTown wallet balance actually reflects what
+      // they've earned and can withdraw from, same as a land sale already did.
+      applyEscrowWalletSettlement(checkoutListing, closingBreakdownForRelease);
     }
 
     // Notification Trigger: Escrow & Financial Alerts — Payout Disbursed Alert.
@@ -10876,9 +10887,18 @@ available in the Post-Lease Hub and this chat thread.`
       maintownRevenue, agentPayout, status: 'COMPLETED'
     });
     // Automated Transaction Generation on Settlement: credit the Agent's cut
-    // of the inspection fee straight to the shared payout ledger.
+    // of the inspection fee straight to the shared payout ledger AND their
+    // live wallet balance — the notification below already told the Agent
+    // this lands in their "MainTown Wallet", but the wallet itself was never
+    // actually credited until now.
     if (isAgentFee && agentPayout > 0 && listing) {
       recordPayout({ listing, agentAmount: agentPayout, listingTitle: conv.listingTitle });
+      creditPartyWallet(listing.agentId, agentPayout, {
+        title: `Inspection Fee Commission - ${conv.listingTitle}`,
+        category: 'AGENT_COMMISSION',
+        propertyName: conv.listingTitle,
+        feeType: 'Inspection Fee Share'
+      });
     }
     const insp = inspections.find(i => i.id === conv.inspectionId);
     if (insp) insp.status = 'completed';
@@ -11551,9 +11571,18 @@ available in the Post-Lease Hub and this chat thread.`
     showToast(`Payment of ${prFormat(prSelectedRent)} received via ${methodLabel} — 100% Escrow Guarantee`);
 
     // Automated Transaction Generation on Settlement: this monthly rent
-    // payment settles straight to the Landlord who owns the lease.
+    // payment settles straight to the Landlord who owns the lease — both
+    // the historical payout-ledger entry AND, now, their live withdrawable
+    // wallet balance (previously only the ledger got this, so recurring
+    // rent payments never showed up as money the landlord could withdraw).
     if (activeLease) {
       recordPayout({ listing: activeLease, landlordAmount: prSelectedRent, listingTitle: propertyTitle });
+      creditPartyWallet(activeLease.ownerId, prSelectedRent, {
+        title: `Rent Payout - ${propertyTitle}`,
+        category: 'LANDLORD_PAYOUT',
+        propertyName: propertyTitle,
+        feeType: 'Net Rent Payout'
+      });
     }
 
     // Notification Trigger: mirrors the existing Escrow Funds Received alert pattern.
@@ -12394,9 +12423,8 @@ available in the Post-Lease Hub and this chat thread.`
       // Vetting & Smart Escrow on land/property purchases). commissions =
       // MainTown's retained share of Agency Commission (100% on direct-
       // landlord listings, 40% on agent-managed ones). legal_fees = 100% of
-      // every Legal/Deed Processing Fee collected. All three are Land &
-      // Property Purchase Wallet Split Engine outputs — see
-      // applyLandWalletSettlement(). ----
+      // every Legal/Deed Processing Fee collected. All three are the Escrow
+      // Wallet Split Engine's outputs — see applyEscrowWalletSettlement(). ----
       platform_revenue: {
         ai_processing_fees: 0,
         commissions: 0,
