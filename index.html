@@ -2794,6 +2794,48 @@
 </div>
 <!-- ===================== END SCREEN AH ===================== -->
 
+<!-- ===================== SCREEN OA: Owner Asset Portfolio (Landlord — Sold vs Available Land/Property) ===================== -->
+<div id="screen-owner-assets" class="screen-view hidden pb-24">
+
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="oa-back-btn">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="landmark" class="w-3.5 h-3.5"></i><span>Asset Portfolio</span></p>
+    </div>
+  </div>
+
+  <h1 class="s5-role-title" style="margin-bottom: 4px;">Your Land &amp; Property Assets</h1>
+  <p class="s5-role-sub" style="margin-bottom: 18px;">Everything you've listed for sale — what's sold to tenants/clients and what's still available.</p>
+
+  <!-- Summary strip -->
+  <div style="display:flex; gap:10px; margin-bottom: 22px;">
+    <div style="flex:1; background:#131927; border:1px solid #1e293b; border-radius:14px; padding:12px 10px; text-align:center;">
+      <p style="margin:0; font-size:18px; font-weight:700; color:#fff;" id="oa-stat-total">0</p>
+      <p style="margin:2px 0 0; font-size:11px; color:#64748b;">Total Assets</p>
+    </div>
+    <div style="flex:1; background:#131927; border:1px solid #1e293b; border-radius:14px; padding:12px 10px; text-align:center;">
+      <p style="margin:0; font-size:18px; font-weight:700; color:#34d399;" id="oa-stat-sold">0</p>
+      <p style="margin:2px 0 0; font-size:11px; color:#64748b;">Sold</p>
+    </div>
+    <div style="flex:1; background:#131927; border:1px solid #1e293b; border-radius:14px; padding:12px 10px; text-align:center;">
+      <p style="margin:0; font-size:18px; font-weight:700; color:#60a5fa;" id="oa-stat-available">0</p>
+      <p style="margin:2px 0 0; font-size:11px; color:#64748b;">Available</p>
+    </div>
+  </div>
+
+  <p class="s5-section-label"><i data-lucide="badge-check" class="w-4 h-4 text-emerald-400"></i>Sold Assets</p>
+  <div id="oa-sold-list" style="margin-bottom: 22px;"><!-- populated dynamically --></div>
+
+  <p class="s5-section-label"><i data-lucide="map" class="w-4 h-4 text-blue-400"></i>Available Assets</p>
+  <div id="oa-available-list" style="margin-bottom: 10px;"><!-- populated dynamically --></div>
+
+  <p class="role-hint" id="oa-empty-state" style="display:none; text-align:center; margin-top: 40px;">No land or property assets listed yet — list one from Quick Actions to see it here.</p>
+
+</div>
+<!-- ===================== END SCREEN OA ===================== -->
+
 <!-- ===================== SCREEN 7: Post-Lease Management & Default Enforcement Hub ===================== -->
 <div id="screen-post-lease" class="screen-view hidden pb-24">
 
@@ -4998,6 +5040,13 @@
       document.getElementById(screenId).classList.remove('hidden');
     }
 
+    if (screenId === 'screen-owner-assets' && currentUserRole !== 'landlord') {
+      showToast('Asset Portfolio is a Landlord/Owner-only screen — showing your Overview instead');
+      screenId = 'screen-4';
+      document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+      document.getElementById(screenId).classList.remove('hidden');
+    }
+
     if (screenId === 'screen-4') {
       if (typeof autoClearActivityFeed === 'function') autoClearActivityFeed();
       populateScreen4();
@@ -5022,6 +5071,10 @@
 
     if (screenId === 'screen-asset-hub') {
       populateScreenAssetHub();
+    }
+
+    if (screenId === 'screen-owner-assets') {
+      populateScreenOwnerAssets();
     }
 
     if (screenId === 'screen-pay-rent') {
@@ -5255,7 +5308,8 @@
         { icon: 'wallet', label: 'Payouts', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'payoutHistory' },
         { icon: 'users', label: 'Tenants', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'tenants' },
         { icon: 'calendar-check', label: 'Inspections', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'browse' },
-        { icon: 'credit-card', label: 'Wallet', bg: 'bg-fuchsia-500/10', color: 'text-fuchsia-400', action: 'wallet' }
+        { icon: 'credit-card', label: 'Wallet', bg: 'bg-fuchsia-500/10', color: 'text-fuchsia-400', action: 'wallet' },
+        { icon: 'landmark', label: 'Assets', bg: 'bg-teal-500/10', color: 'text-teal-400', action: 'ownerAssets' }
       ],
       activity: [
         { icon: 'wallet', color: 'text-emerald-400', title: 'Payout disbursed', sub: 'Aug 3 · ₦620,000' }
@@ -5389,6 +5443,95 @@
     });
     saveAppState(appState);
   }
+
+  // ==================================================================
+  // ---- Owner Asset Portfolio (Landlord/Owner — Sold vs Available Land
+  // & Property). Reads straight from the shared `listings` feed, scoped to
+  // whatever land/property the logged-in owner actually listed
+  // (listing.ownerId), so it always mirrors My Properties / the public
+  // feed instead of keeping a separate parallel store. A listing counts as
+  // Sold once markListingUnavailableAfterCheckout() has flipped its status
+  // to 'SOLD'; everything else still published (status 'live') is Available.
+  // Buyer identity for a sold listing comes from the matching entry in
+  // appState.assets (recordAssetAcquisition), joined by listingId. ----
+  // ==================================================================
+  function resolveUserName(uid) {
+    if (!uid) return 'Unknown Buyer';
+    if (typeof DEMO_USERS !== 'undefined' && DEMO_USERS[uid]) return DEMO_USERS[uid].name;
+    appState = loadAppState();
+    const u = (appState.users || {})[uid];
+    return u ? u.name : uid;
+  }
+
+  function myOwnerLandListings() {
+    const uid = getCurrentUserId();
+    return listings.filter(l => l.type === 'land' && l.ownerId === uid);
+  }
+
+  function soldOwnerAssets() {
+    return myOwnerLandListings().filter(l => l.status === 'SOLD');
+  }
+
+  function availableOwnerAssets() {
+    return myOwnerLandListings().filter(l => l.status !== 'SOLD' && l.status !== 'draft');
+  }
+
+  function populateScreenOwnerAssets() {
+    appState = loadAppState();
+    const sold = soldOwnerAssets();
+    const available = availableOwnerAssets();
+    const total = sold.length + available.length;
+
+    document.getElementById('oa-stat-total').textContent = total;
+    document.getElementById('oa-stat-sold').textContent = sold.length;
+    document.getElementById('oa-stat-available').textContent = available.length;
+
+    const soldList = document.getElementById('oa-sold-list');
+    const availableList = document.getElementById('oa-available-list');
+    const emptyState = document.getElementById('oa-empty-state');
+
+    emptyState.style.display = total ? 'none' : 'block';
+
+    if (!sold.length) {
+      soldList.innerHTML = `<p class="role-hint" style="text-align:left;">No sales yet — a listing lands here once a tenant/client completes payment.</p>`;
+    } else {
+      soldList.innerHTML = sold.map(l => {
+        const buyerAsset = (appState.assets || []).find(a => a.listingId === l.id);
+        const buyerName = buyerAsset ? resolveUserName(buyerAsset.ownerId) : 'Buyer';
+        const amount = buyerAsset ? buyerAsset.amountLabel : formatMoney(l.totalPrice, 'ngn');
+        const dateLabel = buyerAsset ? new Date(buyerAsset.purchaseDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+        return `
+          <div class="s5-list-item" style="margin-bottom:10px;">
+            <div class="s5-list-icon"><i data-lucide="landmark" class="w-5 h-5"></i></div>
+            <div class="s5-list-text">
+              <p class="s5-list-title">${l.title}</p>
+              <p class="s5-list-sub">${l.location}</p>
+              <p class="s5-list-sub" style="margin-top:2px;">Sold to <strong style="color:#e2e8f0;">${buyerName}</strong> · ${amount} · ${dateLabel}</p>
+            </div>
+            <span class="s5-status-badge insp-status-confirmed">SOLD</span>
+          </div>`;
+      }).join('');
+    }
+
+    if (!available.length) {
+      availableList.innerHTML = `<p class="role-hint" style="text-align:left;">No available land/property listed right now.</p>`;
+    } else {
+      availableList.innerHTML = available.map(l => `
+        <div class="s5-list-item" style="margin-bottom:10px;">
+          <div class="s5-list-icon"><i data-lucide="landmark" class="w-5 h-5"></i></div>
+          <div class="s5-list-text">
+            <p class="s5-list-title">${l.title}</p>
+            <p class="s5-list-sub">${l.location}</p>
+            <p class="s5-list-sub" style="margin-top:2px;">${formatMoney(l.totalPrice, 'ngn')} total price</p>
+          </div>
+          <span class="s5-status-badge insp-status-conducted">AVAILABLE</span>
+        </div>`).join('');
+    }
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('oa-back-btn').addEventListener('click', () => navigateTo('screen-4'));
 
   const payoutHistoryModal = document.getElementById('payout-history-modal');
 
@@ -5723,6 +5866,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       openClosedDealsModal(tile.dataset.action === 'tenants' ? 'landlord' : 'agent');
     } else if (tile.dataset.action === 'wallet') {
       openWalletDashboard();
+    } else if (tile.dataset.action === 'ownerAssets') {
+      navigateTo('screen-owner-assets');
     } else {
       showToast(`${tile.dataset.label} — coming soon`);
     }
