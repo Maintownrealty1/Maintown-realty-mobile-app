@@ -5578,27 +5578,32 @@
     if (window.lucide) lucide.createIcons();
   }
 
-  // ---- Landlord "Tenants" / Agent "Clients": closed deals — a tenant who has
-  //      completed the payment flow AND activated their move-in date in the
-  //      Post-Lease Hub. Agents see only deals tied to their own listings. ----
+  // ---- Landlord "Tenants" / Agent "Clients": closed deals — every lease in
+  //      the shared appState.leases record where a move-in has been
+  //      confirmed (upsertLeaseMoveIn is only ever called at that point, so
+  //      any record present here already qualifies), scoped to whichever
+  //      Landlord/Agent owns the underlying listing. Reads the same shared,
+  //      cross-account array the dashboard's tenant-count card already uses,
+  //      instead of the single session-local `activeLease` — that variable
+  //      only ever reflects the one lease belonging to whichever account is
+  //      currently logged in, so it could show at most one tenant even when
+  //      several are active across a landlord's properties. ----
   const closedDealsModal = document.getElementById('closed-deals-modal');
   function getClosedDeals(role) {
-    if (!activeLease || !activeLease.moveInConfirmed) return [];
-    if (role === 'agent' && !activeLease.listedByAgent) return [];
-    // Post-Lease & Handover Views: only show this lease to the Landlord/Agent
-    // who actually owns the underlying listing (listing.ownerId/agentId ===
-    // currentUserId), so one account never sees another's closed deals.
+    appState = loadAppState();
     const uid = getCurrentUserId();
-    if (role === 'landlord' && activeLease.ownerId && activeLease.ownerId !== uid) return [];
-    if (role === 'agent' && activeLease.agentId && activeLease.agentId !== uid) return [];
-    const rentTerm = activeLease.remainingMonths ? `${activeLease.remainingMonths + 1} months` : 'Outright / Full Payment';
-    return [{
-      tenantName: activeLease.tenantName || 'Tenant',
-      propertyTitle: activeLease.title,
-      moveInDateLabel: activeLease.moveInDateLabel,
-      escrowStatus: activeLease.escrowStatus || 'Pending Release',
-      rentTerm
-    }];
+    const allLeases = appState.leases || [];
+    const mine = allLeases.filter(l => {
+      if (role === 'agent') return l.agentId === uid && l.listedByRole === 'AGENT';
+      return l.ownerId === uid;
+    });
+    return mine.map(l => ({
+      tenantName: l.tenantName || 'Tenant',
+      propertyTitle: l.propertyTitle,
+      moveInDateLabel: l.moveInDateLabel,
+      escrowStatus: l.escrowStatus || 'Pending Release',
+      rentTerm: typeof l.remainingMonths === 'number' && l.remainingMonths > 0 ? `${l.remainingMonths + 1} months` : 'Outright / Full Payment'
+    })).sort((a, b) => (b.moveInDateLabel || '').localeCompare(a.moveInDateLabel || ''));
   }
   function openClosedDealsModal(role) {
     document.getElementById('cd-title').textContent = role === 'agent' ? 'Clients' : 'Tenants';
@@ -11097,7 +11102,7 @@ available in the Post-Lease Hub and this chat thread.`
     // / moveInStatus, so this is visible on Landlord/Agent dashboards regardless of
     // which account is currently logged in — and Dual Notification Dispatch, below.
     if (checkoutListing) {
-      upsertLeaseMoveIn(checkoutListing, dateVal, formatted, tenantNameForMoveIn);
+      upsertLeaseMoveIn(checkoutListing, dateVal, formatted, tenantNameForMoveIn, activeLease && activeLease.escrowStatus, activeLease && activeLease.remainingMonths);
       dispatchMoveInNotifications(checkoutListing, tenantNameForMoveIn, formatted);
     }
 
@@ -12675,7 +12680,10 @@ available in the Post-Lease Hub and this chat thread.`
   // Upserts `maintown_app_state.leases[listingId]`'s move-in fields, keeping a
   // shared, cross-account record of where each lease's move-in stands —
   // independent of whichever single account happens to be logged in right now.
-  function upsertLeaseMoveIn(listing, moveInDate, moveInDateLabel, tenantName) {
+  // escrowStatus/remainingMonths are carried over from the tenant's own
+  // activeLease at confirmation time so the Landlord/Agent "Tenants" list
+  // (which reads this shared array, not activeLease) has the same detail.
+  function upsertLeaseMoveIn(listing, moveInDate, moveInDateLabel, tenantName, escrowStatus, remainingMonths) {
     if (!listing) return null;
     let lease = appState.leases.find(l => l.listingId === listing.id);
     if (!lease) {
@@ -12691,6 +12699,8 @@ available in the Post-Lease Hub and this chat thread.`
       moveInDate: moveInDate,
       moveInDateLabel: moveInDateLabel,
       moveInStatus: 'SCHEDULED',
+      escrowStatus: escrowStatus || lease.escrowStatus || 'Pending Release',
+      remainingMonths: typeof remainingMonths === 'number' ? remainingMonths : (lease.remainingMonths ?? null),
       updatedAt: Date.now()
     });
     saveAppState(appState);
