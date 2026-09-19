@@ -2225,28 +2225,9 @@
     </div>
   </div>
 
-  <!-- My Assets Portfolio Card: only shown once a buyer owns 1+ completed Land/Property purchases -->
-  <div id="dash-assets-card" class="bg-purple-900/40 border border-purple-500/30 rounded-2xl p-4 mb-5 text-white" style="display:none;">
-    <div class="flex justify-between items-center mb-2">
-      <span class="text-[11px] text-purple-300 font-semibold tracking-wider uppercase">Acquired Assets &amp; Land Portfolio</span>
-      <span id="dash-assets-count-badge" class="bg-emerald-500/20 text-emerald-400 text-[11px] px-2.5 py-1 rounded-full border border-emerald-500/40 font-medium">0 Assets</span>
-    </div>
-    <div class="mt-1">
-      <h3 class="text-base font-bold text-white m-0" id="dash-assets-title">—</h3>
-      <p class="text-xs text-gray-300 flex items-center gap-1 mt-1 m-0">
-        <i data-lucide="map-pin" class="w-3 h-3"></i><span id="dash-assets-location">—</span>
-      </p>
-    </div>
-    <div class="mt-3 pt-3 border-t border-purple-500/20 flex justify-between items-center text-xs" style="border-top:1px solid rgba(168,85,247,0.2);">
-      <div class="flex items-center gap-2">
-        <span class="h-2 w-2 rounded-full bg-amber-400" style="display:inline-block;"></span>
-        <span class="text-gray-200">C of O Status: <strong class="text-amber-300" id="dash-assets-cofo">—</strong></span>
-      </div>
-      <button type="button" id="dash-assets-view-btn" class="text-purple-300 font-medium" style="background:none; border:none; text-decoration:underline; cursor:pointer;">
-        View Asset Hub &rarr;
-      </button>
-    </div>
-  </div>
+  <!-- My Assets Portfolio: now surfaced as a "Portfolio Assets" Quick Action
+       tile instead of a large card here — kept the grid uncluttered and
+       matches how every other dashboard shortcut is presented. -->
 
   <div id="dash-inspections-summary"><!-- populated dynamically --></div>
 
@@ -2670,18 +2651,37 @@
     <div class="s5-hold-row" id="s6h-appt-location-row" style="display:none;"><span>Location</span><strong id="s6h-appt-location">—</strong></div>
   </div>
 
-  <!-- Physical Handover Date Scheduler (Buyer/Client) — mirrors the rental
-       Post-Lease Hub's Move-In Date Scheduler; confirming here dual-notifies
-       the assigned Agent AND the linked Landlord simultaneously. -->
-  <div class="field">
-    <label class="field-label" id="s6h-appt-date-input-label">Choose Physical Handover Date</label>
-    <input class="field-input" id="s6h-appt-date-input" type="date">
+  <!-- Physical Allocation Request Flow (Buyer/Client) — standard sequence is
+       payment closes FIRST, then a separate Physical Allocation appointment is
+       Requested by the buyer, Confirmed by the Owner/Agent, and finally marked
+       Attended by the buyer once it's actually happened on-site. Only once
+       Attended does the Owner's "Issue Receipt & Deed" action unlock — this is
+       a distinct step from the earlier pre-purchase due-diligence inspection. -->
+  <div id="s6h-appt-request-box">
+    <div class="field">
+      <label class="field-label" id="s6h-appt-date-input-label">Choose Physical Handover Date</label>
+      <input class="field-input" id="s6h-appt-date-input" type="date">
+    </div>
+    <button type="button" id="s6h-appt-confirm-btn" class="s5-add-btn">
+      <i data-lucide="calendar-check" class="w-4 h-4"></i> Request Physical Allocation
+    </button>
   </div>
-  <button type="button" id="s6h-appt-confirm-btn" class="s5-add-btn">
-    <i data-lucide="calendar-check" class="w-4 h-4"></i> Confirm Physical Handover Date
-  </button>
-  <div class="rent-badge" id="s6h-appt-confirmed" style="display:none; margin-bottom: 20px;">
-    <i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span id="s6h-appt-confirmed-text"></span>
+
+  <div class="rent-badge" id="s6h-appt-pending" style="display:none; margin-bottom: 20px;">
+    <i data-lucide="clock" class="w-3.5 h-3.5"></i><span id="s6h-appt-pending-text"></span>
+  </div>
+
+  <div id="s6h-appt-attend-box" style="display:none; margin-bottom: 20px;">
+    <div class="rent-badge" style="margin-bottom: 10px;">
+      <i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span id="s6h-appt-confirmed-text"></span>
+    </div>
+    <button type="button" id="s6h-appt-attend-btn" class="s5-add-btn">
+      <i data-lucide="map-pin-check" class="w-4 h-4"></i> Confirm — I've Completed Physical Allocation
+    </button>
+  </div>
+
+  <div class="rent-badge" id="s6h-appt-attended" style="display:none; margin-bottom: 20px; background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.35); color:#34d399;">
+    <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i><span id="s6h-appt-attended-text"></span>
   </div>
 
   <!-- Digital Smart Lock PIN — Building/unit purchases only -->
@@ -2828,6 +2828,7 @@
   <p class="s5-section-label"><i data-lucide="badge-check" class="w-4 h-4 text-emerald-400"></i>Sold Assets</p>
   <div id="oa-sold-list" style="margin-bottom: 22px;"><!-- populated dynamically --></div>
   <input type="file" id="oa-deed-file" hidden accept="image/*,.pdf">
+  <input type="file" id="oa-consent-file" hidden accept="image/*,.pdf">
 
   <p class="s5-section-label"><i data-lucide="map" class="w-4 h-4 text-blue-400"></i>Available Assets</p>
   <div id="oa-available-list" style="margin-bottom: 10px;"><!-- populated dynamically --></div>
@@ -3693,12 +3694,25 @@
       </div>
     </div>
 
-    <div class="s5-upload-box" id="tv-upload-box">
-      <i data-lucide="upload-cloud" class="w-6 h-6"></i>
-      <span id="tv-upload-label">Upload C of O / Title Document</span>
-      <span class="s5-upload-meta" id="tv-upload-meta">Certificate of Ownership · Governor's Consent · Deed of Assignment</span>
-      <span class="doc-verify-badge" id="tv-verify-badge" style="display:none;"><i data-lucide="badge-check" class="w-3 h-3"></i>Queued for verification</span>
-      <input type="file" id="tv-file" hidden accept="image/*,.pdf">
+    <div class="field" id="tv-title-type-field" style="display:none;">
+      <label class="field-label">Existing Title Document Type</label>
+      <button type="button" class="field-input" id="tv-title-type-btn" style="text-align:left; display:flex; align-items:center; justify-content:space-between; cursor:pointer; gap:8px;">
+        <span id="tv-title-type-label" style="color:#64748b;">Select what this property currently holds…</span>
+        <i data-lucide="chevron-right" class="w-4 h-4" style="flex-shrink:0;"></i>
+      </button>
+      <p class="rent-badge" id="tv-consent-note" style="display:none; margin-top:8px; background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.35); color:#fbbf24;">
+        <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i><span>This title requires Governor's Consent to transfer — buyers will see this upfront on the listing.</span>
+      </p>
+    </div>
+
+    <div id="tv-doc-upload-wrap" style="display:none;">
+      <div class="s5-upload-box" id="tv-upload-box">
+        <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+        <span id="tv-upload-label">Upload Title Document</span>
+        <span class="s5-upload-meta" id="tv-upload-meta">Proof of the title type selected above</span>
+        <span class="doc-verify-badge" id="tv-verify-badge" style="display:none;"><i data-lucide="badge-check" class="w-3 h-3"></i>Queued for verification</span>
+        <input type="file" id="tv-file" hidden accept="image/*,.pdf">
+      </div>
     </div>
 
     <p class="s5-section-label"><i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>Inspection Availability</p>
@@ -3720,6 +3734,27 @@
 
     <button type="button" id="tv-submit-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Submit for Verification</button>
     <button type="button" id="tv-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
+<!-- Existing Title Document Type Drawer — the Seller declares what this
+     property currently holds before listing it for sale. Shown publicly on
+     the listing so buyers can make an informed choice, and drives which
+     verification document is requested and whether Governor's Consent
+     applies to the eventual transfer. -->
+<div id="title-type-drawer" class="sheet-overlay">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <h2 class="sheet-title"><i data-lucide="scroll-text" class="w-4 h-4"></i><span>Existing Title Document</span></h2>
+        <p class="sheet-subtitle">Select what this property currently holds. This shows on the listing for buyers, and sets what you'll be asked to upload for verification.</p>
+      </div>
+      <button type="button" class="sheet-close-btn" id="ttd-close-btn">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+    <div id="ttd-options"><!-- populated dynamically --></div>
   </div>
 </div>
 
@@ -5295,7 +5330,8 @@
         { icon: 'wallet', label: 'Pay Rent', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'payRent' },
         { icon: 'wrench', label: 'Report Issue', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'reportIssue' },
         { icon: 'file-text', label: 'My Lease', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'myLease' },
-        { icon: 'credit-card', label: 'Wallet', bg: 'bg-fuchsia-500/10', color: 'text-fuchsia-400', action: 'wallet' }
+        { icon: 'credit-card', label: 'Wallet', bg: 'bg-fuchsia-500/10', color: 'text-fuchsia-400', action: 'wallet' },
+        { icon: 'landmark', label: 'Portfolio Assets', bg: 'bg-teal-500/10', color: 'text-teal-400', action: 'assetHub' }
       ],
       activity: [
         { icon: 'receipt', color: 'text-emerald-400', title: 'Rent payment received', sub: 'Aug 1 · ₦180,000' },
@@ -5422,6 +5458,32 @@
   // Records a completed Land/Property purchase as an owned asset the first
   // time its listing closes for this buyer (guards against double-recording
   // if buildActiveLeaseFromCheckout ever re-runs for the same listing).
+  // ==================================================================
+  // ---- Governor's Consent Tracker (4-stage, Owner/Agent-advanced) ----
+  // Not Started → Documents Submitted → Under Review → Granted. Deliberately
+  // NOT an instant toggle: this reflects a real government process, so it's
+  // modeled as sequential stages the Owner/Agent moves forward one at a
+  // time, each backed by an uploaded proof reference — never something a
+  // buyer can advance themselves (see the ethical-ownership discussion:
+  // only the party holding the original C of O can attest to progress).
+  // ==================================================================
+  const CONSENT_STAGES = ['NOT_STARTED', 'SUBMITTED', 'UNDER_REVIEW', 'GRANTED'];
+  const CONSENT_STAGE_LABELS = {
+    NOT_STARTED: 'Not Yet Started',
+    SUBMITTED: 'Documents Submitted to Land Bureau',
+    UNDER_REVIEW: 'Under Review — Consent Fee Assessed',
+    GRANTED: "Governor's Consent Granted"
+  };
+  const CONSENT_ADVANCE_LABELS = {
+    NOT_STARTED: 'Mark Documents Submitted',
+    SUBMITTED: 'Mark Under Review',
+    UNDER_REVIEW: 'Mark Consent Granted'
+  };
+  function consentStatusLabel(asset) {
+    if (!asset || !asset.requiresConsent) return 'Not Required for This Title Type';
+    return CONSENT_STAGE_LABELS[asset.consentStatus] || CONSENT_STAGE_LABELS.NOT_STARTED;
+  }
+
   function recordAssetAcquisition(listing, lease) {
     if (!listing || listing.type !== 'land') return;
     appState = loadAppState();
@@ -5437,8 +5499,27 @@
       location: listing.location,
       amountLabel: lease ? lease.amountLabel : 'Paid in Full (Outright)',
       paymentMode: (lease && /installment/i.test(lease.amountLabel || '')) ? 'installment' : 'outright',
-      cofOStatus: 'In Progress (Estimated 14 Days)',
-      allocationStatus: 'Pending Physical Allocation',
+      // cofOStatus is derived from the Consent Tracker below and kept in sync
+      // on every stage advance (see oa-advance-consent-btn) so the handful of
+      // places that display it (Asset Hub, dashboard) never go stale.
+      cofOStatus: listing.requiresConsent ? 'Not Yet Started' : 'Not Required for This Title Type',
+      // Governor's Consent Tracker — only meaningful when the listing's
+      // declared title type actually requires it (C of O / prior Consent).
+      // Advanced only by the Owner/Agent (see oa-advance-consent-btn), each
+      // step backed by an uploaded proof reference rather than a bare
+      // checkbox, since this reflects a real government process neither
+      // side can fake or skip.
+      requiresConsent: !!listing.requiresConsent,
+      consentStatus: listing.requiresConsent ? 'NOT_STARTED' : null,
+      consentProofFileName: null,
+      consentUpdatedAt: null,
+      // Physical Allocation follows the standard post-completion sequence —
+      // payment closes first, THEN a separate Physical Allocation appointment
+      // is requested/confirmed/attended (see the Physical Access & Site
+      // Marker Schedule on the Handover screen) — it is a distinct legal step
+      // from the pre-purchase due-diligence site inspection, not the same event.
+      allocationRequestStatus: null,
+      allocationDateLabel: null,
       deedAvailable: false,
       purchaseDate: Date.now(),
       txnId: landHandoverTxnId || null
@@ -5503,27 +5584,75 @@
         const amount = buyerAsset ? buyerAsset.amountLabel : formatMoney(l.totalPrice, 'ngn');
         const dateLabel = buyerAsset ? new Date(buyerAsset.purchaseDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
 
-        // Receipt & Deed of Assignment — only actionable once the buyer has
-        // confirmed a physical handover date (persisted on the shared asset
-        // record, see s6h-appt-confirm-btn); nothing to upload before that.
+        // Physical Allocation: Request (buyer) → Confirm (Owner, here) →
+        // Attended (buyer, on-site) — a distinct, later step from the sale
+        // itself. Receipt & Deed only becomes actionable once Attended.
+        let allocRow = '';
         let docsRow = '';
         if (buyerAsset) {
-          let docsAction;
+          const allocStatus = buyerAsset.allocationRequestStatus;
+          let allocAction, allocLine;
+          if (allocStatus === 'ATTENDED') {
+            allocLine = `Physical allocation completed: ${buyerAsset.allocationDateLabel}`;
+            allocAction = `<span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap;"><i data-lucide="check-circle-2" class="w-3 h-3"></i>Completed</span>`;
+          } else if (allocStatus === 'CONFIRMED') {
+            allocLine = `Allocation scheduled: ${buyerAsset.allocationDateLabel}`;
+            allocAction = `<span class="s5-status-badge insp-status-conducted" style="white-space:nowrap;">Awaiting Buyer On-Site</span>`;
+          } else if (allocStatus === 'PENDING_APPROVAL') {
+            allocLine = `Allocation requested: ${buyerAsset.allocationDateLabel}`;
+            allocAction = `<button type="button" class="s5-back-btn oa-confirm-allocation-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600;"><i data-lucide="calendar-check" class="w-3.5 h-3.5"></i>Confirm Appointment</button>`;
+          } else {
+            allocLine = 'Buyer hasn\'t requested physical allocation yet';
+            allocAction = `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap;">Not Requested</span>`;
+          }
+          allocRow = `
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin: -6px 0 6px; padding: 0 4px;">
+              <p class="s5-list-sub" style="margin:0;">${allocLine}</p>
+              ${allocAction}
+            </div>`;
+
+          // Governor's Consent Tracker — only relevant when the listing's
+          // declared title type requires it. Owner/Agent advances it one
+          // stage at a time; only reaching GRANTED clears the way to issue
+          // the C of O alongside the Deed & Receipt.
+          let consentRow = '';
+          if (buyerAsset.requiresConsent) {
+            let consentAction;
+            if (buyerAsset.consentStatus === 'GRANTED') {
+              consentAction = `<span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap;"><i data-lucide="check-circle-2" class="w-3 h-3"></i>Granted</span>`;
+            } else {
+              const nextLabel = CONSENT_ADVANCE_LABELS[buyerAsset.consentStatus] || CONSENT_ADVANCE_LABELS.NOT_STARTED;
+              consentAction = `<button type="button" class="s5-back-btn oa-advance-consent-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600;"><i data-lucide="stamp" class="w-3.5 h-3.5"></i>${nextLabel}</button>`;
+            }
+            consentRow = `
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin: 0 0 6px; padding: 0 4px;">
+                <p class="s5-list-sub" style="margin:0;">${consentStatusLabel(buyerAsset)}</p>
+                ${consentAction}
+              </div>`;
+          }
+
+          // Receipt & Deed of Assignment (+ C of O when the title type
+          // requires Consent) — only actionable once physical allocation has
+          // actually been Attended AND, if applicable, Consent has been
+          // Granted: payment → allocation → consent (if needed) → documents.
+          const consentBlocking = buyerAsset.requiresConsent && buyerAsset.consentStatus !== 'GRANTED';
+          let docsAction, docsLabel;
+          docsLabel = buyerAsset.requiresConsent ? 'Receipt, Deed &amp; C of O' : 'Receipt &amp; Deed of Assignment';
           if (buyerAsset.deedAvailable) {
             docsAction = `<span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap;"><i data-lucide="badge-check" class="w-3 h-3"></i>Docs Issued</span>`;
-          } else if (buyerAsset.handoverConfirmed) {
-            docsAction = `<button type="button" class="s5-back-btn oa-issue-deed-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600;"><i data-lucide="upload" class="w-3.5 h-3.5"></i>Issue Receipt &amp; Deed</button>`;
+          } else if (allocStatus === 'ATTENDED' && !consentBlocking) {
+            docsAction = `<button type="button" class="s5-back-btn oa-issue-deed-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600;"><i data-lucide="upload" class="w-3.5 h-3.5"></i>Issue ${buyerAsset.requiresConsent ? 'Documents' : 'Receipt &amp; Deed'}</button>`;
+          } else if (allocStatus === 'ATTENDED' && consentBlocking) {
+            docsAction = `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap;">Awaiting Governor's Consent</span>`;
           } else {
-            docsAction = `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap;">Awaiting Handover Date</span>`;
+            docsAction = `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap;">Awaiting Physical Allocation</span>`;
           }
-          const handoverLine = buyerAsset.handoverConfirmed
-            ? `Handover confirmed: ${buyerAsset.handoverDateLabel}`
-            : 'Buyer hasn\'t confirmed a handover date yet';
           docsRow = `
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin: -6px 0 10px; padding: 0 4px;">
-              <p class="s5-list-sub" style="margin:0;">${handoverLine}</p>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin: 0 0 10px; padding: 0 4px;">
+              <p class="s5-list-sub" style="margin:0;">${docsLabel}</p>
               ${docsAction}
             </div>`;
+          allocRow += consentRow;
         }
 
         return `
@@ -5535,7 +5664,7 @@
               <p class="s5-list-sub" style="margin-top:2px;">Sold to <strong style="color:#e2e8f0;">${buyerName}</strong> · ${amount} · ${dateLabel}</p>
             </div>
             <span class="s5-status-badge insp-status-confirmed">SOLD</span>
-          </div>${docsRow}`;
+          </div>${allocRow}${docsRow}`;
       }).join('');
     }
 
@@ -5567,10 +5696,68 @@
   // only ever one upload in flight at a time from this screen.
   let oaPendingAssetId = null;
   document.getElementById('oa-sold-list').addEventListener('click', (e) => {
+    const allocBtn = e.target.closest('.oa-confirm-allocation-btn');
+    if (allocBtn) {
+      appState = loadAppState();
+      const asset = (appState.assets || []).find(a => a.id === allocBtn.dataset.assetId);
+      if (!asset || asset.allocationRequestStatus !== 'PENDING_APPROVAL') return;
+      asset.allocationRequestStatus = 'CONFIRMED';
+      saveAppState(appState);
+      pushPlatformNotification('tenant', 'message', 'Physical Allocation Confirmed',
+        `Your requested physical allocation for ${asset.title} on ${asset.allocationDateLabel} has been confirmed. Once it's happened on-site, confirm it in the app.`,
+        { screen: 'screen-land-handover' }, 'ALLOCATION_CONFIRMED', null, asset.ownerId);
+      showToast(`Appointment confirmed — ${resolveUserName(asset.ownerId)} notified`);
+      populateScreenOwnerAssets();
+      window.dispatchEvent(new Event('maintown_state_updated'));
+      return;
+    }
+
     const btn = e.target.closest('.oa-issue-deed-btn');
-    if (!btn) return;
-    oaPendingAssetId = btn.dataset.assetId;
-    document.getElementById('oa-deed-file').click();
+    if (btn) {
+      oaPendingAssetId = btn.dataset.assetId;
+      document.getElementById('oa-deed-file').click();
+      return;
+    }
+
+    const consentBtn = e.target.closest('.oa-advance-consent-btn');
+    if (consentBtn) {
+      oaPendingConsentAssetId = consentBtn.dataset.assetId;
+      document.getElementById('oa-consent-file').click();
+    }
+  });
+
+  // Advancing Consent is proof-backed, not a bare toggle: picking a file IS
+  // the action, same pattern as Issue Receipt & Deed — moves exactly one
+  // stage forward per upload (Not Started → Submitted → Under Review →
+  // Granted), notifying the buyer at each step.
+  let oaPendingConsentAssetId = null;
+  document.getElementById('oa-consent-file').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file || !oaPendingConsentAssetId) return;
+
+    appState = loadAppState();
+    const asset = (appState.assets || []).find(a => a.id === oaPendingConsentAssetId);
+    oaPendingConsentAssetId = null;
+    if (!asset || !asset.requiresConsent || asset.consentStatus === 'GRANTED') return;
+
+    const currentIdx = CONSENT_STAGES.indexOf(asset.consentStatus || 'NOT_STARTED');
+    const nextStage = CONSENT_STAGES[Math.min(currentIdx + 1, CONSENT_STAGES.length - 1)];
+    asset.consentStatus = nextStage;
+    asset.consentProofFileName = file.name;
+    asset.consentUpdatedAt = Date.now();
+    asset.cofOStatus = CONSENT_STAGE_LABELS[nextStage];
+    saveAppState(appState);
+
+    const buyerMsg = nextStage === 'GRANTED'
+      ? `Governor's Consent has been granted for ${asset.title}. Your Receipt, Deed of Assignment & C of O are now ready to be issued.`
+      : `${asset.title}'s Governor's Consent status is now: ${CONSENT_STAGE_LABELS[nextStage]}.`;
+    pushPlatformNotification('tenant', 'message', "Governor's Consent Update", buyerMsg,
+      { screen: 'screen-land-handover' }, 'CONSENT_UPDATED', null, asset.ownerId);
+
+    showToast(`Consent status updated to "${CONSENT_STAGE_LABELS[nextStage]}" — ${resolveUserName(asset.ownerId)} notified`);
+    populateScreenOwnerAssets();
+    window.dispatchEvent(new Event('maintown_state_updated'));
   });
 
   document.getElementById('oa-deed-file').addEventListener('change', (e) => {
@@ -5588,8 +5775,9 @@
     asset.deedIssuedAt = Date.now();
     saveAppState(appState);
 
-    pushPlatformNotification('tenant', 'message', 'Receipt & Deed of Assignment Issued',
-      `Your Receipt and Deed of Assignment for ${asset.title} have been issued and are ready to download from My Assets. A physical copy will also be sent to you separately.`,
+    const bundleLabel = asset.requiresConsent ? 'Receipt, Deed of Assignment & C of O' : 'Receipt and Deed of Assignment';
+    pushPlatformNotification('tenant', 'message', `${bundleLabel} Issued`,
+      `Your ${bundleLabel} for ${asset.title} have been issued and are ready to download from My Assets. A physical copy will also be sent to you separately.`,
       { screen: 'assetHub' }, 'DEED_ISSUED', null, asset.ownerId);
 
     showToast(`${file.name} issued to ${resolveUserName(asset.ownerId)} — buyer notified`);
@@ -5846,36 +6034,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // pushTenantInspectionAlert, createHandoverForTenantSignOff below).
 
     renderInspectionsSummaryCard();
-    renderMyAssetsCard();
     if (window.lucide) lucide.createIcons();
   }
-
-  // ---- "My Assets" Portfolio Overview Card: shows only for buyers who have
-  // completed at least one Land/Property purchase (see recordAssetAcquisition
-  // in buildActiveLeaseFromCheckout). Previews the most recently acquired
-  // asset and its live C of O status; tapping routes to the full Asset Hub. ----
-  function renderMyAssetsCard() {
-    const card = document.getElementById('dash-assets-card');
-    if (!card) return;
-    const role = currentUserRole || 'tenant';
-    if (role !== 'tenant') { card.style.display = 'none'; return; }
-
-    const owned = myAssets();
-    if (!owned.length) { card.style.display = 'none'; return; }
-
-    const latest = owned[0];
-    document.getElementById('dash-assets-count-badge').textContent = `${owned.length} Active ${owned.length === 1 ? 'Asset' : 'Assets'}`;
-    document.getElementById('dash-assets-title').textContent = latest.title;
-    document.getElementById('dash-assets-location').textContent = latest.location;
-    document.getElementById('dash-assets-cofo').textContent = latest.cofOStatus;
-    card.style.display = 'block';
-  }
-
-  document.getElementById('dash-assets-view-btn').addEventListener('click', () => {
-    const owned = myAssets();
-    activeAssetId = owned.length ? owned[0].id : null;
-    navigateTo('screen-asset-hub');
-  });
 
   // ---- Clean single summary action card: "Active Inspections (N Pending)" ----
   // Replaces bulky inline booking cards — routes straight to the Inspection Schedules Hub.
@@ -5937,6 +6097,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       openWalletDashboard();
     } else if (tile.dataset.action === 'ownerAssets') {
       navigateTo('screen-owner-assets');
+    } else if (tile.dataset.action === 'assetHub') {
+      const owned = myAssets();
+      activeAssetId = owned.length ? owned[0].id : null;
+      navigateTo('screen-asset-hub');
     } else {
       showToast(`${tile.dataset.label} — coming soon`);
     }
@@ -6416,6 +6580,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <p class="s5-card-title">${p.title}</p>
           <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
           <p class="s5-card-price">${formatMoney(p.totalPrice, 'ngn')} <span>total price</span></p>
+          ${p.titleTypeLabel ? `
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin: 2px 0 10px;">
+            <span class="s5-status-badge insp-status-conducted" style="white-space:nowrap;"><i data-lucide="scroll-text" class="w-3 h-3"></i>${p.titleTypeLabel}</span>
+            ${p.requiresConsent ? `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap;"><i data-lucide="alert-triangle" class="w-3 h-3"></i>Governor's Consent Required</span>` : ''}
+          </div>` : ''}
           <!-- CTA Consolidation: the standalone "Schedule Site Inspection" button has been
                removed. "View Payment Options" is now the single primary CTA on this card — it
                opens the consolidated Payment Options drawer (Option A: Schedule Site Inspection,
@@ -7990,11 +8159,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
         const asset = (appState.assets || []).find(a => a.listingId === checkoutListing.id && a.ownerId === uid);
         if (asset && !asset.txnId) { asset.txnId = landHandoverTxnId; saveAppState(appState); }
       })();
-      if (!landHandoverAppt) {
-        const appt = new Date();
-        appt.setDate(appt.getDate() + 7);
-        landHandoverAppt = appt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + ' · 11:00 AM';
-      }
       gotoBtn.innerHTML = '<i data-lucide="key-round" class="w-4 h-4"></i> View Handover &amp; Title Transfer';
     } else {
       gotoBtn.innerHTML = '<i data-lucide="arrow-right-circle" class="w-4 h-4"></i> Proceed to Post-Lease Hub';
@@ -8355,8 +8519,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('tv-video-upload-label').textContent = 'Video Walkthrough';
     document.getElementById('tv-video-upload-meta').textContent = '';
     document.getElementById('tv-upload-box').classList.remove('has-file');
-    document.getElementById('tv-upload-label').textContent = 'Upload C of O / Title Document';
+    document.getElementById('tv-upload-label').textContent = 'Upload Title Document';
     document.getElementById('tv-verify-badge').style.display = 'none';
+    tvSelectedTitleType = null;
+    document.getElementById('tv-title-type-label').textContent = 'Select what this property currently holds…';
+    document.getElementById('tv-title-type-label').style.color = '#64748b';
+    document.getElementById('tv-consent-note').style.display = 'none';
+    updateTvTitleTypeVisibility();
     document.getElementById('tv-publish-toggle').checked = true;
     tvPendingAvailability = [];
     document.getElementById('tv-avail-date').value = '';
@@ -8428,6 +8597,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       showToast('Please fill in property title, address, and annual price');
       return;
     }
+    if (type === 'land' && !tvSelectedTitleType) {
+      showToast('Please select the existing title document type for this property');
+      return;
+    }
+    const titleTypeOpt = tvSelectedTitleType ? TITLE_TYPE_OPTIONS.find(o => o.id === tvSelectedTitleType) : null;
     const isPublished = document.getElementById('tv-publish-toggle').checked;
     const newId = Date.now();
     landlordProperties.unshift({ id: newId, title, address, status: 'escrow', listingId: newId, ownerId: getCurrentUserId() });
@@ -8456,7 +8630,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const monthly = Math.round(annual / 12);
       listingsFeed.unshift({ ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent });
     } else {
-      listingsFeed.unshift({ ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land });
+      listingsFeed.unshift({
+        ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land,
+        // Existing Title Document Type — shown publicly on the listing so
+        // buyers can judge title risk/completeness before ever messaging
+        // anyone, and drives the Governor's Consent tracker after sale.
+        titleType: titleTypeOpt.id,
+        titleTypeLabel: titleTypeOpt.label,
+        requiresConsent: titleTypeOpt.requiresConsent
+      });
     }
     saveListings();
     tvPendingPhotoCount = 0;
@@ -8641,6 +8823,51 @@ This voucher is auto-generated and serves as proof of settlement.`;
   let tvPendingPhotoUrls = [];
   let tvPendingVideoUrl = null;
 
+  // ---- Existing Title Document Type (Seller declaration at listing time) ----
+  const TITLE_TYPE_OPTIONS = [
+    { id: 'C_OF_O', label: 'Certificate of Occupancy (C of O)', desc: "Governor-issued right of occupancy, in the seller's name. Requires Governor's Consent to transfer to a buyer.", requiresConsent: true },
+    { id: 'GOVERNORS_CONSENT', label: "Governor's Consent (already obtained)", desc: 'Consent was already granted on a prior transfer to the seller. A fresh Consent is still required for this sale.', requiresConsent: true },
+    { id: 'GAZETTE', label: 'Gazette', desc: 'Officially published government record of land excised/released from government acquisition to the community/family — no C of O yet.', requiresConsent: false },
+    { id: 'REGISTERED_CONVEYANCE', label: 'Registered Conveyance / Deed', desc: 'An older, registered deed predating the Land Use Act.', requiresConsent: false },
+    { id: 'FAMILY_RECEIPT', label: 'Family / Customary Receipt', desc: 'Traditional purchase receipt only — no formal government title yet.', requiresConsent: false },
+    { id: 'NONE_YET', label: 'None Yet / In Progress', desc: 'Title documentation is still being processed.', requiresConsent: false }
+  ];
+  let tvSelectedTitleType = null;
+
+  function renderTitleTypeDrawer() {
+    const wrap = document.getElementById('ttd-options');
+    wrap.innerHTML = TITLE_TYPE_OPTIONS.map(o => `
+      <button type="button" class="s5-list-item ttd-option" data-id="${o.id}" style="width:100%; text-align:left; margin-bottom:8px; cursor:pointer; border: 1px solid ${tvSelectedTitleType === o.id ? '#a855f7' : '#1e293b'};">
+        <div class="s5-list-icon"><i data-lucide="${tvSelectedTitleType === o.id ? 'check-circle-2' : 'circle'}" class="w-5 h-5"></i></div>
+        <div class="s5-list-text">
+          <p class="s5-list-title">${o.label}</p>
+          <p class="s5-list-sub">${o.desc}</p>
+        </div>
+      </button>
+    `).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('tv-title-type-btn').addEventListener('click', () => {
+    renderTitleTypeDrawer();
+    document.getElementById('title-type-drawer').classList.add('open');
+  });
+  document.getElementById('ttd-close-btn').addEventListener('click', () => {
+    document.getElementById('title-type-drawer').classList.remove('open');
+  });
+  document.getElementById('ttd-options').addEventListener('click', (e) => {
+    const btn = e.target.closest('.ttd-option');
+    if (!btn) return;
+    tvSelectedTitleType = btn.dataset.id;
+    const opt = TITLE_TYPE_OPTIONS.find(o => o.id === tvSelectedTitleType);
+    document.getElementById('tv-title-type-label').textContent = opt.label;
+    document.getElementById('tv-title-type-label').style.color = '#e2e8f0';
+    document.getElementById('tv-consent-note').style.display = opt.requiresConsent ? 'inline-flex' : 'none';
+    document.getElementById('tv-doc-upload-wrap').style.display = 'block';
+    document.getElementById('tv-upload-label').textContent = `Upload ${opt.label.replace(/\s*\(.*?\)/, '')}`;
+    document.getElementById('title-type-drawer').classList.remove('open');
+  });
+
   document.getElementById('s5-photo-upload').addEventListener('click', () => document.getElementById('s5-photo-file').click());
   document.getElementById('s5-photo-file').addEventListener('change', (e) => {
     const box = document.getElementById('s5-photo-upload');
@@ -8680,7 +8907,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('s5-listing-type').addEventListener('change', () => updateAnnualCalc('s5'));
   document.getElementById('tv-annual').addEventListener('input', () => updateAnnualCalc('tv'));
   document.getElementById('tv-annual').addEventListener('change', () => updateAnnualCalc('tv'));
-  document.getElementById('tv-listing-type').addEventListener('change', () => updateAnnualCalc('tv'));
+  document.getElementById('tv-listing-type').addEventListener('change', () => {
+    updateAnnualCalc('tv');
+    updateTvTitleTypeVisibility();
+  });
+
+  function updateTvTitleTypeVisibility() {
+    const isLand = document.getElementById('tv-listing-type').value === 'land';
+    document.getElementById('tv-title-type-field').style.display = isLand ? 'block' : 'none';
+    document.getElementById('tv-doc-upload-wrap').style.display = (isLand && tvSelectedTitleType) ? 'block' : 'none';
+  }
 
   document.getElementById('s5-listing-form').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -9281,6 +9517,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ctaBtn.onclick = () => {
         notificationDetailModal.classList.remove('open');
         navigateTo('screen-asset-hub');
+      };
+    } else if (notif.route && notif.route.screen === 'screen-owner-assets') {
+      ctaLabel.textContent = 'View Asset Portfolio';
+      ctaBtn.style.display = 'flex';
+      ctaBtn.onclick = () => {
+        notificationDetailModal.classList.remove('open');
+        navigateTo('screen-owner-assets');
+      };
+    } else if (notif.route && notif.route.screen === 'screen-land-handover') {
+      ctaLabel.textContent = 'View Handover Screen';
+      ctaBtn.style.display = 'flex';
+      ctaBtn.onclick = () => {
+        notificationDetailModal.classList.remove('open');
+        navigateTo('screen-land-handover');
       };
     } else if (notif.route && notif.route.screen === 'tenantBio' && notif.route.notifId) {
       ctaLabel.textContent = 'View Tenant Details';
@@ -11407,7 +11657,6 @@ available in the Post-Lease Hub and this chat thread.`
     // pegging appointment; buildings get a key-handover appointment + smart lock PIN.
     const bareLand = isBareLandListing(listing);
     document.getElementById('s6h-appt-label').textContent = bareLand ? 'Boundary Pegging Appointment' : 'Key Handover Appointment';
-    document.getElementById('s6h-appt-date').textContent = landHandoverAppt || 'To be scheduled';
     document.getElementById('s6h-appt-date-input-label').textContent = bareLand ? 'Choose Boundary Pegging Date' : 'Choose Physical Handover Date';
     document.getElementById('s6h-appt-location-row').style.display = bareLand ? 'none' : 'flex';
     if (!bareLand) document.getElementById('s6h-appt-location').textContent = (listing && listing.location) || '—';
@@ -11430,22 +11679,38 @@ available in the Post-Lease Hub and this chat thread.`
       officerAvatar.style.display = 'none'; officerAvatarFallback.style.display = 'flex';
     }
 
-    // Physical Handover Date Scheduler: reflect whatever has already been
-    // confirmed this session (or reset to blank/hidden if nothing has).
-    document.getElementById('s6h-appt-date-input').value = landHandoverDateVal || '';
-    if (landHandoverAppt) {
-      document.getElementById('s6h-appt-confirmed-text').textContent = `${document.getElementById('s6h-appt-label').textContent} confirmed for ${landHandoverAppt}`;
-      document.getElementById('s6h-appt-confirmed').style.display = 'inline-flex';
-    } else {
-      document.getElementById('s6h-appt-confirmed').style.display = 'none';
+    // Fetch once, used by both the Physical Allocation Request flow and the
+    // Deed status below.
+    appState = loadAppState();
+    const buyerUid = getCurrentUserId();
+    const myAsset = listing ? (appState.assets || []).find(a => a.listingId === listing.id && a.ownerId === buyerUid) : null;
+
+    // Physical Allocation Request Flow: Request (buyer) → Confirm (Owner/Agent)
+    // → Attended (buyer, after the appointment actually happens on-site).
+    // Distinct from — and happens AFTER — the pre-purchase due-diligence
+    // inspection; only "Attended" unlocks the Owner's Issue Receipt & Deed step.
+    document.getElementById('s6h-appt-date-input').value = '';
+    const apptStatus = myAsset ? myAsset.allocationRequestStatus : null;
+    const apptDateLabel = myAsset ? myAsset.allocationDateLabel : null;
+    const apptLabel = document.getElementById('s6h-appt-label').textContent;
+    document.getElementById('s6h-appt-date').textContent = apptDateLabel || 'To be scheduled';
+
+    document.getElementById('s6h-appt-request-box').style.display = apptStatus ? 'none' : 'block';
+    document.getElementById('s6h-appt-pending').style.display = apptStatus === 'PENDING_APPROVAL' ? 'inline-flex' : 'none';
+    document.getElementById('s6h-appt-attend-box').style.display = apptStatus === 'CONFIRMED' ? 'block' : 'none';
+    document.getElementById('s6h-appt-attended').style.display = apptStatus === 'ATTENDED' ? 'inline-flex' : 'none';
+
+    if (apptStatus === 'PENDING_APPROVAL') {
+      document.getElementById('s6h-appt-pending-text').textContent = `${apptLabel} requested for ${apptDateLabel} — awaiting Owner/Agent confirmation`;
+    } else if (apptStatus === 'CONFIRMED') {
+      document.getElementById('s6h-appt-confirmed-text').textContent = `${apptLabel} confirmed for ${apptDateLabel}`;
+    } else if (apptStatus === 'ATTENDED') {
+      document.getElementById('s6h-appt-attended-text').textContent = `${apptLabel} completed on ${apptDateLabel}`;
     }
 
     // Deed of Assignment status — only ever set true by the Owner actually
     // issuing it from their Asset Portfolio (see oa-issue-deed-btn), never
     // by the buyer simply viewing this screen.
-    appState = loadAppState();
-    const buyerUid = getCurrentUserId();
-    const myAsset = listing ? (appState.assets || []).find(a => a.listingId === listing.id && a.ownerId === buyerUid) : null;
     const deedBadge = document.getElementById('s6h-deed-status');
     const deedBtn = document.getElementById('s6h-deed-view-btn');
     if (myAsset && myAsset.deedAvailable) {
@@ -11458,6 +11723,15 @@ available in the Post-Lease Hub and this chat thread.`
       deedBadge.className = 's5-status-badge insp-status-pending';
       deedBtn.disabled = true;
       deedBtn.style.opacity = '0.5';
+    }
+
+    // Governor's Consent Tracker — read-only here; only the Owner/Agent can
+    // advance it (Asset Portfolio). Reflects a real government process, so
+    // this is never instant or buyer-editable.
+    const cofoBadge = document.getElementById('s6h-cofo-status');
+    if (myAsset) {
+      cofoBadge.textContent = consentStatusLabel(myAsset);
+      cofoBadge.className = 's5-status-badge ' + (myAsset.consentStatus === 'GRANTED' || !myAsset.requiresConsent ? 'insp-status-confirmed' : 'insp-status-pending');
     }
 
     if (window.lucide) lucide.createIcons();
@@ -11501,7 +11775,7 @@ available in the Post-Lease Hub and this chat thread.`
           <p class="s5-list-title">${a.title}</p>
           <p class="s5-list-sub">${a.location}</p>
         </div>
-        <span class="s5-status-badge insp-status-pending">${a.cofOStatus.startsWith('In Progress') ? 'C of O Pending' : a.cofOStatus}</span>
+        <span class="s5-status-badge ${a.consentStatus === 'GRANTED' || !a.requiresConsent ? 'insp-status-confirmed' : 'insp-status-pending'}">${consentStatusLabel(a)}</span>
       </div>`).join('');
 
     renderAssetHubDetail();
@@ -11527,8 +11801,18 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('ah-deed-download-btn').disabled = !asset.deedAvailable;
     document.getElementById('ah-deed-download-btn').style.opacity = asset.deedAvailable ? '1' : '0.5';
 
-    document.getElementById('ah-allocation-status').textContent = asset.allocationStatus;
-    document.getElementById('ah-cofo-status').textContent = asset.cofOStatus;
+    const allocBadge = document.getElementById('ah-allocation-status');
+    const allocStatus = asset.allocationRequestStatus;
+    const allocLabelMap = {
+      PENDING_APPROVAL: `Requested for ${asset.allocationDateLabel} — awaiting confirmation`,
+      CONFIRMED: `Scheduled for ${asset.allocationDateLabel} — confirm once completed`,
+      ATTENDED: `Completed on ${asset.allocationDateLabel}`
+    };
+    allocBadge.textContent = allocLabelMap[allocStatus] || 'Not Yet Requested';
+    allocBadge.className = 's5-status-badge ' + (allocStatus === 'ATTENDED' ? 'insp-status-confirmed' : 'insp-status-pending');
+    const cofoBadge = document.getElementById('ah-cofo-status');
+    cofoBadge.textContent = consentStatusLabel(asset);
+    cofoBadge.className = 's5-status-badge ' + (asset.consentStatus === 'GRANTED' || !asset.requiresConsent ? 'insp-status-confirmed' : 'insp-status-pending');
   }
 
   document.getElementById('ah-asset-list').addEventListener('click', (e) => {
@@ -11560,41 +11844,63 @@ available in the Post-Lease Hub and this chat thread.`
   // Handover appointment) on the Executive Handover screen — dual-notifies
   // the assigned Agent AND the linked Landlord simultaneously, exactly like
   // the rental Move-In Date Scheduler.
+  // Step 1 — Buyer requests a Physical Allocation appointment (post-payment,
+  // distinct from the earlier pre-purchase due-diligence inspection).
   document.getElementById('s6h-appt-confirm-btn').addEventListener('click', () => {
     const dateVal = document.getElementById('s6h-appt-date-input').value;
     if (!dateVal) { showToast('Please choose a date first'); return; }
     const formatted = new Date(dateVal + 'T11:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + ' · 11:00 AM';
-    landHandoverAppt = formatted;
-    landHandoverDateVal = dateVal;
-    document.getElementById('s6h-appt-date').textContent = formatted;
-
-    const apptLabel = document.getElementById('s6h-appt-label').textContent;
-    document.getElementById('s6h-appt-confirmed-text').textContent = `${apptLabel} confirmed for ${formatted}`;
-    document.getElementById('s6h-appt-confirmed').style.display = 'inline-flex';
-    if (window.lucide) lucide.createIcons();
 
     const listing = landHandoverListing || checkoutListing;
-    if (listing) {
-      const buyerName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Client';
-      dispatchHandoverDateNotifications(listing, buyerName, formatted);
+    if (!listing) { showToast('Could not find this property — try reopening from My Assets'); return; }
 
-      // Persist the confirmed date onto the shared asset record (not just the
-      // in-memory landHandoverAppt/landHandoverDateVal above) so the Owner's
-      // Asset Portfolio screen can actually see it and gate the Receipt/Deed
-      // upload action on it — previously this only ever lived in a variable
-      // local to the buyer's own session.
-      appState = loadAppState();
-      const buyerUid = getCurrentUserId();
-      const asset = (appState.assets || []).find(a => a.listingId === listing.id && a.ownerId === buyerUid);
-      if (asset) {
-        asset.handoverConfirmed = true;
-        asset.handoverDateLabel = formatted;
-        saveAppState(appState);
-        window.dispatchEvent(new Event('maintown_state_updated'));
-      }
+    appState = loadAppState();
+    const buyerUid = getCurrentUserId();
+    const asset = (appState.assets || []).find(a => a.listingId === listing.id && a.ownerId === buyerUid);
+    if (!asset) { showToast('Could not find your purchase record — try reopening from My Assets'); return; }
+
+    asset.allocationRequestStatus = 'PENDING_APPROVAL';
+    asset.allocationDateLabel = formatted;
+    saveAppState(appState);
+    window.dispatchEvent(new Event('maintown_state_updated'));
+
+    const buyerName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Client';
+    const apptLabel = document.getElementById('s6h-appt-label').textContent;
+    if (listing.ownerId) {
+      pushPlatformNotification('landlord', 'message', 'Physical Allocation Requested',
+        `${buyerName} requested a ${apptLabel.toLowerCase()} for ${listing.title} on ${formatted}. Please confirm this date.`,
+        { screen: 'screen-owner-assets' }, 'ALLOCATION_REQUESTED', null, listing.ownerId);
     }
-    showToast('Physical handover date confirmed — Agent/Landlord notified');
+
+    showToast('Physical allocation requested — awaiting Owner/Agent confirmation');
+    populateScreenLandHandover();
   });
+
+  // Step 3 — Buyer confirms the appointment actually happened on-site. Only
+  // this unlocks the Owner's Issue Receipt & Deed action.
+  document.getElementById('s6h-appt-attend-btn').addEventListener('click', () => {
+    const listing = landHandoverListing || checkoutListing;
+    if (!listing) return;
+    appState = loadAppState();
+    const buyerUid = getCurrentUserId();
+    const asset = (appState.assets || []).find(a => a.listingId === listing.id && a.ownerId === buyerUid);
+    if (!asset || asset.allocationRequestStatus !== 'CONFIRMED') return;
+
+    asset.allocationRequestStatus = 'ATTENDED';
+    saveAppState(appState);
+    window.dispatchEvent(new Event('maintown_state_updated'));
+
+    if (listing.ownerId) {
+      pushPlatformNotification('landlord', 'message', 'Physical Allocation Completed',
+        `${asset.title}'s physical allocation has been completed and confirmed by the buyer — you can now issue the Receipt & Deed of Assignment from your Asset Portfolio.`,
+        { screen: 'screen-owner-assets' }, 'ALLOCATION_ATTENDED', null, listing.ownerId);
+    }
+
+    showToast('Physical allocation confirmed — Owner notified to issue documents');
+    populateScreenLandHandover();
+  });
+
+
 
   // Message Seller / Agent — routes straight into the active chat thread already
   // tied to this listing (created when the tenant/buyer signed the agreement),
