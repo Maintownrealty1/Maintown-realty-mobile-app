@@ -2639,7 +2639,7 @@
     <div class="s5-list-icon"><i data-lucide="file-text" class="w-5 h-5"></i></div>
     <div class="s5-list-text">
       <p class="s5-list-title">Deed of Assignment</p>
-      <p class="s5-list-sub"><span class="s5-status-badge insp-status-confirmed" style="margin-top: 4px;">Verified</span></p>
+      <p class="s5-list-sub"><span class="s5-status-badge insp-status-pending" id="s6h-deed-status" style="margin-top: 4px;">Not Yet Issued</span></p>
     </div>
     <button type="button" id="s6h-deed-view-btn" class="s5-back-btn" title="Download Deed PDF" style="width:auto; padding:0 14px; gap:6px; display:flex; align-items:center; white-space:nowrap;">
       <i data-lucide="download" class="w-4 h-4"></i><span style="font-size:11.5px; font-weight:600;">Download PDF</span>
@@ -2827,6 +2827,7 @@
 
   <p class="s5-section-label"><i data-lucide="badge-check" class="w-4 h-4 text-emerald-400"></i>Sold Assets</p>
   <div id="oa-sold-list" style="margin-bottom: 22px;"><!-- populated dynamically --></div>
+  <input type="file" id="oa-deed-file" hidden accept="image/*,.pdf">
 
   <p class="s5-section-label"><i data-lucide="map" class="w-4 h-4 text-blue-400"></i>Available Assets</p>
   <div id="oa-available-list" style="margin-bottom: 10px;"><!-- populated dynamically --></div>
@@ -3772,7 +3773,8 @@
       <i data-lucide="eye" class="w-3.5 h-3.5" id="checkout-pin-eye-icon"></i><span id="checkout-pin-toggle-label">Show PIN</span>
     </button>
 
-    <p class="modal-sub" id="checkout-pin-insufficient" style="display:none; color:#f87171; margin-top:-6px;">Insufficient wallet balance for this transaction — top up your wallet or pay with card instead.</p>
+    <p class="modal-sub" id="checkout-pin-insufficient" style="display:none; color:#f87171; margin-top:-6px;">Insufficient wallet balance for this transaction — top up your wallet, then come straight back to finish paying.</p>
+    <button type="button" id="checkout-pin-fundwallet-btn" class="btn-secondary" style="display:none; margin-bottom: 10px;"><i data-lucide="arrow-down-circle" class="w-4 h-4" style="display:inline-block; vertical-align:-3px; margin-right:4px;"></i>Fund Wallet</button>
 
     <button type="button" id="checkout-verify-btn" class="btn-primary" style="margin-top:0; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:6px;">
       <i data-lucide="check-circle" class="w-4 h-4"></i> Verify &amp; Release Payment
@@ -3784,7 +3786,7 @@
 
 <!-- Tenancy & Policy Agreement Viewer — full text must be scrolled to the
      bottom before the Canvas Signature Pad and OTP "Agree" button unlock.
-     Content is fetched live from GET /api/contracts/tenancy-policy. -->
+     Content is generated client-side — see buildTenancyPolicyHtml(). -->
 <div id="tenancy-policy-modal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-icon-wrap">
@@ -5500,8 +5502,32 @@
         const buyerName = buyerAsset ? resolveUserName(buyerAsset.ownerId) : 'Buyer';
         const amount = buyerAsset ? buyerAsset.amountLabel : formatMoney(l.totalPrice, 'ngn');
         const dateLabel = buyerAsset ? new Date(buyerAsset.purchaseDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+
+        // Receipt & Deed of Assignment — only actionable once the buyer has
+        // confirmed a physical handover date (persisted on the shared asset
+        // record, see s6h-appt-confirm-btn); nothing to upload before that.
+        let docsRow = '';
+        if (buyerAsset) {
+          let docsAction;
+          if (buyerAsset.deedAvailable) {
+            docsAction = `<span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap;"><i data-lucide="badge-check" class="w-3 h-3"></i>Docs Issued</span>`;
+          } else if (buyerAsset.handoverConfirmed) {
+            docsAction = `<button type="button" class="s5-back-btn oa-issue-deed-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600;"><i data-lucide="upload" class="w-3.5 h-3.5"></i>Issue Receipt &amp; Deed</button>`;
+          } else {
+            docsAction = `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap;">Awaiting Handover Date</span>`;
+          }
+          const handoverLine = buyerAsset.handoverConfirmed
+            ? `Handover confirmed: ${buyerAsset.handoverDateLabel}`
+            : 'Buyer hasn\'t confirmed a handover date yet';
+          docsRow = `
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin: -6px 0 10px; padding: 0 4px;">
+              <p class="s5-list-sub" style="margin:0;">${handoverLine}</p>
+              ${docsAction}
+            </div>`;
+        }
+
         return `
-          <div class="s5-list-item" style="margin-bottom:10px;">
+          <div class="s5-list-item" style="margin-bottom:0;">
             <div class="s5-list-icon"><i data-lucide="landmark" class="w-5 h-5"></i></div>
             <div class="s5-list-text">
               <p class="s5-list-title">${l.title}</p>
@@ -5509,7 +5535,7 @@
               <p class="s5-list-sub" style="margin-top:2px;">Sold to <strong style="color:#e2e8f0;">${buyerName}</strong> · ${amount} · ${dateLabel}</p>
             </div>
             <span class="s5-status-badge insp-status-confirmed">SOLD</span>
-          </div>`;
+          </div>${docsRow}`;
       }).join('');
     }
 
@@ -5532,6 +5558,44 @@
   }
 
   document.getElementById('oa-back-btn').addEventListener('click', () => navigateTo('screen-4'));
+
+  // ---- Issue Receipt & Deed of Assignment (Owner-side upload) ----
+  // The Owner picks an actual file (PDF/image, matching the KYC/title upload
+  // pattern used at listing submission) rather than a bare "mark as done"
+  // button. Selecting a file IS the action — it immediately flags the
+  // buyer's shared asset record as issued and notifies them, since there's
+  // only ever one upload in flight at a time from this screen.
+  let oaPendingAssetId = null;
+  document.getElementById('oa-sold-list').addEventListener('click', (e) => {
+    const btn = e.target.closest('.oa-issue-deed-btn');
+    if (!btn) return;
+    oaPendingAssetId = btn.dataset.assetId;
+    document.getElementById('oa-deed-file').click();
+  });
+
+  document.getElementById('oa-deed-file').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    e.target.value = ''; // reset so picking the same file twice still fires 'change'
+    if (!file || !oaPendingAssetId) return;
+
+    appState = loadAppState();
+    const asset = (appState.assets || []).find(a => a.id === oaPendingAssetId);
+    oaPendingAssetId = null;
+    if (!asset) { showToast('Could not find that sale — refresh and try again'); return; }
+
+    asset.deedAvailable = true;
+    asset.deedFileName = file.name;
+    asset.deedIssuedAt = Date.now();
+    saveAppState(appState);
+
+    pushPlatformNotification('tenant', 'message', 'Receipt & Deed of Assignment Issued',
+      `Your Receipt and Deed of Assignment for ${asset.title} have been issued and are ready to download from My Assets. A physical copy will also be sent to you separately.`,
+      { screen: 'assetHub' }, 'DEED_ISSUED', null, asset.ownerId);
+
+    showToast(`${file.name} issued to ${resolveUserName(asset.ownerId)} — buyer notified`);
+    populateScreenOwnerAssets();
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  });
 
   const payoutHistoryModal = document.getElementById('payout-history-modal');
 
@@ -6565,6 +6629,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // ==================================================================
 
   let checkoutListing = null;
+  // True only while a checkout is actually blocked waiting on a wallet
+  // top-up — checkoutListing itself is never cleared after a completed
+  // purchase, so it can't be used on its own to tell "still mid-payment"
+  // from "finished this ages ago." Set when Fund Wallet is tapped from the
+  // insufficient-balance state, cleared the moment escrow actually releases
+  // (see releaseEscrowAndShowInvoice) or a fresh checkout opens.
+  let checkoutPaymentPending = false;
   let landHandoverTxnId = null;
   let landHandoverAppt = null;
   let activeAssetId = null; // which asset the Asset Hub screen (screen-asset-hub) is currently showing detail for
@@ -6789,6 +6860,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     checkoutListing = listing;
     checkoutLandPayment = landPayment || null;
     checkoutAuthSubmitting = false;
+    checkoutPaymentPending = false;
     selectPaySource('wallet');
 
     checkoutAgreementUploaded = false;
@@ -7475,6 +7547,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   const checkoutSimulateBtn = document.getElementById('checkout-simulate-btn');
   const checkoutPinBalanceEl = document.getElementById('checkout-pin-balance');
   const checkoutPinInsufficientEl = document.getElementById('checkout-pin-insufficient');
+  const checkoutPinFundBtnEl = document.getElementById('checkout-pin-fundwallet-btn');
   const checkoutPinBalanceLineEl = document.getElementById('checkout-pin-balance-line');
   const checkoutPinSubEl = document.getElementById('checkout-pin-sub');
 
@@ -7502,12 +7575,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
       checkoutPinSubEl.textContent = 'Enter your 6-digit MainTown Transaction PIN to authorize payment and move funds into escrow';
       const insufficient = balance < total;
       checkoutPinInsufficientEl.style.display = insufficient ? 'block' : 'none';
+      checkoutPinFundBtnEl.style.display = insufficient ? 'flex' : 'none';
       checkoutVerifyBtn.disabled = insufficient;
       checkoutVerifyBtn.style.opacity = insufficient ? '0.5' : '1';
       checkoutSimulateBtn.style.display = insufficient ? 'none' : 'block';
     } else {
       checkoutPinBalanceLineEl.style.display = 'none';
       checkoutPinInsufficientEl.style.display = 'none';
+      checkoutPinFundBtnEl.style.display = 'none';
       checkoutPinSubEl.textContent = 'Enter your 6-digit MainTown Transaction PIN to authorize your card payment';
       checkoutVerifyBtn.disabled = false;
       checkoutVerifyBtn.style.opacity = '1';
@@ -7539,6 +7614,26 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('checkout-otp-close').addEventListener('click', () => {
     checkoutOtpModal.classList.remove('open');
     checkoutAuthSubmitting = false;
+  });
+
+  // "Fund Wallet" from inside the insufficient-balance state: sends the
+  // tenant to top up without losing this checkout. checkoutListing /
+  // checkoutRentBreakdown / checkoutLandPayment are never cleared here —
+  // screen-6 stays populated with everything they'd already filled in
+  // (signature, agreement) in the background — and a notification card is
+  // left behind so they can find their way straight back to Payment even
+  // if they get pulled away before finishing the top-up, instead of having
+  // to re-open the listing and redo the inspection/chat flow from scratch.
+  document.getElementById('checkout-pin-fundwallet-btn').addEventListener('click', () => {
+    checkoutOtpModal.classList.remove('open');
+    checkoutAuthSubmitting = false;
+    if (checkoutListing) {
+      checkoutPaymentPending = true;
+      pushPlatformNotification('tenant', 'payment', 'Continue Your Payment',
+        `Your wallet balance was insufficient for ${checkoutListing.title}. Fund your wallet, then tap here to pick up right where you left off.`,
+        { screen: 'resumeCheckout' }, 'RESUME_CHECKOUT');
+    }
+    openFundWalletModal();
   });
 
   // Show/Hide PIN toggle — swaps every box between masked (password) and
@@ -7906,6 +8001,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
 
     showToast('PIN verified — escrow funds released to landlord');
+    checkoutPaymentPending = false;
     document.getElementById('s6-success-panel').classList.add('hidden');
     document.getElementById('s6-invoice-panel').classList.remove('hidden');
     if (window.lucide) lucide.createIcons();
@@ -9179,6 +9275,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
         notificationDetailModal.classList.remove('open');
         navigateTo('screen-inspections');
       };
+    } else if (notif.route && notif.route.screen === 'assetHub') {
+      ctaLabel.textContent = 'View My Assets';
+      ctaBtn.style.display = 'flex';
+      ctaBtn.onclick = () => {
+        notificationDetailModal.classList.remove('open');
+        navigateTo('screen-asset-hub');
+      };
     } else if (notif.route && notif.route.screen === 'tenantBio' && notif.route.notifId) {
       ctaLabel.textContent = 'View Tenant Details';
       ctaBtn.style.display = 'flex';
@@ -9192,6 +9295,27 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ctaBtn.onclick = () => {
         notificationDetailModal.classList.remove('open');
         openHandoverReviewModal();
+      };
+    } else if (notif.route && notif.route.screen === 'resumeCheckout') {
+      // Picks up exactly where the tenant left off: screen-6 was never reset
+      // when they stepped away to fund their wallet (openCheckout() isn't
+      // called again here), so any signature/agreement they'd already done
+      // is still sitting there — they just need to land back on the screen
+      // and tap Authorize Payment again. checkoutPaymentPending (not just
+      // checkoutListing, which is never cleared after a completed purchase)
+      // is what actually tells us this checkout is still unresolved.
+      const stillPending = typeof checkoutPaymentPending !== 'undefined' && checkoutPaymentPending
+        && checkoutListing && !(typeof isListingUnavailable === 'function' && isListingUnavailable(checkoutListing));
+      ctaLabel.textContent = stillPending ? 'Continue Payment' : 'Browse Listings';
+      ctaBtn.style.display = 'flex';
+      ctaBtn.onclick = () => {
+        notificationDetailModal.classList.remove('open');
+        if (stillPending) {
+          navigateTo('screen-6');
+        } else {
+          showToast('That checkout is no longer available — please start again from the listing.');
+          navigateTo('screen-5');
+        }
       };
     }
 
@@ -11316,6 +11440,26 @@ available in the Post-Lease Hub and this chat thread.`
       document.getElementById('s6h-appt-confirmed').style.display = 'none';
     }
 
+    // Deed of Assignment status — only ever set true by the Owner actually
+    // issuing it from their Asset Portfolio (see oa-issue-deed-btn), never
+    // by the buyer simply viewing this screen.
+    appState = loadAppState();
+    const buyerUid = getCurrentUserId();
+    const myAsset = listing ? (appState.assets || []).find(a => a.listingId === listing.id && a.ownerId === buyerUid) : null;
+    const deedBadge = document.getElementById('s6h-deed-status');
+    const deedBtn = document.getElementById('s6h-deed-view-btn');
+    if (myAsset && myAsset.deedAvailable) {
+      deedBadge.textContent = 'Issued';
+      deedBadge.className = 's5-status-badge insp-status-confirmed';
+      deedBtn.disabled = false;
+      deedBtn.style.opacity = '1';
+    } else {
+      deedBadge.textContent = 'Not Yet Issued';
+      deedBadge.className = 's5-status-badge insp-status-pending';
+      deedBtn.disabled = true;
+      deedBtn.style.opacity = '0.5';
+    }
+
     if (window.lucide) lucide.createIcons();
   }
 
@@ -11433,6 +11577,21 @@ available in the Post-Lease Hub and this chat thread.`
     if (listing) {
       const buyerName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Client';
       dispatchHandoverDateNotifications(listing, buyerName, formatted);
+
+      // Persist the confirmed date onto the shared asset record (not just the
+      // in-memory landHandoverAppt/landHandoverDateVal above) so the Owner's
+      // Asset Portfolio screen can actually see it and gate the Receipt/Deed
+      // upload action on it — previously this only ever lived in a variable
+      // local to the buyer's own session.
+      appState = loadAppState();
+      const buyerUid = getCurrentUserId();
+      const asset = (appState.assets || []).find(a => a.listingId === listing.id && a.ownerId === buyerUid);
+      if (asset) {
+        asset.handoverConfirmed = true;
+        asset.handoverDateLabel = formatted;
+        saveAppState(appState);
+        window.dispatchEvent(new Event('maintown_state_updated'));
+      }
     }
     showToast('Physical handover date confirmed — Agent/Landlord notified');
   });
@@ -11452,15 +11611,8 @@ available in the Post-Lease Hub and this chat thread.`
   });
 
   document.getElementById('s6h-deed-view-btn').addEventListener('click', () => {
+    if (document.getElementById('s6h-deed-view-btn').disabled) return;
     showToast('Downloading Deed of Assignment.pdf');
-    // The Deed becomes available for re-download from the Asset Hub once the
-    // buyer has pulled it at least once from the Handover screen.
-    if (landHandoverListing) {
-      appState = loadAppState();
-      const uid = getCurrentUserId();
-      const asset = (appState.assets || []).find(a => a.listingId === landHandoverListing.id && a.ownerId === uid);
-      if (asset && !asset.deedAvailable) { asset.deedAvailable = true; saveAppState(appState); }
-    }
   });
 
   document.getElementById('s6h-smartlock-btn').addEventListener('click', () => {
@@ -13091,12 +13243,13 @@ available in the Post-Lease Hub and this chat thread.`
   });
 
   // ---- Fund Wallet / Instant Deposit Simulator (simulated bank transfer / card deposit) ----
-  document.getElementById('wallet-fund-btn').addEventListener('click', () => {
+  function openFundWalletModal() {
     document.getElementById('fw-amount').value = '';
     document.querySelectorAll('.fw-quick-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('fund-wallet-modal').classList.add('open');
     if (window.lucide) lucide.createIcons();
-  });
+  }
+  document.getElementById('wallet-fund-btn').addEventListener('click', openFundWalletModal);
   document.getElementById('fw-cancel-btn').addEventListener('click', () => {
     document.getElementById('fund-wallet-modal').classList.remove('open');
   });
@@ -13148,7 +13301,13 @@ available in the Post-Lease Hub and this chat thread.`
       meta: { sender: method === 'card' ? 'Debit/Credit Card' : 'Bank Transfer', recipient: 'MainTown Escrow Wallet', feeType: 'Wallet Top-Up' }
     });
     document.getElementById('fund-wallet-modal').classList.remove('open');
-    showToast(`${formatMoney(amt, 'ngn')} added to your wallet`);
+    // If they got here from an insufficient-balance checkout, nudge them
+    // straight back to it instead of a generic confirmation.
+    if (typeof checkoutPaymentPending !== 'undefined' && checkoutPaymentPending && checkoutListing) {
+      showToast(`${formatMoney(amt, 'ngn')} added — head back to Payment to finish for ${checkoutListing.title}`);
+    } else {
+      showToast(`${formatMoney(amt, 'ngn')} added to your wallet`);
+    }
     refreshWalletDashboard();
     window.dispatchEvent(new Event('maintown_state_updated'));
   });
