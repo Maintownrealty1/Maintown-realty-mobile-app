@@ -1308,6 +1308,8 @@
 
   .dual-drop { display: flex; gap: 10px; margin-bottom: 4px; }
   .dual-drop .s5-upload-box { flex: 1; margin-bottom: 0; padding: 18px 8px; }
+  .lv-doc-row { margin-bottom: 14px; }
+  .lv-doc-row .s5-upload-box { margin-top: 4px; }
 
   .toggle-pill-row { display: flex; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 16px; }
   .toggle-pill { flex: 1; text-align: center; padding: 9px 8px; border-radius: 9px; font-size: 12px; font-weight: 600; color: #94a3b8; background: none; border: none; cursor: pointer; transition: all .15s ease; }
@@ -2284,6 +2286,8 @@
 
   <!-- ---- LANDLORD VIEW: My Properties & Title KYC ---- -->
   <div id="landlord-view" class="role-view hidden">
+    <div id="s5-landlord-verify-queue"><!-- populated dynamically: Agent-submitted listings awaiting this Landlord's verification --></div>
+
     <button type="button" class="s5-add-btn" id="s5-add-property-btn">
       <i data-lucide="plus-circle" class="w-4 h-4"></i> Add New Property
     </button>
@@ -2348,26 +2352,54 @@
           </div>
         </div>
 
-        <p class="s5-section-label"><i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i>Landlord Contact (Mandatory)</p>
-        <div class="field">
-          <label class="field-label">Landlord Full Name</label>
-          <input class="field-input" id="s5-landlord-name" type="text" required placeholder="Landlord's full legal name">
+        <p class="s5-section-label"><i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i>Landlord / Owner (Mandatory)</p>
+        <div class="toggle-pill-row" style="margin-bottom:14px;">
+          <button type="button" class="toggle-pill active" id="s5-landlord-mode-existing" data-mode="existing">Existing Landlord/Owner</button>
+          <button type="button" class="toggle-pill" id="s5-landlord-mode-new" data-mode="new">New Landlord/Owner</button>
         </div>
-        <div class="field">
-          <label class="field-label">Landlord Phone Number</label>
-          <input class="field-input" id="s5-landlord-phone" type="tel" required placeholder="080X XXX XXXX">
+
+        <div id="s5-existing-landlord-wrap">
+          <div class="field">
+            <label class="field-label">Select Landlord/Owner</label>
+            <select class="field-input" id="s5-existing-landlord-select">
+              <!-- populated dynamically -->
+            </select>
+          </div>
         </div>
-        <div class="field">
-          <label class="field-label">Landlord Email</label>
-          <input class="field-input" id="s5-landlord-email" type="email" required placeholder="landlord@example.com">
-        </div>
-        <div class="field">
-          <label class="field-label">Landlord Settlement Bank Account Number</label>
-          <input class="field-input" id="s5-landlord-bank-account" type="text" required placeholder="10-digit NUBAN account number" inputmode="numeric" maxlength="10">
-        </div>
-        <div class="field">
-          <label class="field-label">Landlord Settlement Bank Name</label>
-          <input class="field-input" id="s5-landlord-bank-name" type="text" required placeholder="e.g. GTBank, Access Bank">
+
+        <div id="s5-new-landlord-wrap" style="display:none;">
+          <div class="field">
+            <label class="field-label">Landlord Full Name</label>
+            <input class="field-input" id="s5-landlord-name" type="text" placeholder="Landlord's full legal name">
+          </div>
+          <div class="field">
+            <label class="field-label">Landlord Phone Number</label>
+            <input class="field-input" id="s5-landlord-phone" type="tel" placeholder="080X XXX XXXX">
+          </div>
+          <div class="field">
+            <label class="field-label">Landlord Email</label>
+            <input class="field-input" id="s5-landlord-email" type="email" placeholder="landlord@example.com">
+          </div>
+
+          <p class="s5-section-label" style="margin-top:6px;"><i data-lucide="landmark" class="w-4 h-4 text-purple-400"></i>Payout Bank Account</p>
+          <div class="field">
+            <label class="field-label">Settlement Bank Name</label>
+            <input class="field-input" id="s5-landlord-bank-name" type="text" placeholder="e.g. GTBank, Access Bank">
+          </div>
+          <div class="field">
+            <label class="field-label">Settlement Bank Account Number</label>
+            <input class="field-input" id="s5-landlord-bank-account" type="text" placeholder="10-digit NUBAN account number" inputmode="numeric" maxlength="10">
+          </div>
+          <div class="field">
+            <label class="field-label">BVN or NIN</label>
+            <input class="field-input" id="s5-landlord-bvn-nin" type="text" placeholder="11-digit BVN or NIN" inputmode="numeric" maxlength="11">
+          </div>
+          <button type="button" id="s5-resolve-nuban-btn" class="btn-secondary" style="margin-bottom:10px;">
+            <i data-lucide="search-check" class="w-3.5 h-3.5"></i> Resolve Account Name
+          </button>
+          <div class="rent-badge" id="s5-nuban-resolved" style="display:none; align-items:center; gap:6px;">
+            <i data-lucide="badge-check" class="w-3.5 h-3.5"></i><span>—</span>
+          </div>
         </div>
 
         <p class="s5-section-label"><i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>Inspection Availability</p>
@@ -2382,17 +2414,12 @@
         <button type="button" id="s5-avail-add-btn" class="avail-add-btn"><i data-lucide="plus" class="w-3.5 h-3.5"></i>Add Time Slot</button>
         <div class="avail-list" id="s5-avail-list"><p class="avail-list-empty">No inspection availability added yet — tenants won't be able to pick a date until you add one.</p></div>
 
-        <label class="agree-row" style="margin: 4px 0 4px;">
-          <input type="checkbox" id="s5-publish-toggle" class="agree-checkbox" checked>
-          <span>Publish immediately to the Tenant "Find a Home" feed. Uncheck to save as a private draft — hidden from tenants until published from My Listings.</span>
-        </label>
-
         <div class="s5-notice-box">
-          <i data-lucide="zap" class="w-5 h-5"></i>
-          <p>When published, photos and walkthrough videos go live on the Tenant Search Feed instantly — no staging or review queue.</p>
+          <i data-lucide="shield-alert" class="w-5 h-5"></i>
+          <p>Submitting sends this listing to the Landlord/Owner for verification. They'll confirm their payout account, approve the listing, and upload title documents before it enters MainTown's legal review queue — only then does it go live with escrow milestone protection.</p>
         </div>
 
-        <button type="submit" class="btn-primary">Submit Listing</button>
+        <button type="submit" class="btn-primary">Submit for Landlord Verification</button>
       </form>
     </div>
 
@@ -3755,6 +3782,41 @@
       </button>
     </div>
     <div id="ttd-options"><!-- populated dynamically --></div>
+  </div>
+</div>
+
+<!-- Landlord Verification Modal — confirm payout bank details, approve the
+     Agent's listing, and upload the property's title verification documents
+     before it can proceed to MainTown's legal review queue. -->
+<div id="landlord-verify-modal" class="modal-overlay">
+  <div class="modal-card" style="max-width:420px;">
+    <div class="modal-icon-wrap">
+      <i data-lucide="shield-check" class="w-6 h-6 text-purple-400"></i>
+    </div>
+    <h2 class="modal-title">Verify &amp; Activate Listing</h2>
+    <p class="modal-sub" id="lv-listing-summary">—</p>
+
+    <p class="s5-section-label" style="margin-top:4px;"><i data-lucide="banknote" class="w-4 h-4 text-purple-400"></i>Confirm Payout Bank Account</p>
+    <div class="field">
+      <label class="field-label">Settlement Bank Account Number</label>
+      <input class="field-input" id="lv-bank-account" type="text" inputmode="numeric" maxlength="10" placeholder="10-digit NUBAN account number">
+    </div>
+    <div class="field">
+      <label class="field-label">Settlement Bank Name</label>
+      <input class="field-input" id="lv-bank-name" type="text" placeholder="e.g. GTBank, Access Bank">
+    </div>
+
+    <p class="s5-section-label"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i>Title Verification Documents</p>
+    <p class="modal-sub" style="margin-bottom:10px; text-align:left;">Select every document that applies to this property, then upload each one.</p>
+    <div id="lv-doc-options"><!-- populated dynamically --></div>
+
+    <label class="agree-row" style="margin: 10px 0 4px;">
+      <input type="checkbox" id="lv-authorize-toggle" class="agree-checkbox">
+      <span>I confirm my payout details above and authorize this listing to proceed to MainTown's legal review queue.</span>
+    </label>
+
+    <button type="button" id="lv-submit-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Approve &amp; Submit for Legal Review</button>
+    <button type="button" id="lv-cancel-btn" class="btn-secondary">Cancel</button>
   </div>
 </div>
 
@@ -6490,6 +6552,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } else {
       document.getElementById('s5-tab-mine').click();
       renderAgentListings(); // also populate "My Listings" + Inspections Manager in the background so role-switching shows live data immediately
+      if (typeof populateExistingLandlordSelect === 'function') populateExistingLandlordSelect();
     }
 
     if (window.lucide) lucide.createIcons();
@@ -8321,6 +8384,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
 
   function renderLandlordList() {
+    if (typeof renderLandlordVerificationQueue === 'function') renderLandlordVerificationQueue();
     const statusMap = {
       occupied: { cls: 's5-status-occupied', label: 'Occupied' },
       vacant: { cls: 's5-status-vacant', label: 'Vacant' }
@@ -8683,13 +8747,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
       renderAgentInspectionsManager();
       return;
     }
-    // Media Visibility: a listing is either live on the Tenant Search Feed or saved
-    // as a private draft — the row's action reflects whichever it currently is.
+    // Verification Workflow Visibility: an Agent-submitted listing walks through
+    // Pending Landlord Verification -> In Legal Review -> Live before it's ever
+    // on the Tenant Search Feed; older draft-only listings fall back to the
+    // original Publish/View Live behavior.
     wrap.innerHTML = myListings.map(l => {
-      const isLive = l.status !== 'draft';
-      const actionHtml = isLive
-        ? `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`
-        : `<button type="button" class="s5-list-action-btn s5-list-publish-btn" data-action="publish" data-title="${l.title}"><i data-lucide="upload-cloud" class="w-3 h-3"></i>Publish Listing</button>`;
+      const workflow = l.workflowStatus || (l.status !== 'draft' ? 'LIVE' : 'DRAFT');
+      let actionHtml;
+      if (workflow === 'PENDING_LANDLORD_VERIFICATION') {
+        actionHtml = `<span class="s5-status-badge insp-status-pending">Pending Landlord Verification</span>`;
+      } else if (workflow === 'LEGAL_REVIEW') {
+        actionHtml = `<span class="s5-status-badge insp-status-pending">In Legal Review</span>`;
+      } else if (workflow === 'LIVE') {
+        actionHtml = `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`;
+      } else {
+        actionHtml = `<button type="button" class="s5-list-action-btn s5-list-publish-btn" data-action="publish" data-title="${l.title}"><i data-lucide="upload-cloud" class="w-3 h-3"></i>Publish Listing</button>`;
+      }
       return `
       <div class="s5-list-item">
         <div class="s5-list-icon"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
@@ -8918,43 +8991,153 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('tv-doc-upload-wrap').style.display = (isLand && tvSelectedTitleType) ? 'block' : 'none';
   }
 
+  // ==================================================================
+  // ---- Agent → Landlord Title Verification Workflow ----
+  // An Agent-submitted listing can never go live straight from the Agent's
+  // upload form. It waits as PENDING_LANDLORD_VERIFICATION until the
+  // Landlord/Owner confirms their payout account, approves the listing, and
+  // uploads title documents; then it sits in LEGAL_REVIEW until MainTown's
+  // legal team verifies title — only then does it flip to LIVE with active
+  // escrow milestone protection.
+  // ==================================================================
+  const TITLE_DOC_TYPES = [
+    { id: 'C_OF_O', label: 'Certificate of Occupancy' },
+    { id: 'SURVEY_PLAN', label: 'Registered Survey Plan' },
+    { id: 'GAZETTE', label: 'Gazette' },
+    { id: 'GOVERNORS_CONSENT', label: "Governor's Consent" },
+    { id: 'EXCISION', label: 'Excision' },
+    { id: 'DEED_OF_ASSIGNMENT', label: 'Deed of Assignment' }
+  ];
+
+  let s5LandlordMode = 'existing';
+  let lvCurrentAgentListingId = null;
+  let lvSelectedDocs = {}; // docId -> { fileName, fileUrl }
+
+  // Every Landlord/Owner an Agent could map a new listing to: the seed demo
+  // Landlord(s) plus anyone previously auto-provisioned (claimed or not),
+  // deduplicated by email so a seed account never shows up twice.
+  function getAllLandlordRecords() {
+    appState = loadAppState();
+    const demoLandlords = Object.values(DEMO_USERS).filter(u => u.role === 'landlord').map(u => ensureWalletRecord(u.id));
+    const demoEmails = new Set(demoLandlords.map(u => normalizeContact(u.email)));
+    const provisioned = Object.values(appState.users).filter(u => u.role === 'landlord' && !demoEmails.has(normalizeContact(u.email)));
+    return demoLandlords.concat(provisioned);
+  }
+
+  function populateExistingLandlordSelect() {
+    const sel = document.getElementById('s5-existing-landlord-select');
+    if (!sel) return;
+    const records = getAllLandlordRecords();
+    sel.innerHTML = records.length
+      ? records.map(u => `<option value="${u.id}">${u.name}${u.phone ? ' · ' + u.phone : (u.email ? ' · ' + u.email : '')}</option>`).join('')
+      : `<option value="">No existing Landlords/Owners yet — use "New Landlord/Owner"</option>`;
+  }
+
+  function setLandlordMode(mode) {
+    s5LandlordMode = mode;
+    document.getElementById('s5-landlord-mode-existing').classList.toggle('active', mode === 'existing');
+    document.getElementById('s5-landlord-mode-new').classList.toggle('active', mode === 'new');
+    document.getElementById('s5-existing-landlord-wrap').style.display = mode === 'existing' ? 'block' : 'none';
+    document.getElementById('s5-new-landlord-wrap').style.display = mode === 'new' ? 'block' : 'none';
+    if (mode === 'existing') populateExistingLandlordSelect();
+  }
+  document.getElementById('s5-landlord-mode-existing').addEventListener('click', () => setLandlordMode('existing'));
+  document.getElementById('s5-landlord-mode-new').addEventListener('click', () => setLandlordMode('new'));
+
+  // Simulated automated NUBAN name resolution — a real integration would call
+  // the bank/NIBSS name-enquiry API; here we echo back the typed Landlord
+  // name once the account number and bank look valid, matching the "resolved
+  // account name" confirmation pattern of a real payout KYC flow.
+  document.getElementById('s5-resolve-nuban-btn').addEventListener('click', () => {
+    const acct = document.getElementById('s5-landlord-bank-account').value.trim();
+    const bank = document.getElementById('s5-landlord-bank-name').value.trim();
+    const resolvedEl = document.getElementById('s5-nuban-resolved');
+    if (!/^\d{10}$/.test(acct) || !bank) {
+      resolvedEl.style.display = 'none';
+      showToast('Enter a valid 10-digit NUBAN account number and bank name first');
+      return;
+    }
+    const typedName = document.getElementById('s5-landlord-name').value.trim();
+    resolvedEl.style.display = 'flex';
+    resolvedEl.querySelector('span').textContent = `Resolved Account Name: ${(typedName || 'ACCOUNT HOLDER').toUpperCase()}`;
+    if (window.lucide) lucide.createIcons();
+  });
+
+  // Simulated Automated Invitation (WhatsApp/SMS/Email) to the Landlord/Owner,
+  // reusing the same welcomeAlerts log the Claim flow already reads from, plus
+  // a real in-app notification so it shows up in their Notification Center.
+  function sendLandlordVerificationInvite(landlordUser, listingTitle, agentName) {
+    const inviteCode = landlordUser.tempCode || landlordUser.id;
+    landlordUser.welcomeAlerts = landlordUser.welcomeAlerts || [];
+    landlordUser.welcomeAlerts.push({
+      channel: 'WhatsApp/SMS/Email',
+      message: `${agentName} submitted "${listingTitle}" on MainTown Realty. Tap your invitation link (code ${inviteCode}) to confirm your payout account, approve the listing, and upload your title documents.`,
+      sentAt: Date.now()
+    });
+    saveAppState(appState);
+    pushPlatformNotification(
+      'landlord', 'listing', 'Listing Awaiting Your Verification',
+      `${agentName} submitted "${listingTitle}" for your review — confirm payout details & upload title documents to activate escrow protection.`,
+      null, 'listing_verification', null, landlordUser.id
+    );
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  }
+
   document.getElementById('s5-listing-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const title = document.getElementById('s5-listing-title').value.trim();
     const address = document.getElementById('s5-listing-address').value.trim();
     const type = document.getElementById('s5-listing-type').value;
     const annual = parseFloat(document.getElementById('s5-listing-annual').value) || 0;
-    const landlordName = document.getElementById('s5-landlord-name').value.trim();
-    const landlordPhone = document.getElementById('s5-landlord-phone').value.trim();
-    const landlordEmail = document.getElementById('s5-landlord-email').value.trim();
-    const landlordBankAccount = document.getElementById('s5-landlord-bank-account').value.trim();
-    const landlordBankName = document.getElementById('s5-landlord-bank-name').value.trim();
 
-    if (!title || !address || !annual || !landlordName || !landlordPhone || !landlordEmail || !landlordBankAccount || !landlordBankName) {
-      showToast('Please fill in all required fields');
+    if (!title || !address || !annual) {
+      showToast('Please fill in property title, address, and annual price');
       return;
     }
 
-    // Auto-Provisioning: find-or-create the Landlord's profile in
-    // maintown_app_state.users. A brand-new Landlord is created with
-    // status PENDING_CLAIM and a temp access code; the listing routes to
-    // them via ownerId while agentId stays this Agent's id.
-    const landlordProvision = provisionLandlord(landlordName, landlordPhone, landlordEmail, landlordBankAccount, landlordBankName);
-    const landlordUser = landlordProvision.record;
-    if (landlordProvision.isNew) {
-      showToast(`Landlord profile created. Temp code ${landlordUser.tempCode} sent to ${landlordEmail}.`);
+    let landlordUser, landlordName, landlordPhone, landlordEmail, landlordBankAccount, landlordBankName;
+
+    if (s5LandlordMode === 'existing') {
+      const selectedId = document.getElementById('s5-existing-landlord-select').value;
+      if (!selectedId) { showToast('Please select an existing Landlord/Owner'); return; }
+      landlordUser = ensureWalletRecord(selectedId);
+      landlordName = landlordUser.name;
+      landlordPhone = landlordUser.phone || '';
+      landlordEmail = landlordUser.email || '';
+      landlordBankAccount = (landlordUser.settlementBank && landlordUser.settlementBank.accountNumber) || '';
+      landlordBankName = (landlordUser.settlementBank && landlordUser.settlementBank.bankName) || '';
+    } else {
+      landlordName = document.getElementById('s5-landlord-name').value.trim();
+      landlordPhone = document.getElementById('s5-landlord-phone').value.trim();
+      landlordEmail = document.getElementById('s5-landlord-email').value.trim();
+      landlordBankAccount = document.getElementById('s5-landlord-bank-account').value.trim();
+      landlordBankName = document.getElementById('s5-landlord-bank-name').value.trim();
+      const bvnNin = document.getElementById('s5-landlord-bvn-nin').value.trim();
+
+      if (!landlordName || !landlordPhone || !landlordEmail || !landlordBankAccount || !landlordBankName || !bvnNin) {
+        showToast('Please fill in all New Landlord/Owner details, including BVN/NIN');
+        return;
+      }
+      if (!/^\d{10}$/.test(landlordBankAccount)) { showToast('Bank account number must be exactly 10 digits (NUBAN)'); return; }
+      if (!/^\d{10,11}$/.test(bvnNin)) { showToast('BVN/NIN must be a 10 or 11-digit number'); return; }
+
+      // Auto-Provisioning: find-or-create the Landlord's profile in
+      // maintown_app_state.users. A brand-new Landlord is created with
+      // status PENDING_CLAIM and a temp access code; the listing routes to
+      // them via ownerId while agentId stays this Agent's id.
+      const landlordProvision = provisionLandlord(landlordName, landlordPhone, landlordEmail, landlordBankAccount, landlordBankName);
+      landlordUser = landlordProvision.record;
+      landlordUser.bvnNin = bvnNin;
+      saveAppState(appState);
     }
 
-    // Media Visibility: photos/walkthrough video uploaded here are stored on the listing
-    // with a visibility status. When published, they go straight into `listingsFeed` with
-    // status 'live' and are instantly visible on the Tenant "Find a Home" feed. When saved
-    // as a draft (status 'draft'), the listing is stored but filtered out of every
-    // tenant-facing feed until explicitly published from My Listings.
-    const isPublished = document.getElementById('s5-publish-toggle').checked;
     const agentName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Agent';
     const newId = Date.now();
+    // A newly submitted listing is never published straight to the Tenant
+    // feed — it stays out of `listingsFeed` entirely until Landlord
+    // verification and MainTown's legal review both complete.
     const baseFields = {
-      id: newId, title, location: address, listedBy: 'agent', status: isPublished ? 'live' : 'draft',
+      id: newId, title, location: address, listedBy: 'agent', status: 'draft',
       hasPhotos: s5PendingPhotoCount > 0, hasVideo: s5PendingHasVideo,
       photos: s5PendingPhotoUrls.slice(), videoUrl: s5PendingVideoUrl,
       landlordName, landlordPhoto: null,
@@ -8974,9 +9157,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
       listingData = { ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land };
     }
 
-    agentListings.unshift({ id: newId + 1, title, address, type, annual, landlordName, landlordPhone, landlordEmail, landlordBankAccount, landlordBankName, ownerId: landlordUser.id, agentId: getCurrentUserId(), status: isPublished ? 'live' : 'draft', listingId: newId, hasVideo: s5PendingHasVideo, listingData });
-    listingsFeed.unshift(listingData);
+    agentListings.unshift({
+      id: newId + 1, title, address, type, annual, landlordName, landlordPhone, landlordEmail,
+      landlordBankAccount, landlordBankName, ownerId: landlordUser.id, agentId: getCurrentUserId(),
+      agentName, status: 'draft', workflowStatus: 'PENDING_LANDLORD_VERIFICATION',
+      listingId: newId, hasVideo: s5PendingHasVideo, listingData
+    });
     saveListings();
+
+    // Automated Invitation & Landlord Flow: notify the Landlord/Owner via
+    // WhatsApp/SMS/Email to confirm payout details, approve the listing, and
+    // upload title documents.
+    sendLandlordVerificationInvite(landlordUser, title, agentName);
+
     s5PendingPhotoCount = 0;
     s5PendingHasVideo = false;
     s5PendingPhotoUrls = [];
@@ -8985,6 +9178,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderAvailabilityList(s5PendingAvailability, 's5');
 
     e.target.reset();
+    setLandlordMode('existing');
+    document.getElementById('s5-nuban-resolved').style.display = 'none';
     document.getElementById('s5-photo-upload').classList.remove('has-file');
     document.getElementById('s5-photo-upload-label').textContent = 'Property Photos';
     document.getElementById('s5-video-upload').classList.remove('has-file');
@@ -8993,14 +9188,185 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('s5-fee-commission').textContent = '₦0';
     document.getElementById('s5-fee-legal').textContent = '₦0';
 
-    // Instantly reflect the new listing (with its photo/walkthrough badge) on the
-    // Tenant "Find a Home" search feed if it's currently open.
-    if (!document.getElementById('tenant-view').classList.contains('hidden')) {
-      if (currentListingType === 'land') renderLandFeed(); else renderTenantFeed(currentCurrency);
+    document.getElementById('s5-tab-mine').click();
+    showToast(`Sent to ${landlordName} for verification via WhatsApp, SMS & Email`);
+  });
+
+  // ---- Landlord Verification Modal: render the multi-select title document
+  // checklist, wire per-document file uploads, and handle approval/legal-review. ----
+  function renderLvDocOptions() {
+    const wrap = document.getElementById('lv-doc-options');
+    wrap.innerHTML = TITLE_DOC_TYPES.map(d => `
+      <div class="lv-doc-row" data-doc-id="${d.id}">
+        <label class="agree-row" style="margin-bottom:0;">
+          <input type="checkbox" class="agree-checkbox lv-doc-checkbox" data-doc-id="${d.id}">
+          <span>${d.label}</span>
+        </label>
+        <div class="s5-upload-box lv-doc-upload" data-doc-id="${d.id}" style="display:none;">
+          <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+          <span class="lv-doc-upload-label">Upload ${d.label}</span>
+          <input type="file" class="lv-doc-file" data-doc-id="${d.id}" hidden accept="image/*,.pdf">
+        </div>
+      </div>`).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function openLandlordVerifyModal(agentListingId) {
+    const entry = agentListings.find(l => l.id === agentListingId);
+    if (!entry) return;
+    lvCurrentAgentListingId = agentListingId;
+    lvSelectedDocs = {};
+    document.getElementById('lv-listing-summary').textContent = `${entry.title} — ${entry.address}`;
+    document.getElementById('lv-bank-account').value = entry.landlordBankAccount || '';
+    document.getElementById('lv-bank-name').value = entry.landlordBankName || '';
+    document.getElementById('lv-authorize-toggle').checked = false;
+    renderLvDocOptions();
+    document.getElementById('landlord-verify-modal').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('lv-doc-options').addEventListener('change', (e) => {
+    const checkbox = e.target.closest('.lv-doc-checkbox');
+    const fileInput = e.target.closest('.lv-doc-file');
+    if (checkbox) {
+      const id = checkbox.dataset.docId;
+      const uploadBox = document.querySelector(`.lv-doc-upload[data-doc-id="${id}"]`);
+      uploadBox.style.display = checkbox.checked ? 'flex' : 'none';
+      if (!checkbox.checked) delete lvSelectedDocs[id];
+    } else if (fileInput && fileInput.files.length) {
+      const id = fileInput.dataset.docId;
+      const file = fileInput.files[0];
+      lvSelectedDocs[id] = { fileName: file.name, fileUrl: URL.createObjectURL(file) };
+      const uploadBox = fileInput.closest('.lv-doc-upload');
+      uploadBox.classList.add('has-file');
+      uploadBox.querySelector('.lv-doc-upload-label').textContent = file.name;
+    }
+  });
+  document.getElementById('lv-doc-options').addEventListener('click', (e) => {
+    const uploadBox = e.target.closest('.lv-doc-upload');
+    if (uploadBox && !e.target.closest('input[type=file]')) uploadBox.querySelector('.lv-doc-file').click();
+  });
+
+  document.getElementById('lv-cancel-btn').addEventListener('click', () => {
+    document.getElementById('landlord-verify-modal').classList.remove('open');
+  });
+
+  document.getElementById('lv-submit-btn').addEventListener('click', () => {
+    const entry = agentListings.find(l => l.id === lvCurrentAgentListingId);
+    if (!entry) { document.getElementById('landlord-verify-modal').classList.remove('open'); return; }
+    const bankAccount = document.getElementById('lv-bank-account').value.trim();
+    const bankName = document.getElementById('lv-bank-name').value.trim();
+    const authorized = document.getElementById('lv-authorize-toggle').checked;
+    const checkedBoxes = Array.from(document.querySelectorAll('.lv-doc-checkbox:checked'));
+
+    if (!/^\d{10}$/.test(bankAccount) || !bankName) {
+      showToast('Enter a valid 10-digit NUBAN account number and bank name');
+      return;
+    }
+    if (!checkedBoxes.length) {
+      showToast('Select at least one title document type that applies to this property');
+      return;
+    }
+    if (checkedBoxes.some(cb => !lvSelectedDocs[cb.dataset.docId])) {
+      showToast('Please upload a file for every title document type you selected');
+      return;
+    }
+    if (!authorized) {
+      showToast('Please confirm and authorize before submitting');
+      return;
     }
 
-    document.getElementById('s5-tab-mine').click();
-    showToast('Listing is live! Photos & walkthrough now visible on the Tenant Search Feed.');
+    // Confirm the Landlord's payout details on their own account record.
+    const landlordUser = ensureWalletRecord(entry.ownerId);
+    landlordUser.settlementBank = { accountNumber: bankAccount, bankName: bankName };
+    saveAppState(appState);
+
+    const titleDocuments = checkedBoxes.map(cb => {
+      const doc = TITLE_DOC_TYPES.find(d => d.id === cb.dataset.docId);
+      return { id: doc.id, label: doc.label, ...lvSelectedDocs[doc.id] };
+    });
+    entry.landlordBankAccount = bankAccount;
+    entry.landlordBankName = bankName;
+    entry.workflowStatus = 'LEGAL_REVIEW';
+    entry.titleDocuments = titleDocuments;
+    if (entry.listingData) entry.listingData.titleDocuments = titleDocuments;
+    saveListings();
+
+    document.getElementById('landlord-verify-modal').classList.remove('open');
+    showToast("Approved — title documents submitted to MainTown's legal review queue");
+
+    pushPlatformNotification(
+      'agent', 'listing', 'Landlord Verified — In Legal Review',
+      `${landlordUser.name} approved "${entry.title}" and uploaded title documents. It's now in MainTown's legal review queue.`,
+      null, 'listing_verification', null, entry.agentId
+    );
+
+    renderLandlordVerificationQueue();
+    if (typeof renderAgentListings === 'function') renderAgentListings();
+    window.dispatchEvent(new Event('maintown_state_updated'));
+
+    // Legal Review & Activation: once title documents pass MainTown's legal
+    // review, the listing activates on the marketplace with escrow milestone
+    // protection. Simulated here with a short delay in place of a real
+    // back-office review queue.
+    setTimeout(() => {
+      const stillPending = agentListings.find(l => l.id === entry.id);
+      if (!stillPending || stillPending.workflowStatus !== 'LEGAL_REVIEW') return;
+      stillPending.workflowStatus = 'LIVE';
+      stillPending.status = 'live';
+      if (stillPending.listingData) {
+        stillPending.listingData.status = 'live';
+        listingsFeed.unshift(stillPending.listingData);
+      }
+      saveListings();
+      pushPlatformNotification(
+        'landlord', 'listing', 'Title Verified — Listing Is Live',
+        `"${stillPending.title}" passed legal review and is now live on the marketplace with active escrow milestone protection.`,
+        null, 'listing_verification', null, stillPending.ownerId
+      );
+      pushPlatformNotification(
+        'agent', 'listing', 'Title Verified — Listing Is Live',
+        `"${stillPending.title}" passed legal review and is now live on the marketplace.`,
+        null, 'listing_verification', null, stillPending.agentId
+      );
+      window.dispatchEvent(new Event('maintown_state_updated'));
+    }, 6000);
+  });
+
+  // Agent-submitted listings awaiting this Landlord's action (or already
+  // moving through legal review / live) — a separate queue from "My
+  // Properties" since these were uploaded by an Agent, not the Landlord.
+  function renderLandlordVerificationQueue() {
+    const wrap = document.getElementById('s5-landlord-verify-queue');
+    if (!wrap) return;
+    const uid = getCurrentUserId();
+    const mine = agentListings.filter(l => l.ownerId === uid && l.workflowStatus);
+    if (!mine.length) { wrap.innerHTML = ''; return; }
+    wrap.innerHTML = `<p class="s5-section-label"><i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i>Agent-Submitted Listings</p>` +
+      mine.map(l => {
+        let rightHtml;
+        if (l.workflowStatus === 'PENDING_LANDLORD_VERIFICATION') {
+          rightHtml = `<button type="button" class="s5-list-action-btn s5-list-publish-btn" data-action="verify" data-id="${l.id}"><i data-lucide="shield-check" class="w-3 h-3"></i>Review &amp; Verify</button>`;
+        } else if (l.workflowStatus === 'LEGAL_REVIEW') {
+          rightHtml = `<span class="s5-status-badge insp-status-pending">In Legal Review</span>`;
+        } else {
+          rightHtml = `<span class="s5-status-badge insp-status-conducted"><i data-lucide="shield-check" class="w-3 h-3"></i> Live · Escrow Protected</span>`;
+        }
+        return `
+        <div class="s5-list-item">
+          <div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+          <div class="s5-list-text">
+            <p class="s5-list-title">${l.title}</p>
+            <p class="s5-list-sub">${l.address} · Agent: ${l.agentName || 'MainTown Agent'}</p>
+          </div>
+          <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">${rightHtml}</div>
+        </div>`;
+      }).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('s5-landlord-verify-queue').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action="verify"]');
+    if (btn) openLandlordVerifyModal(Number(btn.dataset.id));
   });
 
   document.getElementById('sign-btn').addEventListener('click', () => {
