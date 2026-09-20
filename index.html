@@ -2320,12 +2320,13 @@
           <label class="field-label">Listing Type</label>
           <select class="field-input" id="s5-listing-type">
             <option value="rent">For Rent (Flex-Rent)</option>
+            <option value="shortlet">Shortlet (Daily Booking)</option>
             <option value="land">Buy — Land &amp; Property</option>
           </select>
         </div>
 
         <div class="field">
-          <label class="field-label">Annual Price (NGN)</label>
+          <label class="field-label" id="s5-listing-annual-label">Annual Price (NGN)</label>
           <input class="field-input" id="s5-listing-annual" type="number" required placeholder="e.g. 2400000">
         </div>
         <div class="rent-badge" id="s5-monthly-badge" style="display:none;">
@@ -3688,12 +3689,13 @@
       <label class="field-label">Listing Type</label>
       <select class="field-input" id="tv-listing-type">
         <option value="rent">For Rent (Flex-Rent)</option>
+        <option value="shortlet">Shortlet (Daily Booking)</option>
         <option value="land">Buy — Land &amp; Property</option>
       </select>
     </div>
 
     <div class="field">
-      <label class="field-label">Annual Price (NGN)</label>
+      <label class="field-label" id="tv-annual-label">Annual Price (NGN)</label>
       <input class="field-input" id="tv-annual" type="number" placeholder="e.g. 2400000">
     </div>
     <div class="rent-badge" id="tv-monthly-badge" style="display:none;">
@@ -3722,24 +3724,12 @@
     </div>
 
     <div class="field" id="tv-title-type-field" style="display:none;">
-      <label class="field-label">Existing Title Document Type</label>
-      <button type="button" class="field-input" id="tv-title-type-btn" style="text-align:left; display:flex; align-items:center; justify-content:space-between; cursor:pointer; gap:8px;">
-        <span id="tv-title-type-label" style="color:#64748b;">Select what this property currently holds…</span>
-        <i data-lucide="chevron-right" class="w-4 h-4" style="flex-shrink:0;"></i>
-      </button>
+      <p class="s5-section-label" style="margin:0 0 4px;"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i>Title Verification Documents</p>
+      <p class="modal-sub" style="margin-bottom:10px; text-align:left;">Select every document that applies to this property, then upload each one. Shown publicly on the listing so buyers can judge title risk before making an offer.</p>
+      <div id="tv-doc-options"><!-- populated dynamically --></div>
       <p class="rent-badge" id="tv-consent-note" style="display:none; margin-top:8px; background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.35); color:#fbbf24;">
-        <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i><span>This title requires Governor's Consent to transfer — buyers will see this upfront on the listing.</span>
+        <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i><span>These documents require Governor's Consent to transfer — buyers will see this upfront on the listing.</span>
       </p>
-    </div>
-
-    <div id="tv-doc-upload-wrap" style="display:none;">
-      <div class="s5-upload-box" id="tv-upload-box">
-        <i data-lucide="upload-cloud" class="w-6 h-6"></i>
-        <span id="tv-upload-label">Upload Title Document</span>
-        <span class="s5-upload-meta" id="tv-upload-meta">Proof of the title type selected above</span>
-        <span class="doc-verify-badge" id="tv-verify-badge" style="display:none;"><i data-lucide="badge-check" class="w-3 h-3"></i>Queued for verification</span>
-        <input type="file" id="tv-file" hidden accept="image/*,.pdf">
-      </div>
     </div>
 
     <p class="s5-section-label"><i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>Inspection Availability</p>
@@ -3761,27 +3751,6 @@
 
     <button type="button" id="tv-submit-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Submit for Verification</button>
     <button type="button" id="tv-cancel-btn" class="btn-secondary">Cancel</button>
-  </div>
-</div>
-
-<!-- Existing Title Document Type Drawer — the Seller declares what this
-     property currently holds before listing it for sale. Shown publicly on
-     the listing so buyers can make an informed choice, and drives which
-     verification document is requested and whether Governor's Consent
-     applies to the eventual transfer. -->
-<div id="title-type-drawer" class="sheet-overlay">
-  <div class="sheet-card">
-    <div class="sheet-handle"></div>
-    <div class="sheet-header">
-      <div>
-        <h2 class="sheet-title"><i data-lucide="scroll-text" class="w-4 h-4"></i><span>Existing Title Document</span></h2>
-        <p class="sheet-subtitle">Select what this property currently holds. This shows on the listing for buyers, and sets what you'll be asked to upload for verification.</p>
-      </div>
-      <button type="button" class="sheet-close-btn" id="ttd-close-btn">
-        <i data-lucide="x" class="w-3.5 h-3.5"></i>
-      </button>
-    </div>
-    <div id="ttd-options"><!-- populated dynamically --></div>
   </div>
 </div>
 
@@ -3819,6 +3788,44 @@
     <button type="button" id="lv-cancel-btn" class="btn-secondary">Cancel</button>
   </div>
 </div>
+
+<!-- Shortlet Booking Modal — tenant picks a check-in date and number of
+     nights; night 1 is paid up front and nights 2..N auto-debit daily. -->
+<div id="shortlet-booking-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <i data-lucide="calendar-days" class="w-6 h-6 text-purple-400"></i>
+    </div>
+    <h2 class="modal-title">Book Shortlet Stay</h2>
+    <p class="modal-sub" id="sb-property-name">—</p>
+
+    <div class="field">
+      <label class="field-label">Check-in Date</label>
+      <input class="field-input" id="sb-checkin-date" type="date">
+    </div>
+    <div class="field">
+      <label class="field-label">Number of Nights</label>
+      <input class="field-input" id="sb-nights" type="number" min="1" value="1">
+    </div>
+
+    <div class="fee-preview-box">
+      <div class="row"><span>Nightly Rate</span><strong id="sb-nightly-rate">₦0</strong></div>
+      <div class="row"><span>Night 1 (Due Now)</span><strong id="sb-night1">₦0</strong></div>
+      <div class="row"><span>Booking Commission (10%)</span><strong id="sb-commission">₦0</strong></div>
+      <div class="row"><span>Legal &amp; Service Fee (5%)</span><strong id="sb-legal">₦0</strong></div>
+      <div class="row"><span>Total Due Now</span><strong id="sb-total-now">₦0</strong></div>
+    </div>
+
+    <div class="rent-badge" style="align-items:flex-start; gap:6px; display:flex;">
+      <i data-lucide="info" class="w-3.5 h-3.5" style="margin-top:2px; flex-shrink:0;"></i>
+      <span id="sb-autodebit-note">Nights 2 onward auto-debit daily from your wallet until your full stay is paid.</span>
+    </div>
+
+    <button type="button" id="sb-confirm-btn" class="btn-primary" style="margin-top:14px; margin-bottom:12px;">Pay &amp; Book Now</button>
+    <button type="button" id="sb-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
 
 <!-- On-Demand Virtual Walkthrough Video Player Modal (Tenant) — replaces the old
      live-scheduling/holding-deposit flow. Launches immediately with the
@@ -4739,6 +4746,16 @@
       '<line x1="80" y1="158" x2="320" y2="158" stroke="#a78bfa" stroke-width="4"/>' +
       '<text x="200" y="216" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">Image unavailable</text>' +
       '</svg>'
+    ),
+    shortlet: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240">' +
+      '<rect width="400" height="240" fill="#1e293b"/>' +
+      '<rect x="100" y="130" width="200" height="46" rx="6" fill="none" stroke="#a78bfa" stroke-width="4"/>' +
+      '<path d="M100 130 v-24 a16 16 0 0 1 16-16 h48 a16 16 0 0 1 16 16 v24" fill="none" stroke="#a78bfa" stroke-width="4"/>' +
+      '<line x1="88" y1="176" x2="88" y2="130" stroke="#a78bfa" stroke-width="4"/>' +
+      '<line x1="312" y1="176" x2="312" y2="150" stroke="#a78bfa" stroke-width="4"/>' +
+      '<text x="200" y="216" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">Image unavailable</text>' +
+      '</svg>'
     )
   };
   function handleImgError(imgEl, type) {
@@ -5283,28 +5300,31 @@
       ]
     },
     landlord: {
-      label: 'Landlord / Owner',
+      label: 'Landlord, Developer & Owner',
       roleIcon: 'key-round',
       sections: [
-        { title: 'Section 1: Title & Ownership Warranties', body: 'Legal declaration that property title, CofO, or land consent documents provided are authentic and legally free of third-party encumbrances.' },
-        { title: 'Section 2: Escrow Disbursement Schedule', body: 'Strict agreement to 24-48 hour payout release following tenant digital handover sign-off.' },
-        { title: 'Section 3: Habitability Standards', body: 'Obligation to provide functional plumbing, electrical, and structural systems.' },
-        { title: 'Section 4: Fraud & Dual-Leasing Zero Tolerance', body: 'Account termination, escrow forfeit, and legal referral for listing fake properties or executing double-leases.', critical: true },
-        { title: 'Section 5: Inspection Access', body: 'Agreement to permit scheduled virtual or physical walkthroughs.' },
-        { title: 'Section 6: Non-Circumvention', body: 'Agreement not to bypass platform escrow for direct cash payments.' }
+        { title: 'Section 1: Title, Ownership & Documentation Warranties', body: "Declaration that property titles (C of O, Gazette, Governor's Consent, Excision) or rental authorization rights are authentic, unencumbered, and free of legal dispute." },
+        { title: 'Section 2: Escrow Disbursement & Milestone Schedules', body: 'Monthly Rentals &amp; Shortlets — 24–48 hour payout release following tenant/guest digital check-in sign-off. Land &amp; Property Sales — 50% payout upon verified physical allocation; remaining 50% upon execution of the Deed of Assignment.' },
+        { title: 'Section 3: Habitability Standards & Repair SLAs', body: 'Obligation to maintain functional power, water, structural integrity, and estate amenities. Landlords must address critical repairs within 48 hours. MainTown reserves the right to withhold monthly payout releases until critical repairs are resolved.', critical: true },
+        { title: 'Section 4: Default, Restructuring & Inventory Repossession', body: "Agreement to MainTown's 30-day grace period and 60-day default policy for installment buyers and monthly renters. Authorizes MainTown to restructure or re-list defaulted inventory.", critical: true },
+        { title: 'Section 5: Shortlet Calendar Accuracy & Caution Deposit Rules', body: 'Requirement to maintain accurate shortlet availability. Double-booking results in owner-funded guest relocation fees. Damage claims against caution deposits must be submitted within 24 hours of checkout with photo/video proof.' },
+        { title: 'Section 6: Fraud, Dual-Leasing & Zero Tolerance', body: 'Immediate account termination, escrow forfeiture, listing removal, and referral to law enforcement for fake listings, fraudulent titles, or executing side-deals/double-leases.', critical: true },
+        { title: 'Section 7: Verification Walkthroughs & Inspection Access', body: 'Agreement to allow scheduled virtual or physical walkthrough inspections by authorized MainTown verification agents prior to and during listing activation.' },
+        { title: 'Section 8: Non-Circumvention & Direct Payment Ban', body: 'Strict prohibition against bypassing platform escrow to request cash, direct bank transfers, or off-platform renewals from MainTown users. Violations incur platform ban and legal recovery of lost fees.', critical: true }
       ]
     },
     agent: {
       label: 'Real Estate Agent',
       roleIcon: 'briefcase',
       sections: [
-        { title: 'Section 1: Inspection Integrity', body: 'Mandatory requirement to perform verified physical or live video walkthroughs prior to listing approval.' },
-        { title: 'Section 2: Commission Transparency', body: 'Agreement to adhere strictly to standardized platform commission fee caps.' },
-        { title: 'Section 3: Off-Platform Payment Ban', body: 'Permanent ban and legal action for soliciting direct off-platform cash transactions from tenants.', critical: true },
-        { title: 'Section 4: Landlord Contact Mapping', body: 'Agents must provide valid Landlord contact information (Phone/Email) for every property uploaded to the platform.' },
-        { title: 'Section 5: Automated Landlord Invite', body: 'Submitting a listing triggers an automated SMS/WhatsApp/Email invitation to the mapped Landlord to join the ecosystem and authorize escrow disbursements.' },
-        { title: 'Section 6: Escrow Disbursement Hold', body: 'Agent commissions and rent disbursements are held securely in escrow until the mapped Landlord joins the platform and verifies ownership.', critical: true },
-        { title: 'Section 7: Business Verification', body: 'Requirement to maintain active CAC registration or recognized realtor membership credentials.' }
+        { title: 'Section 1: Inspection & Title Integrity', body: "Mandatory requirement to perform verified physical or live video walkthroughs prior to listing submission. Agents warrant that all property details, title documentation (C of O, Gazette, Governor's Consent), and availability status uploaded are authentic and accurate." },
+        { title: 'Section 2: Direct Owner Mandate & Mapped Contact Information', body: 'Agents must hold direct authorization from the property owner/developer and provide valid Landlord contact details (Phone/Email) for every property uploaded. Listing unauthorized properties or acting through unverified sub-agent chains is strictly prohibited.' },
+        { title: 'Section 3: Automated Landlord Onboarding & Escrow Hold', body: 'Submitting a listing triggers an automated invitation to the mapped Landlord to verify ownership. All agent commissions and listing payouts remain locked in MainTown Escrow until the mapped Landlord joins the platform and validates property ownership.', critical: true },
+        { title: 'Section 4: Commission Transparency & Milestone Payouts', body: 'Agreement to adhere strictly to standardized platform commission caps. Agent commissions are disbursed automatically: Rentals &amp; Shortlets — released within 24–48 hours post-tenant check-in and landlord verification. Land &amp; Property Sales — released in tranches matching buyer escrow milestone releases (50% upon physical allocation; 50% upon Deed execution).' },
+        { title: 'Section 5: Shortlet Operational Standards & Calendar Accuracy', body: "Agents managing shortlet units must maintain accurate calendar availability. Failure to provide keyless/physical check-in access or double-booking stays will result in relocation penalties charged against the agent's account." },
+        { title: 'Section 6: Off-Platform Transaction Ban (Zero Tolerance)', body: 'Permanent account ban, commission forfeiture, and legal recovery action for soliciting direct off-platform cash transactions, cash deposits, or off-market renewals from MainTown users.', critical: true },
+        { title: 'Section 7: Professional Credentials & Business Verification', body: 'Requirement to maintain active CAC registration, recognized realtor association membership (e.g., REDAN, NIESV, ERCAAN), or valid government-issued identification.' },
+        { title: 'Section 8: Fraud, Double-Leasing & Liability', body: 'Immediate account termination, blacklisting, escrow forfeiture, and law enforcement referral for listing fraudulent inventory, executing double-leases, or collecting illegal offline fees.', critical: true }
       ]
     }
   };
@@ -6411,9 +6431,27 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function saveListings() {
     try { localStorage.setItem('mtr_listings', JSON.stringify(listings)); } catch (e) {}
   }
+
+  // ==================================================================
+  // ---- Shortlet Bookings (daily-rate stays) ----
+  // Night 1 is paid up front at booking time; nights 2..N auto-debit daily
+  // from the tenant's wallet until the full stay is paid, simulated here
+  // with an accelerated interval standing in for a real daily cron job.
+  // ==================================================================
+  let shortletBookings = [];
+  try {
+    const storedBookings = JSON.parse(localStorage.getItem('mtr_shortlet_bookings'));
+    shortletBookings = Array.isArray(storedBookings) ? storedBookings : [];
+  } catch (e) {
+    shortletBookings = [];
+  }
+  function saveShortletBookings() {
+    try { localStorage.setItem('mtr_shortlet_bookings', JSON.stringify(shortletBookings)); } catch (e) {}
+  }
+
   // Media Uploads visibility rule: draft/private listings (status: 'draft') are stored
   // but never surfaced on the tenant-facing feeds below until explicitly published.
-  function rentListings() { return listings.filter(l => l.type === 'rent' && l.status !== 'draft'); }
+  function rentListings() { return listings.filter(l => (l.type === 'rent' || l.type === 'shortlet') && l.status !== 'draft'); }
   function landListingsList() { return listings.filter(l => l.type === 'land' && l.status !== 'draft'); }
 
   // ---- Automatic Property Status Switcher (AVAILABLE -> SOLD / RENTED) ----
@@ -6590,27 +6628,32 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const feed = document.getElementById('s5-listing-feed');
     const data = rentListings();
     feed.innerHTML = data.map(p => {
-      const unavailable = isListingUnavailable(p);
+      const isShortlet = p.type === 'shortlet';
+      const unavailable = !isShortlet && isListingUnavailable(p);
       return `
       <div class="s5-card${unavailable ? ' is-unavailable' : ''}" data-listing-id="${p.id}">
         <div class="s5-card-img-wrap">
-          <img src="${p.img}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'rent')">
+          <img src="${p.img}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'${isShortlet ? 'shortlet' : 'rent'}')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Verified</span>
-          ${p.hasVideo ? `<span class="s5-live-media-badge"><i data-lucide="video" class="w-3 h-3"></i>Walkthrough Video</span>` : ''}
+          ${isShortlet ? `<span class="s5-live-media-badge"><i data-lucide="calendar-days" class="w-3 h-3"></i>Shortlet</span>` : ''}
+          ${p.hasVideo ? `<span class="s5-live-media-badge" style="${isShortlet ? 'top:38px;' : ''}"><i data-lucide="video" class="w-3 h-3"></i>Walkthrough Video</span>` : ''}
           ${unavailable ? `<div class="s5-status-banner-overlay"><span class="s5-status-banner-tag rented">RENTED</span></div>` : ''}
         </div>
         <div class="s5-card-body">
           <p class="s5-card-title">${p.title}</p>
           <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
-          <p class="s5-card-price">${currency === 'usd' ? p.usd : p.ngn} <span>rent</span></p>
+          <p class="s5-card-price">${currency === 'usd' ? p.usd : p.ngn} <span>${isShortlet ? 'shortlet' : 'rent'}</span></p>
           <div class="s5-card-actions">
             <button type="button" class="s5-action-btn wt-btn" data-title="${p.title}"><i data-lucide="video" class="w-4 h-4"></i>Virtual Walkthrough</button>
           </div>
+          ${isShortlet
+            ? `<button type="button" class="s5-action-btn primary shortlet-book-btn" data-listing-id="${p.id}" style="width:100%; margin-top:8px;"><i data-lucide="calendar-days" class="w-4 h-4"></i>Book Now</button>`
+            : `
           <!-- CTA Consolidation: "Book Inspection" and "Add to Inspection Cart" have been
                merged into the single "View Payment Options" CTA below, which opens a
                consolidated drawer offering Schedule Inspection / Add to Inspection Cart. -->
           <button type="button" class="s5-action-btn primary payment-options-btn${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;" ${unavailable ? 'disabled' : ''}><i data-lucide="key" class="w-4 h-4"></i>Rent Now</button>
-          ${unavailable ? `<p class="s5-unavailable-notice rented"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i>This property is no longer available as it has been successfully RENTED.</p>` : ''}
+          ${unavailable ? `<p class="s5-unavailable-notice rented"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i>This property is no longer available as it has been successfully RENTED.</p>` : ''}`}
         </div>
       </div>`;
     }).join('');
@@ -6669,6 +6712,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const wtBtn = e.target.closest('.wt-btn');
     const landBtn = e.target.closest('.land-pay-btn');
     const paymentOptionsBtn = e.target.closest('.payment-options-btn');
+    const shortletBtn = e.target.closest('.shortlet-book-btn');
     const videoBtn = e.target.closest('.s5-video-preview-btn');
     const slideNavBtn = e.target.closest('.s5-slide-nav');
     if (slideNavBtn) {
@@ -6698,6 +6742,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // (Option A: Schedule Site Inspection, Option B: Direct Purchase/Outright
       // Checkout, Option C: Flexible Payment Plan) instead of one fixed flow.
       if (listing && !isListingUnavailable(listing)) requireScreening(() => openPaymentOptionsModal(listing));
+    } else if (shortletBtn) {
+      const listing = rentListings().find(l => String(l.id) === shortletBtn.dataset.listingId);
+      if (!listing) return;
+      // Action Button Guard: Landlord/Agent never proceeds through their own
+      // tenant-facing checkout — show Verification & Escrow Status instead.
+      if ((currentUserRole || 'tenant') !== 'tenant') { openEscrowStatusModal(listing); return; }
+      openShortletBookingModal(listing);
     } else if (paymentOptionsBtn) {
       if (paymentOptionsBtn.disabled) return;
       const listing = rentListings().find(l => String(l.id) === paymentOptionsBtn.dataset.listingId);
@@ -6787,6 +6838,152 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   document.getElementById('po-cancel-btn').addEventListener('click', () => paymentOptionsModal.classList.remove('open'));
+
+  // ==================================================================
+  // ---- Shortlet Booking Modal ----
+  //      Tenant picks a check-in date and a number of nights. Night 1
+  //      (plus commission & legal/service fee) is charged immediately;
+  //      nights 2..N auto-debit daily from the tenant's wallet until the
+  //      stay is fully paid, at which point the booking is COMPLETED.
+  // ==================================================================
+  const shortletBookingModal = document.getElementById('shortlet-booking-modal');
+  let sbListing = null;
+  const shortletAutoDebitTimers = {};
+
+  function recalcShortletBooking() {
+    if (!sbListing) return;
+    const nights = Math.max(1, parseInt(document.getElementById('sb-nights').value) || 1);
+    const rate = sbListing.nightlyRate || 0;
+    const commission = Math.round(rate * 0.10);
+    const legal = Math.round(rate * 0.05);
+    const totalNow = rate + commission + legal;
+    document.getElementById('sb-nightly-rate').textContent = formatMoney(rate, 'ngn');
+    document.getElementById('sb-night1').textContent = formatMoney(rate, 'ngn');
+    document.getElementById('sb-commission').textContent = formatMoney(commission, 'ngn');
+    document.getElementById('sb-legal').textContent = formatMoney(legal, 'ngn');
+    document.getElementById('sb-total-now').textContent = formatMoney(totalNow, 'ngn');
+    document.getElementById('sb-autodebit-note').textContent = nights > 1
+      ? `Night 1 is paid now. Nights 2–${nights} auto-debit ${formatMoney(rate, 'ngn')} daily from your wallet until the stay is fully paid.`
+      : `This is a single-night stay — nothing further will be charged.`;
+  }
+
+  function openShortletBookingModal(listing) {
+    sbListing = listing;
+    document.getElementById('sb-property-name').textContent = `${listing.title} — ${listing.location}`;
+    document.getElementById('sb-nights').value = 1;
+    const todayIso = new Date().toISOString().slice(0, 10);
+    document.getElementById('sb-checkin-date').value = todayIso;
+    document.getElementById('sb-checkin-date').min = todayIso;
+    recalcShortletBooking();
+    shortletBookingModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('sb-nights').addEventListener('input', recalcShortletBooking);
+  document.getElementById('sb-cancel-btn').addEventListener('click', () => shortletBookingModal.classList.remove('open'));
+
+  // Charges one night (rate + commission + legal fee) from the tenant's
+  // wallet and credits the host their share; used for both the up-front
+  // Night 1 charge and every subsequent auto-debited night.
+  function chargeShortletNight(booking, nightNumber) {
+    const uid = booking.tenantId;
+    const rate = booking.nightlyRate;
+    const commission = Math.round(rate * 0.10);
+    const legal = Math.round(rate * 0.05);
+    const totalDue = rate + commission + legal;
+    if (getWalletBalance(uid) < totalDue) return false;
+    debitWallet(uid, totalDue);
+    recordTransaction({
+      userId: uid, direction: 'debit', category: 'SHORTLET_BOOKING',
+      title: `Shortlet — Night ${nightNumber} of ${booking.nights} at ${booking.listingTitle}`,
+      amount: totalDue, status: 'SUCCESSFUL',
+      meta: { recipient: booking.listingTitle, propertyName: booking.listingTitle, feeType: 'Shortlet Booking' }
+    });
+    const listing = listings.find(l => l.id === booking.listingId);
+    if (listing && listing.ownerId) {
+      creditWallet(listing.ownerId, rate);
+      recordTransaction({
+        userId: listing.ownerId, direction: 'credit', category: 'SHORTLET_PAYOUT',
+        title: `Shortlet payout — Night ${nightNumber} of ${booking.nights} at ${booking.listingTitle}`,
+        amount: rate, status: 'SUCCESSFUL', meta: { propertyName: booking.listingTitle }
+      });
+    }
+    return true;
+  }
+
+  // Simulated daily auto-debit: a real deployment would run this from a
+  // server-side scheduled job at each new calendar day. Here an accelerated
+  // interval stands in for "the next day" so the flow can be demoed live.
+  const SHORTLET_DEMO_DAY_MS = 10000;
+  function scheduleShortletAutoDebit(bookingId) {
+    if (shortletAutoDebitTimers[bookingId]) clearInterval(shortletAutoDebitTimers[bookingId]);
+    shortletAutoDebitTimers[bookingId] = setInterval(() => {
+      const booking = shortletBookings.find(b => b.id === bookingId);
+      if (!booking || booking.status !== 'ACTIVE') {
+        clearInterval(shortletAutoDebitTimers[bookingId]);
+        delete shortletAutoDebitTimers[bookingId];
+        return;
+      }
+      const nextNight = booking.nightsPaid + 1;
+      const charged = chargeShortletNight(booking, nextNight);
+      if (!charged) {
+        pushPlatformNotification('tenant', 'booking', 'Shortlet Auto-Debit Failed',
+          `Night ${nextNight} of your stay at "${booking.listingTitle}" couldn't be auto-debited — fund your wallet to keep your booking active.`,
+          null, 'shortlet', null, booking.tenantId);
+        window.dispatchEvent(new Event('maintown_state_updated'));
+        return;
+      }
+      booking.nightsPaid = nextNight;
+      if (booking.nightsPaid >= booking.nights) {
+        booking.status = 'COMPLETED';
+        clearInterval(shortletAutoDebitTimers[bookingId]);
+        delete shortletAutoDebitTimers[bookingId];
+        pushPlatformNotification('tenant', 'booking', 'Shortlet Stay Fully Paid',
+          `Night ${nextNight} of ${booking.nights} at "${booking.listingTitle}" was auto-debited — your stay is now fully paid.`,
+          null, 'shortlet', null, booking.tenantId);
+      } else {
+        pushPlatformNotification('tenant', 'booking', 'Shortlet Night Auto-Debited',
+          `Night ${nextNight} of ${booking.nights} at "${booking.listingTitle}" was auto-debited from your wallet.`,
+          null, 'shortlet', null, booking.tenantId);
+      }
+      saveShortletBookings();
+      window.dispatchEvent(new Event('maintown_state_updated'));
+    }, SHORTLET_DEMO_DAY_MS);
+  }
+
+  // Resume auto-debit timers for any still-ACTIVE bookings after a page reload
+  // (a fresh page load would otherwise lose the setInterval handles above).
+  shortletBookings.filter(b => b.status === 'ACTIVE').forEach(b => scheduleShortletAutoDebit(b.id));
+
+  document.getElementById('sb-confirm-btn').addEventListener('click', () => {
+    if (!sbListing) return;
+    const nights = Math.max(1, parseInt(document.getElementById('sb-nights').value) || 1);
+    const rate = sbListing.nightlyRate || 0;
+    const commission = Math.round(rate * 0.10);
+    const legal = Math.round(rate * 0.05);
+    const totalNow = rate + commission + legal;
+    const uid = getCurrentUserId();
+    if (getWalletBalance(uid) < totalNow) {
+      shortletBookingModal.classList.remove('open');
+      showToast('Insufficient wallet balance — please fund your wallet first');
+      return;
+    }
+    const booking = {
+      id: Date.now(), listingId: sbListing.id, listingTitle: sbListing.title, location: sbListing.location,
+      tenantId: uid, nights, nightsPaid: 0, nightlyRate: rate, startedAt: Date.now(), status: 'ACTIVE'
+    };
+    chargeShortletNight(booking, 1);
+    booking.nightsPaid = 1;
+    if (booking.nightsPaid >= booking.nights) booking.status = 'COMPLETED';
+    shortletBookings.unshift(booking);
+    saveShortletBookings();
+    shortletBookingModal.classList.remove('open');
+    showToast(nights > 1 ? `Night 1 paid — nights 2–${nights} will auto-debit daily` : 'Shortlet booked and paid in full');
+    pushPlatformNotification('tenant', 'booking', 'Shortlet Booked',
+      `Night 1 of your ${nights}-night stay at "${sbListing.title}" is confirmed.`, null, 'shortlet', null, uid);
+    if (booking.status === 'ACTIVE') scheduleShortletAutoDebit(booking.id);
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  });
+
 
   document.getElementById('s5-search-input').addEventListener('input', (e) => {
     if ((currentUserRole || 'tenant') !== 'tenant') return;
@@ -8582,13 +8779,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('tv-video-upload').classList.remove('has-file');
     document.getElementById('tv-video-upload-label').textContent = 'Video Walkthrough';
     document.getElementById('tv-video-upload-meta').textContent = '';
-    document.getElementById('tv-upload-box').classList.remove('has-file');
-    document.getElementById('tv-upload-label').textContent = 'Upload Title Document';
-    document.getElementById('tv-verify-badge').style.display = 'none';
-    tvSelectedTitleType = null;
-    document.getElementById('tv-title-type-label').textContent = 'Select what this property currently holds…';
-    document.getElementById('tv-title-type-label').style.color = '#64748b';
+    tvSelectedDocs = {};
+    renderTvDocOptions();
     document.getElementById('tv-consent-note').style.display = 'none';
+    updateAnnualCalc('tv');
     updateTvTitleTypeVisibility();
     document.getElementById('tv-publish-toggle').checked = true;
     tvPendingAvailability = [];
@@ -8641,16 +8835,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
   });
 
-  document.getElementById('tv-upload-box').addEventListener('click', () => document.getElementById('tv-file').click());
-  document.getElementById('tv-file').addEventListener('change', (e) => {
-    if (e.target.files.length) {
-      document.getElementById('tv-upload-box').classList.add('has-file');
-      document.getElementById('tv-upload-label').textContent = e.target.files[0].name;
-      document.getElementById('tv-verify-badge').style.display = 'inline-flex';
-      if (window.lucide) lucide.createIcons();
-    }
-  });
-
   document.getElementById('tv-cancel-btn').addEventListener('click', () => titleVerifyModal.classList.remove('open'));
   document.getElementById('tv-submit-btn').addEventListener('click', () => {
     const title = document.getElementById('tv-title').value.trim();
@@ -8658,14 +8842,25 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const type = document.getElementById('tv-listing-type').value;
     const annual = parseFloat(document.getElementById('tv-annual').value) || 0;
     if (!title || !address || !annual) {
-      showToast('Please fill in property title, address, and annual price');
+      showToast('Please fill in property title, address, and price');
       return;
     }
-    if (type === 'land' && !tvSelectedTitleType) {
-      showToast('Please select the existing title document type for this property');
-      return;
+    const checkedDocBoxes = Array.from(document.querySelectorAll('.tv-doc-checkbox:checked'));
+    if (type === 'land') {
+      if (!checkedDocBoxes.length) {
+        showToast('Select at least one title document type that applies to this property');
+        return;
+      }
+      if (checkedDocBoxes.some(cb => !tvSelectedDocs[cb.dataset.docId])) {
+        showToast('Please upload a file for every title document type you selected');
+        return;
+      }
     }
-    const titleTypeOpt = tvSelectedTitleType ? TITLE_TYPE_OPTIONS.find(o => o.id === tvSelectedTitleType) : null;
+    const titleDocuments = checkedDocBoxes.map(cb => {
+      const doc = TITLE_DOC_TYPES.find(d => d.id === cb.dataset.docId);
+      return { id: doc.id, label: doc.label, ...tvSelectedDocs[doc.id] };
+    });
+    const requiresConsent = titleDocuments.some(d => (TITLE_DOC_TYPES.find(t => t.id === d.id) || {}).requiresConsent);
     const isPublished = document.getElementById('tv-publish-toggle').checked;
     const newId = Date.now();
     landlordProperties.unshift({ id: newId, title, address, status: 'escrow', listingId: newId, ownerId: getCurrentUserId() });
@@ -8693,15 +8888,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
       listingsFeed.unshift({ ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent });
+    } else if (type === 'shortlet') {
+      listingsFeed.unshift({ ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: PROPERTY_IMG_FALLBACK.shortlet });
     } else {
       listingsFeed.unshift({
         ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land,
-        // Existing Title Document Type — shown publicly on the listing so
+        // Title Verification Documents — shown publicly on the listing so
         // buyers can judge title risk/completeness before ever messaging
         // anyone, and drives the Governor's Consent tracker after sale.
-        titleType: titleTypeOpt.id,
-        titleTypeLabel: titleTypeOpt.label,
-        requiresConsent: titleTypeOpt.requiresConsent
+        titleDocuments,
+        titleTypeLabel: titleDocuments.map(d => d.label).join(', '),
+        requiresConsent
       });
     }
     saveListings();
@@ -8896,49 +9093,51 @@ This voucher is auto-generated and serves as proof of settlement.`;
   let tvPendingPhotoUrls = [];
   let tvPendingVideoUrl = null;
 
-  // ---- Existing Title Document Type (Seller declaration at listing time) ----
-  const TITLE_TYPE_OPTIONS = [
-    { id: 'C_OF_O', label: 'Certificate of Occupancy (C of O)', desc: "Governor-issued right of occupancy, in the seller's name. Requires Governor's Consent to transfer to a buyer.", requiresConsent: true },
-    { id: 'GOVERNORS_CONSENT', label: "Governor's Consent (already obtained)", desc: 'Consent was already granted on a prior transfer to the seller. A fresh Consent is still required for this sale.', requiresConsent: true },
-    { id: 'GAZETTE', label: 'Gazette', desc: 'Officially published government record of land excised/released from government acquisition to the community/family — no C of O yet.', requiresConsent: false },
-    { id: 'REGISTERED_CONVEYANCE', label: 'Registered Conveyance / Deed', desc: 'An older, registered deed predating the Land Use Act.', requiresConsent: false },
-    { id: 'FAMILY_RECEIPT', label: 'Family / Customary Receipt', desc: 'Traditional purchase receipt only — no formal government title yet.', requiresConsent: false },
-    { id: 'NONE_YET', label: 'None Yet / In Progress', desc: 'Title documentation is still being processed.', requiresConsent: false }
-  ];
-  let tvSelectedTitleType = null;
+  // ---- Title Verification Documents (multi-select, same taxonomy as the
+  // Agent -> Landlord verification flow's TITLE_DOC_TYPES defined below) ----
+  let tvSelectedDocs = {}; // docId -> { fileName, fileUrl }
 
-  function renderTitleTypeDrawer() {
-    const wrap = document.getElementById('ttd-options');
-    wrap.innerHTML = TITLE_TYPE_OPTIONS.map(o => `
-      <button type="button" class="s5-list-item ttd-option" data-id="${o.id}" style="width:100%; text-align:left; margin-bottom:8px; cursor:pointer; border: 1px solid ${tvSelectedTitleType === o.id ? '#a855f7' : '#1e293b'};">
-        <div class="s5-list-icon"><i data-lucide="${tvSelectedTitleType === o.id ? 'check-circle-2' : 'circle'}" class="w-5 h-5"></i></div>
-        <div class="s5-list-text">
-          <p class="s5-list-title">${o.label}</p>
-          <p class="s5-list-sub">${o.desc}</p>
+  function renderTvDocOptions() {
+    const wrap = document.getElementById('tv-doc-options');
+    if (!wrap) return;
+    wrap.innerHTML = TITLE_DOC_TYPES.map(d => `
+      <div class="lv-doc-row" data-doc-id="${d.id}">
+        <label class="agree-row" style="margin-bottom:0;">
+          <input type="checkbox" class="agree-checkbox tv-doc-checkbox" data-doc-id="${d.id}">
+          <span>${d.label}</span>
+        </label>
+        <div class="s5-upload-box tv-doc-upload" data-doc-id="${d.id}" style="display:none;">
+          <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+          <span class="tv-doc-upload-label">Upload ${d.label}</span>
+          <input type="file" class="tv-doc-file" data-doc-id="${d.id}" hidden accept="image/*,.pdf">
         </div>
-      </button>
-    `).join('');
+      </div>`).join('');
     if (window.lucide) lucide.createIcons();
   }
 
-  document.getElementById('tv-title-type-btn').addEventListener('click', () => {
-    renderTitleTypeDrawer();
-    document.getElementById('title-type-drawer').classList.add('open');
+  document.getElementById('tv-doc-options').addEventListener('change', (e) => {
+    const checkbox = e.target.closest('.tv-doc-checkbox');
+    const fileInput = e.target.closest('.tv-doc-file');
+    if (checkbox) {
+      const id = checkbox.dataset.docId;
+      const uploadBox = document.querySelector(`.tv-doc-upload[data-doc-id="${id}"]`);
+      uploadBox.style.display = checkbox.checked ? 'flex' : 'none';
+      if (!checkbox.checked) delete tvSelectedDocs[id];
+      const anyRequiresConsent = Array.from(document.querySelectorAll('.tv-doc-checkbox:checked'))
+        .some(cb => (TITLE_DOC_TYPES.find(d => d.id === cb.dataset.docId) || {}).requiresConsent);
+      document.getElementById('tv-consent-note').style.display = anyRequiresConsent ? 'inline-flex' : 'none';
+    } else if (fileInput && fileInput.files.length) {
+      const id = fileInput.dataset.docId;
+      const file = fileInput.files[0];
+      tvSelectedDocs[id] = { fileName: file.name, fileUrl: URL.createObjectURL(file) };
+      const uploadBox = fileInput.closest('.tv-doc-upload');
+      uploadBox.classList.add('has-file');
+      uploadBox.querySelector('.tv-doc-upload-label').textContent = file.name;
+    }
   });
-  document.getElementById('ttd-close-btn').addEventListener('click', () => {
-    document.getElementById('title-type-drawer').classList.remove('open');
-  });
-  document.getElementById('ttd-options').addEventListener('click', (e) => {
-    const btn = e.target.closest('.ttd-option');
-    if (!btn) return;
-    tvSelectedTitleType = btn.dataset.id;
-    const opt = TITLE_TYPE_OPTIONS.find(o => o.id === tvSelectedTitleType);
-    document.getElementById('tv-title-type-label').textContent = opt.label;
-    document.getElementById('tv-title-type-label').style.color = '#e2e8f0';
-    document.getElementById('tv-consent-note').style.display = opt.requiresConsent ? 'inline-flex' : 'none';
-    document.getElementById('tv-doc-upload-wrap').style.display = 'block';
-    document.getElementById('tv-upload-label').textContent = `Upload ${opt.label.replace(/\s*\(.*?\)/, '')}`;
-    document.getElementById('title-type-drawer').classList.remove('open');
+  document.getElementById('tv-doc-options').addEventListener('click', (e) => {
+    const uploadBox = e.target.closest('.tv-doc-upload');
+    if (uploadBox && !e.target.closest('input[type=file]')) uploadBox.querySelector('.tv-doc-file').click();
   });
 
   document.getElementById('s5-photo-upload').addEventListener('click', () => document.getElementById('s5-photo-file').click());
@@ -8963,7 +9162,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const rawInput = document.getElementById(`${prefix}-annual`).value;
     const raw = String(rawInput).replace(/[^0-9.]/g, ''); // strip commas / non-numeric chars defensively
     const annual = parseFloat(raw) || 0;
-    const type = document.getElementById(`${prefix}-listing-type`) ? document.getElementById(`${prefix}-listing-type`).value : document.getElementById('tv-listing-type').value;
+    const typeSelect = document.getElementById(`${prefix}-listing-type`);
+    const type = typeSelect ? typeSelect.value : document.getElementById('tv-listing-type').value;
     const monthlyBadge = document.getElementById(`${prefix}-monthly-badge`);
     const monthlyText = document.getElementById(`${prefix}-monthly-badge-text`);
     if (type === 'rent' && annual > 0) {
@@ -8972,6 +9172,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } else {
       monthlyBadge.style.display = 'none';
     }
+    // Listing Type Auto-Adjustment: the price field's label/placeholder flips
+    // between Annual Price (rent/land) and Nightly Rate (shortlet) so the form
+    // always matches what's actually being collected.
+    const priceLabel = document.getElementById(`${prefix}-listing-annual-label`) || document.getElementById(`${prefix}-annual-label`);
+    const priceInput = document.getElementById(`${prefix}-annual`) || document.getElementById(`${prefix}-listing-annual`);
+    if (priceLabel) priceLabel.textContent = type === 'shortlet' ? 'Nightly Rate (NGN)' : 'Annual Price (NGN)';
+    if (priceInput) priceInput.placeholder = type === 'shortlet' ? 'e.g. 45000' : 'e.g. 2400000';
     document.getElementById(`${prefix}-fee-commission`).textContent = annual > 0 ? formatMoney(annual * 0.10, 'ngn') : '₦0';
     document.getElementById(`${prefix}-fee-legal`).textContent = annual > 0 ? formatMoney(annual * 0.05, 'ngn') : '₦0';
   }
@@ -8988,7 +9195,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function updateTvTitleTypeVisibility() {
     const isLand = document.getElementById('tv-listing-type').value === 'land';
     document.getElementById('tv-title-type-field').style.display = isLand ? 'block' : 'none';
-    document.getElementById('tv-doc-upload-wrap').style.display = (isLand && tvSelectedTitleType) ? 'block' : 'none';
   }
 
   // ==================================================================
@@ -9001,12 +9207,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // escrow milestone protection.
   // ==================================================================
   const TITLE_DOC_TYPES = [
-    { id: 'C_OF_O', label: 'Certificate of Occupancy' },
-    { id: 'SURVEY_PLAN', label: 'Registered Survey Plan' },
-    { id: 'GAZETTE', label: 'Gazette' },
-    { id: 'GOVERNORS_CONSENT', label: "Governor's Consent" },
-    { id: 'EXCISION', label: 'Excision' },
-    { id: 'DEED_OF_ASSIGNMENT', label: 'Deed of Assignment' }
+    { id: 'C_OF_O', label: 'Certificate of Occupancy', requiresConsent: true },
+    { id: 'SURVEY_PLAN', label: 'Registered Survey Plan', requiresConsent: false },
+    { id: 'GAZETTE', label: 'Gazette', requiresConsent: false },
+    { id: 'GOVERNORS_CONSENT', label: "Governor's Consent", requiresConsent: true },
+    { id: 'EXCISION', label: 'Excision', requiresConsent: false },
+    { id: 'DEED_OF_ASSIGNMENT', label: 'Deed of Assignment', requiresConsent: false }
   ];
 
   let s5LandlordMode = 'existing';
@@ -9153,6 +9359,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
       listingData = { ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent };
+    } else if (type === 'shortlet') {
+      listingData = { ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: PROPERTY_IMG_FALLBACK.shortlet };
     } else {
       listingData = { ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land };
     }
