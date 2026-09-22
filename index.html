@@ -18,6 +18,66 @@
     margin: 0 !important;
     padding: 0 !important;
   }
+  /* ==================================================================
+     ---- Design Tokens ----
+     Single source of truth for the bank-grade visual language. New
+     components (status pills, etc.) are built on these variables; the
+     rest of the stylesheet is being migrated onto them incrementally
+     rather than in one risky pass across 15k lines.
+     ================================================================== */
+  :root {
+    --accent: #9333ea;
+    --accent-strong: #7c3aed;
+    --text-primary-dark: #ffffff;
+    --text-secondary-dark: #cbd5e1;
+    --text-tertiary-dark: #64748b;
+    --text-primary-light: #0f172a;
+    --text-secondary-light: #334155;
+    --text-tertiary-light: #64748b;
+    --status-success: #10b981;
+    --status-success-bg-dark: rgba(16,185,129,0.14);
+    --status-success-bg-light: #d1fae5;
+    --status-warning: #d97706;
+    --status-warning-bg-dark: rgba(245,158,11,0.14);
+    --status-warning-bg-light: #fef3c7;
+    --status-danger: #ef4444;
+    --status-danger-bg-dark: rgba(239,68,68,0.14);
+    --status-danger-bg-light: #fee2e2;
+    --status-neutral: #94a3b8;
+    --status-neutral-bg-dark: rgba(148,163,184,0.14);
+    --status-neutral-bg-light: #f1f5f9;
+  }
+
+  /* ---- Financial-grade numerals ----
+     Fixed-width digits everywhere so money/dates never jitter or
+     misalign as figures update — standard practice in banking UI. */
+  body { font-variant-numeric: tabular-nums; }
+
+  /* ---- Status pill component ----
+     Dot + label with color carrying the meaning (green=active/good,
+     amber=pending/attention, red=deactivated/blocked, gray=neutral) —
+     replaces plain "· Active" text so status is scannable at a glance. */
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; padding: 3px 9px 3px 7px;
+    border-radius: 999px; line-height: 1.4;
+  }
+  .status-pill::before {
+    content: ''; width: 6px; height: 6px; border-radius: 999px; flex-shrink: 0;
+  }
+  .status-pill.success { color: var(--status-success); background: var(--status-success-bg-dark); }
+  .status-pill.success::before { background: var(--status-success); }
+  .status-pill.warning { color: var(--status-warning); background: var(--status-warning-bg-dark); }
+  .status-pill.warning::before { background: var(--status-warning); }
+  .status-pill.danger { color: var(--status-danger); background: var(--status-danger-bg-dark); }
+  .status-pill.danger::before { background: var(--status-danger); }
+  .status-pill.neutral { color: var(--status-neutral); background: var(--status-neutral-bg-dark); }
+  .status-pill.neutral::before { background: var(--status-neutral); }
+  body.light-theme .status-pill.success { background: var(--status-success-bg-light); }
+  body.light-theme .status-pill.warning { background: var(--status-warning-bg-light); }
+  body.light-theme .status-pill.danger { background: var(--status-danger-bg-light); }
+  body.light-theme .status-pill.neutral { background: var(--status-neutral-bg-light); color: #475569; }
+
   /* ---- Standalone fallback styles (render correctly even if Tailwind CDN is blocked) ---- */
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
@@ -132,6 +192,65 @@
   body.light-theme .profile-occupation-line { color: #64748b; }
   body.light-theme .bio-row strong { color: #0f172a; }
   body.light-theme .bio-row { border-bottom-color: #e5e7eb; }
+
+  /* Team & Access cards */
+  body.light-theme .ent-team-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+  }
+  body.light-theme .ent-team-card .ent-list-icon { background: #f3e8ff; color: #9333ea; }
+  body.light-theme .ent-team-card .ent-list-title { color: #0f172a; }
+  body.light-theme .ent-team-card .ent-list-sub { color: #64748b; }
+  body.light-theme .ent-team-card .ent-list-action-btn { background: #f8fafc; border-color: #e2e8f0; color: #334155; }
+  body.light-theme .ent-team-card .ent-list-action-btn.danger { border-color: #fecaca; color: #dc2626; background: #fef2f2; }
+  body.light-theme .ent-team-card .ent-list-action-btn.primary { border-color: #d8b4fe; color: #9333ea; background: #f3e8ff; }
+
+  /* Enterprise promo / "Go to Enterprise Dashboard" card -> solid hero
+     treatment so it reads crisp against white instead of washing out. */
+  body.light-theme .ent-promo-card {
+    background: linear-gradient(135deg, #7c3aed, #9333ea);
+    border: none;
+    box-shadow: 0 10px 24px rgba(124,58,237,0.28);
+  }
+  body.light-theme .ent-promo-icon { background: rgba(255,255,255,0.2); color: #ffffff; }
+  body.light-theme .ent-promo-title { color: #ffffff; }
+  body.light-theme .ent-promo-sub { color: rgba(255,255,255,0.85); }
+  body.light-theme .ent-promo-cta { color: #ffffff; }
+
+  /* Inspection Requests alert banner -> proper light-mode alert card
+     (solid pale-amber fill, dark amber text) instead of a near-invisible
+     transparent tint. */
+  body.light-theme .dash-summary-card {
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+  }
+  body.light-theme .dash-summary-card:hover { border-color: #f59e0b; }
+  body.light-theme .dash-summary-icon { background: #fde68a; color: #92400e; }
+  body.light-theme .dash-summary-title { color: #92400e; }
+  body.light-theme .dash-summary-sub { color: #78350f; }
+
+  /* Quick Actions tiles -> white cards with punchy pastel icon chips,
+     matching the rest of the light-mode card system. */
+  body.light-theme .dash-tile {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+  }
+  body.light-theme .dash-tile:hover { border-color: #9333ea; }
+  body.light-theme .dash-tile-label { color: #0f172a; }
+  body.light-theme .dash-tile-icon-wrap.bg-purple-500\/10 { background: #f3e8ff; }
+  body.light-theme .dash-tile-icon-wrap.bg-emerald-500\/10 { background: #d1fae5; }
+  body.light-theme .dash-tile-icon-wrap.bg-amber-500\/10 { background: #fef3c7; }
+  body.light-theme .dash-tile-icon-wrap.bg-blue-500\/10 { background: #dbeafe; }
+  body.light-theme .dash-tile-icon-wrap.bg-fuchsia-500\/10 { background: #fae8ff; }
+  body.light-theme .dash-tile-icon-wrap.bg-teal-500\/10 { background: #ccfbf1; }
+  body.light-theme .dash-tile-icon-wrap .text-purple-400 { color: #9333ea; }
+  body.light-theme .dash-tile-icon-wrap .text-emerald-400 { color: #059669; }
+  body.light-theme .dash-tile-icon-wrap .text-amber-400 { color: #d97706; }
+  body.light-theme .dash-tile-icon-wrap .text-blue-400 { color: #2563eb; }
+  body.light-theme .dash-tile-icon-wrap .text-fuchsia-400 { color: #c026d3; }
+  body.light-theme .dash-tile-icon-wrap .text-teal-400 { color: #0d9488; }
   .app-shell {
     width: 100%;
     max-width: 420px;
@@ -358,7 +477,7 @@
   }
   .wallet-eye-btn:hover { background: rgba(255,255,255,0.2); }
   .wallet-eye-btn svg { width: 15px; height: 15px; }
-  .wallet-balance-value { font-size: 28px; font-weight: 700; color: #fff; margin: 0 0 18px; letter-spacing: 0.2px; }
+  .wallet-balance-value { font-size: 28px; font-weight: 700; color: #fff; margin: 0 0 18px; letter-spacing: -0.01em; }
   .wallet-action-row { display: flex; gap: 10px; }
   .wallet-action-btn {
     flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -722,7 +841,7 @@
     box-shadow: 0 12px 30px rgba(147,51,234,0.25);
   }
   .dash-card-label { font-size: 12px; color: rgba(255,255,255,0.75); margin: 0 0 6px; }
-  .dash-card-value { font-size: 24px; font-weight: 700; color: #fff; margin: 0 0 4px; }
+  .dash-card-value { font-size: 24px; font-weight: 700; color: #fff; margin: 0 0 4px; letter-spacing: -0.01em; }
   .dash-card-sub { font-size: 12px; color: rgba(255,255,255,0.8); margin: 0; }
   .dash-section-title { font-size: 13px; font-weight: 600; color: #e2e8f0; margin: 0 0 12px; }
   .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
@@ -804,11 +923,22 @@
   .ent-list-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: rgba(15,23,42,0.7); border: 1px solid #1e293b; border-radius: 14px; margin-bottom: 10px; }
   .ent-list-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(147,51,234,0.15); color: #c084fc; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .ent-list-text { flex: 1; min-width: 0; }
-  .ent-list-title { font-size: 13px; font-weight: 600; color: #fff; margin: 0 0 1px; }
-  .ent-list-sub { font-size: 11.5px; color: #64748b; margin: 0; }
+  .ent-list-title { font-size: 13px; font-weight: 600; color: #fff; margin: 0 0 1px; overflow-wrap: anywhere; }
+  .ent-list-sub { font-size: 11.5px; color: #64748b; margin: 0; overflow-wrap: anywhere; }
   .ent-list-action-btn { flex-shrink: 0; font-size: 11.5px; font-weight: 600; padding: 7px 11px; border-radius: 9px; border: 1px solid #334155; background: rgba(30,41,59,0.8); color: #e2e8f0; cursor: pointer; display: flex; align-items: center; gap: 4px; }
   .ent-list-action-btn.danger { border-color: rgba(248,113,113,0.4); color: #f87171; }
   .ent-list-action-btn.primary { border-color: #a855f7; background: rgba(147,51,234,0.2); color: #fff; }
+
+  /* ---- Team & Access: stacked card layout ----
+     Name/badge/email/status sit in their own row above a full-width
+     actions row, instead of squeezing next to the action buttons in a
+     single flex row — that's what let long emails/badges spill behind
+     the Deactivate button. Reuses .ent-list-icon/.ent-list-text/.ent-list-title/
+     .ent-list-sub/.ent-list-action-btn for identical look & feel. */
+  .ent-team-card { background: rgba(15,23,42,0.7); border: 1px solid #1e293b; border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+  .ent-team-card-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+  .ent-team-card-actions { display: flex; gap: 8px; }
+  .ent-team-card-actions .ent-list-action-btn { flex: 1; justify-content: center; }
 
   .ent-empty { text-align: center; padding: 40px 16px; color: #64748b; font-size: 12.5px; }
   .ent-empty svg { width: 32px; height: 32px; margin: 0 auto 10px; color: #334155; }
@@ -824,7 +954,7 @@
   /* ---- Staff Dashboards: Sales / Finance / Legal — own home screens ---- */
   .ent-stat-card { background: linear-gradient(135deg, rgba(147,51,234,0.18), rgba(15,23,42,0.85)); border: 1px solid rgba(147,51,234,0.35); border-radius: 16px; padding: 18px; margin-bottom: 20px; }
   .ent-stat-label { font-size: 12px; color: #c4b5fd; margin: 0 0 6px; font-weight: 600; }
-  .ent-stat-value { font-size: 28px; font-weight: 800; color: #fff; margin: 0; }
+  .ent-stat-value { font-size: 28px; font-weight: 700; color: #fff; margin: 0; letter-spacing: -0.01em; }
   .ent-stat-sub { font-size: 11.5px; color: #94a3b8; margin: 6px 0 0; }
   .ent-stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
   .ent-stat-row .ent-stat-card { margin-bottom: 0; }
@@ -1585,6 +1715,28 @@
 
   /* Chat composer (text messaging + voice note trigger) */
   .msg-composer { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  /* Pin the composer to the bottom of the viewport, just above the fixed
+     nav bar — standard messaging-app layout — instead of leaving it in
+     normal document flow where it strands near the top with a dead gap
+     below it on short conversations. */
+  #msg-thread-detail .msg-composer {
+    position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%);
+    width: 100%; max-width: 380px; box-sizing: border-box;
+    margin: 0; z-index: 40;
+    background: #0B0F19; padding: 10px 4px;
+  }
+  body.light-theme #msg-thread-detail .msg-composer { background: #ffffff; }
+  /* Chat log becomes the scrollable region between the header and the
+     pinned composer, like a real chat window, instead of growing the
+     whole page. */
+  #msg-thread-detail #msg-chat-log {
+    max-height: calc(100vh - 330px);
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+  /* Clear space at the bottom of the thread-detail screen so the fixed
+     composer never overlaps the last message or the nav bar. */
+  #msg-thread-detail { padding-bottom: 150px; }
   .msg-composer-input {
     flex: 1; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 999px;
     padding: 11px 16px; font-size: 13px; color: #fff; outline: none;
@@ -4059,6 +4211,23 @@
     <button type="button" id="del-listing-keep-btn" class="btn-secondary">Keep Listing</button>
   </div>
 </div>
+
+<!-- Delete Team Member Modal (CEO: Team & Access) -->
+<div id="delete-staff-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <i data-lucide="trash-2" class="w-8 h-8 text-red-400"></i>
+    </div>
+    <h2 class="modal-title">Delete Team Member?</h2>
+    <p class="modal-sub">This will permanently remove <strong id="del-staff-name">—</strong> from your team and revoke all access. This can't be undone.</p>
+
+    <button type="button" id="del-staff-confirm-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: 0 8px 20px rgba(239,68,68,0.25); margin-top: 4px;">
+      <i data-lucide="trash-2" class="w-4 h-4"></i> Yes, Delete Team Member
+    </button>
+    <button type="button" id="del-staff-keep-btn" class="btn-secondary">Keep Team Member</button>
+  </div>
+</div>
+
 
 <!-- Enterprise Upgrade Modal: Step 1 payment, Step 2 company setup -->
 <div id="ent-upgrade-modal" class="modal-overlay">
@@ -15507,26 +15676,69 @@ available in the Post-Lease Hub and this chat thread.`
     const team = Object.values(appState.users || {}).filter(u => u.role === 'enterprise_staff' && u.companyId === companyId);
     const list = document.getElementById('ent-team-list');
     list.innerHTML = team.length ? team.map(u => `
-      <div class="ent-list-item">
-        <div class="ent-list-icon"><i data-lucide="user" class="w-4 h-4"></i></div>
-        <div class="ent-list-text">
-          <p class="ent-list-title">${u.name} <span class="ent-role-badge" style="margin-left:6px;">${ENT_STAFF_ROLE_LABEL[u.staffRole] || u.staffRole}</span></p>
-          <p class="ent-list-sub">${u.email} · ${u.status === 'ACTIVE' ? 'Active' : u.status === 'DEACTIVATED' ? 'Deactivated' : `Pending — code ${u.tempCode}`}</p>
+      <div class="ent-team-card">
+        <div class="ent-team-card-top">
+          <div class="ent-list-icon"><i data-lucide="user" class="w-4 h-4"></i></div>
+          <div class="ent-list-text">
+            <p class="ent-list-title">${u.name} <span class="ent-role-badge" style="margin-left:6px;">${ENT_STAFF_ROLE_LABEL[u.staffRole] || u.staffRole}</span></p>
+            <p class="ent-list-sub">${u.email}</p>
+            <p class="ent-list-sub" style="margin-top:4px;">${
+              u.status === 'ACTIVE' ? '<span class="status-pill success">Active</span>'
+              : u.status === 'DEACTIVATED' ? '<span class="status-pill danger">Deactivated</span>'
+              : `<span class="status-pill warning">Pending · code ${u.tempCode}</span>`
+            }</p>
+          </div>
         </div>
-        ${u.status !== 'DEACTIVATED'
-          ? `<button type="button" class="ent-list-action-btn danger" data-deactivate="${u.id}"><i data-lucide="user-x" class="w-3.5 h-3.5"></i>Deactivate</button>`
-          : `<button type="button" class="ent-list-action-btn primary" data-reactivate="${u.id}"><i data-lucide="user-check" class="w-3.5 h-3.5"></i>Reactivate</button>`}
+        <div class="ent-team-card-actions">
+          ${u.status !== 'DEACTIVATED'
+            ? `<button type="button" class="ent-list-action-btn danger" data-deactivate="${u.id}"><i data-lucide="user-x" class="w-3.5 h-3.5"></i>Deactivate</button>`
+            : `<button type="button" class="ent-list-action-btn primary" data-reactivate="${u.id}"><i data-lucide="user-check" class="w-3.5 h-3.5"></i>Reactivate</button>`}
+          <button type="button" class="ent-list-action-btn danger" data-delete-staff="${u.id}"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>Delete</button>
+        </div>
       </div>`).join('')
       : `<div class="ent-empty"><i data-lucide="users"></i><p>No team members yet — invite your first Sales, Legal, or Finance staff member above.</p></div>`;
   }
   document.getElementById('ent-team-list').addEventListener('click', (e) => {
     const deactivateBtn = e.target.closest('[data-deactivate]');
     const reactivateBtn = e.target.closest('[data-reactivate]');
+    const deleteBtn = e.target.closest('[data-delete-staff]');
+    if (deleteBtn) { openDeleteStaffModal(deleteBtn.dataset.deleteStaff); return; }
     const id = deactivateBtn ? deactivateBtn.dataset.deactivate : (reactivateBtn ? reactivateBtn.dataset.reactivate : null);
     if (!id || !appState.users[id]) return;
     appState.users[id].status = deactivateBtn ? 'DEACTIVATED' : 'PENDING_CLAIM';
     saveAppState(appState);
     showToast(deactivateBtn ? 'Team member access revoked' : 'Team member re-invited');
+    renderEntTeam();
+  });
+
+  // ---- CEO: Permanently delete a staff member ----
+  const deleteStaffModal = document.getElementById('delete-staff-modal');
+  let deleteStaffId = null;
+
+  function openDeleteStaffModal(id) {
+    const u = appState.users[id];
+    if (!u) return;
+    deleteStaffId = id;
+    document.getElementById('del-staff-name').textContent = u.name;
+    deleteStaffModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('del-staff-keep-btn').addEventListener('click', () => {
+    deleteStaffModal.classList.remove('open');
+    deleteStaffId = null;
+  });
+  document.getElementById('del-staff-confirm-btn').addEventListener('click', () => {
+    if (!deleteStaffId || !appState.users[deleteStaffId]) { deleteStaffModal.classList.remove('open'); return; }
+    const companyId = getEnterpriseCompanyId();
+    const company = appState.users[companyId];
+    if (company && company.enterprise && Array.isArray(company.enterprise.staffIds)) {
+      company.enterprise.staffIds = company.enterprise.staffIds.filter(sid => sid !== deleteStaffId);
+    }
+    delete appState.users[deleteStaffId];
+    saveAppState(appState);
+    showToast('Team member removed');
+    deleteStaffModal.classList.remove('open');
+    deleteStaffId = null;
     renderEntTeam();
   });
 
