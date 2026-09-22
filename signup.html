@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-B19N3LX04H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-B19N3LX04H');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up — MainTown Realty</title>
+<link rel="icon" type="image/png" sizes="192x192" href="./favicon-192.png">
+<link rel="apple-touch-icon" href="./favicon-192.png">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          slate: { 950: '#0B1120', 900: '#0F172A', 850: '#141E33', 800: '#1B2740', 700: '#28395C' },
+          brand: { 300: '#C4B5FD', 400: '#A855F7', 500: '#8B5CF6', 600: '#7C3AED', 700: '#6D28D9' },
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          body: ['Inter', 'sans-serif'],
+        },
+      }
+    }
+  }
+</script>
+
+<style>
+  * , ::before, ::after { box-sizing: border-box !important; }
+  html, body { width: 100% !important; max-width: 100% !important; overflow-x: hidden !important; margin: 0 !important; padding: 0 !important; }
+  body { font-family: 'Inter', sans-serif; background: #0B0F19; color: #fff; min-height: 100vh; }
+
+  .app-shell { width: 100%; max-width: 460px; min-height: 100vh; margin: 0 auto; display: flex; flex-direction: column; padding: 28px 20px 48px; position: relative; }
+
+  .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #94a3b8; text-decoration: none; }
+  .back-link:hover { color: #fff; }
+
+  .brand-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .brand-logo { width: 40px; height: 40px; border-radius: 12px; object-fit: cover; display: block; box-shadow: 0 8px 20px rgba(147,51,234,0.35); flex-shrink: 0; }
+  .brand-name { font-weight: 600; color: #fff; font-size: 15px; line-height: 1.3; margin: 0; }
+  .brand-tag { font-size: 12px; color: #64748b; line-height: 1.3; margin: 0; }
+
+  .progress-wrap { margin-bottom: 28px; }
+  .progress-labels { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .progress-step { font-size: 12px; font-weight: 500; color: #94a3b8; }
+  .progress-pct { font-size: 12px; font-weight: 500; color: #c084fc; }
+  .progress-track { width: 100%; height: 6px; background: #1e293b; border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #9333ea; border-radius: 999px; transition: width 0.3s ease; }
+
+  h1.title { font-size: 20px; font-weight: 600; color: #fff; margin: 0 0 4px; }
+  p.subtitle { font-size: 14px; color: #94a3b8; margin: 0 0 24px; }
+
+  .role-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+  .role-card { width: 100%; text-align: left; padding: 16px; border-radius: 16px; border: 1px solid #1e293b; background: rgba(15,23,42,0.8); display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.15s ease; color: inherit; font: inherit; }
+  .role-card:hover { border-color: #334155; }
+  .role-card.selected { border-color: #a855f7; background: rgba(59,7,100,0.3); }
+  .role-icon { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; }
+  .role-text { flex: 1; }
+  .role-name { font-weight: 500; color: #fff; font-size: 14px; margin: 0 0 2px; }
+  .role-sub { font-size: 12px; color: #64748b; margin: 0; }
+  .check-mark { display: none; width: 20px; height: 20px; border-radius: 999px; background: #9333ea; align-items: center; justify-content: center; flex-shrink: 0; }
+  .role-card.selected .check-mark { display: flex; }
+  .check-mark svg { width: 12px; height: 12px; color: #fff; }
+
+  .field { margin-bottom: 16px; flex-shrink: 0; }
+  .field-label { display: block; font-size: 12px; font-weight: 500; color: #94a3b8; margin-bottom: 6px; }
+  .field-input { width: 100%; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 12px; padding: 13px 16px; font-size: 14px; color: #fff; outline: none; transition: all 0.15s ease; }
+  .field-input::placeholder { color: #475569; }
+  .field-input:focus { border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168,85,247,0.25); }
+  .field-password-wrap { position: relative; }
+  .field-password-wrap .field-input { padding-right: 44px; }
+  .password-toggle-btn { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; color: #64748b; cursor: pointer; border-radius: 8px; transition: color 0.15s ease; }
+  .password-toggle-btn:hover { color: #cbd5e1; }
+  .password-toggle-btn svg { width: 18px; height: 18px; pointer-events: none; }
+  .phone-row { display: flex; gap: 8px; }
+  .country-select { background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 12px; padding: 13px 8px; font-size: 14px; color: #fff; outline: none; flex-shrink: 0; }
+  .phone-input { flex: 1; min-width: 0; }
+
+  .btn-primary { width: 100%; margin-top: 8px; padding: 14px; border-radius: 12px; font-weight: 600; font-size: 14px; color: #fff; border: none; cursor: pointer; background: linear-gradient(90deg, #9333ea, #7e22ce); box-shadow: 0 8px 20px rgba(147,51,234,0.25); transition: all 0.15s ease; }
+  .btn-primary:hover:not(:disabled) { background: linear-gradient(90deg, #a855f7, #9333ea); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-back { background: rgba(15,23,42,0.8); border: 1px solid #1e293b; box-shadow: none; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .role-hint { font-size: 12px; text-align: center; color: #64748b; margin-top: 10px; }
+
+  .kyc-icon-wrap { width: 56px; height: 56px; border-radius: 999px; background: rgba(59,7,100,0.5); border: 1px solid #6b21a8; display: flex; align-items: center; justify-content: center; margin: 12px auto 20px; }
+  .kyc-icon-wrap svg { width: 28px; height: 28px; color: #c084fc; }
+  .kyc-role-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(147,51,234,0.15); border: 1px solid rgba(147,51,234,0.4); color: #c084fc; font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 999px; margin: 0 auto 20px; width: fit-content; }
+  .kyc-list { display: flex; flex-direction: column; gap: 10px; margin: 0 0 24px; }
+  .kyc-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 14px; font-size: 13px; color: #cbd5e1; cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease; }
+  .kyc-item:hover { border-color: #334155; }
+  .kyc-item.confirmed { border-color: #10b981; background: rgba(16,185,129,0.08); }
+  .kyc-item-icon-wrap { width: 34px; height: 34px; border-radius: 10px; background: rgba(100,116,139,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s ease; }
+  .kyc-item.confirmed .kyc-item-icon-wrap { background: rgba(16,185,129,0.18); }
+  .kyc-item-icon-wrap svg { width: 16px; height: 16px; color: #64748b; transition: color 0.2s ease; }
+  .kyc-item.confirmed .kyc-item-icon-wrap svg { color: #10b981; }
+  .kyc-item-text { flex: 1; min-width: 0; }
+  .kyc-item-title { margin: 0; font-size: 13px; color: #cbd5e1; }
+  .kyc-item-status { margin: 2px 0 0; font-size: 11px; color: #64748b; }
+  .kyc-item.confirmed .kyc-item-status { color: #10b981; font-weight: 500; }
+  .kyc-check-circle { width: 22px; height: 22px; border-radius: 999px; border: 1.5px solid #334155; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .kyc-item.confirmed .kyc-check-circle { background: #10b981; border-color: #10b981; }
+  .kyc-check-circle svg { width: 13px; height: 13px; color: #fff; display: none; }
+  .kyc-item.confirmed .kyc-check-circle svg { display: block; }
+  .kyc-note { font-size: 11.5px; color: #64748b; margin: -12px 0 20px; line-height: 1.5; }
+
+  .s-section-label { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: #cbd5e1; margin: 4px 0 14px; }
+
+  .legal-box { flex: 1; min-height: 120px; overflow-y: auto; padding: 16px; border-radius: 14px; background: rgba(15,23,42,0.9); border: 1px solid #1e293b; font-size: 12px; color: #cbd5e1; line-height: 1.65; }
+  .legal-box::-webkit-scrollbar { width: 6px; }
+  .legal-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
+  .legal-box h3 { font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin: 18px 0 6px; display: flex; align-items: center; gap: 6px; }
+  .legal-box h3 svg { flex-shrink: 0; width: 14px; height: 14px; }
+  .legal-box h3:first-child { margin-top: 0; }
+  .legal-box p { margin: 0 0 4px; color: #94a3b8; }
+  .critical-badge { display: inline-flex; align-items: center; gap: 6px; color: #fbbf24; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; margin: 0 0 6px; }
+  .critical-badge svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .legal-box .critical-section h3 { color: #f87171; }
+  .legal-box .critical-section p { color: #fca5a5; }
+  .legal-box .critical-section { background: rgba(127,29,29,0.15); border: 1px solid rgba(248,113,113,0.3); border-radius: 10px; padding: 10px 12px; margin-top: 10px; }
+  .scroll-hint { font-size: 11px; color: #64748b; text-align: center; margin: 8px 0 2px; flex-shrink: 0; }
+
+  .agree-row { display: flex; align-items: flex-start; gap: 10px; margin: 16px 0 14px; font-size: 12.5px; color: #cbd5e1; line-height: 1.5; cursor: pointer; flex-shrink: 0; }
+  .agree-checkbox { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; accent-color: #9333ea; cursor: pointer; }
+  .signature-input { font-family: 'Brush Script MT', cursive, -apple-system, sans-serif; font-size: 18px; }
+
+  .s-section-label-alt { font-size: 12.5px; font-weight: 600; color: #cbd5e1; margin: 4px 0 12px; }
+  .perk-list { display: flex; flex-direction: column; gap: 10px; margin: 0 0 26px; }
+  .perk-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.25); border-radius: 14px; }
+  .perk-item-icon-wrap { width: 34px; height: 34px; border-radius: 10px; background: rgba(16,185,129,0.16); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .perk-item-icon-wrap svg { width: 16px; height: 16px; color: #10b981; }
+  .perk-item-text { margin: 0; font-size: 13px; color: #e2e8f0; font-weight: 500; line-height: 1.4; }
+
+  .commission-box { padding: 16px; border-radius: 14px; background: rgba(15,23,42,0.9); border: 1px solid #1e293b; font-size: 12.5px; color: #cbd5e1; line-height: 1.7; margin-bottom: 8px; }
+  .commission-box h3 { font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin: 0 0 12px; display: flex; align-items: center; gap: 6px; }
+  .commission-box h3 svg { flex-shrink: 0; width: 14px; height: 14px; }
+  .commission-box ul { margin: 0; padding-left: 18px; }
+  .commission-box li { margin-bottom: 10px; }
+  .commission-box li:last-child { margin-bottom: 0; }
+  .commission-box li b { color: #fff; font-weight: 600; }
+
+  .notice-box { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; border-radius: 14px; background: rgba(59,130,246,0.08); border: 1px solid rgba(96,165,250,0.3); margin: 4px 0 18px; }
+  .notice-box svg { width: 18px; height: 18px; color: #60a5fa; flex-shrink: 0; margin-top: 1px; }
+  .notice-box p { margin: 0; font-size: 12px; color: #cbd5e1; line-height: 1.55; }
+  .notice-box p b { color: #93c5fd; font-weight: 600; }
+
+  .screen { animation: fadeIn 0.35s ease; }
+  .screen.hidden-screen { display: none; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Success screen */
+  .success-icon-wrap { width: 72px; height: 72px; border-radius: 999px; background: rgba(16,185,129,0.15); border: 1px solid #10b981; display: flex; align-items: center; justify-content: center; margin: 24px auto 24px; }
+  .success-icon-wrap svg { width: 36px; height: 36px; color: #10b981; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(16px);
+    background: #141E33; border: 1px solid #10b981; color: #fff; padding: 13px 18px; border-radius: 12px;
+    font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 200;
+    display: flex; align-items: center; gap: 8px; max-width: 88%; box-shadow: 0 14px 30px rgba(0,0,0,0.45);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .legal-link-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 2px; cursor: pointer; background: none; border: none; width: 100%; text-align: left; color: inherit; font: inherit; margin-bottom: 4px; }
+  .legal-link-text { font-size: 13.5px; font-weight: 600; color: #c084fc; text-decoration: underline; text-underline-offset: 2px; }
+  .legal-link-row.confirmed-terms .legal-link-text { color: #10b981; }
+  .legal-link-status { font-size: 11.5px; color: #64748b; }
+  .legal-link-row.confirmed-terms .legal-link-status { color: #10b981; }
+
+  .legal-drawer-overlay { position: fixed; inset: 0; background: rgba(2,6,15,0.72); backdrop-filter: blur(2px); z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+  .legal-drawer-overlay.show { opacity: 1; pointer-events: auto; }
+  .legal-drawer { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); opacity: 0; pointer-events: none; width: calc(100% - 32px); max-width: 420px; max-height: 85vh; background: #0F172A; border: 1px solid #1e293b; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.55); z-index: 301; padding: 22px 20px 22px; display: flex; flex-direction: column; overflow: hidden; transition: transform 0.22s ease, opacity 0.22s ease; }
+  .legal-drawer.show { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
+  .legal-drawer-handle { display: none; }
+  .legal-drawer-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
+  .legal-drawer-close { width: 30px; height: 30px; border-radius: 999px; background: rgba(15,23,42,0.9); border: 1px solid #1e293b; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; flex-shrink: 0; }
+  .legal-drawer-title { font-size: 17px; font-weight: 600; color: #fff; margin: 4px 0 16px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <div class="top-bar">
+    <a href="./index.html" class="back-link"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to site</a>
+  </div>
+
+  <!-- ===================== SCREEN 1: Role Selection & Basic Info ===================== -->
+  <div id="screen-1" class="screen">
+
+    <div class="brand-row">
+      <img class="brand-logo" src="./logo.webp" alt="MainTown Realty">
+      <div>
+        <p class="brand-name">MainTown Realty</p>
+        <p class="brand-tag">Own or rent, on your terms.</p>
+      </div>
+    </div>
+
+    <div class="progress-wrap" id="progress-wrap-1">
+      <div class="progress-labels">
+        <span class="progress-step">Step 1 of 2: Tell us about you</span>
+        <span class="progress-pct">50%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:50%"></div></div>
+    </div>
+
+    <h1 class="title">Create your account</h1>
+    <p class="subtitle">Tell us who you are so we can tailor your experience.</p>
+
+    <div class="role-group" id="role-group">
+      <button type="button" class="role-card" data-role="tenant">
+        <span class="role-icon"><i data-lucide="building-2" class="w-6 h-6 text-purple-400"></i></span>
+        <div class="role-text">
+          <p class="role-name">Tenant / Rent/Own</p>
+          <p class="role-sub">Local &amp; Diaspora</p>
+        </div>
+        <span class="check-mark"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>
+      </button>
+      <button type="button" class="role-card" data-role="landlord">
+        <span class="role-icon"><i data-lucide="key-round" class="w-6 h-6 text-purple-400"></i></span>
+        <div class="role-text">
+          <p class="role-name">Landlord / Property Owner</p>
+          <p class="role-sub">List &amp; manage properties</p>
+        </div>
+        <span class="check-mark"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>
+      </button>
+      <button type="button" class="role-card" data-role="agent">
+        <span class="role-icon"><i data-lucide="briefcase" class="w-6 h-6 text-purple-400"></i></span>
+        <div class="role-text">
+          <p class="role-name">Real Estate Agent / Broker</p>
+          <p class="role-sub">Represent listings &amp; clients</p>
+        </div>
+        <span class="check-mark"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>
+      </button>
+    </div>
+
+    <form id="reg-form">
+      <div class="field">
+        <label class="field-label">Full Name</label>
+        <input class="field-input" id="reg-fullname" type="text" required placeholder="e.g. Onwochei Precious Ebuka">
+      </div>
+      <div class="field" id="reg-occupation-field" style="display:none;">
+        <label class="field-label">Occupation *</label>
+        <input class="field-input" id="reg-occupation" type="text" required placeholder="e.g. Software Engineer / Student / Self-employed">
+      </div>
+      <div class="field">
+        <label class="field-label">Phone Number</label>
+        <div class="phone-row">
+          <select class="country-select" id="country-code">
+            <option value="+234">NG +234</option>
+            <option value="+1">CA/US +1</option>
+            <option value="+44">UK +44</option>
+          </select>
+          <input class="field-input phone-input" id="reg-phone" type="tel" required placeholder="801 234 5678">
+        </div>
+      </div>
+      <p class="kyc-note" style="margin:-8px 0 20px;"><i data-lucide="info" class="w-3.5 h-3.5" style="display:inline; vertical-align:-2px;"></i> You'll set up your email and password login in the next step.</p>
+      <button type="submit" id="continue-btn" class="btn-primary" disabled>Continue</button>
+      <p id="role-hint" class="role-hint">Select a role above to continue</p>
+    </form>
+  </div>
+  <!-- ===================== END SCREEN 1 ===================== -->
+
+  <!-- ===================== SCREEN 1b: Partnership Value & Agreement (Agent/Landlord only) ===================== -->
+  <div id="screen-partnership" class="screen hidden-screen">
+
+    <div class="brand-row">
+      <img class="brand-logo" src="./logo.webp" alt="MainTown Realty">
+      <div>
+        <p class="brand-name">MainTown Realty</p>
+        <p class="brand-tag">Own or rent, on your terms.</p>
+      </div>
+    </div>
+
+    <div class="progress-wrap" id="progress-wrap-partnership">
+      <div class="progress-labels">
+        <span class="progress-step">Step 2 of 3: Partnership Benefits &amp; Terms</span>
+        <span class="progress-pct">67%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:67%"></div></div>
+    </div>
+
+    <div id="partnership-role-badge" class="kyc-role-badge"></div>
+
+    <h1 class="title">Partnering with MainTown Realty</h1>
+    <p class="subtitle">Review your partnership perks and earn industry-leading terms on every listing.</p>
+
+    <p class="s-section-label-alt"><i data-lucide="sparkles" class="w-4 h-4 text-purple-400" style="display:inline; vertical-align:-3px;"></i> Your Partnership Perks</p>
+    <div id="partnership-perks" class="perk-list"></div>
+
+    <p class="s-section-label-alt"><i data-lucide="receipt" class="w-4 h-4 text-purple-400" style="display:inline; vertical-align:-3px;"></i> Commission &amp; Fee Structure</p>
+    <div id="partnership-terms" class="commission-box"></div>
+
+    <label class="agree-row">
+      <input type="checkbox" id="partnership-agree-checkbox" class="agree-checkbox">
+      <span>I have read and agree to the Partnership Terms &amp; Commission Structure.</span>
+    </label>
+
+    <div class="notice-box">
+      <i data-lucide="info" class="w-4 h-4"></i>
+      <p><b>Platform Status &amp; WhatsApp Verification Notice:</b> Physical property inspections, booking confirmations, and payment verifications are currently handled manually via our dedicated WhatsApp Desk during this web phase. AI underwriting, instant digital scheduling, and automated in-app wallets will be fully enabled upon our upcoming official mobile app release.</p>
+    </div>
+
+    <button type="button" id="partnership-continue-btn" class="btn-primary" disabled>Accept &amp; Continue to Create Login →</button>
+    <button type="button" id="partnership-back-btn" class="btn-primary btn-back"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Sign Up</button>
+  </div>
+  <!-- ===================== END SCREEN 1b ===================== -->
+
+  <!-- ===================== SCREEN 4: Create Your Login ===================== -->
+  <div id="screen-4" class="screen hidden-screen">
+
+    <div class="brand-row">
+      <img class="brand-logo" src="./logo.webp" alt="MainTown Realty">
+      <div>
+        <p class="brand-name">MainTown Realty</p>
+        <p class="brand-tag">Own or rent, on your terms.</p>
+      </div>
+    </div>
+
+    <div class="progress-wrap" id="progress-wrap-4">
+      <div class="progress-labels">
+        <span class="progress-step">Step 2 of 2: Create Your Login</span>
+        <span class="progress-pct">100%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+    </div>
+
+    <div class="kyc-icon-wrap">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+    </div>
+
+    <h1 class="title" style="text-align:center;">Create your login</h1>
+    <p class="subtitle" style="text-align:center;">Set your email and password, then review and accept our Terms of Service to finish creating your account.</p>
+
+    <div class="field">
+      <label class="field-label">Email Address</label>
+      <input class="field-input" id="reg-email" type="email" required placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label class="field-label">Create Password</label>
+      <div class="field-password-wrap">
+        <input class="field-input" id="reg-password" type="password" required minlength="8" placeholder="At least 8 characters" autocomplete="new-password">
+        <button type="button" class="password-toggle-btn" data-toggle-for="reg-password" aria-label="Show password">
+          <i data-lucide="eye" class="pw-icon-show"></i>
+          <i data-lucide="eye-off" class="pw-icon-hide" style="display:none;"></i>
+        </button>
+      </div>
+      <p id="password-hint" class="kyc-note" style="display:none; margin:8px 0 0;">Password must be at least 8 characters.</p>
+    </div>
+
+    <button type="button" id="open-legal-drawer-btn" class="legal-link-row">
+      <span id="legal-preview-title" class="legal-link-text">Read Terms of Service</span>
+    </button>
+
+    <button type="button" id="tenant-notice-toggle" class="notice-box" style="display:none; width:100%; cursor:pointer; font:inherit; text-align:left;">
+      <i data-lucide="info" class="w-4 h-4"></i>
+      <p><b>Platform Status &amp; WhatsApp Verification Notice</b> — manual verification during this web phase. <span style="color:#93c5fd; font-weight:600;">Tap to learn more</span></p>
+    </button>
+    <div id="tenant-notice-full" class="notice-box" style="display:none;">
+      <i data-lucide="info" class="w-4 h-4"></i>
+      <p><b>Platform Status &amp; WhatsApp Verification Notice:</b> Physical property inspections, booking confirmations, and payment verifications are currently handled manually via our dedicated WhatsApp Desk during this web phase. AI underwriting, instant digital scheduling, and automated in-app wallets will be fully enabled upon our upcoming official mobile app release.</p>
+    </div>
+
+    <button type="button" id="create-login-btn" class="btn-primary" disabled>Agree to Terms to Continue</button>
+    <p id="sign-status" class="kyc-note" style="display:none; text-align:center; margin:10px 0 0;"></p>
+    <button type="button" id="login-back-btn" class="btn-primary btn-back"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+  </div>
+  <!-- ===================== END SCREEN 4 ===================== -->
+
+  <!-- ===================== Terms of Service Drawer (opens from Screen 4) ===================== -->
+  <div id="legal-drawer-overlay" class="legal-drawer-overlay"></div>
+  <div id="legal-drawer" class="legal-drawer" aria-hidden="true">
+    <div class="legal-drawer-handle"></div>
+    <div class="legal-drawer-header">
+      <div id="legal-drawer-role-badge" class="kyc-role-badge" style="margin:0;"></div>
+      <button type="button" id="close-legal-drawer-btn" aria-label="Close" class="legal-drawer-close">✕</button>
+    </div>
+    <h2 class="legal-drawer-title">Terms of Service</h2>
+    <div id="legal-box" class="legal-box"></div>
+    <p class="scroll-hint" style="display:flex; align-items:center; justify-content:center; gap:5px;"><i data-lucide="move-vertical" class="w-3.5 h-3.5"></i> Scroll to read the complete agreement</p>
+
+    <label class="agree-row">
+      <input type="checkbox" id="agree-checkbox" class="agree-checkbox">
+      <span>I have read and agree to the full MainTown Realty Terms of Service and Default Rules.</span>
+    </label>
+
+    <div class="field">
+      <label class="field-label">Digital Signature (type your full legal name)</label>
+      <input class="field-input signature-input" id="signature-input" type="text" placeholder="Your full name as signature">
+    </div>
+
+    <button type="button" id="drawer-done-btn" class="btn-primary" style="flex-shrink:0; margin-top:4px;" disabled>Sign &amp; Continue</button>
+  </div>
+
+  <!-- ===================== SCREEN 5: Success ===================== -->
+  <div id="screen-5" class="screen hidden-screen">
+    <div class="success-icon-wrap">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+    </div>
+    <h1 class="title" style="text-align:center;">You're all set!</h1>
+    <p class="subtitle" style="text-align:center;">Our onboarding team will verify your details and guide you to complete your request.</p>
+    <a id="whatsapp-continue-btn" href="#" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none;">
+      <i data-lucide="message-circle" class="w-4 h-4"></i> Continue on WhatsApp
+    </a>
+    <a href="./index.html" class="btn-primary btn-back" style="display:flex; align-items:center; justify-content:center; gap:6px; text-decoration:none; margin-top:12px;">
+      <i data-lucide="home" class="w-4 h-4"></i> Back to Homepage
+    </a>
+  </div>
+  <!-- ===================== END SCREEN 5 ===================== -->
+
+  <div id="toast" class="toast">
+    <i data-lucide="check-circle" class="w-4 h-4" style="color:#10b981; flex-shrink:0;"></i>
+    <span id="toast-msg"></span>
+  </div>
+
+</div>
+
+<script>
+  const WHATSAPP_NUMBER = '2348066611017';
+
+  // ==================================================================
+  // Selected listing — carried in from index.html's "Rent Now" /
+  // "Buy Now" / "Book Now" buttons (?listingId=...&category=...&title=...).
+  // Saved to the person's account once their login is created, so the
+  // future app can show it as "Your Selected Properties" without any
+  // separate cart-tracking system — the account itself carries it.
+  const urlParams = new URLSearchParams(window.location.search);
+  let selectedListing = {
+    id: urlParams.get('listingId') || '',
+    category: urlParams.get('category') || '',
+    title: urlParams.get('title') || '',
+  };
+
+  // ==================================================================
+  // Supabase connection — same project as index.html / admin.html.
+  // Creates the real login (Supabase Auth) and saves KYC + the signed
+  // agreement PDF so it shows up in the admin panel.
+  // ==================================================================
+  const SUPABASE_URL = 'https://obtggomfwvravjcnypid.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const ONBOARDING_BUCKET = 'onboarding-media';
+
+  const kycContent = {
+    tenant: {
+      label: 'Tenant / Rent/Own',
+      roleIcon: 'building-2',
+      items: [
+        { text: 'Government-issued ID (NIN, Driver\'s License, or Passport)', icon: 'id-card' },
+        { text: 'Proof of address (utility bill, not older than 3 months)', icon: 'landmark' },
+        { text: 'Employment or income verification', icon: 'file-text' },
+        { text: 'A clear photo of yourself (selfie)', icon: 'camera' }
+      ]
+    },
+    landlord: {
+      label: 'Landlord / Property Owner',
+      roleIcon: 'key-round',
+      items: [
+        { text: 'Personal Identification (NIN, Passport, or BVN)', icon: 'id-card' },
+        { text: 'Bank account details for rent disbursement', icon: 'landmark' },
+        { text: 'A clear photo of yourself (selfie)', icon: 'camera' }
+      ]
+    },
+    agent: {
+      label: 'Real Estate Agent / Broker',
+      roleIcon: 'briefcase',
+      items: [
+        { text: 'Personal Identification (NIN, Passport, or BVN)', icon: 'id-card' },
+        { text: 'Bank account details for commission payout', icon: 'landmark' },
+        { text: 'A clear photo of yourself (selfie)', icon: 'camera' }
+      ]
+    }
+  };
+
+  const legalContent = {
+    tenant: {
+      label: 'Tenant / Rent/Own',
+      roleIcon: 'building-2',
+      sections: [
+        { title: 'Section 1: Rental & Auto-Debit Terms', body: 'Full agreement on holding deposit schedules, flex-rent recurring auto-debit authorization, tokenized payment security, and cross-border currency conversion rules.' },
+        { title: 'Section 2: Digital Handover & Inspection', body: 'Mandatory 24-hour post-inspection sign-off rules.' },
+        { title: 'Section 3: Property Maintenance & Tenant Obligations', body: 'Duty to report structural damage via in-app tickets.' },
+        { title: 'Section 4: Data & Identity Privacy', body: 'Agreement to identity verification via NIN/Passport.' },
+        { title: 'Section 5: Subletting & Unauthorized Occupants', body: 'Strict ban on unauthorized third-party subletting.' },
+        { title: 'Section 6: Dispute Resolution & Arbitration', body: 'Platform mediation protocols prior to legal claims.' },
+        { title: 'Section 7: In-App Communication Compliance', body: 'Obligation to keep all lease interactions inside the app.' },
+        { title: 'Section 8: Payment Default, Eviction & Mandatory Revocation', body: 'Any un-remedied payment default leading to legal eviction results in immediate profile conversion to DEFAULTED / EVICTED state, revoking property access and rental booking privileges.', critical: true }
+      ]
+    },
+    landlord: {
+      label: 'Landlord / Owner',
+      roleIcon: 'key-round',
+      sections: [
+        { title: 'Section 1: Title & Ownership Warranties', body: 'Legal declaration that property title, CofO, or land consent documents provided are authentic and free of third-party encumbrances.' },
+        { title: 'Section 2: Escrow Disbursement Schedule', body: 'Strict agreement to 24-48 hour payout release following tenant digital handover sign-off.' },
+        { title: 'Section 3: Habitability Standards', body: 'Obligation to provide functional plumbing, electrical, and structural systems.' },
+        { title: 'Section 4: Fraud & Dual-Leasing Zero Tolerance', body: 'Account termination, escrow forfeit, and legal referral for listing fake properties or executing double-leases.', critical: true },
+        { title: 'Section 5: Inspection Access', body: 'Agreement to permit scheduled virtual or physical walkthroughs.' },
+        { title: 'Section 6: Non-Circumvention', body: 'Agreement not to bypass platform escrow for direct cash payments.' }
+      ]
+    },
+    agent: {
+      label: 'Real Estate Agent',
+      roleIcon: 'briefcase',
+      sections: [
+        { title: 'Section 1: Inspection Integrity', body: 'Mandatory requirement to perform verified physical or live video walkthroughs prior to listing approval.' },
+        { title: 'Section 2: Commission Transparency', body: 'Agreement to adhere strictly to standardized platform commission fee caps.' },
+        { title: 'Section 3: Off-Platform Payment Ban', body: 'Permanent ban and legal action for soliciting direct off-platform cash transactions from tenants.', critical: true },
+        { title: 'Section 4: Landlord Contact Mapping', body: 'Agents must provide valid Landlord contact information (Phone/Email) for every property uploaded to the platform.' },
+        { title: 'Section 5: Business Verification', body: 'Requirement to maintain active CAC registration or recognized realtor membership credentials.' }
+      ]
+    }
+  };
+
+  // Role-isolated partnership perks + commission/fee terms shown only to
+  // Agent and Landlord — Tenants never see this screen or this data.
+  const partnershipContent = {
+    agent: {
+      perks: [
+        { icon: 'wallet', text: 'Zero-upfront listing fees' },
+        { icon: 'shield-check', text: 'Guaranteed escrow payouts' },
+        { icon: 'badge-check', text: 'Cadastral title verification badge' },
+        { icon: 'users', text: 'Direct pipeline to pre-qualified local & diaspora renters' },
+      ],
+      terms: [
+        { label: 'Rental Commission Split', body: '60% to Agent / 40% to MainTown Realty on closed rentals.' },
+        { label: 'Legal Fee', body: 'MainTown Realty collects a 5% legal fee on all transaction processing.' },
+        { label: 'Property Purchase Sales', body: '5% commission paid to MainTown Realty by the Buyer/Tenant + 5% commission paid to the Agent by the Property Owner. MainTown takes a 2.5% legal fee, paid by both the Buyer/Tenant and the Property Owner.' },
+      ],
+    },
+    landlord: {
+      perks: [
+        { icon: 'landmark', text: 'Automated rent collections via bank-grade escrow' },
+        { icon: 'scan-search', text: 'AI tenant underwriting & screening' },
+        { icon: 'zap', text: 'Zero vacancy downtime match engine' },
+        { icon: 'scale', text: 'Legal & dispute protection' },
+      ],
+      terms: [
+        { label: 'Upfront & Payout Terms', body: 'Receive your first payment upfront upon escrow confirmation. Monthly rent and installment payments are credited to your account for bank withdrawal via our operations desk.' },
+        { label: 'Rental Transactions', body: 'Landlords receive 100% of their net listed rent. Standard agency fees and 5% legal documentation are collected directly via tenant onboarding.' },
+        { label: 'Property Purchase Sales', body: 'Property Owner pays MainTown Realty 5% sales commission + 2.5% legal fee upon closed sales.' },
+      ],
+    },
+  };
+
+  let currentRole = null;
+
+  const screen1 = document.getElementById('screen-1');
+  const screenPartnership = document.getElementById('screen-partnership');
+  const screen4 = document.getElementById('screen-4');
+  const screen5 = document.getElementById('screen-5');
+
+  // ---- Reload persistence ----
+  // Keeps the user on whatever step/role/fields they had so a reload
+  // doesn't send them back to Step 1. Password, the agreement checkbox,
+  // and the signature are deliberately NOT saved — those must always be
+  // re-entered/re-confirmed, so "must agree before login is created"
+  // still holds after a reload.
+  const STORAGE_KEY = 'mtRealtySignupState';
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        role: currentRole,
+        screen: currentScreenKey,
+        fullname: fullNameInput.value,
+        occupation: document.getElementById('reg-occupation').value,
+        countryCode: document.getElementById('country-code').value,
+        phone: phoneInput.value,
+        email: emailInput.value,
+        selectedListing,
+      }));
+    } catch (e) { /* storage unavailable (private mode, etc.) — fail silently */ }
+  }
+
+  function clearSavedState() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+  }
+
+  let currentScreenKey = 'screen-1';
+
+  function showScreen(fromEl, toEl) {
+    fromEl.classList.add('hidden-screen');
+    toEl.classList.remove('hidden-screen');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    currentScreenKey = toEl.id;
+    saveState();
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // Same as showScreen but with no transition/scroll — used only when
+  // restoring straight to a saved step on page load.
+  function jumpToScreen(id) {
+    [screen1, screenPartnership, screen4, screen5].forEach(s => s.classList.add('hidden-screen'));
+    const target = document.getElementById(id) || screen1;
+    target.classList.remove('hidden-screen');
+    currentScreenKey = target.id;
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // The step count differs by role: Agent/Landlord get an extra
+  // "Partnership Benefits & Terms" step that Tenants never see.
+  function getStepPlan(role) {
+    if (role === 'agent' || role === 'landlord') {
+      return [
+        { key: 'account', label: 'Tell us about you' },
+        { key: 'partnership', label: 'Partnership Benefits & Terms' },
+        { key: 'login', label: 'Create Your Login' },
+      ];
+    }
+    return [
+      { key: 'account', label: 'Tell us about you' },
+      { key: 'login', label: 'Create Your Login' },
+    ];
+  }
+
+  function setProgress(wrapId, stepKey) {
+    const plan = getStepPlan(currentRole || 'tenant');
+    const idx = plan.findIndex(s => s.key === stepKey);
+    const stepNum = idx === -1 ? 1 : idx + 1;
+    const total = plan.length;
+    const pct = Math.round((stepNum / total) * 100);
+    const wrap = document.getElementById(wrapId);
+    wrap.querySelector('.progress-step').textContent = `Step ${stepNum} of ${total}: ${plan[idx] ? plan[idx].label : ''}`;
+    wrap.querySelector('.progress-pct').textContent = pct + '%';
+    wrap.querySelector('.progress-fill').style.width = pct + '%';
+  }
+
+  // ---- Screen 1: role + form ----
+  const roleCards = document.querySelectorAll('.role-card');
+  const continueBtn = document.getElementById('continue-btn');
+  const roleHint = document.getElementById('role-hint');
+  const fullNameInput = document.getElementById('reg-fullname');
+  const phoneInput = document.getElementById('reg-phone');
+  // Email/password live on Screen 4 (Create Your Login) — declared once
+  // that screen's markup exists further down, but referenced here too
+  // since IDs are the same across the whole document.
+  const emailInput = document.getElementById('reg-email');
+  const passwordInput = document.getElementById('reg-password');
+  const passwordHint = document.getElementById('password-hint');
+  const agreeCheckbox = document.getElementById('agree-checkbox');
+  const signatureInput = document.getElementById('signature-input');
+
+  document.querySelectorAll('.password-toggle-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.toggleFor);
+      if (!target) return;
+      const showing = target.type === 'text';
+      target.type = showing ? 'password' : 'text';
+      btn.querySelector('.pw-icon-show').style.display = showing ? '' : 'none';
+      btn.querySelector('.pw-icon-hide').style.display = showing ? 'none' : '';
+      btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+    });
+  });
+
+  function updateContinueState() {
+    const occupationField = document.getElementById('reg-occupation-field');
+    const occupationRequired = occupationField.style.display !== 'none';
+    const occupationOk = !occupationRequired || document.getElementById('reg-occupation').value.trim().length > 0;
+    const formFilled = fullNameInput.value.trim() && phoneInput.value.trim() && occupationOk;
+    continueBtn.disabled = !(currentRole && formFilled);
+    roleHint.style.display = currentRole ? 'none' : 'block';
+  }
+
+  roleCards.forEach(card => {
+    card.addEventListener('click', () => {
+      roleCards.forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      currentRole = card.dataset.role;
+      setProgress('progress-wrap-1', 'account');
+
+      const occupationField = document.getElementById('reg-occupation-field');
+      const occupationInput = document.getElementById('reg-occupation');
+      if (currentRole === 'tenant') {
+        occupationField.style.display = 'block';
+        occupationInput.required = true;
+        continueBtn.textContent = 'Continue to Create Login';
+      } else {
+        occupationField.style.display = 'none';
+        occupationInput.required = false;
+        document.getElementById('reg-occupation').value = '';
+        continueBtn.textContent = 'Continue to Partnership Benefits →';
+      }
+      updateContinueState();
+      saveState();
+    });
+  });
+
+  [fullNameInput, phoneInput, document.getElementById('reg-occupation'), document.getElementById('country-code')]
+    .forEach(el => el.addEventListener('input', () => { updateContinueState(); saveState(); }));
+  document.getElementById('country-code').addEventListener('change', saveState);
+
+  // ---- Screen 4: Create Your Login (also owns the Terms of Service drawer) ----
+  function populateLoginScreen() {
+    setProgress('progress-wrap-4', 'login');
+    // Agent/Landlord already saw the WhatsApp operational notice on the
+    // Partnership screen — Tenants skip that screen, so they see it here,
+    // collapsed to one line until tapped.
+    const isTenant = currentRole === 'tenant';
+    document.getElementById('tenant-notice-toggle').style.display = isTenant ? 'flex' : 'none';
+    document.getElementById('tenant-notice-full').style.display = 'none';
+    agreeCheckbox.checked = false;
+    signatureInput.value = '';
+    updateTermsPreview();
+    updateLoginBtnState();
+  }
+
+  // Reflects agreement/signature status on the main screen's Terms link,
+  // since the checkbox + signature now live inside the drawer itself.
+  function updateTermsPreview() {
+    const linkRow = document.getElementById('open-legal-drawer-btn');
+    const title = document.getElementById('legal-preview-title');
+    const signed = agreeCheckbox.checked && signatureInput.value.trim().length > 1;
+    if (signed) {
+      linkRow.classList.add('confirmed-terms');
+      title.textContent = `Terms of Service — signed as ${signatureInput.value.trim()} ✓`;
+    } else {
+      linkRow.classList.remove('confirmed-terms');
+      title.textContent = 'Read Terms of Service';
+    }
+  }
+
+  document.getElementById('tenant-notice-toggle').addEventListener('click', () => {
+    document.getElementById('tenant-notice-toggle').style.display = 'none';
+    document.getElementById('tenant-notice-full').style.display = 'flex';
+  });
+
+  document.getElementById('reg-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (continueBtn.disabled) return;
+    if (currentRole === 'agent' || currentRole === 'landlord') {
+      populatePartnershipScreen();
+      showScreen(screen1, screenPartnership);
+    } else {
+      populateLoginScreen();
+      showScreen(screen1, screen4);
+    }
+  });
+
+  document.getElementById('login-back-btn').addEventListener('click', () => {
+    if (currentRole === 'agent' || currentRole === 'landlord') {
+      showScreen(screen4, screenPartnership);
+    } else {
+      showScreen(screen4, screen1);
+    }
+  });
+
+  // ---- Terms of Service drawer ----
+  const legalDrawerOverlay = document.getElementById('legal-drawer-overlay');
+  const legalDrawer = document.getElementById('legal-drawer');
+
+  function openLegalDrawer() {
+    const data = legalContent[currentRole];
+    document.getElementById('legal-drawer-role-badge').innerHTML = `<i data-lucide="${data.roleIcon}" class="w-4 h-4"></i><span>${data.label}</span>`;
+    const box = document.getElementById('legal-box');
+    box.innerHTML = data.sections.map(s => {
+      const heading = `<h3><i data-lucide="scale" class="text-purple-400"></i>${s.title}</h3>`;
+      if (s.critical) {
+        return `<div class="critical-section"><div class="critical-badge"><i data-lucide="alert-triangle" class="text-amber-400"></i>Compliance Warning</div>${heading}<p>${s.body}</p></div>`;
+      }
+      return `${heading}<p>${s.body}</p>`;
+    }).join('');
+    legalDrawerOverlay.classList.add('show');
+    legalDrawer.classList.add('show');
+    legalDrawer.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    updateDrawerSignState();
+    if (window.lucide) lucide.createIcons();
+  }
+  function closeLegalDrawer() {
+    legalDrawerOverlay.classList.remove('show');
+    legalDrawer.classList.remove('show');
+    legalDrawer.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+  const drawerDoneBtn = document.getElementById('drawer-done-btn');
+
+  // The drawer's own "Sign & Continue" stays disabled until both the
+  // checkbox is ticked AND a signature is typed — this is the one and
+  // only gate for agreeing to terms, enforced right where the terms live.
+  function updateDrawerSignState() {
+    const signed = agreeCheckbox.checked && signatureInput.value.trim().length > 1;
+    drawerDoneBtn.disabled = !signed;
+  }
+  agreeCheckbox.addEventListener('change', () => { updateDrawerSignState(); updateTermsPreview(); updateLoginBtnState(); });
+  signatureInput.addEventListener('input', () => { updateDrawerSignState(); updateTermsPreview(); updateLoginBtnState(); });
+
+  document.getElementById('open-legal-drawer-btn').addEventListener('click', openLegalDrawer);
+  document.getElementById('close-legal-drawer-btn').addEventListener('click', closeLegalDrawer);
+  drawerDoneBtn.addEventListener('click', () => {
+    if (drawerDoneBtn.disabled) return; // can't leave the drawer signed off without agreeing
+    closeLegalDrawer();
+  });
+  legalDrawerOverlay.addEventListener('click', closeLegalDrawer);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && legalDrawer.classList.contains('show')) closeLegalDrawer();
+  });
+
+  function updateLoginBtnState() {
+    const emailFilled = emailInput.value.trim().length > 0;
+    const passwordOk = passwordInput.value.length >= 8;
+    const passwordTouched = passwordInput.value.length > 0;
+    passwordHint.style.display = (passwordTouched && !passwordOk) ? 'block' : 'none';
+    const agreedToTerms = agreeCheckbox.checked && signatureInput.value.trim().length > 1;
+    createLoginBtn.disabled = !(emailFilled && passwordOk && agreedToTerms);
+    createLoginBtn.textContent = agreedToTerms ? 'Create Login' : 'Agree to Terms to Continue';
+  }
+
+  // ---- Screen 1b: Partnership Value & Agreement (Agent/Landlord only) ----
+  function populatePartnershipScreen() {
+    const roleData = kycContent[currentRole];
+    document.getElementById('partnership-role-badge').innerHTML = `<i data-lucide="${roleData.roleIcon}" class="w-4 h-4"></i><span>${roleData.label}</span>`;
+    setProgress('progress-wrap-partnership', 'partnership');
+
+    const content = partnershipContent[currentRole];
+
+    const perksEl = document.getElementById('partnership-perks');
+    perksEl.innerHTML = content.perks.map(p => `
+      <div class="perk-item">
+        <div class="perk-item-icon-wrap"><i data-lucide="${p.icon}" class="w-4 h-4"></i></div>
+        <p class="perk-item-text">${p.text}</p>
+      </div>
+    `).join('');
+
+    // Strict role isolation: only this role's own commission terms are
+    // ever rendered here — Agent terms never reach a Landlord and vice versa.
+    const termsEl = document.getElementById('partnership-terms');
+    termsEl.innerHTML = `
+      <h3><i data-lucide="receipt" class="text-purple-400"></i>Commission &amp; Fee Structure — ${roleData.label}</h3>
+      <ul>${content.terms.map(t => `<li><b>${t.label}:</b> ${t.body}</li>`).join('')}</ul>
+    `;
+
+    const checkbox = document.getElementById('partnership-agree-checkbox');
+    checkbox.checked = false;
+    document.getElementById('partnership-continue-btn').disabled = true;
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('partnership-agree-checkbox').addEventListener('change', (e) => {
+    document.getElementById('partnership-continue-btn').disabled = !e.target.checked;
+  });
+
+  document.getElementById('partnership-continue-btn').addEventListener('click', () => {
+    if (document.getElementById('partnership-continue-btn').disabled) return;
+    populateLoginScreen();
+    showScreen(screenPartnership, screen4);
+  });
+
+  document.getElementById('partnership-back-btn').addEventListener('click', () => showScreen(screenPartnership, screen1));
+
+  // ---- Screen 4: Create Your Login ----
+  const createLoginBtn = document.getElementById('create-login-btn');
+  [emailInput, passwordInput].forEach(el => el.addEventListener('input', updateLoginBtnState));
+  emailInput.addEventListener('input', saveState);
+
+  // Builds the signed legal agreement as an actual PDF (name, role, KYC
+  // attestation, every section of the legal terms, and the typed
+  // signature + timestamp) and returns it as a Blob for upload.
+  function buildAgreementPdf({ name, roleLabel, email, phone, occupation, guarantor, incomeRange, kycItems, signature, signedAt }) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 48;
+    const maxWidth = pageWidth - margin * 2;
+    let y = 56;
+
+    function ensureSpace(lines) {
+      if (y + lines * 14 > doc.internal.pageSize.getHeight() - 48) { doc.addPage(); y = 56; }
+    }
+    function heading(text, size) {
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(size);
+      ensureSpace(2);
+      doc.text(text, margin, y); y += size * 0.9;
+    }
+    function paragraph(text, size) {
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(size || 10);
+      const lines = doc.splitTextToSize(text, maxWidth);
+      ensureSpace(lines.length);
+      doc.text(lines, margin, y);
+      y += lines.length * (size ? size * 1.15 : 12) + 4;
+    }
+
+    heading('MainTown Realty — Signed Onboarding Agreement', 16);
+    y += 6;
+    paragraph(`Role: ${roleLabel}`);
+    paragraph(`Full Name: ${name}`);
+    if (occupation) paragraph(`Occupation: ${occupation}`);
+    paragraph(`Email: ${email}`);
+    paragraph(`Phone: ${phone}`);
+    if (guarantor) paragraph(`Guarantor: ${guarantor.name} (${guarantor.relationship || 'n/a'}) — ${guarantor.phone}`);
+    if (incomeRange) paragraph(`Monthly Income Range: ${incomeRange}`);
+    y += 6;
+
+    heading('KYC Attestation', 12);
+    kycItems.forEach(item => paragraph(`✓ Document uploaded: ${item}`, 10));
+    y += 6;
+
+    heading('Terms of Service', 12);
+    legalContent[currentRole].sections.forEach(s => {
+      paragraph(s.title, 11);
+      paragraph(s.body, 10);
+    });
+
+    y += 10;
+    heading('Signature', 12);
+    paragraph(`Digitally signed by: ${signature}`, 11);
+    paragraph(`Signed at: ${signedAt}`, 10);
+    paragraph('By signing, the above party confirms they have read and agreed to the full MainTown Realty Terms of Service and Default Rules.', 9);
+
+    return doc.output('blob');
+  }
+
+  // Small success/status pop-up (used once login + agreement are saved).
+  function showToast(msg) {
+    const toastEl = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    toastEl.classList.add('show');
+    if (window.lucide) lucide.createIcons();
+    setTimeout(() => toastEl.classList.remove('show'), 3200);
+  }
+
+  createLoginBtn.addEventListener('click', async () => {
+    if (createLoginBtn.disabled) return;
+
+    const statusEl = document.getElementById('sign-status');
+    statusEl.style.display = 'block';
+    statusEl.style.color = '#94a3b8';
+
+    const roleLabel = legalContent[currentRole].label;
+    const name = fullNameInput.value.trim();
+    const occupation = document.getElementById('reg-occupation').value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const phone = document.getElementById('country-code').value + phoneInput.value.trim();
+    const signature = signatureInput.value.trim();
+    const signedAt = new Date().toISOString();
+    let accountSaved = false;
+
+    createLoginBtn.disabled = true;
+    createLoginBtn.textContent = 'Creating your login…';
+
+    try {
+      // 1. Create the real login — this is what the person signs into once the app is live.
+      const { data: authData, error: authError } = await sb.auth.signUp({ email, password });
+      if (authError) throw new Error(authError.message);
+      const userId = authData.user ? authData.user.id : null;
+
+      // 2. Build the signed agreement as a PDF and upload it to storage.
+      createLoginBtn.textContent = 'Saving your signed agreement…';
+      const pdfBlob = buildAgreementPdf({ name, roleLabel, email, phone, occupation, guarantor: null, incomeRange: null, kycItems: [], signature, signedAt });
+      const pdfPath = `${userId || 'unlinked'}/agreement-${Date.now()}.pdf`;
+      const { error: uploadError } = await sb.storage.from(ONBOARDING_BUCKET).upload(pdfPath, pdfBlob, { contentType: 'application/pdf', upsert: false });
+      if (uploadError) throw new Error(uploadError.message);
+      const { data: pdfUrlData } = sb.storage.from(ONBOARDING_BUCKET).getPublicUrl(pdfPath);
+
+      // 3. Save the login + agreement record so it shows up on the admin panel.
+      // Identity/KYC documents and guarantor details are now collected
+      // manually by the team on WhatsApp, per the operational notice shown
+      // during onboarding — so those fields are intentionally left blank here.
+      createLoginBtn.textContent = 'Finishing setup…';
+      const { error: insertError } = await sb.from('signups').insert({
+        user_id: userId,
+        full_name: name,
+        email, phone, occupation,
+        role: currentRole,
+        guarantor_name: null,
+        guarantor_relationship: null,
+        guarantor_phone: null,
+        income_range: null,
+        kyc_items: [],
+        kyc_documents: [],
+        agreement_pdf_url: pdfUrlData.publicUrl,
+        signature,
+        signed_at: signedAt,
+        status: 'pending',
+      });
+      if (insertError) throw new Error(insertError.message);
+
+      // 4. If they arrived via a "Rent Now"/"Buy Now"/"Book Now" button,
+      // save that listing against their brand-new account. This is what
+      // the future app reads to show "Your Selected Properties" and
+      // trigger the dashboard/bell notification to schedule inspection —
+      // deliberately non-fatal: a failure here should never stop the
+      // account itself from being created.
+      if (selectedListing.id) {
+        const { error: selectedListingError } = await sb.from('selected_listings').insert({
+          user_id: userId,
+          listing_id: selectedListing.id,
+          listing_title: selectedListing.title || null,
+          category: selectedListing.category || null,
+          status: 'pending_inspection',
+        });
+        if (selectedListingError) {
+          console.error('Could not save selected listing (account still created fine):', selectedListingError.message);
+        }
+      }
+
+      statusEl.style.display = 'none';
+      accountSaved = true;
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = 'Could not finish saving your account: ' + err.message + ' — you can still continue on WhatsApp and our team will follow up.';
+      statusEl.style.color = '#f87171';
+      statusEl.style.display = 'block';
+    }
+
+    if (accountSaved) {
+      showToast('Login saved! Continuing to WhatsApp…');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    }
+
+    let message = `Hello MainTown Realty, I just signed up on the website.\n\nName: ${name}\nRole: ${roleLabel}\nEmail: ${email}\nPhone: ${phone}`;
+    if (occupation) message += `\nOccupation: ${occupation}`;
+    if (selectedListing.title) {
+      const actionLabel = { rent: 'renting', land: 'buying', 'short-let': 'booking' }[selectedListing.category] || 'this property';
+      message += `\n\nI'm interested in ${actionLabel}: ${selectedListing.title}`;
+    }
+    message += `\n\nI've reviewed and agreed to the Terms of Service. Signed: ${signature}`;
+
+    const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    document.getElementById('whatsapp-continue-btn').href = waLink;
+
+    createLoginBtn.disabled = false;
+    createLoginBtn.textContent = 'Create Login';
+    clearSavedState();
+    showScreen(screen4, screen5);
+    window.open(waLink, '_blank', 'noopener,noreferrer');
+  });
+
+  // ---- Restore saved progress on page load ----
+  function restoreState() {
+    let saved;
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      saved = JSON.parse(raw);
+    } catch (e) { return; }
+    if (!saved || !saved.role) return;
+
+    const card = document.querySelector(`.role-card[data-role="${saved.role}"]`);
+    if (!card) return;
+
+    roleCards.forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    currentRole = saved.role;
+
+    const occupationField = document.getElementById('reg-occupation-field');
+    const occupationInput = document.getElementById('reg-occupation');
+    if (currentRole === 'tenant') {
+      occupationField.style.display = 'block';
+      occupationInput.required = true;
+      continueBtn.textContent = 'Continue to Create Login';
+    } else {
+      occupationField.style.display = 'none';
+      occupationInput.required = false;
+      continueBtn.textContent = 'Continue to Partnership Benefits →';
+    }
+
+    if (saved.fullname) fullNameInput.value = saved.fullname;
+    if (saved.occupation) document.getElementById('reg-occupation').value = saved.occupation;
+    if (saved.countryCode) document.getElementById('country-code').value = saved.countryCode;
+    if (saved.phone) phoneInput.value = saved.phone;
+    if (saved.email) emailInput.value = saved.email;
+    // Only restore from storage if this page load didn't already arrive
+    // with its own fresh ?listingId=... — a direct link always wins.
+    if (!selectedListing.id && saved.selectedListing && saved.selectedListing.id) {
+      selectedListing = saved.selectedListing;
+    }
+
+    updateContinueState();
+    setProgress('progress-wrap-1', 'account');
+
+    if (saved.screen === 'screen-partnership') {
+      populatePartnershipScreen();
+      jumpToScreen('screen-partnership');
+    } else if (saved.screen === 'screen-4') {
+      populateLoginScreen();
+      jumpToScreen('screen-4');
+    }
+    // Password, the agreement checkbox, and the signature always start
+    // blank — those stay a fresh, required step even after a reload.
+  }
+
+  restoreState();
+  if (window.lucide) lucide.createIcons();
+</script>
+
+</body>
+</html>
