@@ -71,6 +71,67 @@
   body.light-theme .s5-role-eyebrow {
     color: #9333ea;
   }
+
+  /* ---- Light Mode: card system upgrade (international-bank style) ----
+     Hero stat cards become solid vibrant purple with white text/icons.
+     Everything else (action rows, list/profile cards, inputs) becomes a
+     clean white card with a subtle border + shadow, dark text, and a
+     solid purple icon chip — the accent-on-neutral pattern used by
+     Revolut/Monzo/N26 rather than tinting every surface purple. */
+
+  /* Hero stat cards */
+  body.light-theme .ent-stat-card {
+    background: linear-gradient(135deg, #7c3aed, #9333ea);
+    border: none;
+    box-shadow: 0 10px 24px rgba(124,58,237,0.28);
+  }
+  body.light-theme .ent-stat-label { color: rgba(255,255,255,0.85); }
+  body.light-theme .ent-stat-value { color: #ffffff; }
+  body.light-theme .ent-stat-sub { color: rgba(255,255,255,0.72); }
+
+  /* Quick action cards */
+  body.light-theme .ent-quick-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+  }
+  body.light-theme .ent-quick-card:hover { border-color: #9333ea; }
+  body.light-theme .ent-quick-card-icon { background: #9333ea; color: #ffffff; }
+  body.light-theme .ent-quick-card-title { color: #0f172a; }
+  body.light-theme .ent-quick-card-sub { color: #64748b; }
+  body.light-theme .ent-quick-card-chevron { color: #94a3b8; }
+
+  /* General list / property / profile cards */
+  body.light-theme .s5-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+  }
+  body.light-theme .s5-card-title { color: #0f172a; }
+
+  /* Settings toggle row (Dark Mode switch, etc.) */
+  body.light-theme .pr-toggle-row {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+  }
+  body.light-theme .pr-toggle-icon { background: #9333ea; color: #ffffff; }
+  body.light-theme .pr-toggle-title { color: #0f172a; }
+  body.light-theme .pr-toggle-sub { color: #64748b; }
+
+  /* Form inputs (email, phone, etc.) */
+  body.light-theme .field-input {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+  }
+  body.light-theme .field-input::placeholder { color: #94a3b8; }
+
+  /* Profile avatar */
+  body.light-theme .profile-avatar-lg { background: #f3e8ff; color: #9333ea; }
+  body.light-theme .profile-occupation-line { color: #64748b; }
+  body.light-theme .bio-row strong { color: #0f172a; }
+  body.light-theme .bio-row { border-bottom-color: #e5e7eb; }
   .app-shell {
     width: 100%;
     max-width: 420px;
@@ -401,11 +462,6 @@
     position: relative; width: 112px; height: 112px; border-radius: 28px;
     box-shadow: 0 20px 45px rgba(139,92,246,0.45);
     display: block;
-    animation: logoSpin360 5s linear infinite;
-  }
-  @keyframes logoSpin360 {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
   }
   .welcome-brand-name { font-size: 28px; font-weight: 700; color: #fff; margin: 0; letter-spacing: -0.01em; }
   .welcome-tagline { font-size: 15px; font-weight: 600; color: #c084fc; margin: 8px 0 0; }
@@ -5594,6 +5650,13 @@
 
   function navigateTo(screenId, opts) {
     opts = opts || {};
+
+    // Defense-in-depth: navigateTo() is the router for authenticated app
+    // screens only. If a pre-auth screen (Welcome/Register/KYC/Legal/Login —
+    // the older .screen + hidden-screen system) is still showing when this
+    // runs (e.g. a stray back-button/popstate while mid-onboarding), hide it
+    // too, so it can never render stacked behind a dashboard screen-view.
+    document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden-screen'));
 
     // Hide all main screens
     document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
@@ -13813,6 +13876,8 @@ available in the Post-Lease Hub and this chat thread.`
     roleCards.forEach(c => c.classList.remove('selected'));
     document.getElementById('reg-occupation-field').style.display = 'none';
     updateContinueState();
+    document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+    appBottomNav.classList.add('hidden');
     screenLogin.classList.add('hidden-screen');
     screen1.classList.remove('hidden-screen');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -13848,6 +13913,8 @@ available in the Post-Lease Hub and this chat thread.`
   const screenWelcome = document.getElementById('screen-welcome');
 
   document.getElementById('welcome-create-btn').addEventListener('click', () => {
+    document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+    appBottomNav.classList.add('hidden');
     screenWelcome.classList.add('hidden-screen');
     screen1.classList.remove('hidden-screen');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -13855,6 +13922,8 @@ available in the Post-Lease Hub and this chat thread.`
   });
 
   document.getElementById('welcome-login-btn').addEventListener('click', () => {
+    document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+    appBottomNav.classList.add('hidden');
     screenWelcome.classList.add('hidden-screen');
     populateLoginScreen();
     screenLogin.classList.remove('hidden-screen');
