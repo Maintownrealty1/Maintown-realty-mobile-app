@@ -260,30 +260,33 @@
      text/icons" treatment as .ent-stat-card / .ent-promo-card.
      ================================================================== */
 
-  /* Modals & slide-up sheets (Verify Property Title, Tenants, etc.) */
+  /* Modals & slide-up sheets (Verify Property Title, Tenants, Wallet, etc.)
+     -> clean white pop screens. Hero cards inside them (Wallet Balance,
+     enterprise stat cards) are ALREADY solid purple by design — keeping
+     the sheet itself white is what makes that purple hero card pop
+     instead of washing into a flat purple-on-purple blob. Buttons stay
+     purple (.btn-primary etc. are unaffected by this section). */
   body.light-theme .modal-card,
   body.light-theme .sheet-card {
-    background: linear-gradient(135deg, #7c3aed, #9333ea);
-    border-color: transparent;
-    box-shadow: 0 16px 36px rgba(124,58,237,0.32);
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 20px 44px rgba(15,23,42,0.18);
   }
-  body.light-theme .modal-icon-wrap { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.35); }
-  body.light-theme .modal-icon-wrap svg { color: #ffffff; }
+  body.light-theme .modal-icon-wrap { background: #f3e8ff; border-color: #e9d5ff; }
+  body.light-theme .modal-icon-wrap svg { color: #9333ea; }
   body.light-theme .modal-title,
-  body.light-theme .modal-sub,
   body.light-theme .sheet-title,
-  body.light-theme .sheet-subtitle,
-  body.light-theme .resend-line,
-  body.light-theme .role-hint { color: #ffffff; }
+  body.light-theme .sheet-subtitle { color: #0f172a; }
   body.light-theme .modal-sub,
-  body.light-theme .resend-line { color: rgba(255,255,255,0.8); }
-  body.light-theme .sheet-close-btn,
-  body.light-theme .btn-secondary { color: rgba(255,255,255,0.85); }
-  body.light-theme .field-label { color: rgba(255,255,255,0.85); }
-  body.light-theme .otp-input,
-  body.light-theme #s5-search-input,
-  body.light-theme .msg-composer-input { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.35); color: #ffffff; }
-  body.light-theme .otp-input::placeholder { color: rgba(255,255,255,0.6); }
+  body.light-theme .resend-line,
+  body.light-theme .role-hint { color: #64748b; }
+  body.light-theme .sheet-close-btn { background: #f3e8ff; color: #9333ea; }
+  body.light-theme .btn-secondary { color: #64748b; }
+  body.light-theme .field-label { color: #475569; }
+  body.light-theme .otp-input {
+    background: #ffffff; border: 1px solid #e2e8f0; color: #0f172a;
+  }
+  body.light-theme .otp-input::placeholder { color: #94a3b8; }
 
   /* Notification bell, MainTown AI pill, avatar, cart FAB, back button */
   body.light-theme .bell-btn,
@@ -322,7 +325,9 @@
   body.light-theme .dash-nav-item { color: #9333ea; }
   body.light-theme .dash-nav-item.active { color: #6b21a8; }
 
-  /* General list / info / status cards -> solid purple, white text & icons */
+  /* General list / info cards -> clean white cards, purple icon chips
+     (the "accent-on-neutral" pattern: one purple hero card per screen,
+     everything around it stays a crisp white card). */
   body.light-theme .txn-row,
   body.light-theme .wallet-mini-card,
   body.light-theme .wallet-txn-row,
@@ -334,7 +339,6 @@
   body.light-theme .ent-list-item,
   body.light-theme .notif-breakdown-card,
   body.light-theme .notif-item,
-  body.light-theme .notif-tab,
   body.light-theme .stage-item,
   body.light-theme .ticket-item,
   body.light-theme .receipt-box,
@@ -347,38 +351,88 @@
   body.light-theme .signoff-box,
   body.light-theme .tenancy-policy-box,
   body.light-theme .fee-preview-box {
-    background: linear-gradient(135deg, #7c3aed, #9333ea);
-    border-color: transparent;
-    box-shadow: 0 4px 14px rgba(124,58,237,0.2);
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.06);
   }
-  body.light-theme .notif-tab.active { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); }
+  body.light-theme .notif-tab { background: #ffffff; border: 1px solid #e5e7eb; color: #64748b; }
+  body.light-theme .notif-tab.active { background: #9333ea; border-color: #9333ea; color: #ffffff; }
 
-  /* Icon chips inside those cards -> translucent white, vibrant white icon */
+  /* Icon chips inside those cards -> pale purple tint, solid purple icon */
   body.light-theme .ent-list-icon,
   body.light-theme .s5-list-icon,
   body.light-theme .thread-icon,
   body.light-theme .thread-avatar,
   body.light-theme .notif-icon,
   body.light-theme .kyc-item-icon-wrap {
-    background: rgba(255,255,255,0.2);
-    color: #ffffff;
+    background: #f3e8ff;
+    color: #9333ea;
   }
 
-  /* Muted secondary text inside those cards -> brightened to vibrant white */
-  body.light-theme .txn-title, body.light-theme .txn-date,
-  body.light-theme .txn-breakdown-row, body.light-theme .txn-breakdown-row span,
-  body.light-theme .kyc-item-title, body.light-theme .kyc-item-status,
-  body.light-theme .ent-metric-label, body.light-theme .ent-metric-value,
-  body.light-theme .ent-list-title, body.light-theme .ent-list-sub,
-  body.light-theme .notif-breakdown-title, body.light-theme .notif-breakdown-row,
-  body.light-theme .notif-title, body.light-theme .notif-body, body.light-theme .notif-time,
-  body.light-theme .cart-item-title, body.light-theme .cart-item-loc,
-  body.light-theme .lease-preview-party-label, body.light-theme .lease-preview-party-name,
-  body.light-theme .thread-title, body.light-theme .thread-sub,
-  body.light-theme .s5-list-title, body.light-theme .s5-list-sub {
-    color: rgba(255,255,255,0.92) !important;
+  /* Title text -> dark; secondary/muted text -> readable gray */
+  body.light-theme .txn-title,
+  body.light-theme .kyc-item-title,
+  body.light-theme .ent-metric-value,
+  body.light-theme .ent-list-title,
+  body.light-theme .notif-title,
+  body.light-theme .cart-item-title,
+  body.light-theme .lease-preview-party-name,
+  body.light-theme .thread-title,
+  body.light-theme .s5-list-title {
+    color: #0f172a;
   }
-  body.light-theme .thread-context-badge { color: #ffffff; background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.4); }
+  body.light-theme .txn-date,
+  body.light-theme .txn-breakdown-row,
+  body.light-theme .txn-breakdown-row span,
+  body.light-theme .kyc-item-status,
+  body.light-theme .ent-metric-label,
+  body.light-theme .ent-list-sub,
+  body.light-theme .notif-breakdown-title,
+  body.light-theme .notif-breakdown-row,
+  body.light-theme .notif-body,
+  body.light-theme .notif-time,
+  body.light-theme .cart-item-loc,
+  body.light-theme .lease-preview-party-label,
+  body.light-theme .thread-sub,
+  body.light-theme .s5-list-sub {
+    color: #64748b;
+  }
+  body.light-theme .thread-context-badge { color: #9333ea; background: #f3e8ff; border-color: #e9d5ff; }
+
+  /* ---- Sharper, bolder status tags & alert banners ----
+     These used 12–18% opacity fills designed for a dark background —
+     on white they read as washed-out pastels. Solid light fills +
+     saturated borders + bold text fix that for blue/yellow/red/green. */
+  body.light-theme .insp-status-pending,
+  body.light-theme .s5-status-escrow,
+  body.light-theme .txn-status-badge.escrow,
+  body.light-theme .txn-status-badge.pending {
+    background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; font-weight: 700;
+  }
+  body.light-theme .insp-status-conducted,
+  body.light-theme .s5-status-occupied,
+  body.light-theme .txn-status-badge.refunded {
+    background: #dbeafe; color: #1d4ed8; border: 1px solid #3b82f6; font-weight: 700;
+  }
+  body.light-theme .insp-status-confirmed,
+  body.light-theme .s5-status-vacant,
+  body.light-theme .txn-status-badge.settled {
+    background: #d1fae5; color: #047857; border: 1px solid #10b981; font-weight: 700;
+  }
+  body.light-theme .insp-status-declined {
+    background: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; font-weight: 700;
+  }
+  body.light-theme .insp-status-cancelled,
+  body.light-theme .s5-status-pending,
+  body.light-theme .s5-status-draft {
+    background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-weight: 700;
+  }
+  body.light-theme .s5-unavailable-notice.sold {
+    background: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; font-weight: 600;
+  }
+  body.light-theme .s5-unavailable-notice.rented {
+    background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; font-weight: 600;
+  }
 
   .app-shell {
     width: 100%;
