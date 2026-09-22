@@ -734,6 +734,35 @@
 
   .ent-restricted-note { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #64748b; background: rgba(15,23,42,0.7); border: 1px dashed #334155; border-radius: 12px; padding: 10px 12px; margin-top: 4px; }
 
+  /* ---- Staff Dashboards: Sales / Finance / Legal — own home screens ---- */
+  .ent-stat-card { background: linear-gradient(135deg, rgba(147,51,234,0.18), rgba(15,23,42,0.85)); border: 1px solid rgba(147,51,234,0.35); border-radius: 16px; padding: 18px; margin-bottom: 20px; }
+  .ent-stat-label { font-size: 12px; color: #c4b5fd; margin: 0 0 6px; font-weight: 600; }
+  .ent-stat-value { font-size: 28px; font-weight: 800; color: #fff; margin: 0; }
+  .ent-stat-sub { font-size: 11.5px; color: #94a3b8; margin: 6px 0 0; }
+  .ent-stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .ent-stat-row .ent-stat-card { margin-bottom: 0; }
+  .ent-stat-row .ent-stat-value { font-size: 24px; }
+  .ent-quick-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+  .ent-quick-card {
+    display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 16px;
+    border: 1px solid #1e293b; background: rgba(15,23,42,0.8); cursor: pointer;
+    transition: all 0.15s ease; width: 100%; text-align: left; color: inherit; font: inherit;
+  }
+  .ent-quick-card:hover { border-color: #a855f7; }
+  .ent-quick-card-icon { width: 42px; height: 42px; border-radius: 12px; background: rgba(147,51,234,0.18); color: #c084fc; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ent-quick-card-text { flex: 1; min-width: 0; }
+  .ent-quick-card-title { font-size: 14px; font-weight: 600; color: #fff; margin: 0 0 2px; }
+  .ent-quick-card-sub { font-size: 11.5px; color: #64748b; margin: 0; }
+  .ent-quick-card-chevron { color: #475569; flex-shrink: 0; }
+  .ent-panel-title { font-size: 16px; font-weight: 700; color: #fff; margin: 0 0 16px; }
+  .ent-choice-btn { width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; border: 1px solid #1e293b; background: rgba(15,23,42,0.8); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
+  .ent-choice-btn:hover { border-color: #a855f7; }
+  .ent-doc-status-badge { font-size: 10px; font-weight: 700; letter-spacing: .02em; border-radius: 999px; padding: 2px 9px; text-transform: uppercase; flex-shrink: 0; }
+  .ent-doc-status-draft { background: rgba(148,163,184,0.15); color: #94a3b8; }
+  .ent-doc-status-sent { background: rgba(251,191,36,0.15); color: #fbbf24; }
+  .ent-doc-status-approved { background: rgba(16,185,129,0.15); color: #34d399; }
+  .ent-doc-status-rejected { background: rgba(248,113,113,0.15); color: #f87171; }
+
   /* ---- Login: inline validation message for unrecognized demo credentials ---- */
   .login-error-msg {
     display: none; align-items: center; gap: 6px; font-size: 12px; font-weight: 500;
@@ -2208,7 +2237,7 @@
     </div>
 
     <div id="claim-step-2" style="display:none;">
-      <p class="modal-sub" id="claim-step2-sub" style="margin-bottom:16px;">Set a permanent password and a 6-digit Wallet Transaction PIN.</p>
+      <p class="modal-sub" style="margin-bottom:16px;" id="claim-step2-sub">Set a permanent password and a 6-digit Wallet Transaction PIN.</p>
       <div class="field">
         <label class="field-label">New Password</label>
         <input class="field-input" id="claim-new-password" type="password" placeholder="At least 6 characters">
@@ -2217,7 +2246,7 @@
         <label class="field-label">Confirm Password</label>
         <input class="field-input" id="claim-confirm-password" type="password" placeholder="Re-enter password">
       </div>
-      <div id="claim-pin-fields">
+      <div id="claim-wallet-pin-wrap">
         <div class="field">
           <label class="field-label">Wallet Transaction PIN (6 digits)</label>
           <input class="field-input" id="claim-wallet-pin" type="password" inputmode="numeric" maxlength="6" placeholder="6-digit PIN">
@@ -2553,8 +2582,6 @@
     <div id="ent-tab-legal" class="ent-tab-panel" style="display:none;">
       <p class="s5-section-label"><i data-lucide="scale" class="w-4 h-4 text-purple-400"></i>Pending Legal Review</p>
       <div id="ent-legal-list"></div>
-      <p class="s5-section-label" style="margin-top:18px;"><i data-lucide="file-text" class="w-4 h-4 text-purple-400"></i>Legal Documents Sent for Approval</p>
-      <div id="ent-legal-docs-review-list"></div>
     </div>
 
     <!-- Tab: Financial Ledger & Audit Receipts (CEO + Finance) -->
@@ -2587,179 +2614,181 @@
 </div>
 <!-- ===================== END SCREEN ENTERPRISE ===================== -->
 
-<!-- ===================== SCREEN STAFF SALES: dedicated Sales Manager home ===================== -->
-<div id="screen-staff-sales" class="screen-view hidden pb-24">
+<!-- ===================== SCREEN: Sales Staff Dashboard (own home) ===================== -->
+<div id="screen-ent-sales" class="screen-view hidden pb-24">
   <div class="app-shell" style="padding-top:24px;">
     <div class="ent-header">
-      <div class="ent-logo" id="staff-sales-logo">—</div>
+      <div class="ent-logo" id="ent-sales-logo">—</div>
       <div style="flex:1; min-width:0;">
-        <p class="ent-company-name" id="staff-sales-company">Company</p>
+        <p class="ent-company-name" id="ent-sales-company">Company</p>
         <span class="ent-role-badge">Sales Manager</span>
       </div>
-      <button type="button" id="staff-sales-msg-ceo-btn" class="ent-list-action-btn" title="Message CEO"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>CEO</button>
+      <button type="button" id="ent-sales-message-ceo-btn" class="ent-list-action-btn" title="Message CEO"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>CEO</button>
     </div>
 
-    <div class="ent-metric-grid" style="grid-template-columns:1fr;">
-      <div class="ent-metric-card">
-        <p class="ent-metric-label">My Sales Report</p>
-        <p class="ent-metric-value" id="staff-sales-report-stat">0</p>
-        <p class="ent-list-sub" id="staff-sales-report-sub" style="margin-top:4px;">0 listings added · 0 live</p>
+    <!-- Home panel -->
+    <div id="ent-sales-home">
+      <div class="ent-stat-card">
+        <p class="ent-stat-label">Sales Report</p>
+        <p class="ent-stat-value" id="ent-sales-stat-count">0</p>
+        <p class="ent-stat-sub" id="ent-sales-stat-sub">listings you've added · ₦0 total value</p>
+      </div>
+
+      <div class="ent-quick-grid">
+        <button type="button" class="ent-quick-card" id="ent-sales-view-listings-card">
+          <div class="ent-quick-card-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+          <div class="ent-quick-card-text">
+            <p class="ent-quick-card-title">View Listings</p>
+            <p class="ent-quick-card-sub">Only the properties you personally added</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
+        </button>
+        <button type="button" class="ent-quick-card" id="ent-sales-add-listing-card">
+          <div class="ent-quick-card-icon"><i data-lucide="plus-circle" class="w-5 h-5"></i></div>
+          <div class="ent-quick-card-text">
+            <p class="ent-quick-card-title">Add Listing</p>
+            <p class="ent-quick-card-sub">Bulk CSV import or a single property form</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
+        </button>
       </div>
     </div>
 
-    <div class="role-group" style="margin-top:8px;">
-      <button type="button" class="role-card" id="staff-sales-view-listings-card">
-        <div class="role-icon"><i data-lucide="building-2" class="w-5 h-5 text-purple-400"></i></div>
-        <div class="role-text">
-          <p class="role-name">View Listings</p>
-          <p class="role-sub">Properties you've personally added</p>
-        </div>
-      </button>
-      <button type="button" class="role-card" id="staff-sales-add-listing-card">
-        <div class="role-icon"><i data-lucide="plus-circle" class="w-5 h-5 text-purple-400"></i></div>
-        <div class="role-text">
-          <p class="role-name">Add Listing</p>
-          <p class="role-sub">Bulk CSV import or a single property form</p>
-        </div>
-      </button>
+    <!-- My Listings panel -->
+    <div id="ent-sales-listings-panel" style="display:none;">
+      <button type="button" id="ent-sales-listings-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
+      <p class="ent-panel-title">My Listings</p>
+      <div id="ent-sales-listings-list"></div>
     </div>
   </div>
 </div>
-<!-- ===================== END SCREEN STAFF SALES ===================== -->
+<!-- ===================== END SCREEN: Sales Staff Dashboard ===================== -->
 
-<!-- ===================== SCREEN STAFF SALES LISTINGS: personal listings only ===================== -->
-<div id="screen-staff-sales-listings" class="screen-view hidden pb-24">
-  <div class="app-shell" style="padding-top:24px;">
-    <button type="button" class="ent-list-action-btn staff-back-btn" data-back-to="screen-staff-sales" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
-    <p class="s5-section-label"><i data-lucide="building-2" class="w-4 h-4 text-purple-400"></i>My Listings</p>
-    <div id="staff-sales-listings-list"></div>
-  </div>
-</div>
-<!-- ===================== END SCREEN STAFF SALES LISTINGS ===================== -->
-
-<!-- Add Listing choice modal -->
-<div id="staff-add-listing-choice-modal" class="modal-overlay">
-  <div class="modal-card">
-    <div class="modal-icon-wrap"><i data-lucide="plus-circle" class="w-6 h-6"></i></div>
-    <h2 class="modal-title">Add a Listing</h2>
-    <p class="modal-sub">Choose how you'd like to add new inventory.</p>
-    <button type="button" id="staff-choice-bulk-btn" class="btn-primary" style="display:flex; align-items:center; justify-content:center; gap:6px;"><i data-lucide="upload" class="w-4 h-4"></i>Bulk CSV Import</button>
-    <button type="button" id="staff-choice-single-btn" class="btn-secondary" style="margin-top:10px; display:flex; align-items:center; justify-content:center; gap:6px;"><i data-lucide="file-plus" class="w-4 h-4"></i>Single Property Form</button>
-    <button type="button" id="staff-choice-cancel-btn" class="btn-secondary" style="margin-top:10px;">Cancel</button>
-  </div>
-</div>
-
-<!-- Single property quick-add modal (Sales staff) -->
-<div id="staff-single-add-modal" class="modal-overlay">
-  <div class="modal-card">
-    <h2 class="modal-title">Add Single Property</h2>
-    <p class="modal-sub">Goes straight to your company's legal review queue.</p>
-    <div class="field"><label class="field-label">Property Title</label><input class="field-input" id="ssa-title" type="text" placeholder="e.g. 3-Bed Terrace, Horizon Gardens"></div>
-    <div class="field"><label class="field-label">Category</label>
-      <select class="field-input" id="ssa-category"><option value="land">Land</option><option value="rental">Rental</option><option value="shortlet">Shortlet</option></select>
-    </div>
-    <div class="field"><label class="field-label">Price (₦)</label><input class="field-input" id="ssa-price" type="number" placeholder="e.g. 25000000"></div>
-    <div class="field"><label class="field-label">State</label><input class="field-input" id="ssa-state" type="text" placeholder="e.g. Lagos"></div>
-    <div class="field"><label class="field-label">LGA</label><input class="field-input" id="ssa-lga" type="text" placeholder="e.g. Ibeju-Lekki"></div>
-    <div class="field"><label class="field-label">Address</label><input class="field-input" id="ssa-address" type="text" placeholder="e.g. Plot 12, Horizon Gardens"></div>
-    <div class="field"><label class="field-label">Description</label><input class="field-input" id="ssa-description" type="text" placeholder="Short description"></div>
-    <p class="login-error-msg" id="ssa-error"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span id="ssa-error-text"></span></p>
-    <button type="button" id="ssa-submit-btn" class="btn-primary" style="margin-top:8px;">Submit for Legal Review</button>
-    <button type="button" id="ssa-cancel-btn" class="btn-secondary">Cancel</button>
-  </div>
-</div>
-
-<!-- ===================== SCREEN STAFF FINANCE: dedicated Finance Officer home ===================== -->
-<div id="screen-staff-finance" class="screen-view hidden pb-24">
+<!-- ===================== SCREEN: Finance Staff Dashboard (own home) ===================== -->
+<div id="screen-ent-finance" class="screen-view hidden pb-24">
   <div class="app-shell" style="padding-top:24px;">
     <div class="ent-header">
-      <div class="ent-logo" id="staff-finance-logo">—</div>
+      <div class="ent-logo" id="ent-finance-logo">—</div>
       <div style="flex:1; min-width:0;">
-        <p class="ent-company-name" id="staff-finance-company">Company</p>
+        <p class="ent-company-name" id="ent-finance-company">Company</p>
         <span class="ent-role-badge">Finance Officer</span>
       </div>
-      <button type="button" id="staff-finance-msg-ceo-btn" class="ent-list-action-btn" title="Message CEO"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>CEO</button>
+      <button type="button" id="ent-finance-message-ceo-btn" class="ent-list-action-btn" title="Message CEO"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>CEO</button>
     </div>
 
-    <div class="ent-metric-grid">
-      <div class="ent-metric-card">
-        <p class="ent-metric-label">Payments Received</p>
-        <p class="ent-metric-value" id="staff-fin-received-count">0</p>
-        <p class="ent-list-sub" id="staff-fin-received-amount" style="margin-top:4px;">₦0 total</p>
-      </div>
-      <div class="ent-metric-card">
-        <p class="ent-metric-label">Withdrawals</p>
-        <p class="ent-metric-value" id="staff-fin-withdraw-count">0</p>
-        <p class="ent-list-sub" id="staff-fin-withdraw-amount" style="margin-top:4px;">₦0 total</p>
-      </div>
-    </div>
-
-    <div class="role-group" style="margin-top:8px;">
-      <button type="button" class="role-card" id="staff-finance-report-card">
-        <div class="role-icon"><i data-lucide="receipt" class="w-5 h-5 text-purple-400"></i></div>
-        <div class="role-text">
-          <p class="role-name">View Payment Report</p>
-          <p class="role-sub">Full transaction detail with individual receipts</p>
+    <!-- Home panel -->
+    <div id="ent-finance-home">
+      <div class="ent-stat-row">
+        <div class="ent-stat-card">
+          <p class="ent-stat-label">Payments Received</p>
+          <p class="ent-stat-value" id="ent-finance-stat-received-count">0</p>
+          <p class="ent-stat-sub" id="ent-finance-stat-received-sub">₦0</p>
         </div>
-      </button>
+        <div class="ent-stat-card">
+          <p class="ent-stat-label">Withdrawals</p>
+          <p class="ent-stat-value" id="ent-finance-stat-withdrawals-count">0</p>
+          <p class="ent-stat-sub" id="ent-finance-stat-withdrawals-sub">₦0</p>
+        </div>
+      </div>
+
+      <div class="ent-quick-grid">
+        <button type="button" class="ent-quick-card" id="ent-finance-view-report-card">
+          <div class="ent-quick-card-icon"><i data-lucide="receipt" class="w-5 h-5"></i></div>
+          <div class="ent-quick-card-text">
+            <p class="ent-quick-card-title">View Payment Report</p>
+            <p class="ent-quick-card-sub">Full transaction detail — download each receipt</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Payment Report panel -->
+    <div id="ent-finance-report-panel" style="display:none;">
+      <button type="button" id="ent-finance-report-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
+      <p class="ent-panel-title">Payment Report</p>
+      <div id="ent-finance-report-list"></div>
     </div>
   </div>
 </div>
-<!-- ===================== END SCREEN STAFF FINANCE ===================== -->
+<!-- ===================== END SCREEN: Finance Staff Dashboard ===================== -->
 
-<!-- ===================== SCREEN STAFF FINANCE REPORT: full transaction detail ===================== -->
-<div id="screen-staff-finance-report" class="screen-view hidden pb-24">
-  <div class="app-shell" style="padding-top:24px;">
-    <button type="button" class="ent-list-action-btn staff-back-btn" data-back-to="screen-staff-finance" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
-    <p class="s5-section-label"><i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Payment Report</p>
-    <div id="staff-finance-report-list"></div>
-  </div>
-</div>
-<!-- ===================== END SCREEN STAFF FINANCE REPORT ===================== -->
-
-<!-- ===================== SCREEN STAFF LEGAL: dedicated Legal Officer home ===================== -->
-<div id="screen-staff-legal" class="screen-view hidden pb-24">
+<!-- ===================== SCREEN: Legal Staff Dashboard (own home) ===================== -->
+<div id="screen-ent-legal-dash" class="screen-view hidden pb-24">
   <div class="app-shell" style="padding-top:24px;">
     <div class="ent-header">
-      <div class="ent-logo" id="staff-legal-logo">—</div>
+      <div class="ent-logo" id="ent-legal-logo">—</div>
       <div style="flex:1; min-width:0;">
-        <p class="ent-company-name" id="staff-legal-company">Company</p>
+        <p class="ent-company-name" id="ent-legal-company">Company</p>
         <span class="ent-role-badge">Legal Officer</span>
       </div>
-      <button type="button" id="staff-legal-msg-ceo-btn" class="ent-list-action-btn" title="Message CEO"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>CEO</button>
+      <button type="button" id="ent-legal-message-ceo-btn" class="ent-list-action-btn" title="Message CEO"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>CEO</button>
     </div>
 
-    <div class="ent-metric-grid" style="grid-template-columns:1fr;">
-      <div class="ent-metric-card">
-        <p class="ent-metric-label">Documents Pending Review</p>
-        <p class="ent-metric-value" id="staff-legal-pending-stat">0</p>
+    <!-- Home panel -->
+    <div id="ent-legal-home">
+      <div class="ent-stat-card">
+        <p class="ent-stat-label">Documents Pending Review</p>
+        <p class="ent-stat-value" id="ent-legal-stat-pending">0</p>
+        <p class="ent-stat-sub">Title verifications waiting on you</p>
+      </div>
+
+      <div class="ent-quick-grid">
+        <button type="button" class="ent-quick-card" id="ent-legal-view-docs-card">
+          <div class="ent-quick-card-icon"><i data-lucide="scale" class="w-5 h-5"></i></div>
+          <div class="ent-quick-card-text">
+            <p class="ent-quick-card-title">View Legal Documents</p>
+            <p class="ent-quick-card-sub">List, download, upload, and send to CEO</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
+        </button>
       </div>
     </div>
 
-    <div class="role-group" style="margin-top:8px;">
-      <button type="button" class="role-card" id="staff-legal-view-docs-card">
-        <div class="role-icon"><i data-lucide="scale" class="w-5 h-5 text-purple-400"></i></div>
-        <div class="role-text">
-          <p class="role-name">View Legal Documents</p>
-          <p class="role-sub">List, download, upload &amp; send to CEO for approval</p>
-        </div>
-      </button>
+    <!-- Legal Documents panel -->
+    <div id="ent-legal-docs-panel" style="display:none;">
+      <button type="button" id="ent-legal-docs-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
+      <p class="ent-panel-title">Legal Documents</p>
+      <button type="button" id="ent-legal-upload-doc-btn" class="btn-primary" style="margin-bottom:18px;"><i data-lucide="upload" class="w-4 h-4"></i> Upload Document</button>
+      <div id="ent-legal-docs-list"></div>
     </div>
   </div>
 </div>
-<!-- ===================== END SCREEN STAFF LEGAL ===================== -->
+<!-- ===================== END SCREEN: Legal Staff Dashboard ===================== -->
 
-<!-- ===================== SCREEN STAFF LEGAL DOCUMENTS ===================== -->
-<div id="screen-staff-legal-docs" class="screen-view hidden pb-24">
-  <div class="app-shell" style="padding-top:24px;">
-    <button type="button" class="ent-list-action-btn staff-back-btn" data-back-to="screen-staff-legal" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
-    <button type="button" id="staff-legal-upload-btn" class="btn-primary" style="margin-bottom:18px; display:flex; align-items:center; justify-content:center; gap:6px;"><i data-lucide="upload" class="w-4 h-4"></i>Upload Document</button>
-    <input type="file" id="staff-legal-upload-file" hidden>
-    <p class="s5-section-label"><i data-lucide="scale" class="w-4 h-4 text-purple-400"></i>Legal Documents</p>
-    <div id="staff-legal-docs-list"></div>
+<!-- ===================== MODAL: Sales — Add Listing choice ===================== -->
+<div id="ent-sales-add-choice-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap"><i data-lucide="plus-circle" class="w-8 h-8 text-purple-400"></i></div>
+    <h2 class="modal-title">Add Listing</h2>
+    <p class="modal-sub">Choose how you'd like to add propert(y/ies).</p>
+    <button type="button" class="ent-choice-btn" id="ent-sales-choice-bulk"><i data-lucide="upload" class="w-4 h-4"></i>Bulk CSV Import</button>
+    <button type="button" class="ent-choice-btn" id="ent-sales-choice-single"><i data-lucide="file-plus-2" class="w-4 h-4"></i>Single Property Form</button>
+    <button type="button" id="ent-sales-choice-cancel" class="btn-secondary">Cancel</button>
   </div>
 </div>
-<!-- ===================== END SCREEN STAFF LEGAL DOCUMENTS ===================== -->
+<!-- ===================== END MODAL ===================== -->
+
+<!-- ===================== MODAL: Legal — Upload Document ===================== -->
+<div id="ent-legal-upload-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap"><i data-lucide="upload" class="w-8 h-8 text-purple-400"></i></div>
+    <h2 class="modal-title">Upload Legal Document</h2>
+    <p class="modal-sub">Add a document to your company's legal document library.</p>
+    <div class="field">
+      <label class="field-label">Document Name</label>
+      <input class="field-input" id="ent-legal-doc-name" type="text" placeholder="e.g. Title Deed — Horizon Gardens">
+    </div>
+    <div class="s5-upload-box" id="ent-legal-doc-upload-box">
+      <i data-lucide="file-text" class="w-5 h-5"></i>
+      <span id="ent-legal-doc-upload-label">Choose File (PDF/Image)</span>
+      <input type="file" id="ent-legal-doc-file" hidden accept="image/*,application/pdf">
+    </div>
+    <button type="button" id="ent-legal-doc-save-btn" class="btn-primary" style="margin-top:14px;">Save Document</button>
+    <button type="button" id="ent-legal-doc-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+<!-- ===================== END MODAL ===================== -->
 
 <!-- ===================== SCREEN 6: Property Checkout, OTP Payment & Commission Split ===================== -->
 <div id="screen-6" class="screen-view hidden pb-24">
@@ -5537,7 +5566,7 @@
       const role = currentUserRole || 'tenant';
       if (role === 'tenant') document.getElementById('tenant-view').classList.remove('hidden');
       if (role === 'landlord') document.getElementById('landlord-view').classList.remove('hidden');
-      if (role === 'agent') document.getElementById('agent-view').classList.remove('hidden');
+      if (role === 'agent' || role === 'enterprise_staff') document.getElementById('agent-view').classList.remove('hidden');
       populateScreen5();
       // ---- Inspection Cart Restructuring: the cart FAB (and everything it opens —
       // the cart drawer/screen, checkout) is a Tenant-only surface. Landlords and
@@ -5657,14 +5686,28 @@
       populateProfileScreen();
     }
 
-    // Bottom nav: visible on screen-4 / screen-5 / screen-messages / screen-profile, with the matching tab highlighted.
-    // Enterprise staff (Sales/Finance/Legal) get their own Home screen instead of screen-4, and never see Search.
-    const STAFF_HOME_SCREENS = { sales: 'screen-staff-sales', finance: 'screen-staff-finance', legal: 'screen-staff-legal' };
-    const isStaffSession = currentUserRole === 'enterprise_staff';
-    const staffHomeScreen = isStaffSession && typeof getEnterpriseStaffRole === 'function' ? STAFF_HOME_SCREENS[getEnterpriseStaffRole()] : null;
+    if (screenId === 'screen-ent-sales') {
+      if (typeof renderSalesHeader === 'function') renderSalesHeader();
+      if (typeof renderSalesHome === 'function') renderSalesHome();
+    }
+    if (screenId === 'screen-ent-finance') {
+      if (typeof renderFinanceHeader === 'function') renderFinanceHeader();
+      if (typeof renderFinanceHome === 'function') renderFinanceHome();
+    }
+    if (screenId === 'screen-ent-legal-dash') {
+      if (typeof renderLegalHeader === 'function') renderLegalHeader();
+      if (typeof renderLegalHome === 'function') renderLegalHome();
+    }
+
+    // Bottom nav: visible on screen-4 / screen-5 / screen-messages / screen-profile
+    // and each staff dashboard's own home, with the matching tab highlighted.
+    // Search is dropped entirely for Sales/Finance/Legal staff (Home, Messages,
+    // Profile only) — see isDedicatedStaffRole().
     appBottomNav.classList.remove('hidden');
-    document.getElementById('nav-search').classList.toggle('hidden', isStaffSession);
-    document.getElementById('nav-home').classList.toggle('active', staffHomeScreen ? screenId === staffHomeScreen : screenId === 'screen-4');
+    const staffDedicatedNav = (typeof isDedicatedStaffRole === 'function') && isDedicatedStaffRole();
+    document.getElementById('nav-search').style.display = staffDedicatedNav ? 'none' : 'flex';
+    const staffHomeScreens = ['screen-ent-sales', 'screen-ent-finance', 'screen-ent-legal-dash'];
+    document.getElementById('nav-home').classList.toggle('active', screenId === 'screen-4' || staffHomeScreens.includes(screenId));
     document.getElementById('nav-search').classList.toggle('active', screenId === 'screen-5');
     document.getElementById('nav-messages').classList.toggle('active', screenId === 'screen-messages');
     document.getElementById('nav-profile').classList.toggle('active', screenId === 'screen-profile');
@@ -5701,10 +5744,8 @@
           navigationHistory.push(hash);
         }
       } else {
-        const STAFF_HOME_SCREENS = { sales: 'screen-staff-sales', finance: 'screen-staff-finance', legal: 'screen-staff-legal' };
-        const fallback = (currentUserRole === 'enterprise_staff' && typeof getEnterpriseStaffRole === 'function') ? (STAFF_HOME_SCREENS[getEnterpriseStaffRole()] || 'screen-4') : 'screen-4';
-        navigateTo(fallback);
-        navigationHistory = [fallback];
+        navigateTo('screen-4');
+        navigationHistory = ['screen-4'];
       }
     } finally {
       isPopStateNav = false;
@@ -5712,9 +5753,8 @@
   });
 
   document.getElementById('nav-home').addEventListener('click', () => {
-    const STAFF_HOME_SCREENS = { sales: 'screen-staff-sales', finance: 'screen-staff-finance', legal: 'screen-staff-legal' };
-    if (currentUserRole === 'enterprise_staff' && typeof getEnterpriseStaffRole === 'function') {
-      navigateTo(STAFF_HOME_SCREENS[getEnterpriseStaffRole()] || 'screen-4');
+    if ((typeof isDedicatedStaffRole === 'function') && isDedicatedStaffRole() && typeof openEnterpriseDashboard === 'function') {
+      openEnterpriseDashboard();
     } else {
       navigateTo('screen-4');
     }
@@ -6656,7 +6696,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
   const roleHeaderConfig = {
     tenant: { icon: 'building-2', eyebrow: 'Tenant Search', title: 'Find your next home', sub: 'Verified listings, local & diaspora-friendly.' },
     landlord: { icon: 'key-round', eyebrow: 'Landlord Inventory', title: 'Manage your properties', sub: 'Track occupancy, escrow status, and new listings.' },
-    agent: { icon: 'briefcase', eyebrow: 'Agent Portal', title: 'Upload & manage listings', sub: 'Every listing requires landlord verification before payout.' }
+    agent: { icon: 'briefcase', eyebrow: 'Agent Portal', title: 'Upload & manage listings', sub: 'Every listing requires landlord verification before payout.' },
+    enterprise_staff: { icon: 'briefcase', eyebrow: 'Company Listing Form', title: 'Add a company listing', sub: 'Submit for landlord verification, then MainTown legal review.' }
   };
 
   let currentCurrency = 'ngn';
@@ -9807,7 +9848,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // just-provisioned) Landlord; agentId stays the uploading Agent's own id.
       ownerId: landlordUser.id,
       agentId: getCurrentUserId(),
-      listedByRole: 'AGENT'
+      listedByRole: (currentUserRole === 'enterprise_staff') ? 'ENTERPRISE' : 'AGENT',
+      // Tag with the company + the specific staff member who added it, so it
+      // surfaces correctly in the CEO's company inventory and in that staff
+      // member's own "My Listings" (Sales dashboard) once it goes live.
+      companyId: (currentUserRole === 'enterprise_staff' && typeof getEnterpriseCompanyId === 'function') ? getEnterpriseCompanyId() : undefined,
+      listedByStaffId: (currentUserRole === 'enterprise_staff') ? getCurrentUserId() : undefined,
     };
     let listingData;
     if (type === 'rent') {
@@ -11709,26 +11755,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const list = document.getElementById('msg-thread-list');
     const emptyHint = document.getElementById('msg-empty-hint');
 
-    // Staff<->CEO threads are scoped to their own company; enterprise staff never
-    // see the legacy tenant/landlord/agent inspection threads (they have none).
-    const isStaffSession = currentUserRole === 'enterprise_staff';
-    const uid = getCurrentUserId();
-    const companyId = typeof getEnterpriseCompanyId === 'function' ? getEnterpriseCompanyId() : null;
-    const visibleConversations = conversations.filter(c => {
-      if (c.kind === 'staff_ceo') {
-        return c.companyId === companyId && (isStaffSession ? c.staffId === uid : true);
-      }
-      return !isStaffSession;
-    });
-
-    if (!visibleConversations.length) {
+    if (!conversations.length) {
       list.innerHTML = '';
       emptyHint.style.display = 'block';
       return;
     }
     emptyHint.style.display = 'none';
 
-    list.innerHTML = visibleConversations.map(c => {
+    list.innerHTML = conversations.map(c => {
       const archived = c.status === 'archived';
       const badge = archived
         ? '<span class="thread-badge" style="background:rgba(148,163,184,0.15); color:#94a3b8;">Archived</span>'
@@ -11831,12 +11865,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Tenant (Landlord's/Agent's view), using the identity data captured earlier.
   function getConversationPeer(conv) {
     const role = currentUserRole || 'tenant';
-    if (conv.kind === 'staff_ceo') {
-      if (role === 'enterprise_staff') {
-        const company = (appState.users[conv.companyId] && appState.users[conv.companyId].enterprise) || {};
-        return { name: `${company.companyName || 'Company'} (CEO)`, photo: company.companyLogo || null, label: 'CEO' };
+    // Staff <-> CEO direct line: resolve the peer explicitly instead of via
+    // a property listing, from whichever side is viewing the thread.
+    if (conv.convType === 'staff-ceo') {
+      const uid = getCurrentUserId();
+      if (uid === conv.staffId) {
+        return { name: 'CEO / Admin', photo: null, label: 'CEO' };
       }
-      return { name: conv.staffName || 'Staff', photo: null, label: ENT_STAFF_ROLE_LABEL[conv.staffRole] || 'Staff' };
+      return { name: conv.staffName || 'Staff', photo: null, label: (ENT_STAFF_ROLE_LABEL[conv.staffRole] || 'Staff') };
     }
     if (role === 'tenant') {
       const listing = rentListings().find(l => l.title === conv.listingTitle) || landListingsList().find(l => l.title === conv.listingTitle);
@@ -13938,7 +13974,12 @@ available in the Post-Lease Hub and this chat thread.`
       // Mirrors whichever of HandoverView ('handover') or PostLeaseView
       // ('post_lease') the buyer/tenant was routed to after their most
       // recent successful checkout — see routePostPaymentView().
-      current_view: null
+      current_view: null,
+      // ---- Company Legal Document Library (Legal Staff dashboard). One entry
+      // per uploaded document, keyed by companyId — list/download/upload, plus
+      // formally sending a document to the CEO for review & approval (which
+      // also drops a flagged message into that staff member's CEO thread).
+      legalDocuments: []
     };
   }
   function loadAppState() {
@@ -14320,6 +14361,7 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('claim-confirm-password').value = '';
     document.getElementById('claim-wallet-pin').value = '';
     document.getElementById('claim-confirm-pin').value = '';
+    document.getElementById('claim-wallet-pin-wrap').style.display = 'block';
     hideClaimStep1Error();
     hideClaimStep2Error();
     document.getElementById('claim-step-1').style.display = 'block';
@@ -14347,14 +14389,15 @@ available in the Post-Lease Hub and this chat thread.`
       return;
     }
     claimingLandlordId = match.id;
-    document.getElementById('claim-step-1').style.display = 'none';
-    document.getElementById('claim-step-2').style.display = 'block';
-    // Staff don't have wallets — skip the Wallet Transaction PIN step entirely for them.
+    // Staff accounts don't have wallets — skip the Wallet PIN step entirely
+    // and just collect password + confirm password.
     const isStaffClaim = match.role === 'enterprise_staff';
-    document.getElementById('claim-pin-fields').style.display = isStaffClaim ? 'none' : 'block';
+    document.getElementById('claim-wallet-pin-wrap').style.display = isStaffClaim ? 'none' : 'block';
     document.getElementById('claim-step2-sub').textContent = isStaffClaim
       ? 'Set a permanent password to activate your staff account.'
       : 'Set a permanent password and a 6-digit Wallet Transaction PIN.';
+    document.getElementById('claim-step-1').style.display = 'none';
+    document.getElementById('claim-step-2').style.display = 'block';
   });
 
   document.getElementById('claim-activate-btn').addEventListener('click', () => {
@@ -14377,7 +14420,7 @@ available in the Post-Lease Hub and this chat thread.`
     // Demo mode: password/PIN are stored as-entered on the local demo record
     // (no real auth backend here) purely to flip the account to ACTIVE.
     record.hasPassword = true;
-    if (pin) record.walletPin = pin;
+    if (!isStaffClaim) record.walletPin = pin;
     record.status = 'ACTIVE';
     saveAppState(appState);
     window.dispatchEvent(new Event('maintown_state_updated'));
@@ -14788,6 +14831,12 @@ available in the Post-Lease Hub and this chat thread.`
     const rec = appState.users[uid];
     return (rec && rec.role === 'enterprise_staff') ? rec.staffRole : null;
   }
+  // Sales / Finance / Legal each get their own dashboard "home" + bottom
+  // nav (Home, Messages, Profile — no Search). The CEO keeps the standard
+  // Search tab and the shared tabbed shell.
+  function isDedicatedStaffRole() {
+    return currentUserRole === 'enterprise_staff' && ['sales', 'finance', 'legal'].includes(getEnterpriseStaffRole());
+  }
   function enterpriseListings() {
     const companyId = getEnterpriseCompanyId();
     if (!companyId) return [];
@@ -14879,16 +14928,22 @@ available in the Post-Lease Hub and this chat thread.`
     openEnterpriseDashboard();
   });
 
-  // ---- Dashboard shell: header + role-gated tabs (CEO only — Sales/Finance/Legal
-  // staff each get their own dedicated home screen instead, see openStaffDashboard) ----
+  // ---- Dashboard shell: header + role-gated tabs (CEO only — Sales, Finance,
+  // and Legal staff each get their own dedicated home screen instead, see
+  // openSalesDashboard() / openFinanceDashboard() / openLegalDashboard() below). ----
   let entActiveTab = null;
   function openEnterpriseDashboard() {
     const companyId = getEnterpriseCompanyId();
     if (!companyId) { showToast('Upgrade to an Enterprise Developer account first'); return; }
     const staffRole = getEnterpriseStaffRole() || 'ceo';
-    if (staffRole !== 'ceo') { openStaffDashboard(staffRole); return; }
-    const company = appState.users[companyId].enterprise || {};
 
+    // Route each staff role to its own dashboard "home" — not the shared,
+    // multi-tab CEO shell.
+    if (staffRole === 'sales') { openSalesDashboard(); return; }
+    if (staffRole === 'finance') { openFinanceDashboard(); return; }
+    if (staffRole === 'legal') { openLegalDashboard(); return; }
+
+    const company = appState.users[companyId].enterprise || {};
     const logoEl = document.getElementById('ent-header-logo');
     logoEl.innerHTML = company.companyLogo ? `<img src="${company.companyLogo}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : (company.companyName || 'C').charAt(0).toUpperCase();
     document.getElementById('ent-header-company').textContent = company.companyName || 'Company';
@@ -14905,7 +14960,315 @@ available in the Post-Lease Hub and this chat thread.`
     switchEnterpriseTab(visibleTabs[0] || 'overview');
     if (window.lucide) lucide.createIcons();
   }
-  document.getElementById('ent-back-btn').addEventListener('click', () => navigateTo('screen-4'));
+  document.getElementById('ent-back-btn').addEventListener('click', () => {
+    // This shell is CEO-only now, so "Back to Dashboard" here always means
+    // the CEO's own main dashboard.
+    navigateTo('screen-4');
+  });
+
+  // ==================================================================
+  // ---- Staff → CEO Direct Messaging ----
+  // Every staff member (Sales/Finance/Legal) can message the CEO directly
+  // to flag a transaction, a document, or a sale. Reuses the existing
+  // Messages screen (chat + voice/video call) by giving the thread a
+  // dedicated convType instead of a property listing.
+  // ==================================================================
+  function getOrCreateCeoThread() {
+    const uid = getCurrentUserId();
+    const companyId = getEnterpriseCompanyId();
+    if (!uid || !companyId) return null;
+    let conv = conversations.find(c => c.convType === 'staff-ceo' && c.staffId === uid);
+    if (conv) return conv;
+    const me = appState.users[uid] || {};
+    conv = {
+      id: Date.now(),
+      convType: 'staff-ceo',
+      companyId, staffId: uid,
+      staffName: me.name || 'Staff',
+      staffRole: getEnterpriseStaffRole(),
+      listingTitle: 'Direct to CEO',
+      feeType: 'staff',
+      status: 'active',
+      messages: [
+        { from: 'system', type: 'text', text: `Direct line opened with the CEO — flag a transaction, a document, or a sale here any time.` }
+      ],
+    };
+    conversations.unshift(conv);
+    saveConversations();
+    return conv;
+  }
+  function openCeoThread() {
+    const conv = getOrCreateCeoThread();
+    if (!conv) { showToast('Unable to open a thread with the CEO right now'); return; }
+    navigateTo('screen-messages');
+    openThreadDetail(conv.id);
+  }
+  // Drops a flagged item straight into the staff member's CEO thread and
+  // opens it — used by Sales/Finance/Legal "flag to CEO" actions.
+  function flagItemToCeo(label) {
+    const conv = getOrCreateCeoThread();
+    if (!conv) { showToast('Unable to reach the CEO right now'); return; }
+    conv.messages.push({ from: 'me', type: 'text', text: `📎 Flagged for your review: ${label}`, status: 'sent' });
+    saveConversations();
+    showToast('Flagged to the CEO — opening your chat');
+    navigateTo('screen-messages');
+    openThreadDetail(conv.id);
+    const msg = conv.messages[conv.messages.length - 1];
+    if (typeof simulateReceiptProgress === 'function') simulateReceiptProgress(conv, msg);
+  }
+  document.getElementById('ent-sales-message-ceo-btn').addEventListener('click', openCeoThread);
+  document.getElementById('ent-finance-message-ceo-btn').addEventListener('click', openCeoThread);
+  document.getElementById('ent-legal-message-ceo-btn').addEventListener('click', openCeoThread);
+
+  // ==================================================================
+  // ---- Sales Dashboard (own home) ----
+  // ==================================================================
+  function myEnterpriseListings() {
+    const uid = getCurrentUserId();
+    return enterpriseListings().filter(l => l.listedByStaffId === uid);
+  }
+  function renderSalesHeader() {
+    const companyId = getEnterpriseCompanyId();
+    const company = (companyId && appState.users[companyId] && appState.users[companyId].enterprise) || {};
+    const logoEl = document.getElementById('ent-sales-logo');
+    logoEl.innerHTML = company.companyLogo ? `<img src="${company.companyLogo}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : (company.companyName || 'C').charAt(0).toUpperCase();
+    document.getElementById('ent-sales-company').textContent = company.companyName || 'Company';
+  }
+  function renderSalesHome() {
+    const mine = myEnterpriseListings();
+    const totalValue = mine.reduce((sum, l) => sum + (l.annualPrice || l.totalPrice || 0), 0);
+    document.getElementById('ent-sales-stat-count').textContent = String(mine.length);
+    document.getElementById('ent-sales-stat-sub').textContent = `listing${mine.length === 1 ? '' : 's'} you've added · ${formatMoney(totalValue, 'ngn')} total value`;
+  }
+  function renderSalesListings() {
+    const mine = myEnterpriseListings();
+    const statusLabel = { LIVE: 'Live', PENDING_LEGAL_REVIEW: 'Pending Legal Review', PENDING_LANDLORD_VERIFICATION: 'Pending Landlord Verification' };
+    const list = document.getElementById('ent-sales-listings-list');
+    list.innerHTML = mine.length ? mine.map(l => `
+      <div class="ent-list-item">
+        <div class="ent-list-icon"><i data-lucide="home" class="w-4 h-4"></i></div>
+        <div class="ent-list-text">
+          <p class="ent-list-title">${l.title}</p>
+          <p class="ent-list-sub">${l.location}${l.estateName ? ' · ' + l.estateName : ''} · ${statusLabel[l.workflowStatus] || l.workflowStatus || 'Live'}</p>
+        </div>
+        <button type="button" class="ent-list-action-btn" data-flag-listing="${l.id}" title="Flag to CEO"><i data-lucide="flag" class="w-3.5 h-3.5"></i></button>
+      </div>`).join('')
+      : `<div class="ent-empty"><i data-lucide="building-2"></i><p>You haven't added any listings yet — tap Add Listing on your dashboard.</p></div>`;
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('ent-sales-listings-list').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-flag-listing]');
+    if (!btn) return;
+    const l = myEnterpriseListings().find(x => String(x.id) === btn.dataset.flagListing);
+    flagItemToCeo(`Sale — "${(l && l.title) || 'listing'}"`);
+  });
+  function openSalesDashboard() {
+    renderSalesHeader();
+    document.getElementById('ent-sales-home').style.display = 'block';
+    document.getElementById('ent-sales-listings-panel').style.display = 'none';
+    renderSalesHome();
+    navigateTo('screen-ent-sales');
+  }
+  document.getElementById('ent-sales-view-listings-card').addEventListener('click', () => {
+    document.getElementById('ent-sales-home').style.display = 'none';
+    document.getElementById('ent-sales-listings-panel').style.display = 'block';
+    renderSalesListings();
+  });
+  document.getElementById('ent-sales-listings-back-btn').addEventListener('click', () => {
+    document.getElementById('ent-sales-listings-panel').style.display = 'none';
+    document.getElementById('ent-sales-home').style.display = 'block';
+    renderSalesHome();
+  });
+  document.getElementById('ent-sales-add-listing-card').addEventListener('click', () => {
+    document.getElementById('ent-sales-add-choice-modal').classList.add('open');
+  });
+  document.getElementById('ent-sales-choice-cancel').addEventListener('click', () => {
+    document.getElementById('ent-sales-add-choice-modal').classList.remove('open');
+  });
+  document.getElementById('ent-sales-choice-bulk').addEventListener('click', () => {
+    document.getElementById('ent-sales-add-choice-modal').classList.remove('open');
+    document.getElementById('ent-bulk-import-btn').click();
+  });
+  document.getElementById('ent-sales-choice-single').addEventListener('click', () => {
+    document.getElementById('ent-sales-add-choice-modal').classList.remove('open');
+    showToast('Add your property below — it goes to the Landlord for verification, then MainTown legal review.');
+    navigateTo('screen-5');
+  });
+
+  // ==================================================================
+  // ---- Finance Dashboard (own home) ----
+  // ==================================================================
+  function companyTransactions() {
+    const companyId = getEnterpriseCompanyId();
+    return (appState.transactions || []).filter(t => t.userId === companyId || (t.meta && t.meta.companyId === companyId));
+  }
+  function renderFinanceHeader() {
+    const companyId = getEnterpriseCompanyId();
+    const company = (companyId && appState.users[companyId] && appState.users[companyId].enterprise) || {};
+    const logoEl = document.getElementById('ent-finance-logo');
+    logoEl.innerHTML = company.companyLogo ? `<img src="${company.companyLogo}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : (company.companyName || 'C').charAt(0).toUpperCase();
+    document.getElementById('ent-finance-company').textContent = company.companyName || 'Company';
+  }
+  function renderFinanceHome() {
+    const txns = companyTransactions();
+    const received = txns.filter(t => t.direction === 'credit');
+    const withdrawals = txns.filter(t => t.direction === 'debit' && t.category === 'WITHDRAWAL');
+    const receivedTotal = received.reduce((s, t) => s + (t.amount || 0), 0);
+    const withdrawalsTotal = withdrawals.reduce((s, t) => s + (t.amount || 0), 0);
+    document.getElementById('ent-finance-stat-received-count').textContent = String(received.length);
+    document.getElementById('ent-finance-stat-received-sub').textContent = formatMoney(receivedTotal, 'ngn');
+    document.getElementById('ent-finance-stat-withdrawals-count').textContent = String(withdrawals.length);
+    document.getElementById('ent-finance-stat-withdrawals-sub').textContent = formatMoney(withdrawalsTotal, 'ngn');
+  }
+  function renderFinanceReport() {
+    const txns = companyTransactions();
+    const list = document.getElementById('ent-finance-report-list');
+    list.innerHTML = txns.length ? txns.map(t => `
+      <div class="ent-list-item">
+        <div class="ent-list-icon" data-txn-id="${t.id}" style="cursor:pointer;"><i data-lucide="${t.direction === 'credit' ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i></div>
+        <div class="ent-list-text" data-txn-id="${t.id}" style="cursor:pointer;"><p class="ent-list-title">${t.title}</p><p class="ent-list-sub">${new Date(t.timestamp).toLocaleDateString()} · ${walletStatusLabel(t.status)}</p></div>
+        <p style="font-size:12.5px; font-weight:700; color:${t.direction === 'credit' ? '#34d399' : '#f87171'};">${t.direction === 'credit' ? '+' : '-'}${formatMoney(t.amount, 'ngn')}</p>
+        <button type="button" class="ent-list-action-btn" data-flag-txn="${t.id}" title="Flag to CEO"><i data-lucide="flag" class="w-3.5 h-3.5"></i></button>
+      </div>`).join('')
+      : `<div class="ent-empty"><i data-lucide="receipt"></i><p>No transactions recorded yet.</p></div>`;
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('ent-finance-report-list').addEventListener('click', (e) => {
+    const flagBtn = e.target.closest('[data-flag-txn]');
+    if (flagBtn) {
+      const t = companyTransactions().find(x => String(x.id) === flagBtn.dataset.flagTxn);
+      flagItemToCeo(`Transaction — "${(t && t.title) || 'transaction'}"`);
+      return;
+    }
+    const row = e.target.closest('[data-txn-id]');
+    if (!row) return;
+    openTxnReceipt(row.dataset.txnId);
+  });
+  function openFinanceDashboard() {
+    renderFinanceHeader();
+    document.getElementById('ent-finance-home').style.display = 'block';
+    document.getElementById('ent-finance-report-panel').style.display = 'none';
+    renderFinanceHome();
+    navigateTo('screen-ent-finance');
+  }
+  document.getElementById('ent-finance-view-report-card').addEventListener('click', () => {
+    document.getElementById('ent-finance-home').style.display = 'none';
+    document.getElementById('ent-finance-report-panel').style.display = 'block';
+    renderFinanceReport();
+  });
+  document.getElementById('ent-finance-report-back-btn').addEventListener('click', () => {
+    document.getElementById('ent-finance-report-panel').style.display = 'none';
+    document.getElementById('ent-finance-home').style.display = 'block';
+    renderFinanceHome();
+  });
+  // ==================================================================
+  // ---- Legal Dashboard (own home) ----
+  // ==================================================================
+  function companyLegalDocuments() {
+    const companyId = getEnterpriseCompanyId();
+    appState.legalDocuments = appState.legalDocuments || [];
+    return appState.legalDocuments.filter(d => d.companyId === companyId);
+  }
+  function renderLegalHeader() {
+    const companyId = getEnterpriseCompanyId();
+    const company = (companyId && appState.users[companyId] && appState.users[companyId].enterprise) || {};
+    const logoEl = document.getElementById('ent-legal-logo');
+    logoEl.innerHTML = company.companyLogo ? `<img src="${company.companyLogo}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : (company.companyName || 'C').charAt(0).toUpperCase();
+    document.getElementById('ent-legal-company').textContent = company.companyName || 'Company';
+  }
+  function renderLegalHome() {
+    const pending = enterpriseListings().filter(l => l.workflowStatus === 'PENDING_LEGAL_REVIEW');
+    document.getElementById('ent-legal-stat-pending').textContent = String(pending.length);
+  }
+  const LEGAL_DOC_STATUS_LABEL = { DRAFT: 'Not Sent', SENT_TO_CEO: 'Sent to CEO', APPROVED: 'Approved', REJECTED: 'Rejected' };
+  const LEGAL_DOC_STATUS_CLASS = { DRAFT: 'ent-doc-status-draft', SENT_TO_CEO: 'ent-doc-status-sent', APPROVED: 'ent-doc-status-approved', REJECTED: 'ent-doc-status-rejected' };
+  function renderLegalDocs() {
+    const docs = companyLegalDocuments();
+    const list = document.getElementById('ent-legal-docs-list');
+    list.innerHTML = docs.length ? docs.map(d => `
+      <div class="ent-list-item">
+        <div class="ent-list-icon"><i data-lucide="file-text" class="w-4 h-4"></i></div>
+        <div class="ent-list-text">
+          <p class="ent-list-title">${d.name}</p>
+          <p class="ent-list-sub">${new Date(d.uploadedAt).toLocaleDateString()}</p>
+        </div>
+        <span class="ent-doc-status-badge ${LEGAL_DOC_STATUS_CLASS[d.status] || 'ent-doc-status-draft'}">${LEGAL_DOC_STATUS_LABEL[d.status] || d.status}</span>
+        <button type="button" class="ent-list-action-btn" data-download-doc="${d.id}" title="Download"><i data-lucide="download" class="w-3.5 h-3.5"></i></button>
+        ${d.status === 'DRAFT' ? `<button type="button" class="ent-list-action-btn primary" data-send-doc="${d.id}" title="Send to CEO"><i data-lucide="send" class="w-3.5 h-3.5"></i></button>` : ''}
+      </div>`).join('')
+      : `<div class="ent-empty"><i data-lucide="scale"></i><p>No documents yet — tap Upload Document above.</p></div>`;
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('ent-legal-docs-list').addEventListener('click', (e) => {
+    const dlBtn = e.target.closest('[data-download-doc]');
+    const sendBtn = e.target.closest('[data-send-doc]');
+    if (dlBtn) {
+      const d = companyLegalDocuments().find(x => String(x.id) === dlBtn.dataset.downloadDoc);
+      showToast(`Downloading ${(d && d.name) || 'document'}`);
+      return;
+    }
+    if (sendBtn) {
+      const d = companyLegalDocuments().find(x => String(x.id) === sendBtn.dataset.sendDoc);
+      if (!d) return;
+      d.status = 'SENT_TO_CEO';
+      d.sentAt = Date.now();
+      saveAppState(appState);
+      flagItemToCeo(`Document — "${d.name}" needs your review & approval`);
+      renderLegalDocs();
+    }
+  });
+  function openLegalDashboard() {
+    renderLegalHeader();
+    document.getElementById('ent-legal-home').style.display = 'block';
+    document.getElementById('ent-legal-docs-panel').style.display = 'none';
+    renderLegalHome();
+    navigateTo('screen-ent-legal-dash');
+  }
+  document.getElementById('ent-legal-view-docs-card').addEventListener('click', () => {
+    document.getElementById('ent-legal-home').style.display = 'none';
+    document.getElementById('ent-legal-docs-panel').style.display = 'block';
+    renderLegalDocs();
+  });
+  document.getElementById('ent-legal-docs-back-btn').addEventListener('click', () => {
+    document.getElementById('ent-legal-docs-panel').style.display = 'none';
+    document.getElementById('ent-legal-home').style.display = 'block';
+    renderLegalHome();
+  });
+  let entLegalPendingDocDataUrl = null;
+  document.getElementById('ent-legal-upload-doc-btn').addEventListener('click', () => {
+    document.getElementById('ent-legal-doc-name').value = '';
+    document.getElementById('ent-legal-doc-upload-label').textContent = 'Choose File (PDF/Image)';
+    document.getElementById('ent-legal-doc-upload-box').classList.remove('has-file');
+    entLegalPendingDocDataUrl = null;
+    document.getElementById('ent-legal-upload-modal').classList.add('open');
+  });
+  document.getElementById('ent-legal-doc-cancel-btn').addEventListener('click', () => {
+    document.getElementById('ent-legal-upload-modal').classList.remove('open');
+  });
+  document.getElementById('ent-legal-doc-upload-box').addEventListener('click', () => document.getElementById('ent-legal-doc-file').click());
+  document.getElementById('ent-legal-doc-file').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    document.getElementById('ent-legal-doc-upload-box').classList.add('has-file');
+    document.getElementById('ent-legal-doc-upload-label').textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = () => { entLegalPendingDocDataUrl = reader.result; };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('ent-legal-doc-save-btn').addEventListener('click', () => {
+    const name = document.getElementById('ent-legal-doc-name').value.trim();
+    if (!name) { showToast('Please give the document a name'); return; }
+    const companyId = getEnterpriseCompanyId();
+    appState.legalDocuments = appState.legalDocuments || [];
+    appState.legalDocuments.unshift({
+      id: Date.now(), companyId, name, fileDataUrl: entLegalPendingDocDataUrl || null,
+      uploadedBy: getCurrentUserId(), uploadedAt: Date.now(), status: 'DRAFT',
+    });
+    saveAppState(appState);
+    document.getElementById('ent-legal-upload-modal').classList.remove('open');
+    showToast('Document uploaded to your legal library');
+    renderLegalDocs();
+  });
 
   function switchEnterpriseTab(tabKey) {
     entActiveTab = tabKey;
@@ -15089,7 +15452,8 @@ available in the Post-Lease Hub and this chat thread.`
       const id = Date.now() + i;
       const baseFields = {
         id, title: r.title, location: [r.address, r.lga, r.state].filter(Boolean).join(', '),
-        companyId, addedBy: getCurrentUserId(), estateName, listedBy: 'enterprise', listedByRole: 'ENTERPRISE',
+        companyId, estateName, listedBy: 'enterprise', listedByRole: 'ENTERPRISE',
+        listedByStaffId: getCurrentUserId(),
         status: 'draft', workflowStatus: 'PENDING_LEGAL_REVIEW', ownerId: companyId, masterTitleLinked,
         description: r.description || '', amenities: r.amenities || '',
       };
@@ -15104,8 +15468,6 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('ent-csv-modal').classList.remove('open');
     showToast(`Imported ${imported} propert${imported === 1 ? 'y' : 'ies'} as "${estateName}" — pending legal review`);
     if (entActiveTab === 'inventory') renderEntInventory();
-    if (typeof renderStaffSalesDashboard === 'function' && !document.getElementById('screen-staff-sales').classList.contains('hidden')) renderStaffSalesDashboard();
-    if (typeof renderStaffSalesListings === 'function' && !document.getElementById('screen-staff-sales-listings').classList.contains('hidden')) renderStaffSalesListings();
     window.dispatchEvent(new Event('maintown_state_updated'));
   });
 
@@ -15123,36 +15485,6 @@ available in the Post-Lease Hub and this chat thread.`
         <button type="button" class="ent-list-action-btn primary" data-review="${l.id}"><i data-lucide="file-check-2" class="w-3.5 h-3.5"></i>Review</button>
       </div>`).join('')
       : `<div class="ent-empty"><i data-lucide="scale"></i><p>Nothing waiting on legal review right now.</p></div>`;
-    renderEntLegalDocsReview();
-  }
-
-  // Company legal documents that staff have sent in for the CEO's review & approval.
-  function renderEntLegalDocsReview() {
-    const wrap = document.getElementById('ent-legal-docs-review-list');
-    if (!wrap || typeof companyLegalDocuments !== 'function') return;
-    const docs = companyLegalDocuments().filter(d => d.status === 'PENDING_CEO_REVIEW' || d.status === 'APPROVED');
-    wrap.innerHTML = docs.length ? docs.slice().reverse().map(d => `
-      <div class="ent-list-item">
-        <div class="ent-list-icon"><i data-lucide="file-text" class="w-4 h-4"></i></div>
-        <div class="ent-list-text"><p class="ent-list-title">${d.name}</p><p class="ent-list-sub">${d.status === 'APPROVED' ? 'Approved' : 'Awaiting your approval'}</p></div>
-        ${d.dataUrl ? `<button type="button" class="ent-list-action-btn" data-doc-view="${d.id}" title="Download"><i data-lucide="download" class="w-3.5 h-3.5"></i></button>` : ''}
-        ${d.status !== 'APPROVED' ? `<button type="button" class="ent-list-action-btn primary" data-doc-approve="${d.id}" style="margin-left:6px;"><i data-lucide="check" class="w-3.5 h-3.5"></i>Approve</button>` : ''}
-      </div>`).join('')
-      : `<div class="ent-empty"><i data-lucide="file-text"></i><p>No legal documents sent in for approval yet.</p></div>`;
-    wrap.querySelectorAll('[data-doc-view]').forEach(btn => btn.addEventListener('click', () => {
-      const doc = companyLegalDocuments().find(d => d.id == btn.dataset.docView);
-      if (!doc || !doc.dataUrl) return;
-      const a = document.createElement('a'); a.href = doc.dataUrl; a.download = doc.name; a.click();
-    }));
-    wrap.querySelectorAll('[data-doc-approve]').forEach(btn => btn.addEventListener('click', () => {
-      const doc = companyLegalDocuments().find(d => d.id == btn.dataset.docApprove);
-      if (!doc) return;
-      doc.status = 'APPROVED';
-      saveAppState(appState);
-      showToast(`"${doc.name}" approved`);
-      renderEntLegalDocsReview();
-    }));
-    if (window.lucide) lucide.createIcons();
   }
   document.getElementById('ent-legal-list').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-review]');
@@ -15297,261 +15629,6 @@ available in the Post-Lease Hub and this chat thread.`
     });
     showToast('Withdrawal initiated — funds on the way to your bank');
     renderEntWallet();
-  });
-
-  // ==================================================================
-  // ---- Dedicated staff dashboards: Sales / Finance / Legal each get
-  //      their own home screen (not the CEO tab shell). All three share
-  //      a "Message CEO" entry point that reuses the existing chat/call
-  //      messaging screen via a lightweight staff<->CEO conversation.
-  // ==================================================================
-
-  function openStaffDashboard(staffRole) {
-    const companyId = getEnterpriseCompanyId();
-    if (!companyId) { showToast('No company found for this account'); return; }
-    const company = appState.users[companyId].enterprise || {};
-    const initials = (company.companyName || 'C').charAt(0).toUpperCase();
-    const logoHtml = company.companyLogo ? `<img src="${company.companyLogo}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : initials;
-
-    if (staffRole === 'sales') {
-      document.getElementById('staff-sales-logo').innerHTML = logoHtml;
-      document.getElementById('staff-sales-company').textContent = company.companyName || 'Company';
-      navigateTo('screen-staff-sales');
-      renderStaffSalesDashboard();
-    } else if (staffRole === 'finance') {
-      document.getElementById('staff-finance-logo').innerHTML = logoHtml;
-      document.getElementById('staff-finance-company').textContent = company.companyName || 'Company';
-      navigateTo('screen-staff-finance');
-      renderStaffFinanceDashboard();
-    } else if (staffRole === 'legal') {
-      document.getElementById('staff-legal-logo').innerHTML = logoHtml;
-      document.getElementById('staff-legal-company').textContent = company.companyName || 'Company';
-      navigateTo('screen-staff-legal');
-      renderStaffLegalDashboard();
-    }
-    if (window.lucide) lucide.createIcons();
-  }
-
-  // Generic "Back to Dashboard" for every staff sub-screen — routes back to
-  // that staff member's own home, never a shared/generic company view.
-  document.querySelectorAll('.staff-back-btn').forEach(btn => {
-    btn.addEventListener('click', () => navigateTo(btn.dataset.backTo));
-  });
-
-  // ---- Message CEO: finds/creates one persistent thread per staff member,
-  // reusing the existing Messages screen (chat + call + video call). ----
-  function openOrCreateStaffCeoThread(contextLabel) {
-    const uid = getCurrentUserId();
-    const companyId = getEnterpriseCompanyId();
-    const staffRole = getEnterpriseStaffRole();
-    const rec = appState.users[uid] || {};
-    let conv = conversations.find(c => c.kind === 'staff_ceo' && c.companyId === companyId && c.staffId === uid);
-    if (!conv) {
-      conv = { id: Date.now(), kind: 'staff_ceo', companyId, staffId: uid, staffName: rec.name || 'Staff', staffRole, listingTitle: contextLabel || 'General', status: 'active', messages: [] };
-      conversations.push(conv);
-    }
-    if (contextLabel) {
-      conv.listingTitle = contextLabel;
-      conv.messages.push({ from: 'system', text: `Regarding: ${contextLabel}` });
-    }
-    saveConversations();
-    navigateTo('screen-messages');
-    openThreadDetail(conv.id);
-  }
-  document.getElementById('staff-sales-msg-ceo-btn').addEventListener('click', () => openOrCreateStaffCeoThread(null));
-  document.getElementById('staff-finance-msg-ceo-btn').addEventListener('click', () => openOrCreateStaffCeoThread(null));
-  document.getElementById('staff-legal-msg-ceo-btn').addEventListener('click', () => openOrCreateStaffCeoThread(null));
-
-  // ==================== Sales dashboard ====================
-  function myAddedListings() {
-    const uid = getCurrentUserId();
-    return enterpriseListings().filter(l => l.addedBy === uid);
-  }
-  function renderStaffSalesDashboard() {
-    const mine = myAddedListings();
-    const live = mine.filter(l => l.status === 'live');
-    document.getElementById('staff-sales-report-stat').textContent = String(mine.length);
-    document.getElementById('staff-sales-report-sub').textContent = `${mine.length} listing${mine.length === 1 ? '' : 's'} added · ${live.length} live`;
-  }
-  function renderStaffSalesListings() {
-    const mine = myAddedListings();
-    const statusLabel = { LIVE: 'Live', PENDING_LEGAL_REVIEW: 'Pending Legal Review', PENDING_LANDLORD_VERIFICATION: 'Pending Landlord Verification' };
-    const list = document.getElementById('staff-sales-listings-list');
-    list.innerHTML = mine.length ? mine.map((l, idx) => `
-      <div class="ent-list-item">
-        <div class="ent-list-icon"><i data-lucide="home" class="w-4 h-4"></i></div>
-        <div class="ent-list-text">
-          <p class="ent-list-title">${l.title}</p>
-          <p class="ent-list-sub">${l.location}${l.estateName ? ' · ' + l.estateName : ''} · ${statusLabel[l.workflowStatus] || l.workflowStatus || 'Live'}</p>
-        </div>
-        <button type="button" class="ent-list-action-btn" data-flag-sale-idx="${idx}" title="Flag to CEO"><i data-lucide="flag" class="w-3.5 h-3.5"></i></button>
-      </div>`).join('')
-      : `<div class="ent-empty"><i data-lucide="building-2"></i><p>You haven't added any listings yet.</p></div>`;
-    list.querySelectorAll('[data-flag-sale-idx]').forEach(btn => btn.addEventListener('click', () => openOrCreateStaffCeoThread(`Sale: ${mine[parseInt(btn.dataset.flagSaleIdx, 10)].title}`)));
-    if (window.lucide) lucide.createIcons();
-  }
-  document.getElementById('staff-sales-view-listings-card').addEventListener('click', () => {
-    navigateTo('screen-staff-sales-listings');
-    renderStaffSalesListings();
-  });
-  document.getElementById('staff-sales-add-listing-card').addEventListener('click', () => {
-    document.getElementById('staff-add-listing-choice-modal').classList.add('open');
-  });
-  document.getElementById('staff-choice-cancel-btn').addEventListener('click', () => {
-    document.getElementById('staff-add-listing-choice-modal').classList.remove('open');
-  });
-  document.getElementById('staff-choice-bulk-btn').addEventListener('click', () => {
-    document.getElementById('staff-add-listing-choice-modal').classList.remove('open');
-    document.getElementById('ent-bulk-import-btn').click();
-  });
-  document.getElementById('staff-choice-single-btn').addEventListener('click', () => {
-    document.getElementById('staff-add-listing-choice-modal').classList.remove('open');
-    ['ssa-title', 'ssa-price', 'ssa-state', 'ssa-lga', 'ssa-address', 'ssa-description'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('ssa-error').classList.remove('show');
-    document.getElementById('staff-single-add-modal').classList.add('open');
-  });
-  document.getElementById('ssa-cancel-btn').addEventListener('click', () => document.getElementById('staff-single-add-modal').classList.remove('open'));
-  function showSsaError(msg) {
-    document.getElementById('ssa-error-text').textContent = msg;
-    document.getElementById('ssa-error').classList.add('show');
-  }
-  document.getElementById('ssa-submit-btn').addEventListener('click', () => {
-    const title = document.getElementById('ssa-title').value.trim();
-    const category = document.getElementById('ssa-category').value;
-    const price = parseFloat(document.getElementById('ssa-price').value);
-    const state = document.getElementById('ssa-state').value.trim();
-    const lga = document.getElementById('ssa-lga').value.trim();
-    const address = document.getElementById('ssa-address').value.trim();
-    const description = document.getElementById('ssa-description').value.trim();
-    if (!title || !price || isNaN(price)) { showSsaError('Please fill in at least Title and a valid Price.'); return; }
-    const companyId = getEnterpriseCompanyId();
-    const uid = getCurrentUserId();
-    const id = Date.now();
-    const baseFields = {
-      id, title, location: [address, lga, state].filter(Boolean).join(', '),
-      companyId, addedBy: uid, listedBy: 'enterprise', listedByRole: 'ENTERPRISE',
-      status: 'draft', workflowStatus: 'PENDING_LEGAL_REVIEW', ownerId: companyId,
-      description: description || '',
-    };
-    const listingData = category === 'land'
-      ? { ...baseFields, type: 'land', totalPrice: price, img: PROPERTY_IMG_FALLBACK.land }
-      : { ...baseFields, type: 'rent', annualPrice: price, ngn: `${formatMoney(Math.round(price / 12), 'ngn')} / mo`, usd: `$${Math.round(price / 12 / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent };
-    listingsFeed.unshift(listingData);
-    saveListings();
-    document.getElementById('staff-single-add-modal').classList.remove('open');
-    showToast(`"${title}" submitted — pending legal review`);
-    renderStaffSalesDashboard();
-    window.dispatchEvent(new Event('maintown_state_updated'));
-  });
-
-  // ==================== Finance dashboard ====================
-  function companyTransactions() {
-    const companyId = getEnterpriseCompanyId();
-    return (appState.transactions || []).filter(t => t.userId === companyId || (t.meta && t.meta.companyId === companyId));
-  }
-  function renderStaffFinanceDashboard() {
-    const txns = companyTransactions();
-    const received = txns.filter(t => t.direction === 'credit');
-    const withdrawals = txns.filter(t => t.direction === 'debit' && t.category === 'WITHDRAWAL');
-    const sum = arr => arr.reduce((s, t) => s + (t.amount || 0), 0);
-    document.getElementById('staff-fin-received-count').textContent = String(received.length);
-    document.getElementById('staff-fin-received-amount').textContent = `${formatMoney(sum(received), 'ngn')} total`;
-    document.getElementById('staff-fin-withdraw-count').textContent = String(withdrawals.length);
-    document.getElementById('staff-fin-withdraw-amount').textContent = `${formatMoney(sum(withdrawals), 'ngn')} total`;
-  }
-  function downloadTransactionReceipt(t) {
-    const lines = [
-      `MainTown Realty — Transaction Receipt`, `Title: ${t.title}`, `Amount: ${formatMoney(t.amount, 'ngn')}`,
-      `Direction: ${t.direction}`, `Status: ${walletStatusLabel(t.status)}`, `Date: ${new Date(t.timestamp).toLocaleString()}`,
-    ];
-    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `Receipt_${t.id || Date.now()}.txt`; a.click();
-    URL.revokeObjectURL(url);
-  }
-  function renderStaffFinanceReport() {
-    const txns = companyTransactions();
-    const list = document.getElementById('staff-finance-report-list');
-    list.innerHTML = txns.length ? txns.map((t, idx) => `
-      <div class="ent-list-item">
-        <div class="ent-list-icon"><i data-lucide="${t.direction === 'credit' ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i></div>
-        <div class="ent-list-text"><p class="ent-list-title">${t.title}</p><p class="ent-list-sub">${new Date(t.timestamp).toLocaleDateString()} · ${walletStatusLabel(t.status)} · <span style="color:${t.direction === 'credit' ? '#34d399' : '#f87171'};">${t.direction === 'credit' ? '+' : '-'}${formatMoney(t.amount, 'ngn')}</span></p></div>
-        <button type="button" class="ent-list-action-btn" data-receipt-idx="${idx}" title="Download Receipt"><i data-lucide="download" class="w-3.5 h-3.5"></i></button>
-        <button type="button" class="ent-list-action-btn" data-flag-idx="${idx}" title="Flag to CEO" style="margin-left:6px;"><i data-lucide="flag" class="w-3.5 h-3.5"></i></button>
-      </div>`).join('')
-      : `<div class="ent-empty"><i data-lucide="receipt"></i><p>No transactions recorded yet.</p></div>`;
-    list.querySelectorAll('[data-receipt-idx]').forEach(btn => btn.addEventListener('click', () => downloadTransactionReceipt(txns[parseInt(btn.dataset.receiptIdx, 10)])));
-    list.querySelectorAll('[data-flag-idx]').forEach(btn => btn.addEventListener('click', () => openOrCreateStaffCeoThread(`Transaction: ${txns[parseInt(btn.dataset.flagIdx, 10)].title}`)));
-    if (window.lucide) lucide.createIcons();
-  }
-  document.getElementById('staff-finance-report-card').addEventListener('click', () => {
-    navigateTo('screen-staff-finance-report');
-    renderStaffFinanceReport();
-  });
-
-  // ==================== Legal dashboard ====================
-  function companyLegalDocuments() {
-    const companyId = getEnterpriseCompanyId();
-    if (!companyId || !appState.users[companyId]) return [];
-    appState.users[companyId].enterprise = appState.users[companyId].enterprise || {};
-    appState.users[companyId].enterprise.legalDocuments = appState.users[companyId].enterprise.legalDocuments || [];
-    return appState.users[companyId].enterprise.legalDocuments;
-  }
-  function renderStaffLegalDashboard() {
-    const docs = companyLegalDocuments();
-    const pending = docs.filter(d => d.status !== 'APPROVED');
-    document.getElementById('staff-legal-pending-stat').textContent = String(pending.length);
-  }
-  const LEGAL_DOC_STATUS_LABEL = { DRAFT: 'Not yet sent', PENDING_CEO_REVIEW: 'Sent to CEO — pending review', APPROVED: 'Approved' };
-  function renderStaffLegalDocs() {
-    const docs = companyLegalDocuments();
-    const list = document.getElementById('staff-legal-docs-list');
-    list.innerHTML = docs.length ? docs.slice().reverse().map((d) => `
-      <div class="ent-list-item">
-        <div class="ent-list-icon"><i data-lucide="file-text" class="w-4 h-4"></i></div>
-        <div class="ent-list-text"><p class="ent-list-title">${d.name}</p><p class="ent-list-sub">${LEGAL_DOC_STATUS_LABEL[d.status] || d.status}</p></div>
-        ${d.dataUrl ? `<button type="button" class="ent-list-action-btn" data-doc-download="${d.id}" title="Download"><i data-lucide="download" class="w-3.5 h-3.5"></i></button>` : ''}
-        ${d.status !== 'APPROVED' ? `<button type="button" class="ent-list-action-btn primary" data-doc-send="${d.id}" style="margin-left:6px;" ${d.status === 'PENDING_CEO_REVIEW' ? 'disabled' : ''}><i data-lucide="send" class="w-3.5 h-3.5"></i>${d.status === 'PENDING_CEO_REVIEW' ? 'Sent' : 'Send to CEO'}</button>` : ''}
-      </div>`).join('')
-      : `<div class="ent-empty"><i data-lucide="scale"></i><p>No legal documents uploaded yet.</p></div>`;
-    list.querySelectorAll('[data-doc-download]').forEach(btn => btn.addEventListener('click', () => {
-      const doc = docs.find(d => d.id == btn.dataset.docDownload);
-      if (!doc || !doc.dataUrl) return;
-      const a = document.createElement('a');
-      a.href = doc.dataUrl; a.download = doc.name; a.click();
-    }));
-    list.querySelectorAll('[data-doc-send]').forEach(btn => btn.addEventListener('click', () => {
-      const doc = docs.find(d => d.id == btn.dataset.docSend);
-      if (!doc || doc.status === 'PENDING_CEO_REVIEW') return;
-      doc.status = 'PENDING_CEO_REVIEW';
-      saveAppState(appState);
-      openOrCreateStaffCeoThread(`Document for review: ${doc.name}`);
-      showToast(`"${doc.name}" sent to the CEO for review & approval`);
-      renderStaffLegalDocs();
-      renderStaffLegalDashboard();
-    }));
-    if (window.lucide) lucide.createIcons();
-  }
-  document.getElementById('staff-legal-view-docs-card').addEventListener('click', () => {
-    navigateTo('screen-staff-legal-docs');
-    renderStaffLegalDocs();
-  });
-  document.getElementById('staff-legal-upload-btn').addEventListener('click', () => document.getElementById('staff-legal-upload-file').click());
-  document.getElementById('staff-legal-upload-file').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const docs = companyLegalDocuments();
-      docs.push({ id: Date.now(), name: file.name, uploadedBy: getCurrentUserId(), dataUrl: reader.result, status: 'DRAFT', uploadedAt: Date.now() });
-      saveAppState(appState);
-      showToast(`"${file.name}" uploaded`);
-      renderStaffLegalDocs();
-      renderStaffLegalDashboard();
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
   });
 
   // Re-render active UI the instant any part of the app mutates shared state.
