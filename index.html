@@ -2443,54 +2443,64 @@
           </div>
         </div>
 
-        <p class="s5-section-label"><i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i>Landlord / Owner (Mandatory)</p>
-        <div class="toggle-pill-row" style="margin-bottom:14px;">
-          <button type="button" class="toggle-pill active" id="s5-landlord-mode-existing" data-mode="existing">Existing Landlord/Owner</button>
-          <button type="button" class="toggle-pill" id="s5-landlord-mode-new" data-mode="new">New Landlord/Owner</button>
+        <div id="s5-landlord-section">
+          <p class="s5-section-label"><i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i>Landlord / Owner (Mandatory)</p>
+          <div class="toggle-pill-row" style="margin-bottom:14px;">
+            <button type="button" class="toggle-pill active" id="s5-landlord-mode-existing" data-mode="existing">Existing Landlord/Owner</button>
+            <button type="button" class="toggle-pill" id="s5-landlord-mode-new" data-mode="new">New Landlord/Owner</button>
+          </div>
+
+          <div id="s5-existing-landlord-wrap">
+            <div class="field">
+              <label class="field-label">Select Landlord/Owner</label>
+              <select class="field-input" id="s5-existing-landlord-select">
+                <!-- populated dynamically -->
+              </select>
+            </div>
+          </div>
+
+          <div id="s5-new-landlord-wrap" style="display:none;">
+            <div class="field">
+              <label class="field-label">Landlord Full Name</label>
+              <input class="field-input" id="s5-landlord-name" type="text" placeholder="Landlord's full legal name">
+            </div>
+            <div class="field">
+              <label class="field-label">Landlord Phone Number</label>
+              <input class="field-input" id="s5-landlord-phone" type="tel" placeholder="080X XXX XXXX">
+            </div>
+            <div class="field">
+              <label class="field-label">Landlord Email</label>
+              <input class="field-input" id="s5-landlord-email" type="email" placeholder="landlord@example.com">
+            </div>
+
+            <p class="s5-section-label" style="margin-top:6px;"><i data-lucide="landmark" class="w-4 h-4 text-purple-400"></i>Payout Bank Account</p>
+            <div class="field">
+              <label class="field-label">Settlement Bank Name</label>
+              <input class="field-input" id="s5-landlord-bank-name" type="text" placeholder="e.g. GTBank, Access Bank">
+            </div>
+            <div class="field">
+              <label class="field-label">Settlement Bank Account Number</label>
+              <input class="field-input" id="s5-landlord-bank-account" type="text" placeholder="10-digit NUBAN account number" inputmode="numeric" maxlength="10">
+            </div>
+            <div class="field">
+              <label class="field-label">BVN or NIN</label>
+              <input class="field-input" id="s5-landlord-bvn-nin" type="text" placeholder="11-digit BVN or NIN" inputmode="numeric" maxlength="11">
+            </div>
+            <button type="button" id="s5-resolve-nuban-btn" class="btn-secondary" style="margin-bottom:10px;">
+              <i data-lucide="search-check" class="w-3.5 h-3.5"></i> Resolve Account Name
+            </button>
+            <div class="rent-badge" id="s5-nuban-resolved" style="display:none; align-items:center; gap:6px;">
+              <i data-lucide="badge-check" class="w-3.5 h-3.5"></i><span>—</span>
+            </div>
+          </div>
         </div>
 
-        <div id="s5-existing-landlord-wrap">
-          <div class="field">
-            <label class="field-label">Select Landlord/Owner</label>
-            <select class="field-input" id="s5-existing-landlord-select">
-              <!-- populated dynamically -->
-            </select>
-          </div>
-        </div>
-
-        <div id="s5-new-landlord-wrap" style="display:none;">
-          <div class="field">
-            <label class="field-label">Landlord Full Name</label>
-            <input class="field-input" id="s5-landlord-name" type="text" placeholder="Landlord's full legal name">
-          </div>
-          <div class="field">
-            <label class="field-label">Landlord Phone Number</label>
-            <input class="field-input" id="s5-landlord-phone" type="tel" placeholder="080X XXX XXXX">
-          </div>
-          <div class="field">
-            <label class="field-label">Landlord Email</label>
-            <input class="field-input" id="s5-landlord-email" type="email" placeholder="landlord@example.com">
-          </div>
-
-          <p class="s5-section-label" style="margin-top:6px;"><i data-lucide="landmark" class="w-4 h-4 text-purple-400"></i>Payout Bank Account</p>
-          <div class="field">
-            <label class="field-label">Settlement Bank Name</label>
-            <input class="field-input" id="s5-landlord-bank-name" type="text" placeholder="e.g. GTBank, Access Bank">
-          </div>
-          <div class="field">
-            <label class="field-label">Settlement Bank Account Number</label>
-            <input class="field-input" id="s5-landlord-bank-account" type="text" placeholder="10-digit NUBAN account number" inputmode="numeric" maxlength="10">
-          </div>
-          <div class="field">
-            <label class="field-label">BVN or NIN</label>
-            <input class="field-input" id="s5-landlord-bvn-nin" type="text" placeholder="11-digit BVN or NIN" inputmode="numeric" maxlength="11">
-          </div>
-          <button type="button" id="s5-resolve-nuban-btn" class="btn-secondary" style="margin-bottom:10px;">
-            <i data-lucide="search-check" class="w-3.5 h-3.5"></i> Resolve Account Name
-          </button>
-          <div class="rent-badge" id="s5-nuban-resolved" style="display:none; align-items:center; gap:6px;">
-            <i data-lucide="badge-check" class="w-3.5 h-3.5"></i><span>—</span>
-          </div>
+        <!-- Enterprise staff (Sales) add on behalf of the company — no
+             Landlord/Owner switcher needed, since MainTown/the company IS
+             the owner of record. -->
+        <div id="s5-enterprise-owner-note" class="s5-notice-box" style="display:none;">
+          <i data-lucide="briefcase" class="w-5 h-5"></i>
+          <p>Listed on behalf of your company — no Landlord/Owner needed. This goes straight to MainTown's legal review queue.</p>
         </div>
 
         <p class="s5-section-label"><i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>Inspection Availability</p>
@@ -5631,6 +5641,17 @@
       document.getElementById(screenId).classList.remove('hidden');
     }
 
+    // ---- Staff Dashboard Guard: Sales/Finance/Legal staff never have their
+    // own use for the generic company dashboard (screen-4) — if anything
+    // (a stale hash, a back-button reload, an old link) tries to land them
+    // there, bounce them straight to their own dashboard instead. ----
+    if (screenId === 'screen-4' && (typeof isDedicatedStaffRole === 'function') && isDedicatedStaffRole()) {
+      const staffScreenByRole = { sales: 'screen-ent-sales', finance: 'screen-ent-finance', legal: 'screen-ent-legal-dash' };
+      screenId = staffScreenByRole[getEnterpriseStaffRole()] || 'screen-ent-sales';
+      document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+      document.getElementById(screenId).classList.remove('hidden');
+    }
+
     if (screenId === 'screen-4') {
       if (typeof autoClearActivityFeed === 'function') autoClearActivityFeed();
       populateScreen4();
@@ -7086,6 +7107,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
       document.getElementById('s5-tab-mine').click();
       renderAgentListings(); // also populate "My Listings" + Inspections Manager in the background so role-switching shows live data immediately
       if (typeof populateExistingLandlordSelect === 'function') populateExistingLandlordSelect();
+
+      // Enterprise staff (Sales) list on behalf of the company — no
+      // Landlord/Owner switcher; the company is the owner of record.
+      const isEnterpriseStaffAdding = role === 'enterprise_staff';
+      const landlordSection = document.getElementById('s5-landlord-section');
+      const ownerNote = document.getElementById('s5-enterprise-owner-note');
+      if (landlordSection) landlordSection.style.display = isEnterpriseStaffAdding ? 'none' : 'block';
+      if (ownerNote) ownerNote.style.display = isEnterpriseStaffAdding ? 'flex' : 'none';
     }
 
     if (window.lucide) lucide.createIcons();
@@ -9796,6 +9825,54 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
 
+    // ---- Enterprise staff (Sales) list on behalf of the company — no
+    // Landlord/Owner switcher, no landlord-verification queue. This goes
+    // straight to MainTown's legal review, same as a CEO's Bulk CSV import. ----
+    if (currentUserRole === 'enterprise_staff') {
+      const companyId = (typeof getEnterpriseCompanyId === 'function') ? getEnterpriseCompanyId() : null;
+      if (!companyId) { showToast('Unable to resolve your company account'); return; }
+      const newId = Date.now();
+      const baseFields = {
+        id: newId, title, location: address, listedBy: 'enterprise', status: 'draft',
+        hasPhotos: s5PendingPhotoCount > 0, hasVideo: s5PendingHasVideo,
+        photos: s5PendingPhotoUrls.slice(), videoUrl: s5PendingVideoUrl,
+        availability: s5PendingAvailability.map(a => ({ date: a.date, slots: a.slots.slice() })),
+        ownerId: companyId, companyId, listedByStaffId: getCurrentUserId(),
+        listedByRole: 'ENTERPRISE', workflowStatus: 'PENDING_LEGAL_REVIEW',
+      };
+      let listingData;
+      if (type === 'rent') {
+        const monthly = Math.round(annual / 12);
+        listingData = { ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent };
+      } else if (type === 'shortlet') {
+        listingData = { ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: PROPERTY_IMG_FALLBACK.shortlet };
+      } else {
+        listingData = { ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land };
+      }
+      listingsFeed.unshift(listingData);
+      saveListings();
+      showToast(`"${title}" added — pending MainTown legal review`);
+
+      s5PendingPhotoCount = 0;
+      s5PendingHasVideo = false;
+      s5PendingPhotoUrls = [];
+      s5PendingVideoUrl = null;
+      s5PendingAvailability = [];
+      renderAvailabilityList(s5PendingAvailability, 's5');
+
+      e.target.reset();
+      document.getElementById('s5-photo-upload').classList.remove('has-file');
+      document.getElementById('s5-photo-upload-label').textContent = 'Property Photos';
+      document.getElementById('s5-video-upload').classList.remove('has-file');
+      document.getElementById('s5-video-upload-label').textContent = 'Video Walkthrough';
+      document.getElementById('s5-monthly-badge').style.display = 'none';
+
+      if (window.lucide) lucide.createIcons();
+      if (typeof renderSalesHome === 'function') renderSalesHome();
+      window.dispatchEvent(new Event('maintown_state_updated'));
+      return;
+    }
+
     let landlordUser, landlordName, landlordPhone, landlordEmail, landlordBankAccount, landlordBankName;
 
     if (s5LandlordMode === 'existing') {
@@ -11755,14 +11832,24 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const list = document.getElementById('msg-thread-list');
     const emptyHint = document.getElementById('msg-empty-hint');
 
-    if (!conversations.length) {
+    // Sales/Finance/Legal staff have a single purpose here: a direct line
+    // to the CEO. They never see tenant/inspection chats — those belong to
+    // other roles entirely.
+    let visibleConversations = conversations;
+    if (typeof isDedicatedStaffRole === 'function' && isDedicatedStaffRole()) {
+      if (typeof getOrCreateCeoThread === 'function') getOrCreateCeoThread();
+      const uid = getCurrentUserId();
+      visibleConversations = conversations.filter(c => c.convType === 'staff-ceo' && c.staffId === uid);
+    }
+
+    if (!visibleConversations.length) {
       list.innerHTML = '';
       emptyHint.style.display = 'block';
       return;
     }
     emptyHint.style.display = 'none';
 
-    list.innerHTML = conversations.map(c => {
+    list.innerHTML = visibleConversations.map(c => {
       const archived = c.status === 'archived';
       const badge = archived
         ? '<span class="thread-badge" style="background:rgba(148,163,184,0.15); color:#94a3b8;">Archived</span>'
