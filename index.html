@@ -29,21 +29,47 @@
 
   /* ==================================================================
      ---- Light Mode ----
-     The entire app is built on a hardcoded dark palette (no CSS custom
-     properties), so a full manual light-theme reskin of every component
-     isn't practical here. Instead, `body.light-theme` inverts + hue-rotates
-     the whole app in one pass (dark backgrounds -> light, light text ->
-     dark, borders/accents flip consistently) — then photos, avatars, and
-     video are re-inverted back to their true colors so they don't render
-     as negatives. This keeps every existing screen, card, and modal in
-     sync automatically, with no per-component maintenance burden.
+     Only the main page canvas (body background) switches to white.
+     Every card/tile/row/modal/sheet/pill already carries its own explicit
+     navy or purple background in this stylesheet, so they are untouched
+     and keep looking exactly as they do in Dark Mode. The only extra rules
+     needed are for the handful of headings/labels that sit directly on the
+     bare page canvas (not inside a card) and were styled white/near-white
+     for a dark backdrop — those get a dark, readable color here so they
+     don't disappear against the new white background.
      ================================================================== */
   body.light-theme {
-    filter: invert(1) hue-rotate(180deg);
+    background: #ffffff;
+    color: #0f172a;
   }
-  body.light-theme img,
-  body.light-theme video {
-    filter: invert(1) hue-rotate(180deg);
+
+  /* Bare-canvas headings/titles (not inside a card) -> dark text */
+  body.light-theme h1.title,
+  body.light-theme .brand-name,
+  body.light-theme .dash-name,
+  body.light-theme .dash-section-title,
+  body.light-theme .ent-company-name,
+  body.light-theme .ent-panel-title,
+  body.light-theme .msg-peer-name,
+  body.light-theme .s5-role-title,
+  body.light-theme .s5-section-label,
+  body.light-theme .welcome-brand-name {
+    color: #0f172a;
+  }
+
+  /* Bare-canvas descriptive/subtitle text -> readable dark gray */
+  body.light-theme p.subtitle,
+  body.light-theme .welcome-subtitle,
+  body.light-theme .field-label,
+  body.light-theme .progress-step {
+    color: #475569;
+  }
+
+  /* Bare-canvas purple accents -> darker purple for contrast on white */
+  body.light-theme .progress-pct,
+  body.light-theme .welcome-tagline,
+  body.light-theme .s5-role-eyebrow {
+    color: #9333ea;
   }
   .app-shell {
     width: 100%;
@@ -375,6 +401,11 @@
     position: relative; width: 112px; height: 112px; border-radius: 28px;
     box-shadow: 0 20px 45px rgba(139,92,246,0.45);
     display: block;
+    animation: logoSpin360 5s linear infinite;
+  }
+  @keyframes logoSpin360 {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
   .welcome-brand-name { font-size: 28px; font-weight: 700; color: #fff; margin: 0; letter-spacing: -0.01em; }
   .welcome-tagline { font-size: 15px; font-weight: 600; color: #c084fc; margin: 8px 0 0; }
@@ -13757,6 +13788,11 @@ available in the Post-Lease Hub and this chat thread.`
     // Clear the persistent pre-onboarded demo session so the next load shows the
     // Login screen instead of auto-mounting this account again (see checkAutoRelogin).
     clearCurrentUser();
+    // Theme preference is per-session: logging out resets the app back to the
+    // default Dark Mode background rather than carrying the previous user's
+    // Light Mode choice into the next login.
+    applyTheme('dark');
+    try { localStorage.removeItem('mtr_theme'); } catch (e) {}
 
     document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
     appBottomNav.classList.add('hidden');
