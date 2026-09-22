@@ -251,6 +251,135 @@
   body.light-theme .dash-tile-icon-wrap .text-blue-400 { color: #2563eb; }
   body.light-theme .dash-tile-icon-wrap .text-fuchsia-400 { color: #c026d3; }
   body.light-theme .dash-tile-icon-wrap .text-teal-400 { color: #0d9488; }
+
+  /* ==================================================================
+     ---- Light Mode: Part 2 — everything still dark goes solid purple ----
+     Modals, sheets, list cards, the nav bar, search bar, notification
+     bell and the MainTown AI pill were left on their dark-mode colors.
+     This section brings them onto the same "solid vibrant purple, white
+     text/icons" treatment as .ent-stat-card / .ent-promo-card.
+     ================================================================== */
+
+  /* Modals & slide-up sheets (Verify Property Title, Tenants, etc.) */
+  body.light-theme .modal-card,
+  body.light-theme .sheet-card {
+    background: linear-gradient(135deg, #7c3aed, #9333ea);
+    border-color: transparent;
+    box-shadow: 0 16px 36px rgba(124,58,237,0.32);
+  }
+  body.light-theme .modal-icon-wrap { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.35); }
+  body.light-theme .modal-icon-wrap svg { color: #ffffff; }
+  body.light-theme .modal-title,
+  body.light-theme .modal-sub,
+  body.light-theme .sheet-title,
+  body.light-theme .sheet-subtitle,
+  body.light-theme .resend-line,
+  body.light-theme .role-hint { color: #ffffff; }
+  body.light-theme .modal-sub,
+  body.light-theme .resend-line { color: rgba(255,255,255,0.8); }
+  body.light-theme .sheet-close-btn,
+  body.light-theme .btn-secondary { color: rgba(255,255,255,0.85); }
+  body.light-theme .field-label { color: rgba(255,255,255,0.85); }
+  body.light-theme .otp-input,
+  body.light-theme #s5-search-input,
+  body.light-theme .msg-composer-input { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.35); color: #ffffff; }
+  body.light-theme .otp-input::placeholder { color: rgba(255,255,255,0.6); }
+
+  /* Notification bell, MainTown AI pill, avatar, cart FAB, back button */
+  body.light-theme .bell-btn,
+  body.light-theme .mtai-pill,
+  body.light-theme .cart-fab,
+  body.light-theme .dash-avatar,
+  body.light-theme .s5-back-btn {
+    background: linear-gradient(135deg, #7c3aed, #9333ea);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 6px 16px rgba(124,58,237,0.25);
+  }
+  body.light-theme .bell-btn i,
+  body.light-theme .s5-back-btn i,
+  body.light-theme .cart-fab i,
+  body.light-theme .dash-avatar span { color: #ffffff; }
+  body.light-theme .mtai-text { color: #ffffff !important; }
+
+  /* Search bar (property search / listing search) */
+  body.light-theme .s5-search-wrap {
+    background: linear-gradient(135deg, #7c3aed, #9333ea);
+    border-color: transparent;
+  }
+  body.light-theme .s5-search-wrap input { color: #ffffff; }
+  body.light-theme .s5-search-wrap input::placeholder { color: rgba(255,255,255,0.7); }
+  body.light-theme .s5-search-wrap svg { color: #ffffff; }
+  body.light-theme .s5-filter-btn { color: #ffffff; }
+  body.light-theme .s5-filter-btn:hover { color: rgba(255,255,255,0.8); }
+
+  /* Bottom navigation bar: vibrant white bar, solid purple icons/labels */
+  body.light-theme .dash-nav {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 8px 24px rgba(15,23,42,0.1);
+  }
+  body.light-theme .dash-nav-item { color: #9333ea; }
+  body.light-theme .dash-nav-item.active { color: #6b21a8; }
+
+  /* General list / info / status cards -> solid purple, white text & icons */
+  body.light-theme .txn-row,
+  body.light-theme .wallet-mini-card,
+  body.light-theme .wallet-txn-row,
+  body.light-theme .kyc-item,
+  body.light-theme .assigned-person-card,
+  body.light-theme .legal-box,
+  body.light-theme .dash-list-item,
+  body.light-theme .ent-metric-card,
+  body.light-theme .ent-list-item,
+  body.light-theme .notif-breakdown-card,
+  body.light-theme .notif-item,
+  body.light-theme .notif-tab,
+  body.light-theme .stage-item,
+  body.light-theme .ticket-item,
+  body.light-theme .receipt-box,
+  body.light-theme .cart-item,
+  body.light-theme .split-item,
+  body.light-theme .lease-preview-party,
+  body.light-theme .thread-item,
+  body.light-theme .s5-list-item,
+  body.light-theme .toast,
+  body.light-theme .signoff-box,
+  body.light-theme .tenancy-policy-box,
+  body.light-theme .fee-preview-box {
+    background: linear-gradient(135deg, #7c3aed, #9333ea);
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(124,58,237,0.2);
+  }
+  body.light-theme .notif-tab.active { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); }
+
+  /* Icon chips inside those cards -> translucent white, vibrant white icon */
+  body.light-theme .ent-list-icon,
+  body.light-theme .s5-list-icon,
+  body.light-theme .thread-icon,
+  body.light-theme .thread-avatar,
+  body.light-theme .notif-icon,
+  body.light-theme .kyc-item-icon-wrap {
+    background: rgba(255,255,255,0.2);
+    color: #ffffff;
+  }
+
+  /* Muted secondary text inside those cards -> brightened to vibrant white */
+  body.light-theme .txn-title, body.light-theme .txn-date,
+  body.light-theme .txn-breakdown-row, body.light-theme .txn-breakdown-row span,
+  body.light-theme .kyc-item-title, body.light-theme .kyc-item-status,
+  body.light-theme .ent-metric-label, body.light-theme .ent-metric-value,
+  body.light-theme .ent-list-title, body.light-theme .ent-list-sub,
+  body.light-theme .notif-breakdown-title, body.light-theme .notif-breakdown-row,
+  body.light-theme .notif-title, body.light-theme .notif-body, body.light-theme .notif-time,
+  body.light-theme .cart-item-title, body.light-theme .cart-item-loc,
+  body.light-theme .lease-preview-party-label, body.light-theme .lease-preview-party-name,
+  body.light-theme .thread-title, body.light-theme .thread-sub,
+  body.light-theme .s5-list-title, body.light-theme .s5-list-sub {
+    color: rgba(255,255,255,0.92) !important;
+  }
+  body.light-theme .thread-context-badge { color: #ffffff; background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.4); }
+
   .app-shell {
     width: 100%;
     max-width: 420px;
