@@ -187,6 +187,16 @@
   }
   body.light-theme .field-input::placeholder { color: #94a3b8; }
 
+  /* Native <select> dropdowns (e.g. maintenance ticket Category) render
+     inconsistently across Android/mobile browsers and can ignore inherited
+     text color from the generic .field-input rule above — pin it directly,
+     including the <option> elements themselves. */
+  body.light-theme select.field-input,
+  body.light-theme select.field-input option {
+    color: #0f172a !important;
+    background: #ffffff !important;
+  }
+
   /* Profile avatar */
   body.light-theme .profile-avatar-lg { background: #f3e8ff; color: #9333ea; }
   body.light-theme .profile-occupation-line { color: #64748b; }
@@ -358,6 +368,23 @@
   body.light-theme .notif-tab { background: #ffffff; border: 1px solid #e5e7eb; color: #64748b; }
   body.light-theme .notif-tab.active { background: #9333ea; border-color: #9333ea; color: #ffffff; }
 
+  /* Tenancy & Policy Agreement box: background already flips to white
+     above, but its text colors were still tuned for the dark navy
+     backdrop (gray body text, pale lavender heading) — both read as
+     washed-out/near-invisible once the box is white. */
+  body.light-theme .tenancy-policy-box { color: #334155; }
+  body.light-theme .tenancy-policy-box h1 { color: #6b21a8; font-weight: 700; }
+  body.light-theme .tenancy-policy-box p { color: #334155; }
+  body.light-theme .tenancy-policy-box li { color: #334155; }
+  body.light-theme .tenancy-policy-box ul { color: #334155; }
+
+  /* "Publish immediately..." agreement row (listing upload, tenancy sign-off,
+     etc.) — text was pale gray for a dark backdrop, and the native checkbox
+     renders with a dark default border/box on Android Chrome until it's
+     explicitly re-themed for a white card. */
+  body.light-theme .agree-row { color: #334155; }
+  body.light-theme .agree-checkbox { accent-color: #9333ea; outline: 1px solid #d8b4fe; border-radius: 4px; }
+
   /* Icon chips inside those cards -> pale purple tint, solid purple icon */
   body.light-theme .ent-list-icon,
   body.light-theme .s5-list-icon,
@@ -524,6 +551,13 @@
   }
   body.light-theme .s5-hold-row { color: #64748b; }
   body.light-theme .s5-hold-row strong { color: #0f172a; }
+  body.light-theme .s5-card-location { color: #475569; }
+  /* "MainTown AI Fee" row uses an inline pale-lavender color (#c4b5fd) tuned
+     for the dark checkout card — needs !important to beat the inline style
+     since a class selector alone can never override style="" attributes. */
+  body.light-theme #s6-ai-fee-label,
+  body.light-theme #s6-invoice-ai-fee-label { color: #7e22ce !important; }
+
 
   /* Escrow & Commission Split cards */
   body.light-theme .split-text p { color: #475569; }
@@ -1603,8 +1637,9 @@
   }
   .s5-verified-badge {
     position: absolute; top: 10px; right: 10px; display: inline-flex; align-items: center; gap: 4px;
-    background: rgba(6,78,59,0.85); border: 1px solid rgba(52,211,153,0.5); color: #6ee7b7;
-    font-size: 10.5px; font-weight: 600; padding: 4px 8px; border-radius: 999px; backdrop-filter: blur(2px);
+    background: rgba(6,78,59,0.95); border: 1px solid #34d399; color: #34d399;
+    font-size: 10.5px; font-weight: 700; padding: 4px 8px; border-radius: 999px; backdrop-filter: blur(2px);
+    box-shadow: 0 2px 8px rgba(6,78,59,0.45);
   }
   .s5-live-media-badge {
     position: absolute; top: 10px; left: 10px; display: inline-flex; align-items: center; gap: 4px;
