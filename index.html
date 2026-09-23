@@ -474,7 +474,7 @@
   body.light-theme .ri-cat-btn,
   body.light-theme .ri-urgency-btn,
   body.light-theme .ri-dispatch-btn {
-    background: #ffffff; border: 1px solid #e2e8f0; color: #475569;
+    background: #ffffff; border: 1px solid #e2e8f0; color: #0f172a;
   }
   body.light-theme .ri-urgency-btn span,
   body.light-theme .ri-dispatch-btn span { color: #0f172a; }
@@ -573,7 +573,7 @@
 
   /* Payment source cards (Saved Debit/Credit Card, etc.) — unselected state */
   body.light-theme .pay-option { background: #ffffff; border: 1px solid #e2e8f0; }
-  body.light-theme .pay-option:not(.selected) .pay-option-label { color: #0f172a; }
+  body.light-theme .pay-option-label { color: #0f172a; }
   body.light-theme .pay-option-detail { color: #64748b; }
 
   /* Execute Agreement preview card + signature blocks */
@@ -671,12 +671,23 @@
   body.light-theme .insp-cal { background: #ffffff; border: 1px solid #e5e7eb; }
   body.light-theme .insp-cal-month { color: #0f172a; }
   body.light-theme .insp-cal-nav { background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; }
-  body.light-theme .insp-cal-day { color: #94a3b8; }
+  body.light-theme .insp-cal-day { color: #0f172a; }
   body.light-theme .insp-cal-day.past { color: #cbd5e1; }
   body.light-theme .insp-cal-day.available {
     color: #6b21a8; background: #f3e8ff; border: 1px solid #d8b4fe; font-weight: 700;
   }
   body.light-theme .insp-cal-day.today:not(.selected) { border-color: #94a3b8; }
+
+  /* Section 8: Default & Grace Period Tracker — stage-title/stage-sub had no
+     light-theme override at all (still white/pale-gray, tuned for a dark
+     card), so they nearly vanished once the card went white. Active-stage
+     backgrounds also used to be an 8%-opacity tint (barely visible on
+     white); swapped for the same solid status-bg tokens used elsewhere. */
+  body.light-theme .stage-title { color: #0f172a; }
+  body.light-theme .stage-sub { color: #334155; }
+  body.light-theme .stage-item.stage-green.active-stage { background: var(--status-success-bg-light); border-color: #10b981; }
+  body.light-theme .stage-item.stage-yellow.active-stage { background: var(--status-warning-bg-light); border-color: #f59e0b; }
+  body.light-theme .stage-item.stage-red.active-stage { background: var(--status-danger-bg-light); border-color: #ef4444; }
 
   /* Tenancy & Policy Agreement text: was styled for a dark backdrop and
      read as faint/washed once the box went white — darker, bolder, and
@@ -3014,6 +3025,8 @@
   <!-- My Assets Portfolio: now surfaced as a "Portfolio Assets" Quick Action
        tile instead of a large card here — kept the grid uncluttered and
        matches how every other dashboard shortcut is presented. -->
+
+  <div id="dash-checkout-summary"><!-- populated dynamically --></div>
 
   <div id="dash-inspections-summary"><!-- populated dynamically --></div>
 
@@ -6277,6 +6290,13 @@
   function navigateTo(screenId, opts) {
     opts = opts || {};
 
+    // Leaving Secure Checkout (back button, Home nav, browser/hardware back,
+    // or any other route change) with a payment still unfinished: flag it so
+    // the tenant has a clear way back in instead of losing their place.
+    if (screenId !== 'screen-6' && typeof flagCheckoutResumeIfNeeded === 'function') {
+      flagCheckoutResumeIfNeeded();
+    }
+
     // Defense-in-depth: navigateTo() is the router for authenticated app
     // screens only. If a pre-auth screen (Welcome/Register/KYC/Legal/Login —
     // the older .screen + hidden-screen system) is still showing when this
@@ -7349,9 +7369,39 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Notification Bell (see notifyDashboardOfInspectionActivation,
     // pushTenantInspectionAlert, createHandoverForTenantSignOff below).
 
+    renderCheckoutResumeSummaryCard();
     renderInspectionsSummaryCard();
     if (typeof renderEnterpriseEntryCard === 'function') renderEnterpriseEntryCard();
     if (window.lucide) lucide.createIcons();
+  }
+
+  // ---- "Continue Your Payment" summary card ----
+  // Surfaces right on Home whenever the tenant stepped away from Secure
+  // Checkout (back button, Home nav, browser back) before finishing —
+  // checkoutListing/checkoutPaymentPending are set by flagCheckoutResumeIfNeeded()
+  // in navigateTo(). Tapping it drops them straight back onto Screen 6 with
+  // everything they'd already filled in (inspection already booked,
+  // signature, agreement) still in place.
+  function renderCheckoutResumeSummaryCard() {
+    const wrap = document.getElementById('dash-checkout-summary');
+    if (!wrap) return;
+    const role = currentUserRole || 'tenant';
+    const unavailable = typeof isListingUnavailable === 'function' && checkoutListing && isListingUnavailable(checkoutListing);
+    if (role !== 'tenant' || !checkoutPaymentPending || !checkoutListing || unavailable) {
+      wrap.innerHTML = '';
+      return;
+    }
+    wrap.innerHTML = `
+      <div class="dash-summary-card" id="dash-checkout-summary-card">
+        <div class="dash-summary-icon"><i data-lucide="credit-card" class="w-4 h-4"></i></div>
+        <div class="dash-summary-text">
+          <p class="dash-summary-title">Continue Your Payment</p>
+          <p class="dash-summary-sub">${checkoutListing.title} · tap to finish checkout</p>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4" style="color:#64748b;"></i>
+      </div>`;
+    if (window.lucide) lucide.createIcons();
+    document.getElementById('dash-checkout-summary-card').addEventListener('click', () => navigateTo('screen-6'));
   }
 
   // ---- Clean single summary action card: "Active Inspections (N Pending)" ----
@@ -8309,6 +8359,32 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // insufficient-balance state, cleared the moment escrow actually releases
   // (see releaseEscrowAndShowInvoice) or a fresh checkout opens.
   let checkoutPaymentPending = false;
+  // Whether we've already left a "Continue Your Payment" notification behind
+  // for the current checkoutListing, so stepping away more than once (back
+  // button, then home, then back again) doesn't spam duplicate notifications.
+  let checkoutResumeNotifPushed = false;
+  // Called right before navigateTo() takes the user off Screen 6 (back
+  // button, bottom-nav Home, browser/hardware back, or any other route
+  // change) while a checkout hasn't finished yet. checkoutListing is never
+  // reset by simply leaving the screen, so everything the tenant already
+  // filled in (signature, agreement, selected payment source) is still
+  // sitting there in memory — this just makes sure they also get a clear
+  // way back in, the same "Continue Your Payment" path already used for the
+  // insufficient-balance case, instead of that path being the only way in.
+  function flagCheckoutResumeIfNeeded() {
+    const screen6 = document.getElementById('screen-6');
+    const invoicePanel = document.getElementById('s6-invoice-panel');
+    const alreadyPaid = invoicePanel && !invoicePanel.classList.contains('hidden');
+    if (screen6 && !screen6.classList.contains('hidden') && checkoutListing && !alreadyPaid) {
+      checkoutPaymentPending = true;
+      if (!checkoutResumeNotifPushed) {
+        pushPlatformNotification('tenant', 'payment', 'Continue Your Payment',
+          `You left Secure Checkout with an unfinished payment for ${checkoutListing.title}. Tap here to pick up right where you left off.`,
+          { screen: 'resumeCheckout' }, 'RESUME_CHECKOUT');
+        checkoutResumeNotifPushed = true;
+      }
+    }
+  }
   let landHandoverTxnId = null;
   let landHandoverAppt = null;
   let activeAssetId = null; // which asset the Asset Hub screen (screen-asset-hub) is currently showing detail for
@@ -8534,6 +8610,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     checkoutLandPayment = landPayment || null;
     checkoutAuthSubmitting = false;
     checkoutPaymentPending = false;
+    checkoutResumeNotifPushed = false;
     selectPaySource('wallet');
 
     checkoutAgreementUploaded = false;
