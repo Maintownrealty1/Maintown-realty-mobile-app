@@ -560,6 +560,119 @@
   body.light-theme .assigned-person-avatar svg { color: #9333ea; }
   body.light-theme .assigned-person-name { color: #0f172a; }
 
+  /* ==================================================================
+     ---- Light Mode: Part 5 — toast, badges, remaining dark cards ----
+     ================================================================== */
+
+  /* Toast notification: was rendering white text on the new white card
+     (invisible) with its green border stripped out — now dark, bold,
+     readable text with the success border restored. */
+  body.light-theme .toast {
+    background: #ffffff; border: 1px solid #10b981; color: #0f172a; font-weight: 700;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.15);
+  }
+  body.light-theme .toast svg { color: #10b981; }
+
+  /* Inspection Fee green badge — solid readable green, not a washed tint */
+  body.light-theme .rent-badge {
+    background: #d1fae5; border: 1px solid #10b981; color: #047857; font-weight: 700;
+  }
+  body.light-theme .ib-selected-summary {
+    background: #d1fae5; border: 1px solid #10b981; color: #047857; font-weight: 700;
+  }
+
+  /* Amber/tan notice & warning boxes (escrow notes, listing notices,
+     maintenance alerts) — solid pale-amber fill + bold dark-amber text */
+  body.light-theme .s5-notice-box {
+    background: #fef3c7; border: 1px solid #f59e0b;
+  }
+  body.light-theme .s5-notice-box svg { color: #92400e; }
+  body.light-theme .s5-notice-box p { color: #78350f; font-weight: 600; }
+
+  /* "Add Listing" choice modal (Bulk CSV Import / Single Property Form)
+     and any other .ent-choice-btn -> solid purple, not dark navy */
+  body.light-theme .ent-choice-btn {
+    background: linear-gradient(135deg, #7c3aed, #9333ea); border-color: transparent;
+    color: #ffffff; box-shadow: 0 6px 16px rgba(124,58,237,0.25);
+  }
+  body.light-theme .ent-choice-btn:hover { border-color: transparent; }
+
+  /* "Back to Dashboard" / flag-to-CEO icon buttons everywhere -> clean
+     white pill with purple text instead of a dark navy chip */
+  body.light-theme .ent-list-action-btn {
+    background: #f8fafc; border: 1px solid #e2e8f0; color: #334155;
+  }
+  body.light-theme .ent-list-action-btn:hover { border-color: #9333ea; color: #9333ea; }
+
+  /* Segmented tab switcher (Overview / Team & Access / Investors, etc.) */
+  body.light-theme .ent-tab-btn {
+    background: #ffffff; border: 1px solid #e2e8f0; color: #64748b;
+  }
+  body.light-theme .ent-tab-btn.active {
+    background: #f3e8ff; border-color: #9333ea; color: #6b21a8;
+  }
+
+  /* Scheduled Inspections card -> clean white card */
+  body.light-theme .insp-mgmt-card {
+    background: #ffffff; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+  }
+  body.light-theme .insp-mgmt-title { color: #0f172a; }
+  body.light-theme .insp-mgmt-loc,
+  body.light-theme .insp-meta-line { color: #64748b; }
+  body.light-theme .insp-divider { border-top-color: #e5e7eb; }
+  body.light-theme .insp-escrow-badge {
+    background: #f1f5f9; border-color: #cbd5e1; color: #475569;
+  }
+  body.light-theme .insp-secondary-full-btn {
+    background: #f8fafc; border: 1px solid #e2e8f0; color: #334155;
+  }
+  body.light-theme .insp-reason-chip {
+    background: #ffffff; border: 1px solid #e2e8f0; color: #334155;
+  }
+  body.light-theme .insp-reason-chip.selected {
+    background: #f3e8ff; border-color: #9333ea; color: #6b21a8;
+  }
+
+  /* Inspection date-picker calendar (Book Inspection modal) -> white card */
+  body.light-theme .insp-cal { background: #ffffff; border: 1px solid #e5e7eb; }
+  body.light-theme .insp-cal-month { color: #0f172a; }
+  body.light-theme .insp-cal-nav { background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; }
+  body.light-theme .insp-cal-day { color: #94a3b8; }
+  body.light-theme .insp-cal-day.past { color: #cbd5e1; }
+  body.light-theme .insp-cal-day.available {
+    color: #6b21a8; background: #f3e8ff; border: 1px solid #d8b4fe; font-weight: 700;
+  }
+  body.light-theme .insp-cal-day.today:not(.selected) { border-color: #94a3b8; }
+
+  /* Tenancy & Policy Agreement text: was styled for a dark backdrop and
+     read as faint/washed once the box went white — darker, bolder, and
+     more readable across the heading, body copy, and critical-clause tag */
+  body.light-theme .legal-box { color: #334155; }
+  body.light-theme .legal-box h3 { color: #0f172a; font-weight: 700; }
+  body.light-theme .legal-box p { color: #334155; }
+  body.light-theme .critical-badge { color: #b45309; }
+  body.light-theme .legal-box .critical-section {
+    background: #fef2f2; border: 1px solid #fca5a5;
+  }
+  body.light-theme .legal-box .critical-section h3 { color: #b91c1c; }
+  body.light-theme .legal-box .critical-section p { color: #991b1b; font-weight: 600; }
+
+  /* Settings/account toggle switches (Dark Mode, Auto-Approve, etc.) —
+     purple track in both states instead of dark-gray-when-off */
+  body.light-theme .pr-switch-track { background: #d8b4fe; }
+  body.light-theme .pr-switch input:checked + .pr-switch-track { background: #9333ea; }
+
+  /* Global sweep: a handful of inline-styled elements still used pale
+     colors tuned for a dark backdrop (green/purple/amber/near-white) that
+     read as washed-out or invisible on the new white background. */
+  body.light-theme [style*="color:#34d399"] { color: #059669 !important; }
+  body.light-theme [style*="color:#c4b5fd"] { color: #7c3aed !important; }
+  body.light-theme [style*="color:#fbbf24"],
+  body.light-theme [style*="color: #fbbf24"] { color: #92400e !important; }
+  body.light-theme [style*="color:#e2e8f0"] { color: #0f172a !important; }
+  body.light-theme [style*="background: rgba(245,158,11"],
+  body.light-theme [style*="background:rgba(245,158,11"] { background: #fef3c7 !important; }
+
   .app-shell {
     width: 100%;
     max-width: 420px;
