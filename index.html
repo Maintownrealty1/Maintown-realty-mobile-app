@@ -434,6 +434,132 @@
     background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; font-weight: 600;
   }
 
+  /* ==================================================================
+     ---- Light Mode: Part 3 — remaining dark-navy inconsistencies ----
+     Maintenance/report-an-issue buttons, rent payment screen, lease
+     metrics tiles, a few legacy inline-styled info boxes, and the
+     Payout History "linked account" card. Selectable buttons' base
+     (unselected) state goes white; the already-purple .selected state
+     is left alone since it already reads fine on white.
+     ================================================================== */
+
+  /* Report an Issue: category grid, urgency, dispatch preference */
+  body.light-theme .ri-cat-btn,
+  body.light-theme .ri-urgency-btn,
+  body.light-theme .ri-dispatch-btn {
+    background: #ffffff; border: 1px solid #e2e8f0; color: #475569;
+  }
+  body.light-theme .ri-urgency-btn span,
+  body.light-theme .ri-dispatch-btn span { color: #0f172a; }
+  body.light-theme .ri-cat-btn.selected,
+  body.light-theme .ri-urgency-btn.selected,
+  body.light-theme .ri-dispatch-btn.selected { background: #f3e8ff; border-color: #c084fc; }
+
+  /* Pay Rent: Amount Due hero card (solid purple, matches other hero cards),
+     Payment Breakdown box, and Payment Method options */
+  body.light-theme .pr-balance-card {
+    background: linear-gradient(135deg, #7c3aed, #9333ea);
+    border-color: transparent;
+    box-shadow: 0 12px 28px rgba(124,58,237,0.28);
+  }
+  body.light-theme .pr-balance-label { color: rgba(255,255,255,0.75); }
+  body.light-theme .pr-balance-amount { color: #ffffff; }
+  body.light-theme .pr-balance-sub { color: rgba(255,255,255,0.7); }
+  body.light-theme .pr-method-card {
+    background: #ffffff; border: 1px solid #e2e8f0;
+  }
+  body.light-theme .pr-method-card.selected { background: #f3e8ff; border-color: #c084fc; }
+  body.light-theme .pr-method-title { color: #0f172a; }
+  body.light-theme .pr-method-sub { color: #64748b; }
+  body.light-theme .pr-method-icon { background: #f3e8ff; color: #9333ea; }
+
+  /* Lease Metrics tiles + secondary action buttons (Request Extension, etc.) */
+  body.light-theme .ml-metric-card { background: #ffffff; border: 1px solid #e2e8f0; }
+  body.light-theme .ml-metric-value { color: #0f172a; }
+  body.light-theme .s5-action-btn:not(.primary) {
+    background: #ffffff; border: 1px solid #e2e8f0; color: #334155;
+  }
+
+  /* Payout History: "Linked Settlement Account" card — was pale lavender
+     with white text that barely showed. Now solid purple, white text
+     reads clearly. */
+  body.light-theme .bank-info-card {
+    background: linear-gradient(135deg, #7c3aed, #9333ea);
+    border-color: transparent;
+  }
+  body.light-theme .bank-icon-wrap { background: rgba(255,255,255,0.2); }
+  body.light-theme .bank-icon-wrap svg { color: #ffffff; }
+  body.light-theme .bank-info-label { color: rgba(255,255,255,0.75); }
+  body.light-theme .bank-info-value { color: #ffffff; }
+  body.light-theme .security-badge {
+    background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.35); color: #ffffff;
+  }
+  body.light-theme .txn-section-title { color: #0f172a; }
+
+  /* A handful of one-off inline-styled dark boxes (asset summary strip,
+     handover header box) that never had a class to hook a theme onto */
+  body.light-theme [style*="background:#131927"] {
+    background: #ffffff !important; border-color: #e2e8f0 !important;
+  }
+  body.light-theme [style*="background:#131927"] p[style*="color:#fff"] {
+    color: #0f172a !important;
+  }
+
+  /* Global cleanup: the pastel accent purple (#c084fc) was tuned for dark
+     backgrounds — on white it reads as washed-out. Sharpen every instance
+     to the same vibrant purple used elsewhere. */
+  body.light-theme [style*="color:#c084fc"],
+  body.light-theme [style*="color: #c084fc"] { color: #9333ea !important; }
+  body.light-theme [style*="color:#f0abfc"] { color: #a21caf !important; }
+
+  /* ==================================================================
+     ---- Light Mode: Part 4 — breakdown boxes & checkout flow ----
+     .s5-hold-preview is the "info breakdown" box used everywhere
+     (Payment Breakdown, Purchase Breakdown, Boundary Pegging
+     Appointment, Transaction ID summaries) — it was missed earlier,
+     which is why it was still dark navy with washed-out text.
+     ================================================================== */
+  body.light-theme .s5-hold-preview {
+    background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+  }
+  body.light-theme .s5-hold-row { color: #64748b; }
+  body.light-theme .s5-hold-row strong { color: #0f172a; }
+
+  /* Escrow & Commission Split cards */
+  body.light-theme .split-text p { color: #475569; }
+  body.light-theme .split-text p strong { color: #0f172a; }
+  body.light-theme .split-icon { background: #f3e8ff; color: #9333ea; }
+
+  /* Signature "Draw / Type" tab (inactive state) */
+  body.light-theme .sig-tab { background: #ffffff; border: 1px solid #e2e8f0; color: #64748b; }
+
+  /* Outright / Installment toggle row */
+  body.light-theme .toggle-pill-row { background: #f1f5f9; border: 1px solid #e2e8f0; }
+  body.light-theme .toggle-pill:not(.active) { color: #64748b; }
+
+  /* Payment source cards (Saved Debit/Credit Card, etc.) — unselected state */
+  body.light-theme .pay-option { background: #ffffff; border: 1px solid #e2e8f0; }
+  body.light-theme .pay-option:not(.selected) .pay-option-label { color: #0f172a; }
+  body.light-theme .pay-option-detail { color: #64748b; }
+
+  /* Execute Agreement preview card + signature blocks */
+  body.light-theme .agreement-preview-card { background: #ffffff; border: 1px solid #e2e8f0; }
+  body.light-theme .agreement-sig-preview.tenant-sig,
+  body.light-theme .agreement-sig-preview.landlord-sig.pending {
+    background: #f8fafc; border-color: #cbd5e1; color: #64748b;
+  }
+
+  /* "Sign Agreement" / "Go to My Asset Portfolio" — secondary CTA style */
+  body.light-theme .doc-action-btn {
+    background: #ffffff; border: 1.5px solid #9333ea; color: #9333ea;
+  }
+
+  /* Assigned Handover Officer / Seller avatar + name */
+  body.light-theme .assigned-person-avatar { background: #f3e8ff; border-color: #e9d5ff; }
+  body.light-theme .assigned-person-avatar i,
+  body.light-theme .assigned-person-avatar svg { color: #9333ea; }
+  body.light-theme .assigned-person-name { color: #0f172a; }
+
   .app-shell {
     width: 100%;
     max-width: 420px;
