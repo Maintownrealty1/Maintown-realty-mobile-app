@@ -689,6 +689,11 @@
   body.light-theme .stage-item.stage-yellow.active-stage { background: var(--status-warning-bg-light); border-color: #f59e0b; }
   body.light-theme .stage-item.stage-red.active-stage { background: var(--status-danger-bg-light); border-color: #ef4444; }
 
+  /* Report an Issue: "Your Tickets" list — ticket-title (e.g. "Plumbing ·
+     3 bedroom ikeja") had no light-theme override either, same white-on-
+     white bug as stage-title above. */
+  body.light-theme .ticket-title { color: #0f172a; }
+
   /* Tenancy & Policy Agreement text: was styled for a dark backdrop and
      read as faint/washed once the box went white — darker, bolder, and
      more readable across the heading, body copy, and critical-clause tag */
@@ -8363,6 +8368,44 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // for the current checkoutListing, so stepping away more than once (back
   // button, then home, then back again) doesn't spam duplicate notifications.
   let checkoutResumeNotifPushed = false;
+
+  // ---- Checkout resume state: persisted, not just in-memory ----
+  // checkoutListing/checkoutPaymentPending are plain JS variables, so a
+  // backgrounded mobile tab getting reloaded by the OS/browser (very common
+  // on Chrome for Android) wiped them silently — the "Continue Your Payment"
+  // notification survived (it's saved via savePlatformNotifications), but
+  // the Home summary card had nothing to show and tapping the notification
+  // found checkoutListing empty and fell through to "Browse Listings"
+  // instead of Screen 6. Mirrors every other mtr_* localStorage pattern in
+  // this file (see saveListings/saveInspections/savePlatformNotifications).
+  function saveCheckoutResumeState() {
+    try {
+      if (checkoutPaymentPending && checkoutListing) {
+        localStorage.setItem('mtr_checkout_resume', JSON.stringify({
+          listingId: checkoutListing.id,
+          landPayment: checkoutLandPayment || null,
+          notifPushed: checkoutResumeNotifPushed
+        }));
+      } else {
+        localStorage.removeItem('mtr_checkout_resume');
+      }
+    } catch (e) {}
+  }
+  function loadCheckoutResumeState() {
+    let stored = null;
+    try { stored = JSON.parse(localStorage.getItem('mtr_checkout_resume')); } catch (e) {}
+    if (!stored || !stored.listingId) return;
+    const listing = (typeof listingsFeed !== 'undefined' ? listingsFeed : []).find(l => l.id === stored.listingId);
+    if (!listing || (typeof isListingUnavailable === 'function' && isListingUnavailable(listing))) {
+      try { localStorage.removeItem('mtr_checkout_resume'); } catch (e) {}
+      return;
+    }
+    checkoutListing = listing;
+    checkoutLandPayment = stored.landPayment || null;
+    checkoutPaymentPending = true;
+    checkoutResumeNotifPushed = !!stored.notifPushed;
+  }
+
   // Called right before navigateTo() takes the user off Screen 6 (back
   // button, bottom-nav Home, browser/hardware back, or any other route
   // change) while a checkout hasn't finished yet. checkoutListing is never
@@ -8383,6 +8426,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           { screen: 'resumeCheckout' }, 'RESUME_CHECKOUT');
         checkoutResumeNotifPushed = true;
       }
+      saveCheckoutResumeState();
     }
   }
   let landHandoverTxnId = null;
@@ -8599,6 +8643,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     updateAuthorizeState();
   }
 
+  // Rehydrate an in-progress checkout that survived a page reload (tab
+  // backgrounded/killed by the OS, browser refresh, etc.) — see
+  // saveCheckoutResumeState/loadCheckoutResumeState above. Runs once at
+  // startup, after `listings`/`listingsFeed` has already loaded from its own
+  // localStorage cache, so the lookup by id actually finds the listing.
+  loadCheckoutResumeState();
+
   function openCheckout(listing, landPayment) {
     // Safety guard: never let an already-SOLD/RENTED listing re-enter checkout
     // (e.g. via a stale cart/inspection reference from another open screen).
@@ -8611,6 +8662,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     checkoutAuthSubmitting = false;
     checkoutPaymentPending = false;
     checkoutResumeNotifPushed = false;
+    saveCheckoutResumeState();
     selectPaySource('wallet');
 
     checkoutAgreementUploaded = false;
@@ -9379,9 +9431,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     checkoutAuthSubmitting = false;
     if (checkoutListing) {
       checkoutPaymentPending = true;
+      checkoutResumeNotifPushed = true;
       pushPlatformNotification('tenant', 'payment', 'Continue Your Payment',
         `Your wallet balance was insufficient for ${checkoutListing.title}. Fund your wallet, then tap here to pick up right where you left off.`,
         { screen: 'resumeCheckout' }, 'RESUME_CHECKOUT');
+      saveCheckoutResumeState();
     }
     openFundWalletModal();
   });
@@ -9747,6 +9801,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
     showToast('PIN verified — escrow funds released to landlord');
     checkoutPaymentPending = false;
+    saveCheckoutResumeState();
     document.getElementById('s6-success-panel').classList.add('hidden');
     document.getElementById('s6-invoice-panel').classList.remove('hidden');
     if (window.lucide) lucide.createIcons();
