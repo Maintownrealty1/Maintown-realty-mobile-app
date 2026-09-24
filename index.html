@@ -3266,6 +3266,11 @@
         <p class="ent-company-name" id="ent-header-company">Company</p>
         <span class="ent-role-badge" id="ent-header-role-badge">CEO</span>
       </div>
+      <button type="button" id="ent-header-team-btn" class="ent-list-action-btn" title="Message a team member"><i data-lucide="users" class="w-3.5 h-3.5"></i>Team</button>
+      <button type="button" class="bell-btn" id="ent-header-bell-btn" title="Notifications">
+        <i data-lucide="bell" class="w-4 h-4"></i>
+        <span class="bell-dot" id="ent-header-bell-dot"></span>
+      </button>
     </div>
 
     <div class="ent-tabs" id="ent-tabs">
@@ -3306,6 +3311,8 @@
     <div id="ent-tab-legal" class="ent-tab-panel" style="display:none;">
       <p class="s5-section-label"><i data-lucide="scale" class="w-4 h-4 text-purple-400"></i>Pending Legal Review</p>
       <div id="ent-legal-list"></div>
+      <p class="s5-section-label" style="margin-top:20px;"><i data-lucide="file-check-2" class="w-4 h-4 text-purple-400"></i>Tenancy Documents from Legal</p>
+      <div id="ent-ceo-legal-docs-list"></div>
     </div>
 
     <!-- Tab: Financial Ledger & Audit Receipts (CEO + Finance) -->
@@ -3348,6 +3355,11 @@
         <span class="ent-role-badge">Sales Manager</span>
       </div>
       <button type="button" id="ent-sales-message-ceo-btn" class="ent-list-action-btn" title="Message CEO"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>CEO</button>
+      <button type="button" id="ent-sales-team-btn" class="ent-list-action-btn" title="Message a team member"><i data-lucide="users" class="w-3.5 h-3.5"></i>Team</button>
+      <button type="button" class="bell-btn" id="ent-sales-bell-btn" title="Notifications">
+        <i data-lucide="bell" class="w-4 h-4"></i>
+        <span class="bell-dot" id="ent-sales-bell-dot"></span>
+      </button>
     </div>
 
     <!-- Home panel -->
@@ -3375,6 +3387,22 @@
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
         </button>
+        <button type="button" class="ent-quick-card" id="ent-sales-inspections-card">
+          <div class="ent-quick-card-icon"><i data-lucide="calendar-check" class="w-5 h-5"></i></div>
+          <div class="ent-quick-card-text">
+            <p class="ent-quick-card-title">Inspections</p>
+            <p class="ent-quick-card-sub">Handle inspections on the CEO's behalf, once your listing is live</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
+        </button>
+        <button type="button" class="ent-quick-card" id="ent-sales-documents-card">
+          <div class="ent-quick-card-icon"><i data-lucide="file-check-2" class="w-5 h-5"></i></div>
+          <div class="ent-quick-card-text">
+            <p class="ent-quick-card-title">Documents to Forward</p>
+            <p class="ent-quick-card-sub">Tenancy agreements the CEO has approved for your clients</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
+        </button>
       </div>
     </div>
 
@@ -3383,6 +3411,20 @@
       <button type="button" id="ent-sales-listings-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
       <p class="ent-panel-title">My Listings</p>
       <div id="ent-sales-listings-list"></div>
+    </div>
+
+    <!-- Inspections panel (on behalf of the CEO, once the listing is LIVE) -->
+    <div id="ent-sales-inspections-panel" style="display:none;">
+      <button type="button" id="ent-sales-inspections-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
+      <p class="ent-panel-title">Inspections</p>
+      <div id="ent-sales-inspections-list"></div>
+    </div>
+
+    <!-- Documents-to-forward panel (CEO-approved tenancy agreements awaiting delivery to a client) -->
+    <div id="ent-sales-documents-panel" style="display:none;">
+      <button type="button" id="ent-sales-documents-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
+      <p class="ent-panel-title">Documents to Forward</p>
+      <div id="ent-sales-documents-list"></div>
     </div>
   </div>
 </div>
@@ -3398,6 +3440,11 @@
         <span class="ent-role-badge">Finance Officer</span>
       </div>
       <button type="button" id="ent-finance-message-ceo-btn" class="ent-list-action-btn" title="Message CEO"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>CEO</button>
+      <button type="button" id="ent-finance-team-btn" class="ent-list-action-btn" title="Message a team member"><i data-lucide="users" class="w-3.5 h-3.5"></i>Team</button>
+      <button type="button" class="bell-btn" id="ent-finance-bell-btn" title="Notifications">
+        <i data-lucide="bell" class="w-4 h-4"></i>
+        <span class="bell-dot" id="ent-finance-bell-dot"></span>
+      </button>
     </div>
 
     <!-- Home panel -->
@@ -3447,6 +3494,11 @@
         <span class="ent-role-badge">Legal Officer</span>
       </div>
       <button type="button" id="ent-legal-message-ceo-btn" class="ent-list-action-btn" title="Message CEO"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>CEO</button>
+      <button type="button" id="ent-legal-team-btn" class="ent-list-action-btn" title="Message a team member"><i data-lucide="users" class="w-3.5 h-3.5"></i>Team</button>
+      <button type="button" class="bell-btn" id="ent-legal-bell-btn" title="Notifications">
+        <i data-lucide="bell" class="w-4 h-4"></i>
+        <span class="bell-dot" id="ent-legal-bell-dot"></span>
+      </button>
     </div>
 
     <!-- Home panel -->
@@ -3501,7 +3553,11 @@
     <p class="modal-sub">Add a document to your company's legal document library.</p>
     <div class="field">
       <label class="field-label">Document Name</label>
-      <input class="field-input" id="ent-legal-doc-name" type="text" placeholder="e.g. Title Deed — Horizon Gardens">
+      <input class="field-input" id="ent-legal-doc-name" type="text" placeholder="e.g. Tenancy Agreement — Horizon Gardens">
+    </div>
+    <div class="field">
+      <label class="field-label">Related Listing (optional — required to forward a signed tenancy agreement to a client)</label>
+      <select class="field-input" id="ent-legal-doc-listing"><option value="">— Not linked to a listing —</option></select>
     </div>
     <div class="s5-upload-box" id="ent-legal-doc-upload-box">
       <i data-lucide="file-text" class="w-5 h-5"></i>
@@ -3882,6 +3938,9 @@
       </div>
     </div>
 
+    <!-- Purchase Agreement / Deed forwarded via Legal -> CEO -> Sales -->
+    <div id="ah-enterprise-docs-list"></div>
+
     <button type="button" id="ah-message-btn" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
       <i data-lucide="message-circle" class="w-4 h-4"></i> Message Seller / Agent
     </button>
@@ -4232,6 +4291,9 @@
       <i data-lucide="eye" class="w-4 h-4"></i><span>View Title</span>
     </button>
   </div>
+
+  <!-- Signed tenancy agreements forwarded by Sales staff (Legal -> CEO -> Sales -> Client pipeline) -->
+  <div id="ml-enterprise-docs-list"></div>
 
   <!-- Lease Metrics Grid -->
   <p class="s5-section-label"><i data-lucide="layout-grid" class="w-4 h-4 text-purple-400"></i>Lease Metrics</p>
@@ -4820,6 +4882,18 @@
     <div id="ent-legal-doc-list"></div>
     <button type="button" id="ent-legal-approve-btn" class="btn-primary" disabled><i data-lucide="check-circle" class="w-4 h-4"></i> Verify Title &amp; Publish Live</button>
     <button type="button" id="ent-legal-cancel-btn" class="btn-secondary">Close</button>
+  </div>
+</div>
+
+<!-- Staff Team Chat Picker — lets any Sales/Finance/Legal/CEO account start a
+     private 1:1 thread with one colleague (never visible to anyone else) -->
+<div id="staff-team-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap"><i data-lucide="users" class="w-6 h-6 text-purple-400"></i></div>
+    <h2 class="modal-title">Message a Team Member</h2>
+    <p class="modal-sub" style="margin-bottom:16px;">Private 1:1 — only the two of you can see this conversation.</p>
+    <div id="staff-team-list"></div>
+    <button type="button" id="staff-team-close-btn" class="btn-secondary" style="margin-top:14px;">Close</button>
   </div>
 </div>
 
@@ -6530,6 +6604,10 @@
   document.getElementById('nav-profile').addEventListener('click', () => navigateTo('screen-profile'));
   document.getElementById('dash-avatar').addEventListener('click', () => navigateTo('screen-profile'));
   document.getElementById('dash-bell-btn').addEventListener('click', () => navigateTo('screen-notifications'));
+  document.getElementById('ent-header-bell-btn')?.addEventListener('click', () => navigateTo('screen-notifications'));
+  document.getElementById('ent-sales-bell-btn')?.addEventListener('click', () => navigateTo('screen-notifications'));
+  document.getElementById('ent-finance-bell-btn')?.addEventListener('click', () => navigateTo('screen-notifications'));
+  document.getElementById('ent-legal-bell-btn')?.addEventListener('click', () => navigateTo('screen-notifications'));
 
   document.getElementById('msg-back-btn').addEventListener('click', () => {
     document.getElementById('call-overlay').classList.remove('open');
@@ -7592,6 +7670,24 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ? ((listing && listing.agentId) ? listing.agentId : null)
       : ((listing && listing.ownerId) ? listing.ownerId : null);
     return { role, ownerId };
+  }
+
+  // ==================================================================
+  // ---- Enterprise Sales-Staff Ownership Routing ----
+  // A listing added by a Sales staff member under a Company/CEO account is
+  // stamped listedByRole: 'ENTERPRISE' + listedByStaffId: <sales user id>.
+  // Once Legal/CEO verifies the title and the listing goes LIVE, the
+  // *specific* Sales staff member who posted it — not the CEO — is the one
+  // who takes inspections and chats with the tenant/client, on the CEO's
+  // behalf. This never changes the AGENT/LANDLORD fee-split math in
+  // getListingOwnership() above; it only re-routes WHO handles the
+  // inspection/chat/notification for an Enterprise listing.
+  // ==================================================================
+  function isEnterpriseListing(listing) {
+    return !!(listing && listing.listedByRole === 'ENTERPRISE');
+  }
+  function enterpriseSalesStaffIdFor(listing) {
+    return isEnterpriseListing(listing) ? (listing.listedByStaffId || null) : null;
   }
 
   function logTransaction(entry) {
@@ -9112,7 +9208,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     });
     conv.status = 'active';
     saveConversations();
-    document.getElementById('dash-bell-dot').classList.add('show');
+    updateAllBellDots(true);
     if (!document.getElementById('screen-messages').classList.contains('hidden')) renderThreadList();
     if (activeThreadId === conv.id && document.getElementById('msg-thread-detail').style.display !== 'none') renderChatLog(conv);
     showToast('Signed agreement dispatched to Landlord chat box.');
@@ -9604,6 +9700,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const isLandTxn = checkoutListing && checkoutListing.type === 'land';
       const principalAmt = Math.max(0, total - checkoutAiFeeNgn);
       if (principalAmt > 0) {
+        const isEnterpriseTxn = isEnterpriseListing(checkoutListing);
         recordTransaction({
           userId: uid, direction: 'debit',
           category: isLandTxn ? 'PURCHASE_PAYMENT' : 'RENT_PAYMENT',
@@ -9612,7 +9709,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
           meta: {
             sender: 'You', recipient: 'MainTown Escrow', propertyName: propertyTitle,
             feeType: isLandTxn ? 'Purchase Installment' : 'Rent Installment',
-            escrowStatus: 'Funds Held in MainTown Escrow'
+            escrowStatus: 'Funds Held in MainTown Escrow',
+            // A Company payment sits here until the CEO OR a Finance staff
+            // member confirms it — see the "Confirm Payment" action in the
+            // CEO's Ledger tab and the Finance Dashboard's Payment Report.
+            companyId: isEnterpriseTxn ? checkoutListing.companyId : undefined,
+            needsCompanyConfirmation: isEnterpriseTxn ? true : undefined,
+            confirmed: isEnterpriseTxn ? false : undefined,
+            salesStaffId: isEnterpriseTxn ? checkoutListing.listedByStaffId : undefined
           }
         });
       }
@@ -10101,7 +10205,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ? schedules.filter(s => s.landlord_id === uid)
       : forRole === 'agent'
         ? schedules.filter(s => s.agent_id === uid)
-        : schedules;
+        : forRole === 'sales'
+          ? schedules.filter(s => s.sales_staff_id === uid)
+          : schedules;
     if (!visible.length) {
       wrap.innerHTML = `<p class="role-hint" style="text-align:left;">No properties or inspection requests yet.</p>`;
       return;
@@ -10111,6 +10217,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
   function renderLandlordInspectionsManager() { renderInspectionsManagerInto('s5-landlord-inspections', 'landlord'); }
   function renderAgentInspectionsManager() { renderInspectionsManagerInto('s5-agent-inspections', 'agent'); }
+  // Sales staff take inspections on the CEO's behalf, scoped strictly to the
+  // listings they personally posted (see sales_staff_id at booking time) —
+  // this only ever fills up once that listing has cleared Legal/CEO review
+  // and gone LIVE, since tenants can't discover/book a non-LIVE listing.
+  function renderSalesInspectionsManager() { renderInspectionsManagerInto('ent-sales-inspections-list', 'sales'); }
 
   function handleInspectionsManagerClick(e) {
     const btn = e.target.closest('[data-action][data-sched-id]');
@@ -10122,6 +10233,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const convId = ensureConversationForSchedule(sched);
       renderLandlordInspectionsManager();
       renderAgentInspectionsManager();
+      if (typeof renderSalesInspectionsManager === 'function') renderSalesInspectionsManager();
       navigateTo('screen-messages');
       openThreadDetail(convId);
     } else if (btn.dataset.action === 'viewTenant') {
@@ -10138,6 +10250,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // still has its own inline Inspections Manager, so that binding remains.
   const s5AgentInspectionsEl = document.getElementById('s5-agent-inspections');
   if (s5AgentInspectionsEl) s5AgentInspectionsEl.addEventListener('click', handleInspectionsManagerClick);
+  // Sales Staff Dashboard Inspections Manager — same card renderer/handler,
+  // scoped to schedules.sales_staff_id === the logged-in Sales user.
+  const entSalesInspectionsEl = document.getElementById('ent-sales-inspections-list');
+  if (entSalesInspectionsEl) entSalesInspectionsEl.addEventListener('click', handleInspectionsManagerClick);
 
   const titleVerifyModal = document.getElementById('title-verify-modal');
 
@@ -11234,7 +11350,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     };
     platformNotifications.unshift(notif);
     savePlatformNotifications();
-    document.getElementById('dash-bell-dot').classList.add('show');
+    updateAllBellDots(true);
     // Simulated real-time push: a toast banner fires immediately whenever the
     // notification's target (specific user id, or role broadcast) matches
     // whoever is currently active in this session — mirroring a background
@@ -11250,13 +11366,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   let notificationFilterTab = 'all';
 
+  // Toggles EVERY notification-bell dot mounted anywhere in the app (the
+  // main Tenant/Landlord/Agent dashboard bell, plus the CEO/Sales/Finance/
+  // Legal enterprise dashboard bells) in sync — every bell shares the
+  // ".bell-dot" class, so a single call keeps them all correct regardless
+  // of which dashboard is currently mounted.
+  function updateAllBellDots(show) {
+    document.querySelectorAll('.bell-dot').forEach(dot => dot.classList.toggle('show', !!show));
+  }
   function updateBellDotForRole() {
     const role = currentUserRole || 'tenant';
     const uid = typeof currentDemoUserId === 'function' ? currentDemoUserId() : null;
     const matchesMe = (n) => n.forUserId ? n.forUserId === uid : n.forRole === role;
+    const matchesMeInsp = (n) => n.forUserId ? n.forUserId === uid : n.forRole === role;
     const hasUnread = platformNotifications.some(n => matchesMe(n) && n.unread) ||
-      inspectionNotifications.some(n => n.forRole === role && n.unread);
-    document.getElementById('dash-bell-dot').classList.toggle('show', hasUnread);
+      inspectionNotifications.some(n => matchesMeInsp(n) && n.unread);
+    updateAllBellDots(hasUnread);
   }
 
   function renderNotificationCenter() {
@@ -11603,11 +11728,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const tenantPhone = (document.getElementById('reg-phone')?.value || '').trim() || null;
     const tenantEmail = (document.getElementById('reg-email')?.value || '').trim() || null;
     const { role: ownerRole } = getListingOwnership(listing);
-    const forRole = ownerRole === 'AGENT' ? 'agent' : 'landlord';
+    const salesStaffId = enterpriseSalesStaffIdFor(listing);
+    // Enterprise listings (posted by a Sales staff member, on behalf of the
+    // CEO) route the inspection request EXCLUSIVELY to that Sales staff
+    // member's own account — never to the CEO/landlord dashboard — using
+    // forUserId so it lands precisely on their session, not a role broadcast.
+    const forRole = salesStaffId ? 'sales' : (ownerRole === 'AGENT' ? 'agent' : 'landlord');
     const notifId = Date.now() + Math.random();
     inspectionNotifications.unshift({
       id: notifId,
       forRole,
+      forUserId: salesStaffId || null,
       listingTitle: listing.title,
       tenantName, tenantOccupation, tenantPhoto, tenantPhone, tenantEmail,
       unread: true
@@ -11620,7 +11751,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // card directly (see openNotificationDetailModal's 'tenantBio' handling).
     pushPlatformNotification(forRole, 'inspection', 'New Inspection Request',
       `${tenantName} activated an inspection for ${listing.title}.`,
-      { screen: 'tenantBio', notifId }, 'INSPECTION_ACTIVATED');
+      { screen: 'tenantBio', notifId }, 'INSPECTION_ACTIVATED', null, salesStaffId || null);
   }
 
   // ==================================================================
@@ -11819,6 +11950,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const isLand = inspectionListing.type === 'land';
     const { role: ownerRole, ownerId } = getListingOwnership(inspectionListing);
     const isAgent = ownerRole === 'AGENT';
+    const salesStaffId = enterpriseSalesStaffIdFor(inspectionListing);
     // Strict Inspection Fee Split Rules: ₦15,000 for Land/Property Sale site
     // inspections (any owner type); for rentals, ₦12,000 Agent-listed vs
     // ₦5,000 Direct-Landlord-listed (previously hardcoded flat ₦12,000
@@ -11844,7 +11976,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       listingTitle: inspectionListing.title,
       listingImg: inspectionListing.img,
       date, time,
-      feeType: isAgent ? 'agent' : 'landlord',
+      feeType: isAgent ? 'agent' : (salesStaffId ? 'enterprise' : 'landlord'),
       fee,
       status: 'pending' // pending -> accepted -> completed
     });
@@ -11856,7 +11988,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Inspections Manager dashboard filters key off of.
     schedules.unshift({
       id: inspId, title: inspectionListing.title, img: inspectionListing.img, location: inspectionListing.location,
-      date, time, feeType: isAgent ? 'agent' : 'landlord', fee,
+      date, time, feeType: isAgent ? 'agent' : (salesStaffId ? 'enterprise' : 'landlord'), fee,
       status: 'Pending Approval', conversationId: null, inspectionId: inspId,
       transactionType: isLand ? 'LAND_SALE' : 'RENTAL',
       escrowMode: isLand ? ibEscrowMode : null,
@@ -11869,8 +12001,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       inspection_id: `insp_${inspId}`, property_id: inspectionListing.id, property_title: inspectionListing.title,
       address: inspectionListing.location, scheduled_date: date, scheduled_time: time, escrow_amount: fee,
       tenant_id: isLand ? 'user_client_01' : 'user_tenant_01',
-      landlord_id: isAgent ? null : ownerId,
+      // Enterprise listings route exclusively to the Sales staff who posted
+      // them (on the CEO's behalf) — landlord_id/agent_id are left null so
+      // this never leaks onto the CEO's or an unrelated Agent's Inspections
+      // Manager; sales_staff_id is the sole ownership key for these.
+      landlord_id: isAgent ? null : (salesStaffId ? null : ownerId),
       agent_id: isAgent ? ownerId : null,
+      sales_staff_id: salesStaffId,
       chat_unlocked: false
     });
     saveSchedules();
@@ -11886,8 +12023,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
         property_title: inspectionListing.title,
         client_id: 'user_client_01',
         client_name: buyerName,
-        landlord_id: isAgent ? null : ownerId,
+        landlord_id: isAgent ? null : (salesStaffId ? null : ownerId),
         agent_id: isAgent ? ownerId : null,
+        sales_staff_id: salesStaffId,
         transaction_type: 'LAND_SALE',
         status: 'PENDING_APPROVAL',
         chat_unlocked: false,
@@ -11935,6 +12073,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       feeType: sched.feeType,
       fee: sched.fee,
       status: 'active',
+      salesStaffId: sched.sales_staff_id || null,
       messages: [
         { from: 'system', text: `Inspection request received for ${sched.title}${sched.date ? ` — ${sched.date}` : ''}${sched.time ? ` at ${sched.time}` : ''}.` },
         { from: 'them', text: `Hi! I'd like to discuss the inspection request for ${sched.title}.` }
@@ -11960,6 +12099,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       feeType: sched.feeType,
       fee: sched.fee,
       status: 'active',
+      salesStaffId: sched.sales_staff_id || null,
       messages: [
         { from: 'system', text: `Inspection confirmed for ${sched.title}` },
         { from: 'them', text: `Hi! Your inspection for ${sched.title} on ${sched.date || 'the scheduled date'} at ${sched.time || 'the scheduled time'} has been accepted. See you then!` }
@@ -11983,6 +12123,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderInspectionsSummaryCard();
     renderLandlordInspectionsManager();
     renderAgentInspectionsManager();
+    if (typeof renderSalesInspectionsManager === 'function') renderSalesInspectionsManager();
     if (window.lucide) lucide.createIcons();
   }
 
@@ -12006,6 +12147,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderInspectionsSummaryCard();
     renderLandlordInspectionsManager();
     renderAgentInspectionsManager();
+    if (typeof renderSalesInspectionsManager === 'function') renderSalesInspectionsManager();
     if (window.lucide) lucide.createIcons();
   }
 
@@ -12026,7 +12168,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       unread: true
     });
     saveInspectionNotifications();
-    document.getElementById('dash-bell-dot').classList.add('show');
+    updateAllBellDots(true);
     // Simulated Push Alert: shown immediately if the Tenant dashboard happens to be active.
     if ((currentUserRole || 'tenant') === 'tenant') showToast(message);
     if (!document.getElementById('screen-4').classList.contains('hidden')) populateScreen4();
@@ -12076,7 +12218,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       conv.messages.push({ from: 'system', text: 'Inspection marked as conducted. You may now proceed to lease checkout or execute the 50/50 fee split.' });
       saveConversations();
     }
-    document.getElementById('dash-bell-dot').classList.add('show');
+    updateAllBellDots(true);
     showToast('Marked conducted — tenant can now decide next steps');
     renderSchedulesScreen();
     renderLandlordInspectionsManager();
@@ -12329,19 +12471,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
     cart.forEach(item => {
       const { role: itemOwnerRole, ownerId: itemOwnerId } = getListingOwnership(item);
       const isAgent = itemOwnerRole === 'AGENT';
+      const salesStaffId = enterpriseSalesStaffIdFor(item);
+      const cartFeeType = isAgent ? 'agent' : (salesStaffId ? 'enterprise' : 'landlord');
       const fee = cartFeeFor(item);
       const inspId = Date.now() + Math.floor(Math.random() * 1000);
       const convId = inspId + 1;
 
       inspections.unshift({
         id: inspId, listingTitle: item.title, listingImg: item.img,
-        date: item.date, time: item.time, feeType: isAgent ? 'agent' : 'landlord', fee,
+        date: item.date, time: item.time, feeType: cartFeeType, fee,
         status: 'accepted'
       });
 
       conversations.unshift({
         id: convId, inspectionId: inspId, listingTitle: item.title,
-        feeType: isAgent ? 'agent' : 'landlord', fee, status: 'active',
+        feeType: cartFeeType, fee, status: 'active',
+        salesStaffId: salesStaffId || null,
         messages: [
           { from: 'system', text: `Inspection confirmed for ${item.title}` },
           { from: 'them', text: `Hi! Your inspection for ${item.title} on ${item.date} at ${item.time} has been confirmed. See you then!` }
@@ -12350,10 +12495,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
       // Dynamic Recipient & Ownership Routing applies here too: Direct
       // Landlord cart items get agent_id: null / landlord_id: ownerId, and
-      // vice-versa for Agent-listed items.
+      // vice-versa for Agent-listed items. Enterprise cart items route
+      // exclusively to the Sales staff who posted them (sales_staff_id).
       schedules.unshift({
         id: inspId, title: item.title, img: item.img, location: item.location,
-        date: item.date, time: item.time, feeType: isAgent ? 'agent' : 'landlord', fee,
+        date: item.date, time: item.time, feeType: cartFeeType, fee,
         status: 'Confirmed', conversationId: convId, inspectionId: inspId,
         tenantName: (document.getElementById('reg-fullname')?.value || '').trim() || 'Tenant',
         tenantOccupation: (document.getElementById('reg-occupation')?.value || '').trim() || 'Not specified',
@@ -12363,7 +12509,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
         // ---- Persistence-spec aliases (see Inspection & Walkthrough data model) ----
         inspection_id: `insp_${inspId}`, property_id: item.id, property_title: item.title,
         address: item.location, scheduled_date: item.date, scheduled_time: item.time, escrow_amount: fee,
-        tenant_id: 'user_tenant_01', landlord_id: isAgent ? null : itemOwnerId, agent_id: isAgent ? itemOwnerId : null,
+        tenant_id: 'user_tenant_01',
+        landlord_id: isAgent ? null : (salesStaffId ? null : itemOwnerId),
+        agent_id: isAgent ? itemOwnerId : null,
+        sales_staff_id: salesStaffId,
         chat_unlocked: true
       });
 
@@ -12684,14 +12833,28 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const list = document.getElementById('msg-thread-list');
     const emptyHint = document.getElementById('msg-empty-hint');
 
-    // Sales/Finance/Legal staff have a single purpose here: a direct line
-    // to the CEO. They never see tenant/inspection chats — those belong to
-    // other roles entirely.
+    // Sales/Finance/Legal staff: a direct line to the CEO, PLUS (Sales only)
+    // their own tenant/client chats for listings they personally posted, PLUS
+    // any private Staff <-> Staff threads they're a party to. They never see
+    // another staff member's tenant chats or another pair's private thread.
     let visibleConversations = conversations;
+    const uid = getCurrentUserId();
     if (typeof isDedicatedStaffRole === 'function' && isDedicatedStaffRole()) {
       if (typeof getOrCreateCeoThread === 'function') getOrCreateCeoThread();
-      const uid = getCurrentUserId();
-      visibleConversations = conversations.filter(c => c.convType === 'staff-ceo' && c.staffId === uid);
+      const staffRole = getEnterpriseStaffRole();
+      visibleConversations = conversations.filter(c =>
+        (c.convType === 'staff-ceo' && c.staffId === uid) ||
+        (c.convType === 'staff-staff' && Array.isArray(c.participantIds) && c.participantIds.includes(uid)) ||
+        (staffRole === 'sales' && c.salesStaffId === uid)
+      );
+    } else if (typeof isEnterpriseCeo === 'function' && isEnterpriseCeo(uid)) {
+      // Privacy: the CEO can message staff directly (staff-ceo) and message a
+      // colleague privately (staff-staff, only their own threads) — but NEVER
+      // sees the private tenant/client <-> Sales-staff conversation itself.
+      visibleConversations = conversations.filter(c =>
+        !c.salesStaffId &&
+        !(c.convType === 'staff-staff' && Array.isArray(c.participantIds) && !c.participantIds.includes(uid))
+      );
     }
 
     if (!visibleConversations.length) {
@@ -12812,6 +12975,32 @@ This voucher is auto-generated and serves as proof of settlement.`;
         return { name: 'CEO / Admin', photo: null, label: 'CEO' };
       }
       return { name: conv.staffName || 'Staff', photo: null, label: (ENT_STAFF_ROLE_LABEL[conv.staffRole] || 'Staff') };
+    }
+    // Staff <-> Staff private line (Sales/Finance/Legal/CEO messaging a
+    // colleague directly) — resolves whichever participant ISN'T the
+    // current viewer, from the shared appState.users directory.
+    if (conv.convType === 'staff-staff') {
+      const uid = getCurrentUserId();
+      const otherId = (conv.participantIds || []).find(pid => pid !== uid);
+      const other = otherId && appState.users[otherId];
+      if (other) {
+        const otherStaffRole = isEnterpriseCeo(otherId) ? 'ceo' : other.staffRole;
+        return { name: other.name || 'Team Member', photo: null, label: ENT_STAFF_ROLE_LABEL[otherStaffRole] || 'Staff' };
+      }
+      return { name: 'Team Member', photo: null, label: 'Staff' };
+    }
+    // Enterprise Sales <-> Tenant/Client line: the listing was posted by a
+    // specific Sales staff member on the CEO's behalf, so the tenant sees
+    // that Sales staff member's identity (never the CEO's/company's).
+    if (conv.salesStaffId) {
+      if (role === 'tenant') {
+        const staff = appState.users[conv.salesStaffId];
+        return { name: (staff && staff.name) || 'Sales Manager', photo: null, label: 'Sales Manager' };
+      }
+      // Sales staff's own view of this same thread — the peer is the tenant/client.
+      const notif = inspectionNotifications.find(n => n.forUserId === conv.salesStaffId && n.listingTitle === conv.listingTitle);
+      if (notif) return { name: notif.tenantName, photo: notif.tenantPhoto || null, label: 'Tenant' };
+      return { name: 'Tenant', photo: null, label: 'Tenant' };
     }
     if (role === 'tenant') {
       const listing = rentListings().find(l => l.title === conv.listingTitle) || landListingsList().find(l => l.title === conv.listingTitle);
@@ -13835,7 +14024,37 @@ available in the Post-Lease Hub and this chat thread.`
     const cofoBadge = document.getElementById('ah-cofo-status');
     cofoBadge.textContent = consentStatusLabel(asset);
     cofoBadge.className = 's5-status-badge ' + (asset.consentStatus === 'GRANTED' || !asset.requiresConsent ? 'insp-status-confirmed' : 'insp-status-pending');
+    renderAssetHubEnterpriseDocs(asset);
   }
+
+  // Purchase Agreement / Deed of Assignment forwarded through the Legal ->
+  // CEO -> Sales -> Client pipeline for THIS specific asset (matched by
+  // listing title, same key the chat thread and this asset already share).
+  function renderAssetHubEnterpriseDocs(asset) {
+    const wrap = document.getElementById('ah-enterprise-docs-list');
+    if (!wrap || !asset) return;
+    const docs = (appState.tenantLeaseDocuments || []).filter(d => d.listingType === 'land' && d.listingTitle === asset.title);
+    wrap.innerHTML = docs.map(d => `
+      <div class="s5-list-item" style="margin-bottom: 10px;">
+        <div class="s5-list-icon"><i data-lucide="file-check-2" class="w-5 h-5"></i></div>
+        <div class="s5-list-text">
+          <p class="s5-list-title">${d.fileName}</p>
+          <p class="s5-list-sub"><span class="ml-stamp-badge"><i data-lucide="badge-check" class="w-3 h-3"></i>Forwarded by Sales</span></p>
+        </div>
+        <button type="button" class="s5-back-btn ml-doc-btn" data-view-ent-asset-doc="${d.id}" style="width:auto; padding:0 14px;">
+          <i data-lucide="eye" class="w-4 h-4"></i><span>View</span>
+        </button>
+      </div>`).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('ah-enterprise-docs-list')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-view-ent-asset-doc]');
+    if (!btn) return;
+    const d = (appState.tenantLeaseDocuments || []).find(x => String(x.id) === btn.dataset.viewEntAssetDoc);
+    if (!d) return;
+    if (d.fileDataUrl) window.open(d.fileDataUrl, '_blank');
+    else showToast(`Opening ${d.fileName}`);
+  });
 
   document.getElementById('ah-asset-list').addEventListener('click', (e) => {
     const row = e.target.closest('.asset-hub-row');
@@ -14116,8 +14335,39 @@ available in the Post-Lease Hub and this chat thread.`
     const depositAmount = (typeof checkoutRentBreakdown !== 'undefined' && checkoutRentBreakdown) ? checkoutRentBreakdown.commission : 300000;
     document.getElementById('ml-deposit-amount').textContent = formatMoney(depositAmount, 'ngn');
 
+    renderMyLeaseEnterpriseDocs();
     if (window.lucide) lucide.createIcons();
   }
+
+  // Signed tenancy agreements forwarded to this client through the
+  // Legal -> CEO -> Sales -> Client pipeline (see "Forward to Client" in the
+  // Sales Staff Dashboard). Shown here in addition to the chat bubble, so the
+  // client always has a permanent place to find them.
+  function renderMyLeaseEnterpriseDocs() {
+    const wrap = document.getElementById('ml-enterprise-docs-list');
+    if (!wrap) return;
+    const docs = (appState.tenantLeaseDocuments || []).filter(d => d.listingType !== 'land');
+    wrap.innerHTML = docs.map(d => `
+      <div class="s5-list-item" style="margin-bottom: 10px;">
+        <div class="s5-list-icon"><i data-lucide="file-check-2" class="w-5 h-5"></i></div>
+        <div class="s5-list-text">
+          <p class="s5-list-title">${d.fileName}</p>
+          <p class="s5-list-sub"><span class="ml-stamp-badge"><i data-lucide="badge-check" class="w-3 h-3"></i>${d.listingTitle || 'Signed Tenancy Agreement'}</span></p>
+        </div>
+        <button type="button" class="s5-back-btn ml-doc-btn" data-view-ent-doc="${d.id}" style="width:auto; padding:0 14px;">
+          <i data-lucide="eye" class="w-4 h-4"></i><span>View</span>
+        </button>
+      </div>`).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('ml-enterprise-docs-list')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-view-ent-doc]');
+    if (!btn) return;
+    const d = (appState.tenantLeaseDocuments || []).find(x => String(x.id) === btn.dataset.viewEntDoc);
+    if (!d) return;
+    if (d.fileDataUrl) window.open(d.fileDataUrl, '_blank');
+    else showToast(`Opening ${d.fileName}`);
+  });
 
   document.getElementById('ml-download-agreement-btn').addEventListener('click', () => {
     const isDualSigned = typeof handover !== 'undefined' && handover && handover.status === 'completed';
@@ -15971,6 +16221,86 @@ available in the Post-Lease Hub and this chat thread.`
   document.getElementById('ent-legal-message-ceo-btn').addEventListener('click', openCeoThread);
 
   // ==================================================================
+  // ---- Staff <-> Staff Private Messaging ----
+  // Every staff member (Sales/Finance/Legal/CEO) can privately message any
+  // ONE colleague on the same team. Each pair gets its own thread
+  // (convType: 'staff-staff', keyed by a sorted participantIds pair) that
+  // is visible ONLY to those two accounts — see the CEO/staff filtering in
+  // renderThreadList() above. This is entirely separate from the Staff → CEO
+  // line above, and from the private Sales <-> Tenant/Client conversations.
+  // ==================================================================
+  function getOrCreateStaffThread(otherUid) {
+    const uid = getCurrentUserId();
+    if (!uid || !otherUid || uid === otherUid) return null;
+    const pair = [uid, otherUid].sort();
+    let conv = conversations.find(c => c.convType === 'staff-staff' &&
+      Array.isArray(c.participantIds) && c.participantIds.length === 2 &&
+      c.participantIds[0] === pair[0] && c.participantIds[1] === pair[1]);
+    if (conv) return conv;
+    const companyId = getEnterpriseCompanyId();
+    conv = {
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      convType: 'staff-staff',
+      companyId,
+      participantIds: pair,
+      listingTitle: 'Team Chat',
+      feeType: 'staff',
+      status: 'active',
+      messages: [
+        { from: 'system', type: 'text', text: `Private line opened — only the two of you can see this conversation.` }
+      ],
+    };
+    conversations.unshift(conv);
+    saveConversations();
+    return conv;
+  }
+  function openStaffThread(otherUid) {
+    const conv = getOrCreateStaffThread(otherUid);
+    if (!conv) { showToast('Unable to open that conversation right now'); return; }
+    document.getElementById('staff-team-modal')?.classList.remove('open');
+    navigateTo('screen-messages');
+    openThreadDetail(conv.id);
+  }
+  // ---- "Team" picker: lists every colleague (other staff + CEO) in the
+  // company so any staff member can start a private 1:1 chat with them. ----
+  function openStaffTeamModal() {
+    const companyId = getEnterpriseCompanyId();
+    const uid = getCurrentUserId();
+    if (!companyId) return;
+    const teammates = [];
+    if (appState.users[companyId] && companyId !== uid) {
+      teammates.push({ id: companyId, name: appState.users[companyId].name || 'CEO', roleLabel: 'CEO / Admin' });
+    }
+    Object.values(appState.users || {}).forEach(u => {
+      if (u.role === 'enterprise_staff' && u.companyId === companyId && u.id !== uid && u.status !== 'DEACTIVATED') {
+        teammates.push({ id: u.id, name: u.name, roleLabel: ENT_STAFF_ROLE_LABEL[u.staffRole] || u.staffRole });
+      }
+    });
+    const list = document.getElementById('staff-team-list');
+    list.innerHTML = teammates.length ? teammates.map(t => `
+      <div class="ent-list-item">
+        <div class="ent-list-icon"><i data-lucide="user" class="w-4 h-4"></i></div>
+        <div class="ent-list-text"><p class="ent-list-title">${t.name}</p><p class="ent-list-sub">${t.roleLabel}</p></div>
+        <button type="button" class="ent-list-action-btn primary" data-message-teammate="${t.id}"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>Message</button>
+      </div>`).join('')
+      : `<div class="ent-empty"><i data-lucide="users"></i><p>No teammates yet.</p></div>`;
+    document.getElementById('staff-team-modal').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('staff-team-list')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-message-teammate]');
+    if (!btn) return;
+    openStaffThread(btn.dataset.messageTeammate);
+  });
+  document.getElementById('staff-team-close-btn')?.addEventListener('click', () => {
+    document.getElementById('staff-team-modal').classList.remove('open');
+  });
+  document.getElementById('ent-header-team-btn')?.addEventListener('click', openStaffTeamModal);
+  document.getElementById('ent-sales-team-btn')?.addEventListener('click', openStaffTeamModal);
+  document.getElementById('ent-finance-team-btn')?.addEventListener('click', openStaffTeamModal);
+  document.getElementById('ent-legal-team-btn')?.addEventListener('click', openStaffTeamModal);
+
+  // ==================================================================
   // ---- Sales Dashboard (own home) ----
   // ==================================================================
   function myEnterpriseListings() {
@@ -16012,10 +16342,93 @@ available in the Post-Lease Hub and this chat thread.`
     const l = myEnterpriseListings().find(x => String(x.id) === btn.dataset.flagListing);
     flagItemToCeo(`Sale — "${(l && l.title) || 'listing'}"`);
   });
+
+  // ==================================================================
+  // ---- Documents to Forward (Legal -> CEO -> Sales -> Client) ----
+  // Once Legal uploads a signed tenancy agreement and the CEO approves it,
+  // it lands here for the assigned Sales staff member — the one who posted
+  // that listing — to hand it straight to their client.
+  // ==================================================================
+  function renderSalesDocumentsToForward() {
+    const uid = getCurrentUserId();
+    const docs = companyLegalDocuments().filter(d => d.salesStaffId === uid && (d.status === 'APPROVED' || d.status === 'DELIVERED_TO_CLIENT'));
+    const list = document.getElementById('ent-sales-documents-list');
+    list.innerHTML = docs.length ? docs.map(d => `
+      <div class="ent-list-item">
+        <div class="ent-list-icon"><i data-lucide="file-check-2" class="w-4 h-4"></i></div>
+        <div class="ent-list-text">
+          <p class="ent-list-title">${d.name}</p>
+          <p class="ent-list-sub">${d.listingTitle || ''} · ${d.status === 'DELIVERED_TO_CLIENT' ? 'Delivered to client' : 'Approved — ready to forward'}</p>
+        </div>
+        ${d.status === 'APPROVED' ? `<button type="button" class="ent-list-action-btn primary" data-forward-doc="${d.id}"><i data-lucide="send" class="w-3.5 h-3.5"></i>Forward to Client</button>` : `<span class="ent-doc-status-badge ent-doc-status-approved"><i data-lucide="check" class="w-3 h-3"></i>Delivered</span>`}
+      </div>`).join('')
+      : `<div class="ent-empty"><i data-lucide="file-check-2"></i><p>No CEO-approved documents waiting to be forwarded yet.</p></div>`;
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('ent-sales-documents-list')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-forward-doc]');
+    if (!btn) return;
+    const uid = getCurrentUserId();
+    const d = (appState.legalDocuments || []).find(x => String(x.id) === btn.dataset.forwardDoc);
+    if (!d) return;
+    const conv = conversations.find(c => c.salesStaffId === uid && c.listingTitle === d.listingTitle);
+    if (!conv) {
+      showToast('No client conversation for this listing yet — a client must book an inspection first.');
+      return;
+    }
+    // Land/Property Sale documents (Deed of Assignment, Purchase Agreement)
+    // and rental documents (Tenancy Agreement) route to different client-facing
+    // screens — a buyer's completed paperwork belongs in My Assets, not My Lease.
+    const relatedListing = d.listingId ? listings.find(l => String(l.id) === String(d.listingId)) : null;
+    const isLandDoc = !!(relatedListing && relatedListing.type === 'land');
+    const docKindLabel = isLandDoc ? 'Signed Purchase Agreement / Deed of Assignment' : 'Signed Tenancy Agreement';
+    const clientScreen = isLandDoc ? 'screen-asset-hub' : 'screen-my-lease';
+
+    const tenantName = (getConversationPeer(conv).name) || 'Client';
+    conv.messages.push({
+      from: 'them',
+      type: 'lease-doc',
+      fileName: d.name,
+      fileSize: '842 KB',
+      dateSigned: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      listingTitle: d.listingTitle,
+      tenantName,
+      hostName: (appState.users[uid] && appState.users[uid].name) || 'Sales Manager',
+      hostLabel: 'Sales Manager',
+      rentLabel: isLandDoc ? 'See agreement for purchase terms' : 'See agreement for terms',
+      fileDataUrl: d.fileDataUrl || null
+    });
+    conv.status = 'active';
+    saveConversations();
+
+    d.status = 'DELIVERED_TO_CLIENT';
+    d.deliveredAt = Date.now();
+    saveAppState(appState);
+
+    // Client-facing document card — shown in My Lease (rentals) or
+    // My Assets (Land/Property Sale), in addition to the chat bubble.
+    appState.tenantLeaseDocuments = appState.tenantLeaseDocuments || [];
+    appState.tenantLeaseDocuments.unshift({
+      id: Date.now(), listingTitle: d.listingTitle, fileName: d.name, fileDataUrl: d.fileDataUrl || null,
+      listingType: isLandDoc ? 'land' : 'rent',
+      deliveredAt: Date.now(), deliveredBy: uid
+    });
+    saveAppState(appState);
+
+    updateAllBellDots(true);
+    pushPlatformNotification('tenant', 'message', docKindLabel,
+      `Your ${docKindLabel.toLowerCase()} for ${d.listingTitle} has arrived — view it in ${isLandDoc ? 'My Assets' : 'My Lease'} or in Messages.`,
+      { screen: clientScreen }, 'LEASE_DOC_DELIVERED');
+    showToast('Forwarded to your client');
+    renderSalesDocumentsToForward();
+  });
+
   function openSalesDashboard() {
     renderSalesHeader();
     document.getElementById('ent-sales-home').style.display = 'block';
     document.getElementById('ent-sales-listings-panel').style.display = 'none';
+    document.getElementById('ent-sales-inspections-panel').style.display = 'none';
+    document.getElementById('ent-sales-documents-panel').style.display = 'none';
     renderSalesHome();
     navigateTo('screen-ent-sales');
   }
@@ -16026,6 +16439,29 @@ available in the Post-Lease Hub and this chat thread.`
   });
   document.getElementById('ent-sales-listings-back-btn').addEventListener('click', () => {
     document.getElementById('ent-sales-listings-panel').style.display = 'none';
+    document.getElementById('ent-sales-home').style.display = 'block';
+    renderSalesHome();
+  });
+  // Inspections — Sales staff handle these on the CEO's behalf, once their
+  // listing has cleared Legal/CEO title review and gone LIVE.
+  document.getElementById('ent-sales-inspections-card').addEventListener('click', () => {
+    document.getElementById('ent-sales-home').style.display = 'none';
+    document.getElementById('ent-sales-inspections-panel').style.display = 'block';
+    renderSalesInspectionsManager();
+  });
+  document.getElementById('ent-sales-inspections-back-btn').addEventListener('click', () => {
+    document.getElementById('ent-sales-inspections-panel').style.display = 'none';
+    document.getElementById('ent-sales-home').style.display = 'block';
+    renderSalesHome();
+  });
+  // Documents to Forward — CEO-approved tenancy agreements awaiting delivery to a client.
+  document.getElementById('ent-sales-documents-card').addEventListener('click', () => {
+    document.getElementById('ent-sales-home').style.display = 'none';
+    document.getElementById('ent-sales-documents-panel').style.display = 'block';
+    renderSalesDocumentsToForward();
+  });
+  document.getElementById('ent-sales-documents-back-btn').addEventListener('click', () => {
+    document.getElementById('ent-sales-documents-panel').style.display = 'none';
     document.getElementById('ent-sales-home').style.display = 'block';
     renderSalesHome();
   });
@@ -16070,20 +16506,43 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('ent-finance-stat-withdrawals-count').textContent = String(withdrawals.length);
     document.getElementById('ent-finance-stat-withdrawals-sub').textContent = formatMoney(withdrawalsTotal, 'ngn');
   }
+  // Payment done by a client on an Enterprise listing sits with
+  // needsCompanyConfirmation: true until EITHER the CEO or a Finance staff
+  // member confirms it — either role can do it, whoever sees it first.
+  function confirmCompanyPayment(txnId) {
+    const t = (appState.transactions || []).find(x => String(x.id) === String(txnId));
+    if (!t || !t.meta || !t.meta.needsCompanyConfirmation || t.meta.confirmed) return;
+    t.meta.confirmed = true;
+    t.meta.confirmedBy = getCurrentUserId();
+    t.meta.confirmedAt = Date.now();
+    saveAppState(appState);
+    if (t.meta.salesStaffId) {
+      pushPlatformNotification('sales', 'payment', 'Payment Confirmed',
+        `Payment for ${t.meta.propertyName || 'a property'} has been confirmed.`,
+        { screen: 'screen-ent-sales' }, 'PAYMENT_CONFIRMED', null, t.meta.salesStaffId);
+    }
+    pushPlatformNotification('tenant', 'payment', 'Payment Confirmed',
+      `Your payment for ${t.meta.propertyName || 'your property'} has been confirmed.`,
+      { screen: 'screen-wallet' }, 'PAYMENT_CONFIRMED');
+    showToast('Payment confirmed');
+  }
   function renderFinanceReport() {
     const txns = companyTransactions();
     const list = document.getElementById('ent-finance-report-list');
     list.innerHTML = txns.length ? txns.map(t => `
       <div class="ent-list-item">
         <div class="ent-list-icon" data-txn-id="${t.id}" style="cursor:pointer;"><i data-lucide="${t.direction === 'credit' ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i></div>
-        <div class="ent-list-text" data-txn-id="${t.id}" style="cursor:pointer;"><p class="ent-list-title">${t.title}</p><p class="ent-list-sub">${new Date(t.timestamp).toLocaleDateString()} · ${walletStatusLabel(t.status)}</p></div>
+        <div class="ent-list-text" data-txn-id="${t.id}" style="cursor:pointer;"><p class="ent-list-title">${t.title}</p><p class="ent-list-sub">${new Date(t.timestamp).toLocaleDateString()} · ${(t.meta && t.meta.needsCompanyConfirmation) ? (t.meta.confirmed ? 'Payment Confirmed' : 'Awaiting Confirmation') : walletStatusLabel(t.status)}</p></div>
         <p style="font-size:12.5px; font-weight:700; color:${t.direction === 'credit' ? '#34d399' : '#f87171'};">${t.direction === 'credit' ? '+' : '-'}${formatMoney(t.amount, 'ngn')}</p>
+        ${(t.meta && t.meta.needsCompanyConfirmation && !t.meta.confirmed) ? `<button type="button" class="ent-list-action-btn primary" data-confirm-payment="${t.id}" title="Confirm Payment"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i>Confirm</button>` : ''}
         <button type="button" class="ent-list-action-btn" data-flag-txn="${t.id}" title="Flag to CEO"><i data-lucide="flag" class="w-3.5 h-3.5"></i></button>
       </div>`).join('')
       : `<div class="ent-empty"><i data-lucide="receipt"></i><p>No transactions recorded yet.</p></div>`;
     if (window.lucide) lucide.createIcons();
   }
   document.getElementById('ent-finance-report-list').addEventListener('click', (e) => {
+    const confirmBtn = e.target.closest('[data-confirm-payment]');
+    if (confirmBtn) { confirmCompanyPayment(confirmBtn.dataset.confirmPayment); renderFinanceReport(); return; }
     const flagBtn = e.target.closest('[data-flag-txn]');
     if (flagBtn) {
       const t = companyTransactions().find(x => String(x.id) === flagBtn.dataset.flagTxn);
@@ -16130,8 +16589,8 @@ available in the Post-Lease Hub and this chat thread.`
     const pending = enterpriseListings().filter(l => l.workflowStatus === 'PENDING_LEGAL_REVIEW');
     document.getElementById('ent-legal-stat-pending').textContent = String(pending.length);
   }
-  const LEGAL_DOC_STATUS_LABEL = { DRAFT: 'Not Sent', SENT_TO_CEO: 'Sent to CEO', APPROVED: 'Approved', REJECTED: 'Rejected' };
-  const LEGAL_DOC_STATUS_CLASS = { DRAFT: 'ent-doc-status-draft', SENT_TO_CEO: 'ent-doc-status-sent', APPROVED: 'ent-doc-status-approved', REJECTED: 'ent-doc-status-rejected' };
+  const LEGAL_DOC_STATUS_LABEL = { DRAFT: 'Not Sent', SENT_TO_CEO: 'Sent to CEO', APPROVED: 'Approved — Forwarded to Sales', DELIVERED_TO_CLIENT: 'Delivered to Client', REJECTED: 'Rejected' };
+  const LEGAL_DOC_STATUS_CLASS = { DRAFT: 'ent-doc-status-draft', SENT_TO_CEO: 'ent-doc-status-sent', APPROVED: 'ent-doc-status-approved', DELIVERED_TO_CLIENT: 'ent-doc-status-approved', REJECTED: 'ent-doc-status-rejected' };
   function renderLegalDocs() {
     const docs = companyLegalDocuments();
     const list = document.getElementById('ent-legal-docs-list');
@@ -16190,6 +16649,10 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('ent-legal-doc-upload-label').textContent = 'Choose File (PDF/Image)';
     document.getElementById('ent-legal-doc-upload-box').classList.remove('has-file');
     entLegalPendingDocDataUrl = null;
+    const sel = document.getElementById('ent-legal-doc-listing');
+    const live = enterpriseListings().filter(l => l.workflowStatus === 'LIVE');
+    sel.innerHTML = '<option value="">— Not linked to a listing —</option>' +
+      live.map(l => `<option value="${l.id}">${l.title}</option>`).join('');
     document.getElementById('ent-legal-upload-modal').classList.add('open');
   });
   document.getElementById('ent-legal-doc-cancel-btn').addEventListener('click', () => {
@@ -16209,10 +16672,15 @@ available in the Post-Lease Hub and this chat thread.`
     const name = document.getElementById('ent-legal-doc-name').value.trim();
     if (!name) { showToast('Please give the document a name'); return; }
     const companyId = getEnterpriseCompanyId();
+    const listingId = document.getElementById('ent-legal-doc-listing').value || null;
+    const listing = listingId ? enterpriseListings().find(l => String(l.id) === String(listingId)) : null;
     appState.legalDocuments = appState.legalDocuments || [];
     appState.legalDocuments.unshift({
       id: Date.now(), companyId, name, fileDataUrl: entLegalPendingDocDataUrl || null,
       uploadedBy: getCurrentUserId(), uploadedAt: Date.now(), status: 'DRAFT',
+      listingId: listing ? listing.id : null,
+      listingTitle: listing ? listing.title : null,
+      salesStaffId: listing ? listing.listedByStaffId : null,
     });
     saveAppState(appState);
     document.getElementById('ent-legal-upload-modal').classList.remove('open');
@@ -16229,7 +16697,7 @@ available in the Post-Lease Hub and this chat thread.`
     if (tabKey === 'overview') renderEntOverview();
     else if (tabKey === 'team') renderEntTeam();
     else if (tabKey === 'inventory') renderEntInventory();
-    else if (tabKey === 'legal') renderEntLegal();
+    else if (tabKey === 'legal') { renderEntLegal(); renderCeoLegalDocsList(); }
     else if (tabKey === 'ledger') renderEntLedger();
     else if (tabKey === 'wallet') renderEntWallet();
     if (window.lucide) lucide.createIcons();
@@ -16556,6 +17024,54 @@ available in the Post-Lease Hub and this chat thread.`
     showToast('Title verified — listing is now live with active escrow milestone protection');
     renderEntLegal();
     window.dispatchEvent(new Event('maintown_state_updated'));
+    // Legal documents are now verified and the listing is LIVE — the Sales
+    // staff member who posted it can now take inspections/chat with tenants
+    // on the CEO's behalf (see enterpriseSalesStaffIdFor()).
+    if (l.listedByRole === 'ENTERPRISE' && l.listedByStaffId) {
+      pushPlatformNotification('sales', 'inspection', 'Listing is Now Live',
+        `Legal documents for ${l.title} are verified and the listing is now LIVE — you can start taking inspections on the CEO's behalf.`,
+        { screen: 'screen-ent-sales' }, 'LISTING_LIVE', null, l.listedByStaffId);
+    }
+  });
+
+  // ---- CEO's view of the Legal library: approve a tenancy agreement Legal
+  // has sent up, which forwards it straight to the assigned Sales staff
+  // member so THEY can hand it to the client. ----
+  const CEO_DOC_STATUS_LABEL = { DRAFT: 'Not Sent', SENT_TO_CEO: 'Awaiting Your Approval', APPROVED: 'Forwarded to Sales', DELIVERED_TO_CLIENT: 'Delivered to Client', REJECTED: 'Rejected' };
+  function renderCeoLegalDocsList() {
+    const list = document.getElementById('ent-ceo-legal-docs-list');
+    if (!list) return;
+    const docs = companyLegalDocuments().filter(d => d.status !== 'DRAFT');
+    list.innerHTML = docs.length ? docs.map(d => `
+      <div class="ent-list-item">
+        <div class="ent-list-icon"><i data-lucide="file-check-2" class="w-4 h-4"></i></div>
+        <div class="ent-list-text">
+          <p class="ent-list-title">${d.name}</p>
+          <p class="ent-list-sub">${d.listingTitle ? d.listingTitle + ' · ' : ''}${CEO_DOC_STATUS_LABEL[d.status] || d.status}</p>
+        </div>
+        ${d.status === 'SENT_TO_CEO' ? `<button type="button" class="ent-list-action-btn primary" data-approve-doc="${d.id}"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i>Approve &amp; Forward</button>` : ''}
+      </div>`).join('')
+      : `<div class="ent-empty"><i data-lucide="file-check-2"></i><p>No documents sent up from Legal yet.</p></div>`;
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('ent-ceo-legal-docs-list')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-approve-doc]');
+    if (!btn) return;
+    const d = (appState.legalDocuments || []).find(x => String(x.id) === btn.dataset.approveDoc);
+    if (!d) return;
+    if (!d.salesStaffId) {
+      showToast('Link this document to a listing (so we know which Sales staff to forward it to) before approving.');
+      return;
+    }
+    d.status = 'APPROVED';
+    d.approvedAt = Date.now();
+    d.approvedBy = getCurrentUserId();
+    saveAppState(appState);
+    pushPlatformNotification('sales', 'message', 'Tenancy Agreement Approved',
+      `The CEO approved "${d.name}"${d.listingTitle ? ' for ' + d.listingTitle : ''} — forward it to your client.`,
+      { screen: 'screen-ent-sales' }, 'DOC_APPROVED', null, d.salesStaffId);
+    showToast('Approved — forwarded to the assigned Sales staff member');
+    renderCeoLegalDocsList();
   });
 
   // ---- Tab: Financial Ledger & Audit Receipts (read-only, no withdrawal) ----
@@ -16566,8 +17082,9 @@ available in the Post-Lease Hub and this chat thread.`
     list.innerHTML = txns.length ? txns.map(t => `
       <div class="ent-list-item">
         <div class="ent-list-icon"><i data-lucide="${t.direction === 'credit' ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i></div>
-        <div class="ent-list-text"><p class="ent-list-title">${t.title}</p><p class="ent-list-sub">${new Date(t.timestamp).toLocaleDateString()} · ${walletStatusLabel(t.status)}</p></div>
+        <div class="ent-list-text"><p class="ent-list-title">${t.title}</p><p class="ent-list-sub">${new Date(t.timestamp).toLocaleDateString()} · ${(t.meta && t.meta.needsCompanyConfirmation) ? (t.meta.confirmed ? 'Payment Confirmed' : 'Awaiting Confirmation') : walletStatusLabel(t.status)}</p></div>
         <p style="font-size:12.5px; font-weight:700; color:${t.direction === 'credit' ? '#34d399' : '#f87171'};">${t.direction === 'credit' ? '+' : '-'}${formatMoney(t.amount, 'ngn')}</p>
+        ${(t.meta && t.meta.needsCompanyConfirmation && !t.meta.confirmed) ? `<button type="button" class="ent-list-action-btn primary" data-confirm-payment="${t.id}" title="Confirm Payment"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i>Confirm</button>` : ''}
       </div>`).join('')
       : `<div class="ent-empty"><i data-lucide="receipt"></i><p>No transactions recorded yet.</p></div>`;
     const restrictedRole = getEnterpriseStaffRole();
@@ -16579,7 +17096,14 @@ available in the Post-Lease Hub and this chat thread.`
       note.innerHTML = '<i data-lucide="lock" class="w-3.5 h-3.5"></i>Withdrawals and bank account changes are restricted to the CEO account.';
       noteWrap.appendChild(note);
     }
+    if (window.lucide) lucide.createIcons();
   }
+  document.getElementById('ent-ledger-list').addEventListener('click', (e) => {
+    const confirmBtn = e.target.closest('[data-confirm-payment]');
+    if (!confirmBtn) return;
+    confirmCompanyPayment(confirmBtn.dataset.confirmPayment);
+    renderEntLedger();
+  });
   document.getElementById('ent-export-csv-btn').addEventListener('click', () => {
     showToast('Downloading Company_Receipts.csv');
   });
