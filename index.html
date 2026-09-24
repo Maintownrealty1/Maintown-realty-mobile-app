@@ -2622,7 +2622,7 @@
     </div>
     <h1 class="welcome-brand-name">MainTown Realty</h1>
     <p class="welcome-tagline">Own or rent, on your terms.</p>
-    <p class="welcome-subtitle">Flexible rent, installment ownership, verified listings, and automated escrow protection for Tenants, Landlords &amp; Agents.</p>
+    <p class="welcome-subtitle">Flexible rent, installment ownership, verified listings, and automated split-payment protection for Tenants, Landlords &amp; Agents.</p>
   </div>
 
   <div class="welcome-actions">
@@ -3231,7 +3231,7 @@
 
         <div class="s5-notice-box">
           <i data-lucide="shield-alert" class="w-5 h-5"></i>
-          <p>Submitting sends this listing to the Landlord/Owner for verification. They'll confirm their payout account, approve the listing, and upload title documents before it enters MainTown's legal review queue — only then does it go live with escrow milestone protection.</p>
+          <p>Submitting sends this listing to the Landlord/Owner for verification. They'll confirm their payout account, approve the listing, and upload title documents before it enters MainTown's legal review queue — only then does it go live with automated payout protection.</p>
         </div>
 
         <button type="submit" class="btn-primary">Submit for Landlord Verification</button>
@@ -3285,7 +3285,7 @@
         <div class="ent-metric-card"><p class="ent-metric-label">Pending Legal Review</p><p class="ent-metric-value" id="ent-ov-pending">0</p></div>
         <div class="ent-metric-card"><p class="ent-metric-label">Company Wallet Balance</p><p class="ent-metric-value" id="ent-ov-wallet">₦0</p></div>
       </div>
-      <p class="s5-section-label"><i data-lucide="clock" class="w-4 h-4 text-purple-400"></i>Pending Escrow Milestone Releases</p>
+      <p class="s5-section-label"><i data-lucide="clock" class="w-4 h-4 text-purple-400"></i>Pending Payout Releases</p>
       <div id="ent-ov-escrow-list"></div>
     </div>
 
@@ -3604,9 +3604,9 @@
       <p class="s5-section-label" style="margin-top: 0;"><i data-lucide="pen-tool" class="w-4 h-4 text-purple-400"></i>Land Allocation &amp; Milestone Sign-Off</p>
       <div class="signoff-box" id="s6-signoff-box">
         <p>By proceeding with this Land &amp; Property purchase, you acknowledge and accept the following milestone terms in full:</p>
-        <p><strong>Clause A — Title Inspection Hold:</strong> Your down payment will be locked in MainTown Escrow for up to 14 days to allow independent survey and Land Registry (C of O / Gazette) title verification.</p>
+        <p><strong>Clause A — Title Verification Window:</strong> Independent survey and Land Registry (C of O / Gazette) title verification is completed before physical allocation. Your instalment payments are split automatically at the point of charge — MainTown does not hold your funds during this process.</p>
         <p><strong>Clause B — Installment Schedule &amp; Default:</strong> Installment payments carry a 30-day grace period. Defaults exceeding 60 days trigger automated contract restructuring or property forfeiture subject to administrative fees.</p>
-        <p><strong>Clause C — Allocation Milestone Payout:</strong> 50% of escrow funds release upon verified physical allocation; the remaining 50% releases upon signing the Deed of Assignment.</p>
+        <p><strong>Clause C — Auto-Debit Payment Split:</strong> Each instalment (or outright payment) is split automatically at the point of charge between the Seller/Developer and MainTown. Physical allocation and Deed of Assignment execution follow the payment schedule set out for that listing.</p>
         <p>Scroll to the bottom of this box to unlock the signature field below.</p>
       </div>
       <div class="field">
@@ -3619,7 +3619,7 @@
     <div class="s5-hold-preview">
       <div class="s5-hold-row"><span id="s6-row1-label">Rent Amount</span><strong id="s6-rent-amount">—</strong></div>
       <div class="s5-hold-row"><span id="s6-row2-label">Caution Deposit</span><strong id="s6-deposit-amount">—</strong></div>
-      <div class="s5-hold-row"><span id="s6-row3-label">Service / Escrow Fee</span><strong id="s6-fee-amount">—</strong></div>
+      <div class="s5-hold-row"><span id="s6-row3-label">Service Fee</span><strong id="s6-fee-amount">—</strong></div>
       <div class="s5-hold-row" id="s6-ai-fee-row">
         <span id="s6-ai-fee-label" style="display:flex; align-items:center; gap:5px; color:#c4b5fd;"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown AI Fee</span>
         <strong id="s6-ai-fee-amount" style="color:#c4b5fd;">—</strong>
@@ -3650,7 +3650,7 @@
 
     <div class="s5-notice-box">
       <i data-lucide="lock" class="w-5 h-5"></i>
-      <p>Funds are held securely in escrow and only released to the landlord after digital handover sign-off.</p>
+      <p>Payment is split automatically at the point of charge — MainTown never holds your funds. The landlord's share is released directly to their own account once you confirm the property matches its listing.</p>
     </div>
 
     <!-- Agreement Execution (in-app digital signature, mandatory pre-payment) —
@@ -3698,10 +3698,10 @@
     <div class="dash-card" style="background: linear-gradient(135deg, #059669, #065f46); margin-bottom: 20px;">
       <p class="dash-card-label" style="display: flex; align-items: center; gap: 5px;"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i>Status</p>
       <p class="dash-card-value">Payment Successful</p>
-      <p class="dash-card-sub" id="s6-status-code">PAYMENT_SUCCESSFUL / FUNDS_IN_ESCROW</p>
+      <p class="dash-card-sub" id="s6-status-code">PAYMENT_SUCCESSFUL / AWAITING_HANDOVER</p>
     </div>
 
-    <p class="s5-section-label" style="margin-top: 0;"><i data-lucide="key-round" class="w-4 h-4 text-amber-400"></i>Escrow &amp; Commission Split</p>
+    <p class="s5-section-label" style="margin-top: 0;"><i data-lucide="key-round" class="w-4 h-4 text-amber-400"></i>Payment &amp; Commission Split</p>
     <div class="split-list" id="s6-split-list">
       <!-- populated dynamically -->
     </div>
@@ -3715,7 +3715,7 @@
   <div id="s6-invoice-panel" class="hidden">
     <div class="dash-card" style="background: linear-gradient(135deg, #7e22ce, #4c1d95); margin-bottom: 20px;">
       <p class="dash-card-label" style="display: flex; align-items: center; gap: 5px;"><i data-lucide="receipt" class="w-3.5 h-3.5"></i>Status</p>
-      <p class="dash-card-value">Escrow Released — Handover Complete</p>
+      <p class="dash-card-value">Payment Released — Handover Complete</p>
       <p class="dash-card-sub" id="s6-invoice-ref">Ref: —</p>
     </div>
 
@@ -3723,7 +3723,7 @@
     <div class="receipt-box">
       <div class="s5-hold-row"><span id="s6-invoice-row1-label">Rent Amount</span><strong id="s6-invoice-rent">—</strong></div>
       <div class="s5-hold-row"><span id="s6-invoice-row2-label">Caution Deposit</span><strong id="s6-invoice-deposit">—</strong></div>
-      <div class="s5-hold-row"><span id="s6-invoice-row3-label">Service / Escrow Fee</span><strong id="s6-invoice-fee">—</strong></div>
+      <div class="s5-hold-row"><span id="s6-invoice-row3-label">Service Fee</span><strong id="s6-invoice-fee">—</strong></div>
       <div class="s5-hold-row" id="s6-invoice-ai-fee-row">
         <span id="s6-invoice-ai-fee-label" style="display:flex; align-items:center; gap:5px; color:#c4b5fd;"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown AI Fee</span>
         <strong id="s6-invoice-ai-fee" style="color:#c4b5fd;">—</strong>
@@ -3757,7 +3757,7 @@
 
   <!-- Header & Settlement Proof -->
   <span class="inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-wide px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" style="margin-bottom: 12px;">
-    <i data-lucide="shield-check" class="w-3 h-3"></i>PURCHASE SETTLED &amp; ESCROW SECURED
+    <i data-lucide="shield-check" class="w-3 h-3"></i>PURCHASE SETTLED &amp; PAYMENT SPLIT
   </span>
   <h1 class="s5-role-title" style="margin-bottom: 16px;">Handover &amp; Title Transfer In Progress</h1>
 
@@ -3767,7 +3767,7 @@
   </div>
   <div class="s5-hold-preview" style="margin-bottom: 20px;">
     <div class="s5-hold-row"><span>Transaction ID</span><strong id="s6h-txn-id">—</strong></div>
-    <div class="s5-hold-row"><span>Total Escrow Amount Settled</span><strong id="s6h-total-settled" style="color:#c084fc; font-size: 14px;">—</strong></div>
+    <div class="s5-hold-row"><span>Total Amount Settled</span><strong id="s6h-total-settled" style="color:#c084fc; font-size: 14px;">—</strong></div>
   </div>
 
   <!-- Document & Title Tracker -->
@@ -4176,7 +4176,7 @@
   <div class="s5-hold-preview">
     <div class="s5-hold-row"><span>Base Rent</span><strong id="pr-base-rent">₦165,000</strong></div>
     <div class="s5-hold-row"><span>Service &amp; Facility Charges</span><strong id="pr-service-charge">₦15,000</strong></div>
-    <div class="s5-hold-row"><span>Platform Escrow Fee</span><strong id="pr-escrow-fee">₦0.00</strong></div>
+    <div class="s5-hold-row"><span>Platform Payment Protection Fee</span><strong id="pr-escrow-fee">₦0.00</strong></div>
   </div>
 
   <!-- Payment Method Selectors -->
@@ -4301,7 +4301,7 @@
     <div class="ml-metric-card">
       <p class="ml-metric-label">Security Deposit</p>
       <p class="ml-metric-value" id="ml-deposit-amount">₦300,000</p>
-      <p class="ml-metric-sub">Held in Escrow</p>
+      <p class="ml-metric-sub">Awaiting Release</p>
     </div>
     <div class="ml-metric-card">
       <p class="ml-metric-label">Notice to Quit</p>
@@ -5145,7 +5145,7 @@
       <i data-lucide="shield-check" class="w-8 h-8 text-purple-400"></i>
     </div>
     <h2 class="modal-title" id="checkout-pin-title">Enter Transaction PIN</h2>
-    <p class="modal-sub" id="checkout-pin-sub">Enter your 6-digit MainTown Transaction PIN to authorize payment and move funds into escrow</p>
+    <p class="modal-sub" id="checkout-pin-sub">Enter your 6-digit MainTown Transaction PIN to authorize this payment</p>
     <p class="modal-sub" id="checkout-pin-balance-line" style="margin-top:-10px; color:#94a3b8;">Wallet balance: <strong id="checkout-pin-balance" style="color:#c4b5fd;">—</strong></p>
 
     <div class="otp-boxes" id="checkout-otp-boxes">
@@ -5252,7 +5252,7 @@
       <i data-lucide="key-round" class="w-6 h-6 text-purple-400"></i>
     </div>
     <h2 class="modal-title">Authorize Payout</h2>
-    <p class="modal-sub">Enter PIN to release escrow funds</p>
+    <p class="modal-sub">Enter PIN to confirm handover and release payment to the landlord</p>
 
     <div class="otp-boxes" id="pin-boxes">
       <input maxlength="1" type="password" inputmode="numeric" class="otp-input">
@@ -5392,7 +5392,7 @@
     <div class="receipt-box">
       <div class="s5-hold-row"><span id="s6h-modal-row1-label">Agreed Purchase Value</span><strong id="s6h-modal-row1-value">—</strong></div>
       <div class="s5-hold-row"><span id="s6h-modal-row2-label">Legal Title &amp; Deed Processing Fee</span><strong id="s6h-modal-row2-value">—</strong></div>
-      <div class="s5-hold-row"><span id="s6h-modal-row3-label">MainTown Escrow Guarantee Fee</span><strong id="s6h-modal-row3-value">—</strong></div>
+      <div class="s5-hold-row"><span id="s6h-modal-row3-label">MainTown Payment Protection Fee</span><strong id="s6h-modal-row3-value">—</strong></div>
       <div class="s5-hold-divider"></div>
       <div class="s5-hold-row"><span>Total Amount Settled</span><strong id="s6h-modal-total" style="color: #c084fc; font-size: 15px;">—</strong></div>
       <div class="s5-hold-divider"></div>
@@ -5653,7 +5653,7 @@
       </div>
       <div class="security-badge">
         <i data-lucide="shield-check" class="w-3 h-3"></i>
-        Automated Bank Settlements via Flutterwave Escrow
+        Automated Bank Settlements via Flutterwave
       </div>
     </div>
 
@@ -5732,9 +5732,13 @@
       <div class="fw-vba-row">
         <div>
           <p class="fw-vba-row-label">Account Name</p>
-          <p class="fw-vba-row-value">MainTown Escrow Wallet</p>
+          <p class="fw-vba-row-value" id="fw-vba-account-name">MainTown / [Your Registered Name]</p>
         </div>
       </div>
+    </div>
+    <div class="s5-notice-box" style="margin-top:10px;">
+      <i data-lucide="info" class="w-4 h-4"></i>
+      <p style="font-size:11px;">This is your own dedicated bank-backed account, issued in your name — MainTown never holds these funds directly.</p>
     </div>
 
     <!-- Quick Deposit presets -->
@@ -5802,7 +5806,7 @@
     <div class="receipt-row"><span>Recipient</span><span id="receipt-recipient">—</span></div>
     <div class="receipt-row"><span>Property</span><span id="receipt-property">—</span></div>
     <div class="receipt-row"><span>Fee Type</span><span id="receipt-feetype">—</span></div>
-    <div class="receipt-row"><span>Escrow Status</span><span id="receipt-escrow">—</span></div>
+    <div class="receipt-row"><span>Settlement Status</span><span id="receipt-escrow">—</span></div>
     <div class="receipt-row"><span>Date</span><span id="receipt-date">—</span></div>
     <div class="receipt-row"><span>Reference ID</span><span id="receipt-ref">—</span></div>
     <div class="receipt-actions">
@@ -5839,7 +5843,7 @@
     <div class="sheet-handle"></div>
     <div class="sheet-header">
       <div>
-        <h2 class="sheet-title"><i data-lucide="shield-check" class="w-4 h-4"></i><span>Verification &amp; Escrow Status</span></h2>
+        <h2 class="sheet-title"><i data-lucide="shield-check" class="w-4 h-4"></i><span>Verification &amp; Settlement Status</span></h2>
         <p class="sheet-subtitle" id="es-property-name">—</p>
       </div>
       <button type="button" class="sheet-close-btn" id="es-close-btn">
@@ -5861,7 +5865,7 @@
       </div>
     </div>
 
-    <p class="txn-section-title">Escrow Status</p>
+    <p class="txn-section-title">Settlement Status</p>
     <div id="es-escrow-body"><!-- populated dynamically --></div>
   </div>
 </div>
@@ -6641,13 +6645,13 @@
       roleIcon: 'key-round',
       sections: [
         { title: 'Section 1: Title, Ownership & Documentation Warranties', body: "Declaration that property titles (C of O, Gazette, Governor's Consent, Excision) or rental authorization rights are authentic, unencumbered, and free of legal dispute." },
-        { title: 'Section 2: Escrow Disbursement & Milestone Schedules', body: 'Monthly Rentals &amp; Shortlets — 24–48 hour payout release following tenant/guest digital check-in sign-off. Land &amp; Property Sales — 50% payout upon verified physical allocation; remaining 50% upon execution of the Deed of Assignment.' },
+        { title: 'Section 2: Automated Payment Disbursement', body: 'Monthly Rentals &amp; Shortlets — 24–48 hour payout release following tenant/guest digital check-in sign-off. Land &amp; Property Sales — each instalment (or outright payment) is split automatically at the point of charge, with the Seller/Developer\'s share paid directly to their own account. Physical allocation and Deed of Assignment execution follow the payment schedule set out in the listing.' },
         { title: 'Section 3: Habitability Standards & Repair SLAs', body: 'Obligation to maintain functional power, water, structural integrity, and estate amenities. Landlords must address critical repairs within 48 hours. MainTown reserves the right to withhold monthly payout releases until critical repairs are resolved.', critical: true },
         { title: 'Section 4: Default, Restructuring & Inventory Repossession', body: "Agreement to MainTown's 30-day grace period and 60-day default policy for installment buyers and monthly renters. Authorizes MainTown to restructure or re-list defaulted inventory.", critical: true },
         { title: 'Section 5: Shortlet Calendar Accuracy & Caution Deposit Rules', body: 'Requirement to maintain accurate shortlet availability. Double-booking results in owner-funded guest relocation fees. Damage claims against caution deposits must be submitted within 24 hours of checkout with photo/video proof.' },
-        { title: 'Section 6: Fraud, Dual-Leasing & Zero Tolerance', body: 'Immediate account termination, escrow forfeiture, listing removal, and referral to law enforcement for fake listings, fraudulent titles, or executing side-deals/double-leases.', critical: true },
+        { title: 'Section 6: Fraud, Dual-Leasing & Zero Tolerance', body: 'Immediate account termination, forfeiture of pending payouts, listing removal, and referral to law enforcement for fake listings, fraudulent titles, or executing side-deals/double-leases.', critical: true },
         { title: 'Section 7: Verification Walkthroughs & Inspection Access', body: 'Agreement to allow scheduled virtual or physical walkthrough inspections by authorized MainTown verification agents prior to and during listing activation.' },
-        { title: 'Section 8: Non-Circumvention & Direct Payment Ban', body: 'Strict prohibition against bypassing platform escrow to request cash, direct bank transfers, or off-platform renewals from MainTown users. Violations incur platform ban and legal recovery of lost fees.', critical: true }
+        { title: 'Section 8: Non-Circumvention & Direct Payment Ban', body: 'Strict prohibition against bypassing the platform\'s payment system to request cash, direct bank transfers, or off-platform renewals from MainTown users. Violations incur platform ban and legal recovery of lost fees.', critical: true }
       ]
     },
     agent: {
@@ -6656,12 +6660,12 @@
       sections: [
         { title: 'Section 1: Inspection & Title Integrity', body: "Mandatory requirement to perform verified physical or live video walkthroughs prior to listing submission. Agents warrant that all property details, title documentation (C of O, Gazette, Governor's Consent), and availability status uploaded are authentic and accurate." },
         { title: 'Section 2: Direct Owner Mandate & Mapped Contact Information', body: 'Agents must hold direct authorization from the property owner/developer and provide valid Landlord contact details (Phone/Email) for every property uploaded. Listing unauthorized properties or acting through unverified sub-agent chains is strictly prohibited.' },
-        { title: 'Section 3: Automated Landlord Onboarding & Escrow Hold', body: 'Submitting a listing triggers an automated invitation to the mapped Landlord to verify ownership. All agent commissions and listing payouts remain locked in MainTown Escrow until the mapped Landlord joins the platform and validates property ownership.', critical: true },
-        { title: 'Section 4: Commission Transparency & Milestone Payouts', body: 'Agreement to adhere strictly to standardized platform commission caps. Agent commissions are disbursed automatically: Rentals &amp; Shortlets — released within 24–48 hours post-tenant check-in and landlord verification. Land &amp; Property Sales — released in tranches matching buyer escrow milestone releases (50% upon physical allocation; 50% upon Deed execution).' },
+        { title: 'Section 3: Automated Landlord Onboarding & Payout Activation', body: 'Submitting a listing triggers an automated invitation to the mapped Landlord to verify ownership. Agent commissions and listing payouts will not be processed until the mapped Landlord joins the platform and validates property ownership.', critical: true },
+        { title: 'Section 4: Commission Transparency & Automated Payouts', body: 'Agreement to adhere strictly to standardized platform commission caps. Agent commissions are disbursed automatically: Rentals &amp; Shortlets — released within 24–48 hours post-tenant check-in and landlord verification. Land &amp; Property Sales — released automatically as a percentage of each instalment (or outright payment), split at the point of charge alongside the Seller/Developer\'s share.' },
         { title: 'Section 5: Shortlet Operational Standards & Calendar Accuracy', body: "Agents managing shortlet units must maintain accurate calendar availability. Failure to provide keyless/physical check-in access or double-booking stays will result in relocation penalties charged against the agent's account." },
         { title: 'Section 6: Off-Platform Transaction Ban (Zero Tolerance)', body: 'Permanent account ban, commission forfeiture, and legal recovery action for soliciting direct off-platform cash transactions, cash deposits, or off-market renewals from MainTown users.', critical: true },
         { title: 'Section 7: Professional Credentials & Business Verification', body: 'Requirement to maintain active CAC registration, recognized realtor association membership (e.g., REDAN, NIESV, ERCAAN), or valid government-issued identification.' },
-        { title: 'Section 8: Fraud, Double-Leasing & Liability', body: 'Immediate account termination, blacklisting, escrow forfeiture, and law enforcement referral for listing fraudulent inventory, executing double-leases, or collecting illegal offline fees.', critical: true }
+        { title: 'Section 8: Fraud, Double-Leasing & Liability', body: 'Immediate account termination, blacklisting, forfeiture of pending payouts, and law enforcement referral for listing fraudulent inventory, executing double-leases, or collecting illegal offline fees.', critical: true }
       ]
     }
   };
@@ -6702,16 +6706,16 @@
         </div>
         <h3><i data-lucide="landmark" class="text-purple-400"></i>Land &amp; Property Buyer Policy</h3>
         <div class="clause-block">
-          <h4>Clause A — Title Inspection Hold</h4>
-          <p>Down payment locked in MainTown Escrow for up to 14 days to allow independent survey and Land Registry (C of O / Gazette) title verification.</p>
+          <h4>Clause A — Title Verification Window</h4>
+          <p>Independent survey and Land Registry (C of O / Gazette) title verification is completed before physical allocation. Instalment payments are split automatically at the point of charge — MainTown does not hold buyer funds during this process.</p>
         </div>
         <div class="clause-block">
           <h4>Clause B — Installment Schedule &amp; Default</h4>
           <p>Installment payments carry a 30-day grace period. Defaults exceeding 60 days trigger automated contract restructuring or property forfeiture subject to administrative fees.</p>
         </div>
         <div class="clause-block">
-          <h4>Clause C — Allocation Milestone Payout</h4>
-          <p>50% of escrow funds release upon verified physical allocation; remaining 50% releases upon signing the Deed of Assignment.</p>
+          <h4>Clause C — Auto-Debit Payment Split</h4>
+          <p>Each instalment (or outright payment) is split automatically at the point of charge between the Seller/Developer and MainTown. Physical allocation and Deed of Assignment execution follow the payment schedule set out for that listing.</p>
         </div>
       `;
     }
@@ -6843,7 +6847,7 @@
   // titles, fee labels) stays here; the actual transaction rows are always
   // pulled fresh and filtered to whoever is logged in.
   const payoutHistoryCopy = {
-    landlord: { sheetTitle: 'Payout History', subtitle: 'Rent settlements to your bank', feeLabel: 'Escrow / Platform Fee' },
+    landlord: { sheetTitle: 'Payout History', subtitle: 'Rent settlements to your bank', feeLabel: 'Platform Fee' },
     agent: { sheetTitle: 'Commission History', subtitle: 'Commission settlements to your bank', feeLabel: 'Platform Retention' }
   };
 
@@ -7325,8 +7329,8 @@
         <div class="txn-row">
           <div class="txn-row-top">
             <div>
-              <p class="txn-title">No escrow currently held</p>
-              <p class="txn-date">Funds move to escrow once the tenant proceeds to checkout</p>
+              <p class="txn-title">No payout pending</p>
+              <p class="txn-date">Payout is split and settled once the tenant proceeds to checkout</p>
             </div>
             <span class="txn-status-badge pending">NONE</span>
           </div>
@@ -7569,7 +7573,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   const roleHeaderConfig = {
     tenant: { icon: 'building-2', eyebrow: 'Tenant Search', title: 'Find your next home', sub: 'Verified listings, local & diaspora-friendly.' },
-    landlord: { icon: 'key-round', eyebrow: 'Landlord Inventory', title: 'Manage your properties', sub: 'Track occupancy, escrow status, and new listings.' },
+    landlord: { icon: 'key-round', eyebrow: 'Landlord Inventory', title: 'Manage your properties', sub: 'Track occupancy, settlement status, and new listings.' },
     agent: { icon: 'briefcase', eyebrow: 'Agent Portal', title: 'Upload & manage listings', sub: 'Every listing requires landlord verification before payout.' },
     enterprise_staff: { icon: 'briefcase', eyebrow: 'Company Listing Form', title: 'Add a company listing', sub: 'Submit for landlord verification, then MainTown legal review.' }
   };
@@ -7595,7 +7599,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function updateS5RoleHeaderForListingType() {
     if ((currentUserRole || 'tenant') !== 'tenant') return;
     const cfg = currentListingType === 'land'
-      ? { icon: 'landmark', eyebrow: 'Buyer / Client Search', title: 'Find land & property to buy', sub: 'Verified titles, secure escrow, and site inspections on request.' }
+      ? { icon: 'landmark', eyebrow: 'Buyer / Client Search', title: 'Find land & property to buy', sub: 'Verified titles, secure payment protection, and site inspections on request.' }
       : roleHeaderConfig.tenant;
     const eyebrowEl = document.getElementById('s5-role-eyebrow');
     const titleEl = document.getElementById('s5-role-title');
@@ -8994,13 +8998,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <p>This Tenancy &amp; Policy Agreement ("Agreement") is made on <strong>${today}</strong> between <strong>${landlordName}</strong> ("Landlord/Owner") and <strong>${tenantName}</strong> ("Tenant"), covering the property located at <strong>${propertyAddress}</strong> ("the Property"), facilitated through MainTown Realty.</p>
 
       <h1>1. Term &amp; Rent</h1>
-      <p>The Tenant agrees to occupy the Property for the agreed lease term at a monthly rent of <strong>${monthlyRent}</strong>, payable in advance through MainTown Realty's escrow wallet. Rent is disbursed to the Landlord only after the Tenant confirms move-in or the inspection window elapses.</p>
+      <p>The Tenant agrees to occupy the Property for the agreed lease term at a monthly rent of <strong>${monthlyRent}</strong>, auto-debited from the Tenant and split automatically at the point of charge — the Landlord's share is paid directly to the Landlord's own account, with MainTown's platform fee deducted at the same time. MainTown does not hold Tenant funds at any point.</p>
 
-      <h1>2. Escrow &amp; Payment Protection</h1>
+      <h1>2. Automated Payment &amp; Dispute Protection</h1>
       <ul>
-        <li>Funds are held in escrow until the Tenant confirms the Property matches its listing.</li>
+        <li>Rent is split and disbursed automatically to the Landlord at the point of each auto-debit; MainTown does not hold Tenant funds at any stage.</li>
         <li>Cross-border payments (for diaspora Tenants) are converted at the rate shown at checkout and are non-reversible once disbursed.</li>
-        <li>Refunds for a failed or disputed inspection follow MainTown Realty's Dispute Resolution policy.</li>
+        <li>If the Property does not match its listing, the Tenant may raise a dispute within the inspection window; refunds are processed by the Landlord in line with MainTown Realty's Dispute Resolution policy.</li>
       </ul>
 
       <h1>3. Tenant Obligations</h1>
@@ -9021,7 +9025,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <p>Missed payments beyond the grace period may result in a default flag on the Tenant's account and possible lease termination, in line with MainTown Realty's Post-Lease Management policy. Either party may terminate early per the notice period stated in the lease terms shared at booking.</p>
 
       <h1>6. Platform Role</h1>
-      <p>MainTown Realty acts solely as the payments, escrow and communications facilitator between Landlord and Tenant, and is not a party to the underlying tenancy itself.</p>
+      <p>MainTown Realty acts solely as the payments, auto-split settlement and communications facilitator between Landlord and Tenant, and is not a party to the underlying tenancy itself. MainTown does not hold, custody, or have access to Tenant or Landlord funds at any point in the transaction.</p>
 
       <h1>7. Signature</h1>
       <p>By signing below and confirming with the verification code sent to your phone, both parties acknowledge they have read, understood and agree to be bound by the terms of this Agreement.</p>
@@ -9470,7 +9474,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       checkoutPinBalanceLineEl.style.display = 'block';
       const balance = getWalletBalance(uid);
       checkoutPinBalanceEl.textContent = formatMoney(balance, 'ngn');
-      checkoutPinSubEl.textContent = 'Enter your 6-digit MainTown Transaction PIN to authorize payment and move funds into escrow';
+      checkoutPinSubEl.textContent = 'Enter your 6-digit MainTown Transaction PIN to authorize this payment';
       const insufficient = balance < total;
       checkoutPinInsufficientEl.style.display = insufficient ? 'block' : 'none';
       checkoutPinFundBtnEl.style.display = insufficient ? 'flex' : 'none';
@@ -9552,19 +9556,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
     let rows;
     if (checkoutListing && checkoutListing.type === 'land') {
       rows = [
-        { icon: 'landmark', label: 'Clause A — Title Inspection Hold', detail: 'Down payment locked in MainTown Escrow for up to 14 days for survey & Land Registry (C of O / Gazette) title verification.' },
-        { icon: 'layers', label: 'Clause C — Allocation Milestone Payout', detail: '50% of escrow funds release upon verified physical allocation; the remaining 50% releases upon signing the Deed of Assignment.' }
+        { icon: 'landmark', label: 'Clause A — Title Verification Window', detail: 'Independent survey & Land Registry (C of O / Gazette) title verification is completed before physical allocation. Instalments are split automatically at the point of charge — MainTown never holds buyer funds.' },
+        { icon: 'layers', label: 'Clause C — Auto-Debit Payment Split', detail: 'Each instalment (or outright payment) is split automatically at the point of charge between the Seller/Developer and MainTown. Allocation and Deed execution follow that listing\'s payment schedule.' }
       ];
     } else {
       const listedByAgent = checkoutListing && checkoutListing.listedBy === 'agent';
       rows = listedByAgent
         ? [
             { icon: 'briefcase', label: 'Agent Commission Split', detail: '60% of agent commission to Agent, 40% retained by MainTown Realty.' },
-            { icon: 'key-round', label: 'Landlord Rent Hold', detail: '100% Net Rent held in Escrow pending key handover.' }
+            { icon: 'key-round', label: 'Landlord Rent Payout', detail: '100% Net Rent split and paid directly to the Landlord at the point of charge — not held by MainTown.' }
           ]
         : [
             { icon: 'building-2', label: 'Direct Landlord Rental Fee', detail: '100% commission retained by MainTown Realty.' },
-            { icon: 'key-round', label: 'Landlord Rent Hold', detail: '100% Net Rent held in Escrow pending key handover.' }
+            { icon: 'key-round', label: 'Landlord Rent Payout', detail: '100% Net Rent split and paid directly to the Landlord at the point of charge — not held by MainTown.' }
           ];
     }
 
@@ -9746,8 +9750,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
     renderCommissionSplit();
     document.getElementById('s6-status-code').textContent = checkoutListing && checkoutListing.type === 'land'
-      ? 'PAYMENT_SUCCESSFUL / FUNDS_IN_ESCROW (LAND)'
-      : 'PAYMENT_SUCCESSFUL / FUNDS_IN_ESCROW';
+      ? 'PAYMENT_SUCCESSFUL / AWAITING_ALLOCATION (LAND)'
+      : 'PAYMENT_SUCCESSFUL / AWAITING_HANDOVER';
     document.getElementById('s6-payment-section').classList.add('hidden');
     document.getElementById('s6-success-panel').classList.remove('hidden');
     if (window.lucide) lucide.createIcons();
@@ -10086,7 +10090,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         } else if (linkedListing) {
           rightHtml = `<button type="button" class="s5-list-action-btn s5-list-publish-btn" data-action="publish" data-title="${p.title}"><i data-lucide="upload-cloud" class="w-3 h-3"></i>Publish Listing</button>`;
         } else {
-          rightHtml = `<span class="s5-status-badge s5-status-escrow">Escrow Pending</span>`;
+          rightHtml = `<span class="s5-status-badge s5-status-escrow">Payment Pending</span>`;
         }
       } else {
         const s = statusMap[p.status];
@@ -11074,7 +11078,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       saveListings();
       pushPlatformNotification(
         'landlord', 'listing', 'Title Verified — Listing Is Live',
-        `"${stillPending.title}" passed legal review and is now live on the marketplace with active escrow milestone protection.`,
+        `"${stillPending.title}" passed legal review and is now live on the marketplace with active automated payout protection.`,
         null, 'listing_verification', null, stillPending.ownerId
       );
       pushPlatformNotification(
@@ -12470,7 +12474,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <div class="cart-summary-card">
         <div class="cart-summary-row"><span>Properties Selected</span><span>${cart.length}</span></div>
         <div class="cart-summary-row"><span>Total Inspection Fees</span><strong>${formatMoney(total, 'ngn')}</strong></div>
-        <div class="cart-escrow-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i>100% Escrow Guarantee</div>
+        <div class="cart-escrow-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i>100% Payment Protection</div>
       </div>`;
 
     if (window.lucide) lucide.createIcons();
@@ -12563,7 +12567,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     saveCart();
     updateCartBadge();
 
-    showToast('Inspections confirmed & paid — 100% Escrow Guarantee');
+    showToast('Inspections confirmed & paid — 100% Payment Protection');
     navigateTo('screen-inspections');
   });
 
@@ -12653,7 +12657,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           </div>
         </div>
         <p class="insp-meta-line"><i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i>${dateTimeLine}</p>
-        <span class="insp-escrow-badge"><i data-lucide="lock" class="w-3 h-3"></i>${formatMoney(s.fee, 'ngn')} Escrow</span>
+        <span class="insp-escrow-badge"><i data-lucide="lock" class="w-3 h-3"></i>${formatMoney(s.fee, 'ngn')} Held</span>
         ${hostInfoHtml ? `<div class="insp-divider"></div>${hostInfoHtml}` : ''}
         <div class="insp-divider"></div>
         <div class="insp-mgmt-actions">${actionsHtml}</div>
@@ -14243,7 +14247,7 @@ available in the Post-Lease Hub and this chat thread.`
     const remaining = (activeLease && typeof activeLease.remainingMonths === 'number') ? activeLease.remainingMonths : 11;
     prMonthsPaid = Math.max(1, totalMonths - remaining);
 
-    // Base Rent vs Service & Facility Charges split (Platform Escrow Fee is always
+    // Base Rent vs Service & Facility Charges split (Platform Payment Protection Fee is always
     // ₦0.00 under the CBN Model A split-payment structure — MainTown never holds funds).
     const serviceCharge = Math.round(monthly * 0.0833);
     const baseRent = monthly - serviceCharge;
@@ -14300,7 +14304,7 @@ available in the Post-Lease Hub and this chat thread.`
     }
     prMonthsPaid = Math.min(12, prMonthsPaid + 1);
 
-    showToast(`Payment of ${prFormat(prSelectedRent)} received via ${methodLabel} — 100% Escrow Guarantee`);
+    showToast(`Payment of ${prFormat(prSelectedRent)} received via ${methodLabel} — 100% Payment Protection`);
 
     // Automated Transaction Generation on Settlement: this monthly rent
     // payment settles straight to the Landlord who owns the lease — both
@@ -15937,7 +15941,7 @@ available in the Post-Lease Hub and this chat thread.`
       userId: uid, direction: 'credit', category: 'TOPUP',
       title: 'Wallet Top-Up via Bank Transfer',
       amount: amt, status: 'SUCCESSFUL',
-      meta: { sender: method === 'card' ? 'Debit/Credit Card' : 'Bank Transfer', recipient: 'MainTown Escrow Wallet', feeType: 'Wallet Top-Up' }
+      meta: { sender: method === 'card' ? 'Debit/Credit Card' : 'Bank Transfer', recipient: 'Your MainTown Virtual Account', feeType: 'Wallet Top-Up' }
     });
     document.getElementById('fund-wallet-modal').classList.remove('open');
     // If they got here from an insufficient-balance checkout, nudge them
@@ -17054,7 +17058,7 @@ available in the Post-Lease Hub and this chat thread.`
     l.legalVerifiedAt = Date.now();
     saveListings();
     document.getElementById('ent-legal-review-modal').classList.remove('open');
-    showToast('Title verified — listing is now live with active escrow milestone protection');
+    showToast('Title verified — listing is now live with active automated payout protection');
     renderEntLegal();
     window.dispatchEvent(new Event('maintown_state_updated'));
     // Legal documents are now verified and the listing is LIVE — the Sales
