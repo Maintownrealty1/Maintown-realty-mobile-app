@@ -11752,6 +11752,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
     pushPlatformNotification(forRole, 'inspection', 'New Inspection Request',
       `${tenantName} activated an inspection for ${listing.title}.`,
       { screen: 'tenantBio', notifId }, 'INSPECTION_ACTIVATED', null, salesStaffId || null);
+
+    // ---- CEO Transparency Feed ----
+    // The CEO never gets the actionable "Awaiting Your Response" task for an
+    // Enterprise listing — that belongs to the Sales staff member alone (see
+    // forRole/forUserId above). Instead, the CEO gets a read-only heads-up in
+    // their own notification bell so they stay aware of what their Sales team
+    // is doing with a client, WITHOUT any way to open the client's chat or
+    // KYC bio from it (no 'tenantBio'/'screen-messages' route is attached, so
+    // openNotificationDetailModal() renders no action button for this card).
+    if (salesStaffId && listing.companyId) {
+      const staffName = (appState.users[salesStaffId] && appState.users[salesStaffId].name) || 'Your Sales staff';
+      pushPlatformNotification('landlord', 'inspection', 'Sales Team Activity',
+        `${staffName} received an inspection request from ${tenantName} for ${listing.title}.`,
+        { screen: 'ceoTransparency' }, 'CEO_SALES_TRANSPARENCY', null, listing.companyId);
+    }
   }
 
   // ==================================================================
@@ -12118,6 +12133,24 @@ This voucher is auto-generated and serves as proof of settlement.`;
     pushPlatformNotification('tenant', 'message', 'New Message',
       `You have a new message about ${sched.title}.`,
       { screen: 'screen-messages', convId: convId }, 'NEW_MESSAGE');
+
+    // ---- CEO Transparency Feed ----
+    // Sales confirmed/accepted this inspection on the CEO's behalf. The CEO
+    // gets a read-only "your Sales staff is now handling this client"
+    // heads-up in their own bell — no route to the client's chat or bio is
+    // attached, so they can see THAT it's happening without being able to
+    // step in and interact with the client directly.
+    if (sched.sales_staff_id) {
+      const staffRec = appState.users[sched.sales_staff_id];
+      const companyId = staffRec && staffRec.companyId;
+      if (companyId) {
+        const staffName = staffRec.name || 'Your Sales staff';
+        pushPlatformNotification('landlord', 'inspection', 'Sales Team Activity',
+          `${staffName} confirmed an inspection with ${sched.tenantName || 'a client'} for ${sched.title} — they're handling this on your behalf.`,
+          { screen: 'ceoTransparency' }, 'CEO_SALES_TRANSPARENCY', null, companyId);
+      }
+    }
+
     showToast('Accepted — chat unlocked for the tenant in Messages');
     renderSchedulesScreen();
     renderInspectionsSummaryCard();
