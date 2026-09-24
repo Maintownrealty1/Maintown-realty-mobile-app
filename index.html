@@ -3582,7 +3582,7 @@
     </div>
   </div>
 
-  <h1 class="s5-role-title" style="margin-bottom: 18px;">Confirm &amp; Pay</h1>
+  <h1 class="s5-role-title" style="margin-bottom: 18px;">Payment Breakdown</h1>
 
   <!-- Property Summary Card -->
   <div class="s5-card" style="margin-bottom: 20px;">
@@ -3722,6 +3722,10 @@
 
     <p class="s5-section-label"><i data-lucide="layers" class="w-4 h-4 text-purple-400"></i>Where Your Payment Went</p>
     <div class="s5-hold-preview" id="s6-invoice-disbursement"></div>
+
+    <button type="button" id="s6-download-receipt-btn" class="btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 10px;">
+      <i data-lucide="download" class="w-4 h-4"></i> Download Receipt
+    </button>
 
     <button type="button" id="s6-goto-postlease-btn" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
       <i data-lucide="arrow-right-circle" class="w-4 h-4"></i> Proceed to Post-Lease Hub
@@ -9930,6 +9934,86 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // hand off to the Landlord for review & countersignature.
     createHandoverForTenantSignOff();
   }
+
+
+  // ---- Download Receipt (Payment Breakdown screen) ----
+  // Builds a self-contained, printable receipt from the values already shown on
+  // the receipt panel and opens the browser's print dialog, where "Save as PDF"
+  // gives the person a PDF file. If pop-ups are blocked it falls back to
+  // downloading the receipt as an .html file instead.
+  function downloadCheckoutReceipt() {
+    const g = id => (document.getElementById(id)?.textContent || '').trim();
+    const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const tr = (l, v, opts = {}) => `<tr${opts.total ? ' class="total"' : ''}><td>${esc(l)}${opts.sub ? `<div class="sub">${esc(opts.sub)}</div>` : ''}</td><td class="r">${esc(v)}</td></tr>`;
+
+    const breakdown = [
+      tr(g('s6-invoice-row1-label'), g('s6-invoice-rent')),
+      tr(g('s6-invoice-row2-label'), g('s6-invoice-deposit')),
+      tr(g('s6-invoice-row3-label'), g('s6-invoice-fee'))
+    ];
+    const aiValue = g('s6-invoice-ai-fee');
+    if (aiValue && aiValue !== '—') breakdown.push(tr(g('s6-invoice-ai-fee-label'), aiValue));
+    breakdown.push(tr('Total Amount Paid', g('s6-invoice-total'), { total: true }));
+
+    const disb = [];
+    document.querySelectorAll('#s6-invoice-disbursement .s5-hold-row').forEach(row => {
+      const labelSpan = row.children[0];
+      const valueEl = row.querySelector('strong');
+      if (!labelSpan || !valueEl) return;
+      const subEl = labelSpan.querySelector('span');
+      const label = (labelSpan.childNodes[0] && labelSpan.childNodes[0].textContent || '').trim();
+      const isTotal = label.toLowerCase().startsWith('total');
+      disb.push(tr(label, valueEl.textContent.trim(), { sub: subEl ? subEl.textContent.trim() : '', total: isTotal }));
+    });
+
+    const ref = g('s6-invoice-txref');
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>MainTown Receipt ${esc(ref)}</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color:#0f172a; max-width:640px; margin:0 auto; padding:28px 22px; }
+  h1 { font-size:22px; margin:0 0 2px; color:#5b21b6; }
+  .muted { color:#64748b; font-size:12.5px; }
+  .badge { display:inline-block; background:#dcfce7; color:#166534; border:1px solid #16a34a; border-radius:999px; padding:3px 12px; font-size:12px; font-weight:600; margin:10px 0 14px; }
+  h2 { font-size:14px; margin:20px 0 6px; }
+  table { width:100%; border-collapse:collapse; }
+  td { padding:8px 4px; border-bottom:1px solid #e2e8f0; font-size:13.5px; vertical-align:top; }
+  td.r { text-align:right; font-weight:600; white-space:nowrap; }
+  tr.total td { font-weight:700; border-top:2px solid #0f172a; border-bottom:none; }
+  .sub { font-size:11px; color:#64748b; font-weight:400; margin-top:1px; }
+  .foot { margin-top:22px; font-size:11.5px; color:#64748b; line-height:1.5; }
+  @media print { body { padding:0; } }
+</style></head><body>
+  <h1>MainTown</h1>
+  <div class="muted">Payment Receipt</div>
+  <div class="badge">Payment Successful</div>
+  <table>
+    ${tr('Property', g('s6-property-title'))}
+    ${tr('Location', g('s6-property-location'))}
+    ${tr('Transaction Reference', ref)}
+    ${tr('Date', g('s6-invoice-date'))}
+  </table>
+  <h2>Payment Breakdown</h2>
+  <table>${breakdown.join('')}</table>
+  ${disb.length ? `<h2>Where Your Payment Went</h2><table>${disb.join('')}</table>` : ''}
+  <p class="foot">This payment was split automatically at the point of charge through ${esc(PAYMENT_PROVIDER)}. MainTown does not hold customer funds. Keep this receipt for your records.</p>
+  <script>window.onload = function () { setTimeout(function () { window.print(); }, 300); };<\/script>
+</body></html>`;
+
+    const w = window.open('', '_blank');
+    if (w) {
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+    } else {
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `maintown-receipt-${ref || 'payment'}.html`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      showToast('Receipt downloaded');
+    }
+  }
+  document.getElementById('s6-download-receipt-btn').addEventListener('click', downloadCheckoutReceipt);
 
   // ==================================================================
   // ---- PART 2: Post-Payment View Routing ----
