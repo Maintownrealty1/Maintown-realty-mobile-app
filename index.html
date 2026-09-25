@@ -1841,6 +1841,16 @@
   .s5-list-title { font-size: 13px; font-weight: 500; color: #fff; margin: 0 0 2px; }
   .s5-list-sub { font-size: 11.5px; color: #64748b; margin: 0; }
 
+  /* Owner Assets: status rows (allocation/consent/docs) nested inside the
+     shared .insp-mgmt-card — wraps instead of overflowing the card on
+     narrow screens when the label + pill/button don't fit one line. */
+  .oa-status-row {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 6px 10px; margin-bottom: 8px;
+  }
+  .oa-status-row:last-child { margin-bottom: 0; }
+  .oa-status-label { flex: 1 1 140px; min-width: 0; margin: 0 !important; }
+
   .s5-add-btn {
     width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
     padding: 13px; border-radius: 12px; font-weight: 600; font-size: 13px; color: #fff;
@@ -7189,27 +7199,26 @@ document.addEventListener('DOMContentLoaded', () => {
         // Physical Allocation: Request (buyer) → Confirm (Owner, here) →
         // Attended (buyer, on-site) — a distinct, later step from the sale
         // itself. Receipt & Deed only becomes actionable once Attended.
-        let allocRow = '';
-        let docsRow = '';
+        let statusRows = '';
         if (buyerAsset) {
           const allocStatus = buyerAsset.allocationRequestStatus;
           let allocAction, allocLine;
           if (allocStatus === 'ATTENDED') {
             allocLine = `Physical allocation completed: ${buyerAsset.allocationDateLabel}`;
-            allocAction = `<span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap;"><i data-lucide="check-circle-2" class="w-3 h-3"></i>Completed</span>`;
+            allocAction = `<span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap; flex-shrink:0;"><i data-lucide="check-circle-2" class="w-3 h-3"></i>Completed</span>`;
           } else if (allocStatus === 'CONFIRMED') {
             allocLine = `Allocation scheduled: ${buyerAsset.allocationDateLabel}`;
-            allocAction = `<span class="s5-status-badge insp-status-conducted" style="white-space:nowrap;">Awaiting Buyer On-Site</span>`;
+            allocAction = `<span class="s5-status-badge insp-status-conducted" style="white-space:nowrap; flex-shrink:0;">Awaiting Buyer On-Site</span>`;
           } else if (allocStatus === 'PENDING_APPROVAL') {
             allocLine = `Allocation requested: ${buyerAsset.allocationDateLabel}`;
-            allocAction = `<button type="button" class="s5-back-btn oa-confirm-allocation-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600;"><i data-lucide="calendar-check" class="w-3.5 h-3.5"></i>Confirm Appointment</button>`;
+            allocAction = `<button type="button" class="s5-back-btn oa-confirm-allocation-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600; flex-shrink:0;"><i data-lucide="calendar-check" class="w-3.5 h-3.5"></i>Confirm Appointment</button>`;
           } else {
             allocLine = 'Buyer hasn\'t requested physical allocation yet';
-            allocAction = `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap;">Not Requested</span>`;
+            allocAction = `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap; flex-shrink:0;">Not Requested</span>`;
           }
-          allocRow = `
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin: -6px 0 6px; padding: 0 4px;">
-              <p class="s5-list-sub" style="margin:0;">${allocLine}</p>
+          statusRows += `
+            <div class="oa-status-row">
+              <p class="s5-list-sub oa-status-label">${allocLine}</p>
               ${allocAction}
             </div>`;
 
@@ -7217,18 +7226,17 @@ document.addEventListener('DOMContentLoaded', () => {
           // declared title type requires it. Owner/Agent advances it one
           // stage at a time; only reaching GRANTED clears the way to issue
           // the C of O alongside the Deed & Receipt.
-          let consentRow = '';
           if (buyerAsset.requiresConsent) {
             let consentAction;
             if (buyerAsset.consentStatus === 'GRANTED') {
-              consentAction = `<span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap;"><i data-lucide="check-circle-2" class="w-3 h-3"></i>Granted</span>`;
+              consentAction = `<span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap; flex-shrink:0;"><i data-lucide="check-circle-2" class="w-3 h-3"></i>Granted</span>`;
             } else {
               const nextLabel = CONSENT_ADVANCE_LABELS[buyerAsset.consentStatus] || CONSENT_ADVANCE_LABELS.NOT_STARTED;
-              consentAction = `<button type="button" class="s5-back-btn oa-advance-consent-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600;"><i data-lucide="stamp" class="w-3.5 h-3.5"></i>${nextLabel}</button>`;
+              consentAction = `<button type="button" class="s5-back-btn oa-advance-consent-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600; flex-shrink:0;"><i data-lucide="stamp" class="w-3.5 h-3.5"></i>${nextLabel}</button>`;
             }
-            consentRow = `
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin: 0 0 6px; padding: 0 4px;">
-                <p class="s5-list-sub" style="margin:0;">${consentStatusLabel(buyerAsset)}</p>
+            statusRows += `
+              <div class="oa-status-row">
+                <p class="s5-list-sub oa-status-label">${consentStatusLabel(buyerAsset)}</p>
                 ${consentAction}
               </div>`;
           }
@@ -7241,32 +7249,34 @@ document.addEventListener('DOMContentLoaded', () => {
           let docsAction, docsLabel;
           docsLabel = buyerAsset.requiresConsent ? 'Receipt, Deed &amp; C of O' : 'Receipt &amp; Deed of Assignment';
           if (buyerAsset.deedAvailable) {
-            docsAction = `<span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap;"><i data-lucide="badge-check" class="w-3 h-3"></i>Docs Issued</span>`;
+            docsAction = `<span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap; flex-shrink:0;"><i data-lucide="badge-check" class="w-3 h-3"></i>Docs Issued</span>`;
           } else if (allocStatus === 'ATTENDED' && !consentBlocking) {
-            docsAction = `<button type="button" class="s5-back-btn oa-issue-deed-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600;"><i data-lucide="upload" class="w-3.5 h-3.5"></i>Issue ${buyerAsset.requiresConsent ? 'Documents' : 'Receipt &amp; Deed'}</button>`;
+            docsAction = `<button type="button" class="s5-back-btn oa-issue-deed-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600; flex-shrink:0;"><i data-lucide="upload" class="w-3.5 h-3.5"></i>Issue ${buyerAsset.requiresConsent ? 'Documents' : 'Receipt &amp; Deed'}</button>`;
           } else if (allocStatus === 'ATTENDED' && consentBlocking) {
-            docsAction = `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap;">Awaiting Governor's Consent</span>`;
+            docsAction = `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap; flex-shrink:0;">Awaiting Governor's Consent</span>`;
           } else {
-            docsAction = `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap;">Awaiting Physical Allocation</span>`;
+            docsAction = `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap; flex-shrink:0;">Awaiting Physical Allocation</span>`;
           }
-          docsRow = `
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin: 0 0 10px; padding: 0 4px;">
-              <p class="s5-list-sub" style="margin:0;">${docsLabel}</p>
+          statusRows += `
+            <div class="oa-status-row">
+              <p class="s5-list-sub oa-status-label">${docsLabel}</p>
               ${docsAction}
             </div>`;
-          allocRow += consentRow;
         }
 
         return `
-          <div class="s5-list-item" style="margin-bottom:0;">
-            <div class="s5-list-icon"><i data-lucide="landmark" class="w-5 h-5"></i></div>
-            <div class="s5-list-text">
-              <p class="s5-list-title">${l.title}</p>
-              <p class="s5-list-sub">${l.location}</p>
-              <p class="s5-list-sub" style="margin-top:2px;">Sold to <strong style="color:#e2e8f0;">${buyerName}</strong> · ${amount} · ${dateLabel}</p>
+          <div class="insp-mgmt-card" style="padding:14px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div class="s5-list-icon"><i data-lucide="landmark" class="w-5 h-5"></i></div>
+              <div class="s5-list-text">
+                <p class="s5-list-title">${l.title}</p>
+                <p class="s5-list-sub">${l.location}</p>
+                <p class="s5-list-sub" style="margin-top:2px;">Sold to <strong style="color:#e2e8f0;">${buyerName}</strong> · ${amount} · ${dateLabel}</p>
+              </div>
+              <span class="s5-status-badge insp-status-confirmed" style="flex-shrink:0;">SOLD</span>
             </div>
-            <span class="s5-status-badge insp-status-confirmed">SOLD</span>
-          </div>${allocRow}${docsRow}`;
+            ${statusRows ? `<div class="insp-divider" style="margin:12px 0 10px;"></div>${statusRows}` : ''}
+          </div>`;
       }).join('');
     }
 
