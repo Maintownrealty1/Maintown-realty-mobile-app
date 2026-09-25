@@ -828,6 +828,16 @@
     max-height: 90vh; max-height: 90dvh; overflow-y: auto; -webkit-overflow-scrolling: touch;
     box-sizing: border-box;
   }
+  /* Sticky CTA footer (Vendor Activation modal) — see HTML comment above the
+     footer markup. Removing the card's own bottom padding and re-adding it on
+     the footer itself keeps the sticky element flush with the scroll
+     container's true bottom edge instead of stopping 24px short of it. */
+  #vendor-activation-modal .modal-card { padding-bottom: 0; }
+  #vendor-activation-modal .va-sticky-footer {
+    position: sticky; bottom: 0; z-index: 2;
+    background: #0f172a; margin: 16px -24px 0; padding: 0 24px 24px;
+    box-shadow: 0 -14px 16px -10px rgba(15,23,42,0.95);
+  }
   .modal-icon-wrap {
     width: 48px; height: 48px; border-radius: 999px; background: rgba(59,7,100,0.5);
     border: 1px solid #6b21a8; display: flex; align-items: center; justify-content: center;
@@ -5134,10 +5144,18 @@
       <span>I have read and agree to the MainTown Vendor Activation &amp; Land Sales Policy above.</span>
     </label>
 
-    <p class="login-error-msg" id="va-error-msg"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span id="va-error-text">Please check the box above to continue.</span></p>
-
-    <button type="button" id="va-activate-btn" class="btn-primary" style="margin-top:10px; margin-bottom:12px;" disabled>Activate Vendor Account</button>
-    <button type="button" id="va-cancel-btn" class="btn-secondary">Cancel</button>
+    <!-- Sticky CTA footer: on shorter phones this modal's content (KYC status +
+         full policy text) can exceed the modal-card's own 90vh scroll area, which
+         pushed the Activate/Cancel buttons below the fold with no visible scroll
+         affordance — the card's rounded bottom edge made it look "finished" right
+         after the checkbox. Pinning this footer to the bottom of the scrollable
+         card (position: sticky) keeps the CTA always visible and reachable, no
+         matter how tall the policy text renders on a given screen. -->
+    <div class="va-sticky-footer">
+      <p class="login-error-msg" id="va-error-msg"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span id="va-error-text">Please check the box above to continue.</span></p>
+      <button type="button" id="va-activate-btn" class="btn-primary" style="margin-top:10px; margin-bottom:12px;" disabled>Activate Vendor Account</button>
+      <button type="button" id="va-cancel-btn" class="btn-secondary">Cancel</button>
+    </div>
   </div>
 </div>
 
