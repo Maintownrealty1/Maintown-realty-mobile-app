@@ -8181,11 +8181,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <span class="s5-status-badge insp-status-conducted" style="white-space:nowrap;"><i data-lucide="scroll-text" class="w-3 h-3"></i>${p.titleTypeLabel}</span>
             ${p.requiresConsent ? `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap;"><i data-lucide="alert-triangle" class="w-3 h-3"></i>Governor's Consent Required</span>` : ''}
           </div>` : ''}
-          <!-- CTA Consolidation: the standalone "Schedule Site Inspection" button has been
-               removed. "View Payment Options" is now the single primary CTA on this card — it
-               opens the consolidated Payment Options drawer (Option A: Schedule Site Inspection,
-               Option B: Direct Purchase/Outright Checkout, Option C: Flexible Payment Plan)
-               instead of jumping straight into a single flow. -->
+          <!-- CTA Consolidation: land/property "Buy Now" opens the single Payment Options
+               modal directly (Outright / Installment toggle) — the old intermediate
+               A/B/C option-picker screen is skipped for land, since land has no
+               separate "cart" path and the toggle modal already carries its own
+               Inspection-First Checkout Gate. -->
           <button type="button" class="s5-action-btn primary land-pay-btn${(screeningCompleted && !unavailable) ? '' : ' locked'}${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%;" ${unavailable ? 'disabled' : ''}>${unavailable
             ? '<i data-lucide="lock" class="w-4 h-4"></i>Sold — Unavailable'
             : (screeningCompleted
@@ -8227,11 +8227,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (landBtn.disabled) return;
       const listing = landListingsList().find(l => String(l.id) === landBtn.dataset.listingId);
       // Phase 1 gate: block lease/land-purchase requests until credit screening is paid,
-      // and never once the listing has already been marked SOLD. "View Payment Options"
-      // is the single CTA on Land/Property cards — it opens the consolidated drawer
-      // (Option A: Schedule Site Inspection, Option B: Direct Purchase/Outright
-      // Checkout, Option C: Flexible Payment Plan) instead of one fixed flow.
-      if (listing && !isListingUnavailable(listing)) requireScreening(() => openPaymentOptionsModal(listing));
+      // and never once the listing has already been marked SOLD. "Buy Now" opens the
+      // single Payment Options modal (Outright / Installment toggle) directly — that
+      // modal's own Continue button handles the Inspection-First Checkout Gate,
+      // routing to inspection booking first if this listing has no Satisfied
+      // inspection on file yet, or straight to checkout once it does.
+      if (listing && !isListingUnavailable(listing)) requireScreening(() => openLandPaymentModal(listing));
     } else if (shortletBtn) {
       const listing = rentListings().find(l => String(l.id) === shortletBtn.dataset.listingId);
       if (!listing) return;
@@ -8272,10 +8273,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('sv-video-el').pause();
     siteVideoModal.classList.remove('open');
     const listing = siteVideoListing;
-    // CTA Consolidation: routes into the same consolidated Payment Options
-    // drawer as the card's "View Payment Options" button, rather than jumping
-    // straight into inspection booking — keeps a single funnel everywhere.
-    if (listing) requireScreening(() => openPaymentOptionsModal(listing));
+    // CTA Consolidation: routes into the same single Payment Options modal
+    // (Outright / Installment toggle) as the card's "Buy Now" button — land
+    // has no intermediate A/B/C picker, so this stays one funnel everywhere.
+    if (listing) requireScreening(() => openLandPaymentModal(listing));
   });
 
   // ==================================================================
@@ -11551,7 +11552,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       continueBtn.innerHTML = '<i data-lucide="arrow-right-circle" class="w-4 h-4"></i> Continue to Checkout';
     } else {
       gateNotice.style.display = 'flex';
-      continueBtn.innerHTML = '<i data-lucide="calendar-check" class="w-4 h-4"></i> Confirm &amp; Schedule Physical Inspection';
+      continueBtn.innerHTML = '<i data-lucide="calendar-check" class="w-4 h-4"></i> Continue to Inspection';
     }
     document.getElementById('lp-property-name').textContent = listing.title;
     document.getElementById('lp-mode-outright').classList.add('active');
@@ -16078,6 +16079,17 @@ available in the Post-Lease Hub and this chat thread.`
     // Log the newly claimed account straight into their dashboard (reuses the
     // same session/navigation plumbing as the pre-onboarded demo accounts).
     loginAsDemoUser({ id: record.id, name: record.name, email: record.email, role: record.role });
+
+    // Vendor Activation Gate (KYC + Policy): an Agent-auto-onboarded Landlord
+    // has never completed this app's own KYC/policy sign-off — hasKycOnFile()
+    // correctly reports them as not-yet-verified since they're not a fixed
+    // DEMO_USERS identity. Previously this gate only ever surfaced later, if
+    // and when the Landlord tried to list a property themselves; now it's
+    // shown immediately on this first auto-login, right after claiming the
+    // account, so it can't be skipped by only ever handling Agent-submitted
+    // listings. Staff accounts (enterprise_staff) aren't Land & Property
+    // vendors and are exempt.
+    if (!isStaffClaim) requireVendorActivation(record.id, () => {});
   });
 
 
