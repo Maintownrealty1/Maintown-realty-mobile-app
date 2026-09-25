@@ -11549,10 +11549,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   // Inspection-First Checkout Gate: true only once a physical inspection for
   // this listing has been marked Satisfied (inspections[].status === 'completed').
-  // Checked by title, matching the rest of the app's listing-lookup convention.
+  // Matches by listingId first — the real bug fix here — falling back to a
+  // title match only for older records saved before listingId existed.
+  // Title-only matching was wrong: any two listings that happen to share a
+  // title (easy to do with repeated test listings like "Ikeja land") would
+  // incorrectly inherit each other's satisfied-inspection status, making a
+  // brand-new listing appear pre-satisfied with no inspection ever booked.
   function hasSatisfiedInspectionForListing(listing) {
     if (!listing) return false;
-    return inspections.some(i => i.listingTitle === listing.title && i.status === 'completed');
+    return inspections.some(i => i.status === 'completed' && (
+      i.listingId != null ? i.listingId === listing.id : i.listingTitle === listing.title
+    ));
   }
 
   function openLandPaymentModal(listing) {
@@ -12315,12 +12322,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // handler twice, and hasPendingScheduleForListing() blocks a second active
   // inspection request for the same listing (any user/role reachable in this
   // single-device demo) while an earlier one is still Pending Approval or
-  // already Confirmed — mirrors the same-listing dedupe used elsewhere
-  // (hasSatisfiedInspectionForListing) rather than introducing a new key shape.
+  // already Confirmed. Matches by property_id first (each schedule already
+  // carries the real listing id) — same fix as hasSatisfiedInspectionForListing:
+  // title-only matching let a pending/confirmed request on one listing
+  // incorrectly block booking on a different listing that happens to share
+  // the same title, falling back to title only for any older record saved
+  // before property_id existed.
   let ibSubmitting = false;
   function hasPendingScheduleForListing(listing) {
     if (!listing) return false;
-    return schedules.some(s => s.title === listing.title && (s.status === 'Pending Approval' || s.status === 'Confirmed'));
+    return schedules.some(s => (s.status === 'Pending Approval' || s.status === 'Confirmed') && (
+      s.property_id != null ? s.property_id === listing.id : s.title === listing.title
+    ));
   }
 
   document.getElementById('ib-confirm-btn').addEventListener('click', () => {
@@ -12363,6 +12376,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Property Sale site inspections, not just rentals.
     inspections.unshift({
       id: inspId,
+      listingId: inspectionListing.id,
       listingTitle: inspectionListing.title,
       listingImg: inspectionListing.img,
       date, time,
