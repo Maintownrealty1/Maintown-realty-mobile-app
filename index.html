@@ -3654,7 +3654,7 @@
         <p>Scroll to the bottom of this box to unlock the signature field below.</p>
       </div>
       <div class="field">
-        <label class="field-label">Type to sign: "I agree to the Land Allocation &amp; Payment Terms"</label>
+        <label class="field-label" id="s6-landsign-label">Type to sign: "I agree to the Land Allocation &amp; Payment Terms"</label>
         <input class="field-input signature-input" id="s6-landsign-input" type="text" placeholder="Type the exact phrase above" disabled>
       </div>
     </div>
@@ -3662,8 +3662,8 @@
     <p class="s5-section-label" id="s6-breakdown-label" style="margin-top: 0;"><i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Rent Breakdown</p>
     <div class="s5-hold-preview">
       <div class="s5-hold-row"><span id="s6-row1-label">Rent Amount</span><strong id="s6-rent-amount">—</strong></div>
-      <div class="s5-hold-row"><span id="s6-row2-label">Caution Deposit</span><strong id="s6-deposit-amount">—</strong></div>
-      <div class="s5-hold-row"><span id="s6-row3-label">Service Fee</span><strong id="s6-fee-amount">—</strong></div>
+      <div class="s5-hold-row" id="s6-row2"><span id="s6-row2-label">Caution Deposit</span><strong id="s6-deposit-amount">—</strong></div>
+      <div class="s5-hold-row" id="s6-row3"><span id="s6-row3-label">Service Fee</span><strong id="s6-fee-amount">—</strong></div>
       <div class="s5-hold-row" id="s6-caution-row" style="display:none;"><span id="s6-row4-label">Caution Deposit (to Landlord)</span><strong id="s6-caution-amount">—</strong></div>
       <div class="s5-hold-row" id="s6-service-row" style="display:none;"><span id="s6-row5-label">Service Charge (to Landlord)</span><strong id="s6-service-amount">—</strong></div>
       <div class="s5-hold-row" id="s6-ai-fee-row">
@@ -3672,6 +3672,14 @@
       </div>
       <div class="s5-hold-divider"></div>
       <div class="s5-hold-row"><span>Total Amount Due</span><strong id="s6-total-amount" style="color: #c084fc; font-size: 15px;">—</strong></div>
+    </div>
+
+    <!-- Short-Let only: informational notice for the nights left to auto-debit
+         after checkout, when the stay is more than 1 night. Hidden for
+         single-night stays and every other listing type. -->
+    <div class="rent-badge" id="s6-shortlet-autodebit-notice" style="display:none; align-items:flex-start; gap:6px;">
+      <i data-lucide="repeat" class="w-3.5 h-3.5" style="margin-top:2px; flex-shrink:0;"></i>
+      <span id="s6-shortlet-autodebit-text"></span>
     </div>
 
     <p class="s5-section-label"><i data-lucide="layers" class="w-4 h-4 text-purple-400"></i>Payment Disbursement Breakdown</p>
@@ -5196,12 +5204,18 @@
 
 <!-- Shortlet Booking Modal — tenant picks a check-in date and number of
      nights; night 1 is paid up front and nights 2..N auto-debit daily. -->
+<!-- Short-Let Checkout Revamp — Step 1: Interactive Calendar Date Selection.
+     Replaces the old "1 night now, auto-debit the rest" picker: the tenant
+     now selects a full Check-in/Check-out range up front, total_nights is
+     computed live, and "Continue to Checkout" hands off to the full 3-part
+     Checkout Screen (screen-6) for the itemized breakdown, agreement
+     sign-off, and payment authorization — see openCheckout(). -->
 <div id="shortlet-booking-modal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-icon-wrap">
       <i data-lucide="calendar-days" class="w-6 h-6 text-purple-400"></i>
     </div>
-    <h2 class="modal-title">Book Shortlet Stay</h2>
+    <h2 class="modal-title">Select Your Stay Dates</h2>
     <p class="modal-sub" id="sb-property-name">—</p>
 
     <div class="field">
@@ -5209,25 +5223,26 @@
       <input class="field-input" id="sb-checkin-date" type="date">
     </div>
     <div class="field">
-      <label class="field-label">Number of Nights</label>
-      <input class="field-input" id="sb-nights" type="number" min="1" value="1">
+      <label class="field-label">Check-out Date</label>
+      <input class="field-input" id="sb-checkout-date" type="date">
     </div>
+    <p class="modal-sub" id="sb-nights-summary" style="margin-top:-8px; margin-bottom: 6px; color:#94a3b8;">1 night selected</p>
 
     <div class="fee-preview-box">
       <div class="row"><span>Nightly Rate</span><strong id="sb-nightly-rate">₦0</strong></div>
-      <div class="row"><span>Night 1 (Due Now)</span><strong id="sb-night1">₦0</strong></div>
-      <div class="row"><span>MainTown Platform Fee (5%)</span><strong id="sb-legal">₦0</strong></div>
-      <div class="row" id="sb-caution-row" style="display:none;"><span>Caution Deposit (to host)</span><strong id="sb-caution">₦0</strong></div>
+      <div class="row"><span>Net Rent (Night 1 — due now)</span><strong id="sb-net-rent">₦0</strong></div>
+      <div class="row" id="sb-caution-row" style="display:none;"><span>Caution Fee (to host)</span><strong id="sb-caution">₦0</strong></div>
       <div class="row" id="sb-service-row" style="display:none;"><span>Service Charge (to host)</span><strong id="sb-service">₦0</strong></div>
+      <div class="row"><span>MainTown Platform Fee (5%)</span><strong id="sb-legal">₦0</strong></div>
       <div class="row"><span>Total Due Now</span><strong id="sb-total-now">₦0</strong></div>
     </div>
 
     <div class="rent-badge" style="align-items:flex-start; gap:6px; display:flex;">
       <i data-lucide="info" class="w-3.5 h-3.5" style="margin-top:2px; flex-shrink:0;"></i>
-      <span id="sb-autodebit-note">Nights 2 onward auto-debit daily from your wallet until your full stay is paid.</span>
+      <span id="sb-autodebit-note">This is a single-night stay — nothing further will be charged.</span>
     </div>
 
-    <button type="button" id="sb-confirm-btn" class="btn-primary" style="margin-top:14px; margin-bottom:12px;">Pay &amp; Book Now</button>
+    <button type="button" id="sb-confirm-btn" class="btn-primary" style="margin-top:14px; margin-bottom:12px;">Continue to Checkout</button>
     <button type="button" id="sb-cancel-btn" class="btn-secondary">Cancel</button>
   </div>
 </div>
@@ -8403,49 +8418,57 @@ This voucher is auto-generated and serves as proof of settlement.`;
   let sbListing = null;
   const shortletAutoDebitTimers = {};
 
+  // Recomputes the live itemized preview from the selected Check-in/Check-out
+  // dates using the shared computeShortletBreakdown() calculator (also used
+  // by the full Checkout Screen), so the numbers shown here and on the
+  // Checkout Screen always agree.
   function recalcShortletBooking() {
     if (!sbListing) return;
-    const nights = Math.max(1, parseInt(document.getElementById('sb-nights').value) || 1);
-    const rate = sbListing.nightlyRate || 0;
-    // Shortlet stays carry only the MainTown Platform Fee (5%, auto-calculated
-    // off the nightly rate) — no Agency Commission and no Legal Fee/tenancy
-    // agreement is drafted for a shortlet booking (see the Fee Transparency
-    // onboarding policy).
-    const platformFee = Math.round(rate * 0.05);
-    // Caution Deposit & Service Charge (host-set at listing time) are charged
-    // once, alongside Night 1, and paid straight to the host — never MainTown.
-    const cautionFee = sbListing.cautionFee || 0;
-    const serviceChargeFee = (sbListing.serviceChargeMode === 'charged') ? (sbListing.serviceChargeFee || 0) : 0;
-    const totalNow = rate + platformFee + cautionFee + serviceChargeFee;
-    document.getElementById('sb-nightly-rate').textContent = formatMoney(rate, 'ngn');
-    document.getElementById('sb-night1').textContent = formatMoney(rate, 'ngn');
-    document.getElementById('sb-legal').textContent = formatMoney(platformFee, 'ngn');
+    const checkinEl = document.getElementById('sb-checkin-date');
+    const checkoutEl = document.getElementById('sb-checkout-date');
+    // Guard: Check-out can never be on/before Check-in — nudge it forward by
+    // one night instead of silently computing a negative/zero stay.
+    if (checkinEl.value && checkoutEl.value && checkoutEl.value <= checkinEl.value) {
+      const nextDay = new Date(checkinEl.value);
+      nextDay.setDate(nextDay.getDate() + 1);
+      checkoutEl.value = nextDay.toISOString().slice(0, 10);
+    }
+    checkoutEl.min = checkinEl.value;
+    const breakdown = computeShortletBreakdown(sbListing, checkinEl.value, checkoutEl.value);
+    document.getElementById('sb-nights-summary').textContent = `${breakdown.nights} night${breakdown.nights > 1 ? 's' : ''} selected`;
+    document.getElementById('sb-nightly-rate').textContent = formatMoney(breakdown.nightlyRate, 'ngn');
+    document.getElementById('sb-net-rent').textContent = formatMoney(breakdown.netRent, 'ngn');
+    document.getElementById('sb-legal').textContent = formatMoney(breakdown.platformFee, 'ngn');
     const cautionRow = document.getElementById('sb-caution-row');
-    if (cautionRow) cautionRow.style.display = cautionFee > 0 ? 'flex' : 'none';
+    if (cautionRow) cautionRow.style.display = breakdown.cautionFee > 0 ? 'flex' : 'none';
     const cautionEl = document.getElementById('sb-caution');
-    if (cautionEl) cautionEl.textContent = formatMoney(cautionFee, 'ngn');
+    if (cautionEl) cautionEl.textContent = formatMoney(breakdown.cautionFee, 'ngn');
     const serviceRow = document.getElementById('sb-service-row');
-    if (serviceRow) serviceRow.style.display = serviceChargeFee > 0 ? 'flex' : 'none';
+    if (serviceRow) serviceRow.style.display = breakdown.serviceChargeFee > 0 ? 'flex' : 'none';
     const serviceEl = document.getElementById('sb-service');
-    if (serviceEl) serviceEl.textContent = formatMoney(serviceChargeFee, 'ngn');
-    document.getElementById('sb-total-now').textContent = formatMoney(totalNow, 'ngn');
-    document.getElementById('sb-autodebit-note').textContent = nights > 1
-      ? `Night 1 (plus Caution Deposit &amp; Service Charge, if set) is paid now. Nights 2–${nights} auto-debit ${formatMoney(rate, 'ngn')} daily from your wallet until the stay is fully paid.`
+    if (serviceEl) serviceEl.textContent = formatMoney(breakdown.serviceChargeFee, 'ngn');
+    document.getElementById('sb-total-now').textContent = formatMoney(breakdown.totalPayable, 'ngn');
+    document.getElementById('sb-autodebit-note').textContent = breakdown.remainingNights > 0
+      ? `Night 1 (plus Caution Fee & Service Charge, if set) is paid now. Nights 2–${breakdown.nights} auto-debit ${formatMoney(breakdown.dailyDebitAmount, 'ngn')} daily from your wallet until the stay is fully paid.`
       : `This is a single-night stay — nothing further will be charged.`;
+    return breakdown;
   }
 
   function openShortletBookingModal(listing) {
     sbListing = listing;
     document.getElementById('sb-property-name').textContent = `${listing.title} — ${listing.location}`;
-    document.getElementById('sb-nights').value = 1;
     const todayIso = new Date().toISOString().slice(0, 10);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
     document.getElementById('sb-checkin-date').value = todayIso;
     document.getElementById('sb-checkin-date').min = todayIso;
+    document.getElementById('sb-checkout-date').value = tomorrow.toISOString().slice(0, 10);
     recalcShortletBooking();
     shortletBookingModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
   }
-  document.getElementById('sb-nights').addEventListener('input', recalcShortletBooking);
+  document.getElementById('sb-checkin-date').addEventListener('change', recalcShortletBooking);
+  document.getElementById('sb-checkout-date').addEventListener('change', recalcShortletBooking);
   document.getElementById('sb-cancel-btn').addEventListener('click', () => shortletBookingModal.classList.remove('open'));
 
   // Charges one night (rate + MainTown Platform Fee, auto-calculated off the
@@ -8485,6 +8508,67 @@ This voucher is auto-generated and serves as proof of settlement.`;
       });
     }
     return true;
+  }
+
+  // ---- Short-Let Checkout Revamp: finalize the hybrid checkout ----
+  // Called from approveCheckoutPayment() once the PIN is verified. Charges
+  // Night 1 + Caution Fee + Service Charge + Platform Fee now (the same
+  // figures shown on the Checkout Screen breakdown), pays the host their
+  // Night 1 share, creates the booking record, and — for stays longer than
+  // 1 night — hands off to the existing daily auto-debit engine for the
+  // remaining nights.
+  function finalizeShortletCheckout() {
+    const listing = checkoutListing;
+    const sl = checkoutShortlet;
+    if (!listing || !sl) return;
+    const uid = currentDemoUserId();
+
+    if (checkoutSource === 'wallet') {
+      if (!debitWallet(uid, sl.dueNowAmount)) {
+        showToast('Insufficient wallet balance — payment could not be authorized');
+        return;
+      }
+    }
+    // Card-funded checkouts never touch the wallet — the charge is simulated
+    // as settled on the card, same convention as land/rent card checkouts.
+    recordTransaction({
+      userId: uid, direction: 'debit', category: 'SHORTLET_BOOKING',
+      title: `Shortlet — Night 1 of ${sl.nights} at ${listing.title}`,
+      amount: sl.dueNowAmount, status: 'SUCCESSFUL',
+      meta: {
+        recipient: listing.title, propertyName: listing.title,
+        feeType: checkoutSource === 'wallet' ? 'Shortlet Booking (Night 1 + Fees)' : 'Shortlet Booking (Night 1 + Fees) — Card'
+      }
+    });
+
+    if (listing.ownerId) {
+      const hostAmount = sl.netRent + sl.cautionFee + sl.serviceChargeFee;
+      creditWallet(listing.ownerId, hostAmount);
+      recordTransaction({
+        userId: listing.ownerId, direction: 'credit', category: 'SHORTLET_PAYOUT',
+        title: `Shortlet payout — Night 1 of ${sl.nights} at ${listing.title}`,
+        amount: hostAmount, status: 'SUCCESSFUL', meta: { propertyName: listing.title }
+      });
+    }
+
+    const booking = {
+      id: Date.now(), listingId: listing.id, listingTitle: listing.title, location: listing.location,
+      tenantId: uid, nights: sl.nights, nightsPaid: 1, nightlyRate: sl.nightlyRate,
+      checkIn: sl.checkIn, checkOut: sl.checkOut, startedAt: Date.now(),
+      status: sl.remainingNights > 0 ? 'ACTIVE' : 'COMPLETED',
+      paymentMethod: checkoutSource === 'wallet' ? 'WALLET' : 'DEBIT_CARD',
+      agreementSignedTenant: true, agreementSignedTenantAt: Date.now()
+    };
+    shortletBookings.unshift(booking);
+    saveShortletBookings();
+    if (booking.status === 'ACTIVE') scheduleShortletAutoDebit(booking.id);
+
+    showToast(sl.remainingNights > 0
+      ? `Night 1 paid — Nights 2–${sl.nights} will auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} daily`
+      : 'Shortlet booked and paid in full');
+    pushPlatformNotification('tenant', 'booking', 'Shortlet Booked',
+      `Night 1 of your ${sl.nights}-night stay at "${listing.title}" is confirmed.`, null, 'shortlet', null, uid);
+    window.dispatchEvent(new Event('maintown_state_updated'));
   }
 
   // Simulated daily auto-debit: a real deployment would run this from a
@@ -8594,33 +8678,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
     seActiveBookingId = null;
   });
 
+  // Step 1 -> Step 2 handoff: stash the selected date range + computed
+  // breakdown on checkoutShortlet, then open the shared Checkout Screen
+  // (screen-6) the same way land/rent already do. No wallet debit happens
+  // here anymore — the old "pay Night 1, auto-debit the rest" behavior is
+  // replaced by the single itemized-total checkout on screen-6.
   document.getElementById('sb-confirm-btn').addEventListener('click', () => {
     if (!sbListing) return;
-    const nights = Math.max(1, parseInt(document.getElementById('sb-nights').value) || 1);
-    const rate = sbListing.nightlyRate || 0;
-    const platformFee = Math.round(rate * 0.05);
-    const totalNow = rate + platformFee;
-    const uid = getCurrentUserId();
-    if (getWalletBalance(uid) < totalNow) {
-      shortletBookingModal.classList.remove('open');
-      showToast('Insufficient wallet balance — please fund your wallet first');
+    const checkIn = document.getElementById('sb-checkin-date').value;
+    const checkOut = document.getElementById('sb-checkout-date').value;
+    if (!checkIn || !checkOut || checkOut <= checkIn) {
+      showToast('Please select a valid check-in and check-out date');
       return;
     }
-    const booking = {
-      id: Date.now(), listingId: sbListing.id, listingTitle: sbListing.title, location: sbListing.location,
-      tenantId: uid, nights, nightsPaid: 0, nightlyRate: rate, startedAt: Date.now(), status: 'ACTIVE'
-    };
-    chargeShortletNight(booking, 1);
-    booking.nightsPaid = 1;
-    if (booking.nightsPaid >= booking.nights) booking.status = 'COMPLETED';
-    shortletBookings.unshift(booking);
-    saveShortletBookings();
+    checkoutShortlet = computeShortletBreakdown(sbListing, checkIn, checkOut);
     shortletBookingModal.classList.remove('open');
-    showToast(nights > 1 ? `Night 1 paid — nights 2–${nights} will auto-debit daily` : 'Shortlet booked and paid in full');
-    pushPlatformNotification('tenant', 'booking', 'Shortlet Booked',
-      `Night 1 of your ${nights}-night stay at "${sbListing.title}" is confirmed.`, null, 'shortlet', null, uid);
-    if (booking.status === 'ACTIVE') scheduleShortletAutoDebit(booking.id);
-    window.dispatchEvent(new Event('maintown_state_updated'));
+    openCheckout(sbListing);
   });
 
 
@@ -8785,6 +8858,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   let checkoutAgreementUploaded = false; // true once the agreement has been digitally executed (signed)
   let checkoutTenantSignature = null; // { mode: 'draw'|'type', data: dataURL or typed name }
   let checkoutAiFeeNgn = 0; // MainTown AI Model B one-time fee (₦5,000 rent / ₦15,000 land) for the current checkout, always in NGN
+  // Short-Let Checkout Revamp: date-range + itemized breakdown for the currently
+  // open shortlet checkout. Populated by openShortletDatesModal()/computeShortletBreakdown()
+  // before openCheckout(listing) is called — see "PART: SHORT-LET CHECKOUT REVAMP" below.
+  let checkoutShortlet = null; // { checkIn, checkOut, nights, netRent, cautionFee, serviceChargeFee, platformFee, totalPayable }
 
   function formatMoney(amount, currency) {
     const symbol = currency === 'usd' ? '$' : '₦';
@@ -8907,6 +8984,47 @@ This voucher is auto-generated and serves as proof of settlement.`;
     return { monthly, commission: 0, legal: 0, upfront, remainingMonths, remainingTotal, grandTotal: totalAmount, isRenewal: true };
   }
 
+  // ==================================================================
+  // ---- PART: SHORT-LET CHECKOUT REVAMP — Itemized Breakdown ----
+  // Hybrid model: the new calendar date-range picker + 3-part checkout
+  // screen (breakdown, clauses, agreement, PIN authorization) now front the
+  // SAME underlying charge pattern as before for multi-night stays — Night 1
+  // (plus Caution Fee & Service Charge, if set) is paid upfront at checkout;
+  // Nights 2..N (if any) continue to auto-debit daily afterward via the
+  // existing engine (chargeShortletNight/scheduleShortletAutoDebit). A
+  // single-night stay is simply paid in full now, with nothing left to
+  // auto-debit.
+  //   due_now_amount  = night_1_rate + night_1_platform_fee(5%) + caution_fee + service_charge
+  //   daily_debit_amount (nights 2..N) = rate + platform_fee(5%) per night
+  //   full_stay_estimate = informational total if every night is paid in full
+  // ==================================================================
+  function computeShortletBreakdown(listing, checkInIso, checkOutIso) {
+    const rate = (listing && listing.nightlyRate) || 0;
+    const msPerNight = 24 * 60 * 60 * 1000;
+    let nights = 1;
+    if (checkInIso && checkOutIso) {
+      const diff = Math.round((new Date(checkOutIso) - new Date(checkInIso)) / msPerNight);
+      nights = Math.max(1, diff || 1);
+    }
+    const cautionFee = (listing && listing.cautionFee) || 0;
+    const serviceChargeFee = (listing && listing.serviceChargeMode === 'charged') ? (listing.serviceChargeFee || 0) : 0;
+    const nightlyPlatformFee = Math.round(rate * 0.05);
+    const remainingNights = Math.max(0, nights - 1);
+    const dailyDebitAmount = rate + nightlyPlatformFee;
+    const dueNowAmount = rate + nightlyPlatformFee + cautionFee + serviceChargeFee;
+    const fullStayEstimate = (rate * nights) + (nightlyPlatformFee * nights) + cautionFee + serviceChargeFee;
+    return {
+      checkIn: checkInIso, checkOut: checkOutIso, nights, remainingNights,
+      nightlyRate: rate, nightlyPlatformFee,
+      cautionFee, serviceChargeFee,
+      // Night 1 figures — what the Checkout Screen's breakdown & PIN gate
+      // actually charge today, regardless of how many nights were selected.
+      netRent: rate, platformFee: nightlyPlatformFee,
+      dueNowAmount, dailyDebitAmount, fullStayEstimate,
+      totalPayable: dueNowAmount // "Total Payable" on the checkout screen = amount due today, not the full stay
+    };
+  }
+
   // Builds the 11 remaining auto-debit due dates, tied to the move-in/possession date —
   // each spaced 30 days apart, starting 30 days AFTER move-in (Month 1 was paid upfront).
   function generateAutoDebitSchedule(moveInDateStr, monthlyAmount, count) {
@@ -8960,6 +9078,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
       landOk = scrolledToBottom && signed;
       if (!scrolledToBottom) landReason = 'Scroll the Land Allocation & Payment Sign-Off box to the bottom to unlock the signature field.';
       else if (!signed) landReason = 'Type the exact phrase to sign the Land Allocation & Payment Terms.';
+    } else if (checkoutListing && checkoutListing.type === 'shortlet') {
+      const box = document.getElementById('s6-signoff-box');
+      const scrolledToBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 6;
+      const signInput = document.getElementById('s6-landsign-input');
+      signInput.disabled = !scrolledToBottom;
+      const normalize = (s) => s.trim().replace(/\s+/g, ' ').toLowerCase();
+      const signed = normalize(signInput.value) === normalize('I agree to the Short-Let Booking & Occupancy Terms');
+      landOk = scrolledToBottom && signed;
+      if (!scrolledToBottom) landReason = 'Scroll the Short-Let Booking & Occupancy Terms box to the bottom to unlock the signature field.';
+      else if (!signed) landReason = 'Type the exact phrase to sign the Short-Let Booking & Occupancy Terms.';
     }
     const allOk = landOk && checkoutAgreementUploaded;
     btn.disabled = !allOk;
@@ -9036,18 +9164,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const signInput = document.getElementById('s6-landsign-input');
     const signoffBox = document.getElementById('s6-signoff-box');
     const isLand = listing.type === 'land';
+    const isShortlet = listing.type === 'shortlet';
 
     // ---- Dynamic Contract Card Routing ----
     // Swaps the agreement execution card between the Land Purchase Agreement
-    // (land/outright & installment sale) and the Tenancy Agreement (rent),
-    // based on listing.type — the card, its filename, subtitle, and the
-    // co-signer label ("Seller" for a land sale vs "Landlord" for a rental)
-    // all follow the same branch, mirroring the Purchase/Rent Breakdown
-    // label swap directly below.
-    document.getElementById('s6-agreement-title-text').textContent = isLand ? 'Accept Purchase & Installment Terms' : 'Execute Tenancy Agreement';
-    document.getElementById('s6-agreement-doc-name').textContent = isLand ? 'Land_Purchase_Agreement.pdf' : 'Tenancy_Agreement.pdf';
-    document.getElementById('s6-agreement-doc-sub').textContent = isLand ? 'Standard MainTown Land Allocation & Title Transfer Terms' : 'Standard MainTown Realty lease terms';
-    document.getElementById('s6-agreement-cosign-label').textContent = isLand ? 'Seller Signature' : 'Landlord Signature';
+    // (land/outright & installment sale), the Short-Let Booking & Occupancy
+    // Agreement, and the Tenancy Agreement (rent), based on listing.type —
+    // the card, its filename, subtitle, and the co-signer label ("Seller" /
+    // "Host/Landlord" / "Landlord") all follow the same branch, mirroring the
+    // Purchase/Rent/Short-Let Breakdown label swap directly below.
+    document.getElementById('s6-agreement-title-text').textContent = isLand ? 'Accept Purchase & Installment Terms' : (isShortlet ? 'Sign Short-Let Booking & Occupancy Agreement' : 'Execute Tenancy Agreement');
+    document.getElementById('s6-agreement-doc-name').textContent = isLand ? 'Land_Purchase_Agreement.pdf' : (isShortlet ? 'ShortLet_Agreement.pdf' : 'Tenancy_Agreement.pdf');
+    document.getElementById('s6-agreement-doc-sub').textContent = isLand ? 'Standard MainTown Land Allocation & Title Transfer Terms' : (isShortlet ? 'Short-Let Booking & Occupancy Terms' : 'Standard MainTown Realty lease terms');
+    document.getElementById('s6-agreement-cosign-label').textContent = isLand ? 'Seller Signature' : (isShortlet ? 'Host/Landlord Signature' : 'Landlord Signature');
     // Pre-attached status: same demo convention as before (the counter-party's
     // signature ships pre-attached on every listing) — driven off the
     // listing's own signature flag when present, defaulting to pre-attached.
@@ -9058,7 +9187,24 @@ This voucher is auto-generated and serves as proof of settlement.`;
       signoffSection.style.display = 'block';
       signInput.value = '';
       signInput.disabled = true;
+      signInput.placeholder = 'Type the exact phrase above';
+      document.getElementById('s6-landsign-label').innerHTML = 'Type to sign: "I agree to the Land Allocation &amp; Payment Terms"';
       signoffBox.scrollTop = 0;
+      document.getElementById('s6-row2').style.display = 'flex';
+      document.getElementById('s6-row3').style.display = 'flex';
+      document.getElementById('s6-shortlet-autodebit-notice').style.display = 'none';
+      // Restore the Land clauses explicitly — the shortlet checkout branch
+      // below overwrites this shared box's innerHTML in place, so a land
+      // checkout opened afterward must not inherit stale short-let clauses.
+      signoffBox.innerHTML = `
+        <p>By proceeding with this transaction, you acknowledge and agree to the following binding terms:</p>
+        <p><strong>Clause 1 — Pre-Checkout Inspection &amp; Satisfaction:</strong> Checkout requires prior completion of physical or virtual property inspection. By initiating payment, you confirm you (or your authorized representative) have inspected the land, verified its condition, and logged your status as Satisfied within the platform.</p>
+        <p><strong>Clause 2 — Title Verification &amp; Allocation Window:</strong> Independent survey checks and Land Registry verification (C of O, Gazette, or layout plans) are finalized prior to physical land allocation. Physical allocation is executed upon clean title confirmation and adherence to the agreed payment plan.</p>
+        <p><strong>Clause 3 — Automated Non-Custodial Split Payments:</strong> All payments (outright or installment) are processed instantly via automated payment split logic directly to the designated accounts of the Seller/Developer and MainTown Realty. MainTown Realty operates as a non-custodial facilitator and does not hold or escrow transaction funds.</p>
+        <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule. A mandatory 30-day grace period applies to overdue payments. Payments remaining in default beyond 60 days trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
+        <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to you via the MainTown Realty logistics network.</p>
+        <p>Scroll to the bottom of this box to unlock the signature field below.</p>
+      `;
 
       document.getElementById('s6-breakdown-label').innerHTML = '<i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Purchase Breakdown';
 
@@ -9094,8 +9240,75 @@ This voucher is auto-generated and serves as proof of settlement.`;
         document.getElementById('s6-ai-fee-amount').textContent = formatMoney(checkoutAiFeeNgn, 'ngn');
         document.getElementById('s6-total-amount').textContent = formatMoney(checkoutLandPayment.upfront + checkoutAiFeeNgn, 'ngn') + ' due now';
       }
+    } else if (isShortlet) {
+      // ---- Short-Let Checkout Revamp: itemized breakdown from checkoutShortlet ----
+      // checkoutShortlet is populated by the Step 1 date-range picker
+      // (sb-confirm-btn) via computeShortletBreakdown() before openCheckout()
+      // is called. Defensive fallback recomputes a 1-night stay if it's
+      // somehow missing (e.g. checkout resumed after a reload).
+      if (!checkoutShortlet) checkoutShortlet = computeShortletBreakdown(listing, null, null);
+      const sl = checkoutShortlet;
+
+      signoffSection.style.display = 'block';
+      signInput.value = '';
+      signInput.disabled = true;
+      signoffBox.scrollTop = 0;
+      signoffBox.innerHTML = `
+        <p>By proceeding, you acknowledge and agree to the following binding Short-Let Booking &amp; Occupancy Terms:</p>
+        <p><strong>Clause 1 — Premises Conduct &amp; House Rules:</strong> By proceeding, you agree to abide strictly by the occupancy limits, noise regulations, check-in/check-out times, and property-specific rules set by the Host/Landlord.</p>
+        <p><strong>Clause 2 — Automated Non-Custodial Split Processing:</strong> You authorize MainTown to process the transaction using automated payment split logic at the point of charge. Funds are split instantly and routed directly to designated accounts for: (1) the Host/Landlord (Net Short-Let Rent), (2) the Service/Property Manager Sub-Account (Caution Fee &amp; Service Charges), and (3) MainTown Realty (Platform Facilitation Fee). MainTown operates solely as a non-custodial technology facilitator and does not hold or escrow transaction funds.</p>
+        <p><strong>Clause 3 — Direct Self-Service Caution Fee Refunds:</strong> The Caution Fee is paid directly to the Host/Landlord's designated sub-account. Upon check-out, you must initiate any Caution Fee refund request directly through your MainTown app. MainTown Realty does not hold, manage, or claim caution fees on behalf of tenants. All refund approvals, damage assessments, and payouts are handled directly between you and the Host/Landlord.</p>
+        <p><strong>Clause 4 — Contract Countersignature SLA:</strong> Upon PIN authorization, this Agreement is dispatched to the Host/Landlord for digital countersignature. If the Host fails to execute or confirm the booking within the designated acceptance window, the payment split authorization is reversed automatically to your source account/wallet without penalty.</p>
+        ${sl.remainingNights > 0 ? `<p><strong>Clause 5 — Multi-Night Auto-Debit Authorization:</strong> Night 1 (plus any Caution Fee &amp; Service Charge) is charged today. For stays longer than one night, you authorize MainTown to auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} from your chosen payment method for each remaining night (Nights 2–${sl.nights}) until the stay is fully paid or you end the stay early.</p>` : ''}
+        <p>Scroll to the bottom of this box to unlock the signature field below.</p>
+      `;
+      document.getElementById('s6-landsign-input').placeholder = 'Type the exact phrase above';
+      document.getElementById('s6-landsign-label').innerHTML = 'Type to sign: "I agree to the Short-Let Booking &amp; Occupancy Terms"';
+
+      document.getElementById('s6-breakdown-label').innerHTML = '<i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Short-Let Stay Breakdown';
+      document.getElementById('s6-row1-label').textContent = 'Net Rent (Night 1 — due now)';
+      document.getElementById('s6-rent-amount').textContent = formatMoney(sl.netRent, 'ngn');
+
+      const cautionRow = document.getElementById('s6-caution-row');
+      const serviceRow = document.getElementById('s6-service-row');
+      if (sl.cautionFee > 0) {
+        cautionRow.style.display = 'flex';
+        document.getElementById('s6-row4-label').textContent = 'Caution Fee (to Host)';
+        document.getElementById('s6-caution-amount').textContent = formatMoney(sl.cautionFee, 'ngn');
+      } else {
+        cautionRow.style.display = 'none';
+      }
+      if (sl.serviceChargeFee > 0) {
+        serviceRow.style.display = 'flex';
+        document.getElementById('s6-row5-label').textContent = 'Service Charge (to Host)';
+        document.getElementById('s6-service-amount').textContent = formatMoney(sl.serviceChargeFee, 'ngn');
+      } else {
+        serviceRow.style.display = 'none';
+      }
+      // Short-let checkouts show Caution Fee/Service Charge on their own
+      // dedicated rows above — hide the generic row2/row3 (deposit/fee) used
+      // by land & rent so the breakdown doesn't double up.
+      document.getElementById('s6-row2').style.display = 'none';
+      document.getElementById('s6-row3').style.display = 'none';
+
+      checkoutAiFeeNgn = 0; // no MainTown AI fee on short-let stays — Platform Fee (5%) below covers it
+      document.getElementById('s6-ai-fee-label').innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown Platform Fee (5%) — Night 1';
+      document.getElementById('s6-ai-fee-amount').textContent = formatMoney(sl.platformFee, 'ngn');
+      document.getElementById('s6-total-amount').textContent = formatMoney(sl.dueNowAmount, 'ngn') + ' due now';
+
+      const autodebitNotice = document.getElementById('s6-shortlet-autodebit-notice');
+      if (sl.remainingNights > 0) {
+        autodebitNotice.style.display = 'flex';
+        document.getElementById('s6-shortlet-autodebit-text').textContent =
+          `Nights 2–${sl.nights} auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} daily from your wallet/card until the stay is fully paid — est. full stay total ${formatMoney(sl.fullStayEstimate, 'ngn')}.`;
+      } else {
+        autodebitNotice.style.display = 'none';
+      }
     } else {
       signoffSection.style.display = 'none';
+      document.getElementById('s6-row2').style.display = 'flex';
+      document.getElementById('s6-row3').style.display = 'flex';
+      document.getElementById('s6-shortlet-autodebit-notice').style.display = 'none';
       document.getElementById('s6-breakdown-label').innerHTML = '<i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Rent Breakdown (Year 1)';
       document.getElementById('s6-row1-label').textContent = 'First Rent Installment';
       document.getElementById('s6-row2-label').textContent = 'Agency Commission (10%)';
@@ -9446,14 +9659,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('sig-tab-type').addEventListener('click', () => setSigMode('type'));
 
   document.getElementById('s6-sign-agreement-btn').addEventListener('click', () => {
-    // Land purchases keep the existing typed/drawn signature modal as-is.
-    // Rentals now route through the full Tenancy & Policy Agreement viewer —
-    // the tenant must scroll to the bottom before signing + OTP unlock.
-    if (checkoutListing && checkoutListing.type === 'land') {
+    // Land purchases and Short-Let bookings use the typed/drawn signature
+    // modal as-is (short-let's own agreement text is shown just above, in
+    // the scroll-to-unlock sign-off box). Rentals route through the full
+    // Tenancy & Policy Agreement viewer — the tenant must scroll to the
+    // bottom before signing + OTP unlock.
+    if (checkoutListing && (checkoutListing.type === 'land' || checkoutListing.type === 'shortlet')) {
       setSigMode('draw');
       sigTypeInput.value = '';
       sigHasStrokes = false;
-      document.getElementById('signature-modal-title').textContent = 'Sign Land Purchase Agreement';
+      document.getElementById('signature-modal-title').textContent = checkoutListing.type === 'shortlet' ? 'Sign Short-Let Booking Agreement' : 'Sign Land Purchase Agreement';
       signatureModal.classList.add('open');
       resizeSigCanvas();
       sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
@@ -9775,6 +9990,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
         ? checkoutLandPayment.totalPrice + checkoutLandPayment.processingFee + checkoutAiFeeNgn
         : checkoutLandPayment.upfront + checkoutAiFeeNgn;
     }
+    if (checkoutListing.type === 'shortlet') {
+      return checkoutShortlet ? checkoutShortlet.totalPayable : 0;
+    }
     if (!checkoutRentBreakdown) return 0;
     // Caution Deposit & Service Charge (if the Landlord/Agent set them) are
     // due alongside the first rent installment — see applySplitPaymentSettlement.
@@ -10028,6 +10246,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
     checkoutAuthSubmitting = true;
     clearInterval(checkoutOtpTimer);
     checkoutOtpModal.classList.remove('open');
+
+    // ---- Short-Let Checkout Revamp: hybrid finalize ----
+    // Night 1 (plus Caution Fee & Service Charge, if set) is charged right
+    // now, through the new calendar-date + 3-part checkout screen. If the
+    // stay is longer than 1 night, the remaining nights continue to
+    // auto-debit daily via the existing engine (chargeShortletNight/
+    // scheduleShortletAutoDebit) — same mechanism as before, just entered
+    // through the new checkout flow with dates, breakdown, clauses and
+    // agreement sign-off captured up front.
+    if (checkoutListing && checkoutListing.type === 'shortlet') {
+      finalizeShortletCheckout();
+      checkoutAuthSubmitting = false;
+      navigateTo('screen-5');
+      return;
+    }
 
     // Wallet Balance Check + Deduction: on valid PIN entry, if the buyer chose
     // the Funded MainTown Wallet as their payment source, debit the full
