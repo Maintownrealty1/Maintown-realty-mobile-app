@@ -3259,6 +3259,7 @@
           <p>Listed on behalf of your company — no Landlord/Owner needed. This goes straight to MainTown's legal review queue.</p>
         </div>
 
+        <div id="s5-availability-section">
         <p class="s5-section-label"><i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>Inspection Availability</p>
         <div class="field">
           <label class="field-label">Available Date</label>
@@ -3270,6 +3271,11 @@
         </div>
         <button type="button" id="s5-avail-add-btn" class="avail-add-btn"><i data-lucide="plus" class="w-3.5 h-3.5"></i>Add Time Slot</button>
         <div class="avail-list" id="s5-avail-list"><p class="avail-list-empty">No inspection availability added yet — tenants won't be able to pick a date until you add one.</p></div>
+        </div>
+        <div class="s5-notice-box" id="s5-shortlet-noinspection-note" style="display:none;">
+          <i data-lucide="calendar-x" class="w-5 h-5"></i>
+          <p>Short-let stays don't use inspection scheduling — tenants pick their own check-in/check-out dates directly on the booking screen.</p>
+        </div>
 
         <div class="s5-notice-box">
           <i data-lucide="shield-alert" class="w-5 h-5"></i>
@@ -4998,14 +5004,20 @@
   </div>
 </div>
 
-<!-- Deferred Title Verification Modal (Landlord: Add New Property) -->
-<div id="title-verify-modal" class="modal-overlay">
-  <div class="modal-card">
-    <div class="modal-icon-wrap">
-      <i data-lucide="landmark" class="w-6 h-6 text-purple-400"></i>
+<!-- ===================== SCREEN ADD PROPERTY: Landlord — Add New Property / Verify Title (own screen, separate from My Properties) ===================== -->
+<div id="screen-add-property" class="screen-view hidden pb-24">
+
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="tv-back-btn">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="plus-circle" class="w-3.5 h-3.5"></i><span>Add Property</span></p>
     </div>
-    <h2 class="modal-title">Verify Property Title</h2>
-    <p class="modal-sub">Required only when listing a property — keeps your onboarding friction-free.</p>
+  </div>
+
+  <h1 class="s5-role-title" style="margin-bottom: 4px;">Verify Property Title</h1>
+  <p class="s5-role-sub" style="margin-bottom: 20px;">Required only when listing a property — keeps your onboarding friction-free.</p>
 
     <div class="field">
       <label class="field-label">Property Title / Nickname</label>
@@ -5094,6 +5106,7 @@
       </p>
     </div>
 
+    <div id="tv-availability-section">
     <p class="s5-section-label"><i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>Inspection Availability</p>
     <div class="field">
       <label class="field-label">Available Date</label>
@@ -5105,6 +5118,11 @@
     </div>
     <button type="button" id="tv-avail-add-btn" class="avail-add-btn"><i data-lucide="plus" class="w-3.5 h-3.5"></i>Add Time Slot</button>
     <div class="avail-list" id="tv-avail-list"><p class="avail-list-empty">No inspection availability added yet — tenants won't be able to pick a date until you add one.</p></div>
+    </div>
+    <div class="s5-notice-box" id="tv-shortlet-noinspection-note" style="display:none;">
+      <i data-lucide="calendar-x" class="w-5 h-5"></i>
+      <p>Short-let stays don't use inspection scheduling — tenants pick their own check-in/check-out dates directly on the booking screen.</p>
+    </div>
 
     <label class="agree-row" style="margin: 4px 0 4px;">
       <input type="checkbox" id="tv-publish-toggle" class="agree-checkbox" checked>
@@ -5113,8 +5131,9 @@
 
     <button type="button" id="tv-submit-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Submit for Verification</button>
     <button type="button" id="tv-cancel-btn" class="btn-secondary">Cancel</button>
-  </div>
+
 </div>
+<!-- ===================== END SCREEN ADD PROPERTY ===================== -->
 
 <!-- Vendor Activation & Land Sales Policy Modal — 2-step gate shown to a
      Landlord/Owner (or Agent) the first time they try to list or sell a
@@ -8694,6 +8713,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     checkoutShortlet = computeShortletBreakdown(sbListing, checkIn, checkOut);
     shortletBookingModal.classList.remove('open');
     openCheckout(sbListing);
+    navigateTo('screen-6');
   });
 
 
@@ -10865,8 +10885,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
   const entSalesInspectionsEl = document.getElementById('ent-sales-inspections-list');
   if (entSalesInspectionsEl) entSalesInspectionsEl.addEventListener('click', handleInspectionsManagerClick);
 
-  const titleVerifyModal = document.getElementById('title-verify-modal');
-
   document.getElementById('s5-add-property-btn').addEventListener('click', () => {
     document.getElementById('tv-title').value = '';
     document.getElementById('tv-address').value = '';
@@ -10897,7 +10915,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('tv-avail-start').value = '';
     document.getElementById('tv-avail-end').value = '';
     renderAvailabilityList(tvPendingAvailability, 'tv');
-    titleVerifyModal.classList.add('open');
+    navigateTo('screen-add-property');
   });
 
   function formatFileSize(bytes) {
@@ -10942,7 +10960,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
   });
 
-  document.getElementById('tv-cancel-btn').addEventListener('click', () => titleVerifyModal.classList.remove('open'));
+  document.getElementById('tv-cancel-btn').addEventListener('click', () => navigateTo('screen-5'));
+  document.getElementById('tv-back-btn').addEventListener('click', () => navigateTo('screen-5'));
 
   // ---- Vendor Activation Modal: wiring ----
   document.getElementById('va-policy-checkbox').addEventListener('change', (e) => {
@@ -10974,8 +10993,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Vendor Activation Gate: Land & Property listings require KYC + Vendor
     // Policy sign-off on file before this landlord/agent can list/sell one.
     if (type === 'land' && !isVendorActivated(getCurrentUserId())) {
-      titleVerifyModal.classList.remove('open');
-      requireVendorActivation(getCurrentUserId(), () => titleVerifyModal.classList.add('open'));
+      // Add Property is its own screen now (not an overlay), so the Vendor
+      // Activation modal can simply stack on top of it — no need to hide/
+      // reopen the screen itself before and after activation.
+      requireVendorActivation(getCurrentUserId(), () => {});
       return;
     }
     if (!title || !address || !annual) {
@@ -11062,7 +11083,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (currentListingType === 'land') renderLandFeed(); else renderTenantFeed(currentCurrency);
     }
 
-    titleVerifyModal.classList.remove('open');
+    navigateTo('screen-5');
     showToast(isPublished ? 'Property photos & walkthrough are now live on the Tenant Search Feed' : 'Saved as a private draft — publish anytime from My Properties');
   });
 
@@ -11343,6 +11364,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const feeLegalLabel = document.getElementById(`${prefix}-fee-legal-label`);
     if (legalPctField) legalPctField.style.display = type === 'land' ? 'block' : 'none';
     if (cautionServiceFields) cautionServiceFields.style.display = (type === 'rent' || type === 'shortlet') ? 'block' : 'none';
+
+    // Inspection Availability is a Land/Rent-only concept — Short-Let tenants
+    // pick their own check-in/check-out dates directly on the booking screen,
+    // so the Host/Agent/Landlord never needs to set inspection slots for it.
+    const availSection = document.getElementById(`${prefix}-availability-section`);
+    const noInspectionNote = document.getElementById(`${prefix}-shortlet-noinspection-note`);
+    if (availSection) availSection.style.display = type === 'shortlet' ? 'none' : 'block';
+    if (noInspectionNote) noInspectionNote.style.display = type === 'shortlet' ? 'flex' : 'none';
 
     let legalAmount = 0;
     if (type === 'land') {
@@ -13354,11 +13383,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // own, keyed off `landlord_id`/`agent_id` set at booking time — same rule
     // as the Inspections Manager list. Tenants see their own bookings.
     const scheduleUid = getCurrentUserId();
+    // Landlord Inspection screen: this is a confirmation queue only — a
+    // Landlord sees requests still "Pending Approval" (Confirm/Decline)
+    // and nothing else; once actioned, a request drops off this screen
+    // (chat with the tenant continues from Messages instead).
     const visibleSchedules = role === 'landlord'
-      ? schedules.filter(s => s.landlord_id === scheduleUid)
+      ? schedules.filter(s => s.landlord_id === scheduleUid && s.status === 'Pending Approval')
       : role === 'agent'
         ? schedules.filter(s => s.agent_id === scheduleUid)
         : schedules;
+    emptyHint.textContent = role === 'landlord'
+      ? 'No pending inspection requests right now.'
+      : 'No inspections scheduled yet. Add properties to your cart to get started.';
     if (!visibleSchedules.length) {
       list.innerHTML = '';
       emptyHint.style.display = 'block';
