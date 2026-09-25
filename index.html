@@ -8221,7 +8221,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const data = rentListings();
     feed.innerHTML = data.map(p => {
       const isShortlet = p.type === 'shortlet';
-      const unavailable = !isShortlet && isListingUnavailable(p);
+      // BUGFIX: this used to hard-exclude shortlets from ever being treated
+      // as unavailable (`!isShortlet && ...`), so a shortlet that had
+      // already been paid for and flipped to RENTED still rendered its
+      // "Book Now" button and never showed the RENTED banner other listing
+      // types get. Shortlets now follow the same unavailable/RENTED rule as
+      // everything else on this feed.
+      const unavailable = isListingUnavailable(p);
       return `
       <div class="s5-card${unavailable ? ' is-unavailable' : ''}" data-listing-id="${p.id}">
         <div class="s5-card-img-wrap">
@@ -8239,7 +8245,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <button type="button" class="s5-action-btn wt-btn" data-title="${p.title}"><i data-lucide="video" class="w-4 h-4"></i>Virtual Walkthrough</button>
           </div>
           ${isShortlet
-            ? `<button type="button" class="s5-action-btn primary shortlet-book-btn" data-listing-id="${p.id}" style="width:100%; margin-top:8px;"><i data-lucide="calendar-days" class="w-4 h-4"></i>Book Now</button>`
+            ? `<button type="button" class="s5-action-btn primary shortlet-book-btn${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;" ${unavailable ? 'disabled' : ''}><i data-lucide="calendar-days" class="w-4 h-4"></i>Book Now</button>
+          ${unavailable ? `<p class="s5-unavailable-notice rented"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i>This property is no longer available as it has been successfully RENTED.</p>` : ''}`
             : `
           <!-- CTA Consolidation: "Book Inspection" and "Add to Inspection Cart" have been
                merged into the single "View Payment Options" CTA below, which opens a
@@ -8336,8 +8343,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // inspection on file yet, or straight to checkout once it does.
       if (listing && !isListingUnavailable(listing)) requireScreening(() => openLandPaymentModal(listing));
     } else if (shortletBtn) {
+      if (shortletBtn.disabled) return;
       const listing = rentListings().find(l => String(l.id) === shortletBtn.dataset.listingId);
       if (!listing) return;
+      // Guard: never let an already-RENTED shortlet re-enter booking (e.g.
+      // via a stale card that hasn't re-rendered yet) — mirrors the same
+      // check every other listing type's action button already has.
+      if (isListingUnavailable(listing)) { showToast('This property is no longer available — it has already been RENTED.'); return; }
       // Action Button Guard: Landlord/Agent never proceeds through their own
       // tenant-facing checkout — show Verification & Escrow Status instead.
       if ((currentUserRole || 'tenant') !== 'tenant') { openEscrowStatusModal(listing); return; }
