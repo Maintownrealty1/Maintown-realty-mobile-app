@@ -10842,7 +10842,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   // ---- Auto-calculating Annual-to-Monthly Rent + Fee Structure Preview (Agent form) ----
   function updateAnnualCalc(prefix) {
-    const rawInput = document.getElementById(`${prefix}-annual`).value;
+    const annualInputEl = document.getElementById(`${prefix}-annual`) || document.getElementById(`${prefix}-listing-annual`);
+    const rawInput = annualInputEl ? annualInputEl.value : '';
     const raw = String(rawInput).replace(/[^0-9.]/g, ''); // strip commas / non-numeric chars defensively
     const annual = parseFloat(raw) || 0;
     const typeSelect = document.getElementById(`${prefix}-listing-type`);
