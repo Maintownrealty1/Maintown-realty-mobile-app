@@ -3113,15 +3113,130 @@
     <div id="s5-landlord-verify-queue"><!-- populated dynamically: Agent-submitted listings awaiting this Landlord's verification --></div>
 
     <!-- Add/My switcher — mirrors the Agent view's "Upload New Listing" /
-         "My Listings" tab pattern. "Add New Property" keeps its existing
-         behavior (opens the dedicated Verify Title screen via
-         navigateTo('screen-add-property')) rather than an inline form,
-         since that screen already handles photo/video/title-doc uploads;
-         "My Properties" stays active here so returning from Add still
-         lands back on the list. -->
+         "My Listings" tab pattern exactly: both panels are inline on this
+         same screen, toggled by display instead of a screen navigation. -->
     <div class="s5-tabs">
       <div class="s5-tab landlord-tab" id="s5-add-property-btn" data-tab="add">Add New Property</div>
       <div class="s5-tab landlord-tab active" id="s5-tab-landlord-mine" data-tab="mine">My Properties</div>
+    </div>
+
+    <!-- Add New Property (Verify Property Title) — inline panel -->
+    <div id="s5-landlord-add" style="display:none;">
+      <h1 class="s5-role-title" style="margin-bottom: 4px;">Verify Property Title</h1>
+      <p class="s5-role-sub" style="margin-bottom: 20px;">Required only when listing a property — keeps your onboarding friction-free.</p>
+
+      <div class="field">
+        <label class="field-label">Property Title / Nickname</label>
+        <input class="field-input" id="tv-title" type="text" placeholder="e.g. 3-Bed Duplex, Ikeja GRA">
+      </div>
+      <div class="field">
+        <label class="field-label">Address</label>
+        <input class="field-input" id="tv-address" type="text" placeholder="Full property address">
+      </div>
+
+      <div class="field">
+        <label class="field-label">Listing Type</label>
+        <select class="field-input" id="tv-listing-type">
+          <option value="rent">For Rent (Flex-Rent)</option>
+          <option value="shortlet">Shortlet (Daily Booking)</option>
+          <option value="land">Buy — Land &amp; Property</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="field-label" id="tv-annual-label">Annual Price (NGN)</label>
+        <input class="field-input" id="tv-annual" type="number" placeholder="e.g. 2400000">
+      </div>
+      <div class="rent-badge" id="tv-monthly-badge" style="display:none;">
+        <i data-lucide="calculator" class="w-3.5 h-3.5"></i><span id="tv-monthly-badge-text">Monthly Flex-Rent: ₦0 / month</span>
+      </div>
+
+      <!-- Deed of Assignment Legal Fee % — Land & Property listings only. You
+           (the Owner) pick 5% or 10%; it's paid to you together with the
+           buyer's first installment, never to MainTown. -->
+      <div class="field" id="tv-legal-pct-field" style="display:none;">
+        <label class="field-label">Deed of Assignment Legal Fee (paid to you)</label>
+        <div class="toggle-pill-row">
+          <button type="button" class="toggle-pill active" id="tv-legal-pct-5" data-pct="5">5%</button>
+          <button type="button" class="toggle-pill" id="tv-legal-pct-10" data-pct="10">10%</button>
+        </div>
+      </div>
+
+      <!-- Caution Fee & Service Charge — Rent & Shortlet listings only. Paid
+           straight to you alongside rent/shortlet payments; MainTown never
+           collects either. -->
+      <div id="tv-caution-service-fields" style="display:none;">
+        <div class="field">
+          <label class="field-label">Caution Fee (NGN) — paid to you</label>
+          <input class="field-input" id="tv-caution-fee" type="number" min="0" placeholder="e.g. 200000">
+        </div>
+        <div class="field">
+          <label class="field-label">Service Charge</label>
+          <div class="toggle-pill-row" style="margin-bottom:8px;">
+            <button type="button" class="toggle-pill active" id="tv-service-mode-self" data-mode="self">Self Service (no fee)</button>
+            <button type="button" class="toggle-pill" id="tv-service-mode-charged" data-mode="charged">Service Charged</button>
+          </div>
+          <div id="tv-service-fee-wrap" style="display:none;">
+            <input class="field-input" id="tv-service-fee" type="number" min="0" placeholder="e.g. 100000">
+          </div>
+        </div>
+      </div>
+
+      <div class="fee-preview-box">
+        <p class="s5-section-label" style="margin:0 0 8px;"><i data-lucide="calculator" class="w-4 h-4 text-purple-400"></i>Standardized Fee Structure Preview</p>
+        <div class="row" id="tv-fee-commission-row"><span>Agency / Listing Commission (10%)</span><strong id="tv-fee-commission">₦0</strong></div>
+        <div class="row" id="tv-fee-legal-row"><span id="tv-fee-legal-label">Legal &amp; Title Agreement Fee (5%)</span><strong id="tv-fee-legal">₦0</strong></div>
+      </div>
+
+      <div class="dual-drop">
+        <div class="s5-upload-box" id="tv-photo-upload">
+          <i data-lucide="image" class="w-5 h-5"></i>
+          <span id="tv-photo-upload-label">Property Photos</span>
+          <div class="s5-photo-thumbs" id="tv-photo-thumbs"></div>
+          <input type="file" id="tv-photo-file" hidden multiple accept="image/*">
+        </div>
+        <div class="s5-upload-box" id="tv-video-upload">
+          <i data-lucide="video" class="w-5 h-5"></i>
+          <span id="tv-video-upload-label">Video Walkthrough</span>
+          <span class="s5-upload-meta" id="tv-video-upload-meta"></span>
+          <input type="file" id="tv-video-file" hidden accept="video/*">
+        </div>
+      </div>
+
+      <div class="field" id="tv-title-type-field" style="display:none;">
+        <p class="s5-section-label" style="margin:0 0 4px;"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i>Title Verification Documents</p>
+        <p class="modal-sub" style="margin-bottom:10px; text-align:left;">Select every document that applies to this property, then upload each one. Shown publicly on the listing so buyers can judge title risk before making an offer.</p>
+        <div id="tv-doc-options"><!-- populated dynamically --></div>
+        <p class="rent-badge" id="tv-consent-note" style="display:none; margin-top:8px; background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.35); color:#fbbf24;">
+          <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i><span>These documents require Governor's Consent to transfer — buyers will see this upfront on the listing.</span>
+        </p>
+      </div>
+
+      <div id="tv-availability-section">
+      <p class="s5-section-label"><i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>Inspection Availability</p>
+      <div class="field">
+        <label class="field-label">Available Date</label>
+        <input class="field-input" id="tv-avail-date" type="date">
+      </div>
+      <div class="avail-time-row">
+        <input class="field-input" id="tv-avail-start" type="time" aria-label="Start time">
+        <input class="field-input" id="tv-avail-end" type="time" aria-label="End time">
+      </div>
+      <button type="button" id="tv-avail-add-btn" class="avail-add-btn"><i data-lucide="plus" class="w-3.5 h-3.5"></i>Add Time Slot</button>
+      <div class="avail-list" id="tv-avail-list"><p class="avail-list-empty">No inspection availability added yet — tenants won't be able to pick a date until you add one.</p></div>
+      </div>
+      <div class="s5-notice-box" id="tv-shortlet-noinspection-note" style="display:none;">
+        <i data-lucide="calendar-x" class="w-5 h-5"></i>
+        <p>Short-let stays don't use inspection scheduling — tenants pick their own check-in/check-out dates directly on the booking screen.</p>
+      </div>
+
+      <label class="agree-row" style="margin: 4px 0 4px;">
+        <input type="checkbox" id="tv-publish-toggle" class="agree-checkbox" checked>
+        <span>Publish immediately to the Tenant "Find a Home" feed. Uncheck to save as a private draft — hidden from tenants until you publish it from My Properties.</span>
+      </label>
+
+      <button type="button" id="tv-submit-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Submit for Verification</button>
+      <button type="button" id="tv-cancel-btn" class="btn-secondary">Cancel</button>
     </div>
 
     <div id="s5-landlord-mine-panel">
@@ -3131,6 +3246,7 @@
       </div>
     </div>
   </div>
+
 
   <!-- ---- AGENT VIEW: Upload Listing & Mandatory Landlord Mapping ---- -->
   <div id="agent-view" class="role-view hidden">
@@ -5024,136 +5140,6 @@
   </div>
 </div>
 
-<!-- ===================== SCREEN ADD PROPERTY: Landlord — Add New Property / Verify Title (own screen, separate from My Properties) ===================== -->
-<div id="screen-add-property" class="screen-view hidden pb-24">
-
-  <div class="s5-topbar">
-    <button type="button" class="s5-back-btn" id="tv-back-btn">
-      <i data-lucide="arrow-left" class="w-4 h-4"></i>
-    </button>
-    <div class="s5-role-header" style="margin: 0;">
-      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="plus-circle" class="w-3.5 h-3.5"></i><span>Add Property</span></p>
-    </div>
-  </div>
-
-  <h1 class="s5-role-title" style="margin-bottom: 4px;">Verify Property Title</h1>
-  <p class="s5-role-sub" style="margin-bottom: 20px;">Required only when listing a property — keeps your onboarding friction-free.</p>
-
-    <div class="field">
-      <label class="field-label">Property Title / Nickname</label>
-      <input class="field-input" id="tv-title" type="text" placeholder="e.g. 3-Bed Duplex, Ikeja GRA">
-    </div>
-    <div class="field">
-      <label class="field-label">Address</label>
-      <input class="field-input" id="tv-address" type="text" placeholder="Full property address">
-    </div>
-
-    <div class="field">
-      <label class="field-label">Listing Type</label>
-      <select class="field-input" id="tv-listing-type">
-        <option value="rent">For Rent (Flex-Rent)</option>
-        <option value="shortlet">Shortlet (Daily Booking)</option>
-        <option value="land">Buy — Land &amp; Property</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label class="field-label" id="tv-annual-label">Annual Price (NGN)</label>
-      <input class="field-input" id="tv-annual" type="number" placeholder="e.g. 2400000">
-    </div>
-    <div class="rent-badge" id="tv-monthly-badge" style="display:none;">
-      <i data-lucide="calculator" class="w-3.5 h-3.5"></i><span id="tv-monthly-badge-text">Monthly Flex-Rent: ₦0 / month</span>
-    </div>
-
-    <!-- Deed of Assignment Legal Fee % — Land & Property listings only. You
-         (the Owner) pick 5% or 10%; it's paid to you together with the
-         buyer's first installment, never to MainTown. -->
-    <div class="field" id="tv-legal-pct-field" style="display:none;">
-      <label class="field-label">Deed of Assignment Legal Fee (paid to you)</label>
-      <div class="toggle-pill-row">
-        <button type="button" class="toggle-pill active" id="tv-legal-pct-5" data-pct="5">5%</button>
-        <button type="button" class="toggle-pill" id="tv-legal-pct-10" data-pct="10">10%</button>
-      </div>
-    </div>
-
-    <!-- Caution Fee & Service Charge — Rent & Shortlet listings only. Paid
-         straight to you alongside rent/shortlet payments; MainTown never
-         collects either. -->
-    <div id="tv-caution-service-fields" style="display:none;">
-      <div class="field">
-        <label class="field-label">Caution Fee (NGN) — paid to you</label>
-        <input class="field-input" id="tv-caution-fee" type="number" min="0" placeholder="e.g. 200000">
-      </div>
-      <div class="field">
-        <label class="field-label">Service Charge</label>
-        <div class="toggle-pill-row" style="margin-bottom:8px;">
-          <button type="button" class="toggle-pill active" id="tv-service-mode-self" data-mode="self">Self Service (no fee)</button>
-          <button type="button" class="toggle-pill" id="tv-service-mode-charged" data-mode="charged">Service Charged</button>
-        </div>
-        <div id="tv-service-fee-wrap" style="display:none;">
-          <input class="field-input" id="tv-service-fee" type="number" min="0" placeholder="e.g. 100000">
-        </div>
-      </div>
-    </div>
-
-    <div class="fee-preview-box">
-      <p class="s5-section-label" style="margin:0 0 8px;"><i data-lucide="calculator" class="w-4 h-4 text-purple-400"></i>Standardized Fee Structure Preview</p>
-      <div class="row" id="tv-fee-commission-row"><span>Agency / Listing Commission (10%)</span><strong id="tv-fee-commission">₦0</strong></div>
-      <div class="row" id="tv-fee-legal-row"><span id="tv-fee-legal-label">Legal &amp; Title Agreement Fee (5%)</span><strong id="tv-fee-legal">₦0</strong></div>
-    </div>
-
-    <div class="dual-drop">
-      <div class="s5-upload-box" id="tv-photo-upload">
-        <i data-lucide="image" class="w-5 h-5"></i>
-        <span id="tv-photo-upload-label">Property Photos</span>
-        <div class="s5-photo-thumbs" id="tv-photo-thumbs"></div>
-        <input type="file" id="tv-photo-file" hidden multiple accept="image/*">
-      </div>
-      <div class="s5-upload-box" id="tv-video-upload">
-        <i data-lucide="video" class="w-5 h-5"></i>
-        <span id="tv-video-upload-label">Video Walkthrough</span>
-        <span class="s5-upload-meta" id="tv-video-upload-meta"></span>
-        <input type="file" id="tv-video-file" hidden accept="video/*">
-      </div>
-    </div>
-
-    <div class="field" id="tv-title-type-field" style="display:none;">
-      <p class="s5-section-label" style="margin:0 0 4px;"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i>Title Verification Documents</p>
-      <p class="modal-sub" style="margin-bottom:10px; text-align:left;">Select every document that applies to this property, then upload each one. Shown publicly on the listing so buyers can judge title risk before making an offer.</p>
-      <div id="tv-doc-options"><!-- populated dynamically --></div>
-      <p class="rent-badge" id="tv-consent-note" style="display:none; margin-top:8px; background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.35); color:#fbbf24;">
-        <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i><span>These documents require Governor's Consent to transfer — buyers will see this upfront on the listing.</span>
-      </p>
-    </div>
-
-    <div id="tv-availability-section">
-    <p class="s5-section-label"><i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>Inspection Availability</p>
-    <div class="field">
-      <label class="field-label">Available Date</label>
-      <input class="field-input" id="tv-avail-date" type="date">
-    </div>
-    <div class="avail-time-row">
-      <input class="field-input" id="tv-avail-start" type="time" aria-label="Start time">
-      <input class="field-input" id="tv-avail-end" type="time" aria-label="End time">
-    </div>
-    <button type="button" id="tv-avail-add-btn" class="avail-add-btn"><i data-lucide="plus" class="w-3.5 h-3.5"></i>Add Time Slot</button>
-    <div class="avail-list" id="tv-avail-list"><p class="avail-list-empty">No inspection availability added yet — tenants won't be able to pick a date until you add one.</p></div>
-    </div>
-    <div class="s5-notice-box" id="tv-shortlet-noinspection-note" style="display:none;">
-      <i data-lucide="calendar-x" class="w-5 h-5"></i>
-      <p>Short-let stays don't use inspection scheduling — tenants pick their own check-in/check-out dates directly on the booking screen.</p>
-    </div>
-
-    <label class="agree-row" style="margin: 4px 0 4px;">
-      <input type="checkbox" id="tv-publish-toggle" class="agree-checkbox" checked>
-      <span>Publish immediately to the Tenant "Find a Home" feed. Uncheck to save as a private draft — hidden from tenants until you publish it from My Properties.</span>
-    </label>
-
-    <button type="button" id="tv-submit-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Submit for Verification</button>
-    <button type="button" id="tv-cancel-btn" class="btn-secondary">Cancel</button>
-
-</div>
-<!-- ===================== END SCREEN ADD PROPERTY ===================== -->
 
 <!-- Vendor Activation & Land Sales Policy Modal — 2-step gate shown to a
      Landlord/Owner (or Agent) the first time they try to list or sell a
@@ -10945,7 +10931,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('tv-avail-start').value = '';
     document.getElementById('tv-avail-end').value = '';
     renderAvailabilityList(tvPendingAvailability, 'tv');
-    navigateTo('screen-add-property');
+    // Inline panel switch (matches the Agent view's tab pattern) instead of
+    // navigating to a separate screen.
+    document.querySelectorAll('.landlord-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('s5-add-property-btn').classList.add('active');
+    document.getElementById('s5-landlord-add').style.display = 'block';
+    document.getElementById('s5-landlord-mine-panel').style.display = 'none';
+    if (window.lucide) lucide.createIcons();
   });
 
   function formatFileSize(bytes) {
@@ -10990,8 +10982,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
   });
 
-  document.getElementById('tv-cancel-btn').addEventListener('click', () => navigateTo('screen-5'));
-  document.getElementById('tv-back-btn').addEventListener('click', () => navigateTo('screen-5'));
+  // Cancel just switches back to the "My Properties" tab (inline panel swap,
+  // no screen navigation — tv-back-btn/its header no longer exist since the
+  // form moved inline, mirroring the Agent view's tab pattern).
+  document.getElementById('tv-cancel-btn').addEventListener('click', () => {
+    document.getElementById('s5-tab-landlord-mine').click();
+  });
 
   // ---- Vendor Activation Modal: wiring ----
   document.getElementById('va-policy-checkbox').addEventListener('change', (e) => {
@@ -11023,9 +11019,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Vendor Activation Gate: Land & Property listings require KYC + Vendor
     // Policy sign-off on file before this landlord/agent can list/sell one.
     if (type === 'land' && !isVendorActivated(getCurrentUserId())) {
-      // Add Property is its own screen now (not an overlay), so the Vendor
+      // Add Property is an inline panel on Screen 5 now, so the Vendor
       // Activation modal can simply stack on top of it — no need to hide/
-      // reopen the screen itself before and after activation.
+      // reopen anything before and after activation.
       requireVendorActivation(getCurrentUserId(), () => {});
       return;
     }
@@ -11113,7 +11109,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (currentListingType === 'land') renderLandFeed(); else renderTenantFeed(currentCurrency);
     }
 
-    navigateTo('screen-5');
+    // Switch back to "My Properties" (inline panel swap — matches the
+    // Agent view's "switch to My Listings after posting" behavior) instead
+    // of navigating to a separate screen.
+    document.getElementById('s5-tab-landlord-mine').click();
     showToast(isPublished ? 'Property photos & walkthrough are now live on the Tenant Search Feed' : 'Saved as a private draft — publish anytime from My Properties');
   });
 
@@ -11134,17 +11133,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   // ---- Landlord view: Add New Property / My Properties switcher ----
-  // "Add New Property" keeps its existing dedicated-screen behavior (see
-  // the navigateTo('screen-add-property') handler above) — it's styled as
-  // a tab here purely to match the Agent view's toggle pattern, but tapping
-  // it navigates away rather than swapping an inline panel. "My Properties"
-  // is the only tab that actually needs to (re)claim the active state, so
-  // returning from Add still shows the list as active.
+  // True inline toggle now (mirrors the Agent view's tab pattern exactly).
+  // "Add New Property" has its own dedicated click handler above (it also
+  // resets the form fields before showing the panel), so this loop only
+  // needs to handle "My Properties" reclaiming the active state and
+  // swapping the panels back.
   document.querySelectorAll('.landlord-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       if (tab.dataset.tab !== 'mine') return;
       document.querySelectorAll('.landlord-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
+      document.getElementById('s5-landlord-add').style.display = 'none';
+      document.getElementById('s5-landlord-mine-panel').style.display = 'block';
+      if (window.lucide) lucide.createIcons();
     });
   });
 
