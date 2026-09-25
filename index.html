@@ -3137,10 +3137,42 @@
           <i data-lucide="calculator" class="w-3.5 h-3.5"></i><span id="s5-monthly-badge-text">Monthly Flex-Rent: ₦0 / month</span>
         </div>
 
+        <!-- Deed of Assignment Legal Fee % — Land & Property listings only.
+             The Landlord/Owner picks 5% or 10%; this is paid to THEM together
+             with the buyer's first installment, never to MainTown. -->
+        <div class="field" id="s5-legal-pct-field" style="display:none;">
+          <label class="field-label">Deed of Assignment Legal Fee (paid to Owner)</label>
+          <div class="toggle-pill-row">
+            <button type="button" class="toggle-pill active" id="s5-legal-pct-5" data-pct="5">5%</button>
+            <button type="button" class="toggle-pill" id="s5-legal-pct-10" data-pct="10">10%</button>
+          </div>
+        </div>
+
+        <!-- Caution Fee & Service Charge — Rent & Shortlet listings only.
+             Both are set manually by whoever is listing (Agent/Landlord/Sales
+             staff) and are paid straight to the Landlord/Owner alongside rent
+             or shortlet payments; MainTown never collects either. -->
+        <div id="s5-caution-service-fields" style="display:none;">
+          <div class="field">
+            <label class="field-label">Caution Fee (NGN) — paid to Landlord/Owner</label>
+            <input class="field-input" id="s5-caution-fee" type="number" min="0" placeholder="e.g. 200000">
+          </div>
+          <div class="field">
+            <label class="field-label">Service Charge</label>
+            <div class="toggle-pill-row" style="margin-bottom:8px;">
+              <button type="button" class="toggle-pill active" id="s5-service-mode-self" data-mode="self">Self Service (no fee)</button>
+              <button type="button" class="toggle-pill" id="s5-service-mode-charged" data-mode="charged">Service Charged</button>
+            </div>
+            <div id="s5-service-fee-wrap" style="display:none;">
+              <input class="field-input" id="s5-service-fee" type="number" min="0" placeholder="e.g. 100000">
+            </div>
+          </div>
+        </div>
+
         <div class="fee-preview-box">
           <p class="s5-section-label" style="margin:0 0 8px;"><i data-lucide="calculator" class="w-4 h-4 text-purple-400"></i>Standardized Fee Structure Preview</p>
           <div class="row"><span>Agency / Listing Commission (10%)</span><strong id="s5-fee-commission">₦0</strong></div>
-          <div class="row"><span>Legal &amp; Title Agreement Fee (5%)</span><strong id="s5-fee-legal">₦0</strong></div>
+          <div class="row" id="s5-fee-legal-row"><span id="s5-fee-legal-label">Legal &amp; Title Agreement Fee (5%)</span><strong id="s5-fee-legal">₦0</strong></div>
         </div>
 
         <p class="s5-section-label"><i data-lucide="image" class="w-4 h-4 text-purple-400"></i>Media Upload</p>
@@ -3620,6 +3652,8 @@
       <div class="s5-hold-row"><span id="s6-row1-label">Rent Amount</span><strong id="s6-rent-amount">—</strong></div>
       <div class="s5-hold-row"><span id="s6-row2-label">Caution Deposit</span><strong id="s6-deposit-amount">—</strong></div>
       <div class="s5-hold-row"><span id="s6-row3-label">Service Fee</span><strong id="s6-fee-amount">—</strong></div>
+      <div class="s5-hold-row" id="s6-caution-row" style="display:none;"><span id="s6-row4-label">Caution Deposit (to Landlord)</span><strong id="s6-caution-amount">—</strong></div>
+      <div class="s5-hold-row" id="s6-service-row" style="display:none;"><span id="s6-row5-label">Service Charge (to Landlord)</span><strong id="s6-service-amount">—</strong></div>
       <div class="s5-hold-row" id="s6-ai-fee-row">
         <span id="s6-ai-fee-label" style="display:flex; align-items:center; gap:5px; color:#c4b5fd;"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown AI Fee</span>
         <strong id="s6-ai-fee-amount" style="color:#c4b5fd;">—</strong>
@@ -3709,6 +3743,8 @@
       <div class="s5-hold-row"><span id="s6-invoice-row1-label">Rent Amount</span><strong id="s6-invoice-rent">—</strong></div>
       <div class="s5-hold-row"><span id="s6-invoice-row2-label">Caution Deposit</span><strong id="s6-invoice-deposit">—</strong></div>
       <div class="s5-hold-row"><span id="s6-invoice-row3-label">Service Fee</span><strong id="s6-invoice-fee">—</strong></div>
+      <div class="s5-hold-row" id="s6-invoice-caution-row" style="display:none;"><span id="s6-invoice-row4-label">Caution Deposit (to Landlord)</span><strong id="s6-invoice-caution">—</strong></div>
+      <div class="s5-hold-row" id="s6-invoice-service-row" style="display:none;"><span id="s6-invoice-row5-label">Service Charge (to Landlord)</span><strong id="s6-invoice-service">—</strong></div>
       <div class="s5-hold-row" id="s6-invoice-ai-fee-row">
         <span id="s6-invoice-ai-fee-label" style="display:flex; align-items:center; gap:5px; color:#c4b5fd;"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown AI Fee</span>
         <strong id="s6-invoice-ai-fee" style="color:#c4b5fd;">—</strong>
@@ -4977,10 +5013,41 @@
       <i data-lucide="calculator" class="w-3.5 h-3.5"></i><span id="tv-monthly-badge-text">Monthly Flex-Rent: ₦0 / month</span>
     </div>
 
+    <!-- Deed of Assignment Legal Fee % — Land & Property listings only. You
+         (the Owner) pick 5% or 10%; it's paid to you together with the
+         buyer's first installment, never to MainTown. -->
+    <div class="field" id="tv-legal-pct-field" style="display:none;">
+      <label class="field-label">Deed of Assignment Legal Fee (paid to you)</label>
+      <div class="toggle-pill-row">
+        <button type="button" class="toggle-pill active" id="tv-legal-pct-5" data-pct="5">5%</button>
+        <button type="button" class="toggle-pill" id="tv-legal-pct-10" data-pct="10">10%</button>
+      </div>
+    </div>
+
+    <!-- Caution Fee & Service Charge — Rent & Shortlet listings only. Paid
+         straight to you alongside rent/shortlet payments; MainTown never
+         collects either. -->
+    <div id="tv-caution-service-fields" style="display:none;">
+      <div class="field">
+        <label class="field-label">Caution Fee (NGN) — paid to you</label>
+        <input class="field-input" id="tv-caution-fee" type="number" min="0" placeholder="e.g. 200000">
+      </div>
+      <div class="field">
+        <label class="field-label">Service Charge</label>
+        <div class="toggle-pill-row" style="margin-bottom:8px;">
+          <button type="button" class="toggle-pill active" id="tv-service-mode-self" data-mode="self">Self Service (no fee)</button>
+          <button type="button" class="toggle-pill" id="tv-service-mode-charged" data-mode="charged">Service Charged</button>
+        </div>
+        <div id="tv-service-fee-wrap" style="display:none;">
+          <input class="field-input" id="tv-service-fee" type="number" min="0" placeholder="e.g. 100000">
+        </div>
+      </div>
+    </div>
+
     <div class="fee-preview-box">
       <p class="s5-section-label" style="margin:0 0 8px;"><i data-lucide="calculator" class="w-4 h-4 text-purple-400"></i>Standardized Fee Structure Preview</p>
       <div class="row"><span>Agency / Listing Commission (10%)</span><strong id="tv-fee-commission">₦0</strong></div>
-      <div class="row"><span>Legal &amp; Title Agreement Fee (5%)</span><strong id="tv-fee-legal">₦0</strong></div>
+      <div class="row" id="tv-fee-legal-row"><span id="tv-fee-legal-label">Legal &amp; Title Agreement Fee (5%)</span><strong id="tv-fee-legal">₦0</strong></div>
     </div>
 
     <div class="dual-drop">
@@ -5087,7 +5154,9 @@
       <div class="row"><span>Nightly Rate</span><strong id="sb-nightly-rate">₦0</strong></div>
       <div class="row"><span>Night 1 (Due Now)</span><strong id="sb-night1">₦0</strong></div>
       <div class="row"><span>Booking Commission (10%)</span><strong id="sb-commission">₦0</strong></div>
-      <div class="row"><span>Legal &amp; Service Fee (5%)</span><strong id="sb-legal">₦0</strong></div>
+      <div class="row"><span>MainTown Platform Fee (5%)</span><strong id="sb-legal">₦0</strong></div>
+      <div class="row" id="sb-caution-row" style="display:none;"><span>Caution Deposit (to host)</span><strong id="sb-caution">₦0</strong></div>
+      <div class="row" id="sb-service-row" style="display:none;"><span>Service Charge (to host)</span><strong id="sb-service">₦0</strong></div>
       <div class="row"><span>Total Due Now</span><strong id="sb-total-now">₦0</strong></div>
     </div>
 
@@ -5329,7 +5398,7 @@
       <div class="s5-hold-preview">
         <div class="s5-hold-row"><span id="lp-monthly-label">Monthly Installment</span><strong id="lp-monthly">—</strong></div>
         <div class="s5-hold-row"><span>Agency Commission (10%)</span><strong id="lp-commission">—</strong></div>
-        <div class="s5-hold-row"><span>Legal Fee (5%)</span><strong id="lp-legal">—</strong></div>
+        <div class="s5-hold-row"><span id="lp-legal-label">Deed of Assignment Fee (5%) — paid to Owner</span><strong id="lp-legal">—</strong></div>
         <div class="s5-hold-divider"></div>
         <div class="s5-hold-row"><span id="lp-down-label">Total Due Now (Month 1 + Fees)</span><strong id="lp-down" style="color:#c084fc;">—</strong></div>
         <div class="s5-hold-row"><span id="lp-firstdate-label">Remaining 11 Months</span><strong id="lp-firstdate">—</strong></div>
@@ -6611,7 +6680,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 5: Subletting & Unauthorized Occupants', body: 'Strict ban on unauthorized third-party subletting.' },
         { title: 'Section 6: Dispute Resolution & Arbitration', body: 'Platform mediation protocols prior to legal claims.' },
         { title: 'Section 7: In-App Communication Compliance', body: 'Obligation to keep all lease interactions inside the app.' },
-        { title: 'Section 8: Payment Default, Eviction & Mandatory Revocation', body: 'Any un-remedied payment default leading to legal eviction results in immediate profile conversion to DEFAULTED / EVICTED state. Upon conversion: (a) all active chat, voice, and video lines with landlords/agents are instantly locked; (b) digital property access keys/tokens are automatically revoked; (c) profile access to property search, viewing, and rental bookings is permanently terminated; (d) record of default is stored on the platform ledger.', critical: true }
+        { title: 'Section 8: Payment Default, Eviction & Mandatory Revocation', body: 'Any un-remedied payment default leading to legal eviction results in immediate profile conversion to DEFAULTED / EVICTED state. Upon conversion: (a) all active chat, voice, and video lines with landlords/agents are instantly locked; (b) digital property access keys/tokens are automatically revoked; (c) profile access to property search, viewing, and rental bookings is permanently terminated; (d) record of default is stored on the platform ledger.', critical: true },
+        { title: 'Section 9: Fee Transparency', body: 'The Legal Fee for drafting your tenancy agreement is collected by MainTown directly, not your Landlord or Agent, for full transparency. Any Caution Deposit and Service Charge shown on a rental or shortlet listing are set by the Landlord/Agent and paid directly to them alongside your rent or shortlet payments. Shortlet stays carry a MainTown Platform Fee (5% of the nightly rate) in place of a Legal Fee.' }
       ]
     },
     landlord: {
@@ -6625,7 +6695,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 5: Shortlet Calendar Accuracy & Caution Deposit Rules', body: 'Requirement to maintain accurate shortlet availability. Double-booking results in owner-funded guest relocation fees. Damage claims against caution deposits must be submitted within 24 hours of checkout with photo/video proof.' },
         { title: 'Section 6: Fraud, Dual-Leasing & Zero Tolerance', body: 'Immediate account termination, forfeiture of pending payouts, listing removal, and referral to law enforcement for fake listings, fraudulent titles, or executing side-deals/double-leases.', critical: true },
         { title: 'Section 7: Verification Walkthroughs & Inspection Access', body: 'Agreement to allow scheduled virtual or physical walkthrough inspections by authorized MainTown verification agents prior to and during listing activation.' },
-        { title: 'Section 8: Non-Circumvention & Direct Payment Ban', body: 'Strict prohibition against bypassing the platform\'s payment system to request cash, direct bank transfers, or off-platform renewals from MainTown users. Violations incur platform ban and legal recovery of lost fees.', critical: true }
+        { title: 'Section 8: Non-Circumvention & Direct Payment Ban', body: 'Strict prohibition against bypassing the platform\'s payment system to request cash, direct bank transfers, or off-platform renewals from MainTown users. Violations incur platform ban and legal recovery of lost fees.', critical: true },
+        { title: 'Section 9: Fee Transparency & Collection', body: 'MainTown collects the Legal Fee for drafting tenancy agreements directly, for transparency — it is never yours to set or collect. Any Caution Deposit and Service Charge you configure for a rental or shortlet listing (or leave as self-service, with no service charge) are paid directly to you alongside the tenant\'s rent/shortlet payments. For Land &amp; Property Sales, the Deed of Assignment legal/processing fee (5% or 10%, as you select at listing) is paid directly to you together with the buyer\'s first installment payment — MainTown does not collect it. Shortlet listings carry a MainTown Platform Fee (5% of the nightly rate) instead of a Legal Fee.' }
       ]
     },
     agent: {
@@ -6639,7 +6710,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 5: Shortlet Operational Standards & Calendar Accuracy', body: "Agents managing shortlet units must maintain accurate calendar availability. Failure to provide keyless/physical check-in access or double-booking stays will result in relocation penalties charged against the agent's account." },
         { title: 'Section 6: Off-Platform Transaction Ban (Zero Tolerance)', body: 'Permanent account ban, commission forfeiture, and legal recovery action for soliciting direct off-platform cash transactions, cash deposits, or off-market renewals from MainTown users.', critical: true },
         { title: 'Section 7: Professional Credentials & Business Verification', body: 'Requirement to maintain active CAC registration, recognized realtor association membership (e.g., REDAN, NIESV, ERCAAN), or valid government-issued identification.' },
-        { title: 'Section 8: Fraud, Double-Leasing & Liability', body: 'Immediate account termination, blacklisting, forfeiture of pending payouts, and law enforcement referral for listing fraudulent inventory, executing double-leases, or collecting illegal offline fees.', critical: true }
+        { title: 'Section 8: Fraud, Double-Leasing & Liability', body: 'Immediate account termination, blacklisting, forfeiture of pending payouts, and law enforcement referral for listing fraudulent inventory, executing double-leases, or collecting illegal offline fees.', critical: true },
+        { title: 'Section 9: Fee Transparency', body: 'The Legal Fee on a tenancy agreement is collected by MainTown directly, for transparency — agents never collect or retain it. Any Caution Deposit and Service Charge entered on a rental or shortlet listing belong entirely to the Landlord/Owner and are paid to them alongside the tenant\'s payments. On Land &amp; Property Sales, the Landlord/Owner-selected Deed of Assignment fee (5% or 10%) is paid to them with the first installment, not to MainTown. Shortlet listings carry a MainTown Platform Fee (5%) instead of a Legal Fee.' }
       ]
     }
   };
@@ -8228,15 +8300,30 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const nights = Math.max(1, parseInt(document.getElementById('sb-nights').value) || 1);
     const rate = sbListing.nightlyRate || 0;
     const commission = Math.round(rate * 0.10);
-    const legal = Math.round(rate * 0.05);
-    const totalNow = rate + commission + legal;
+    // Shortlet stays carry a MainTown Platform Fee instead of a Legal Fee — no
+    // tenancy agreement is drafted for a shortlet booking (see the Fee
+    // Transparency onboarding policy).
+    const platformFee = Math.round(rate * 0.05);
+    // Caution Deposit & Service Charge (host-set at listing time) are charged
+    // once, alongside Night 1, and paid straight to the host — never MainTown.
+    const cautionFee = sbListing.cautionFee || 0;
+    const serviceChargeFee = (sbListing.serviceChargeMode === 'charged') ? (sbListing.serviceChargeFee || 0) : 0;
+    const totalNow = rate + commission + platformFee + cautionFee + serviceChargeFee;
     document.getElementById('sb-nightly-rate').textContent = formatMoney(rate, 'ngn');
     document.getElementById('sb-night1').textContent = formatMoney(rate, 'ngn');
     document.getElementById('sb-commission').textContent = formatMoney(commission, 'ngn');
-    document.getElementById('sb-legal').textContent = formatMoney(legal, 'ngn');
+    document.getElementById('sb-legal').textContent = formatMoney(platformFee, 'ngn');
+    const cautionRow = document.getElementById('sb-caution-row');
+    if (cautionRow) cautionRow.style.display = cautionFee > 0 ? 'flex' : 'none';
+    const cautionEl = document.getElementById('sb-caution');
+    if (cautionEl) cautionEl.textContent = formatMoney(cautionFee, 'ngn');
+    const serviceRow = document.getElementById('sb-service-row');
+    if (serviceRow) serviceRow.style.display = serviceChargeFee > 0 ? 'flex' : 'none';
+    const serviceEl = document.getElementById('sb-service');
+    if (serviceEl) serviceEl.textContent = formatMoney(serviceChargeFee, 'ngn');
     document.getElementById('sb-total-now').textContent = formatMoney(totalNow, 'ngn');
     document.getElementById('sb-autodebit-note').textContent = nights > 1
-      ? `Night 1 is paid now. Nights 2–${nights} auto-debit ${formatMoney(rate, 'ngn')} daily from your wallet until the stay is fully paid.`
+      ? `Night 1 (plus Caution Deposit &amp; Service Charge, if set) is paid now. Nights 2–${nights} auto-debit ${formatMoney(rate, 'ngn')} daily from your wallet until the stay is fully paid.`
       : `This is a single-night stay — nothing further will be charged.`;
   }
 
@@ -8254,15 +8341,24 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('sb-nights').addEventListener('input', recalcShortletBooking);
   document.getElementById('sb-cancel-btn').addEventListener('click', () => shortletBookingModal.classList.remove('open'));
 
-  // Charges one night (rate + commission + legal fee) from the tenant's
-  // wallet and credits the host their share; used for both the up-front
-  // Night 1 charge and every subsequent auto-debited night.
+  // Charges one night (rate + commission + MainTown Platform Fee) from the
+  // tenant's wallet and credits the host their share; used for both the
+  // up-front Night 1 charge and every subsequent auto-debited night.
+  // Shortlet stays carry a Platform Fee, not a Legal Fee — see Fee
+  // Transparency policy. The Caution Deposit & Service Charge (if the host
+  // set them at listing time) are only added to Night 1 and are paid to the
+  // host in full, same as the nightly rate — never to MainTown.
   function chargeShortletNight(booking, nightNumber) {
     const uid = booking.tenantId;
     const rate = booking.nightlyRate;
     const commission = Math.round(rate * 0.10);
-    const legal = Math.round(rate * 0.05);
-    const totalDue = rate + commission + legal;
+    const platformFee = Math.round(rate * 0.05);
+    const listing = listings.find(l => l.id === booking.listingId);
+    const isFirstNight = nightNumber === 1;
+    const cautionFee = isFirstNight ? (listing && listing.cautionFee || 0) : 0;
+    const serviceChargeFee = isFirstNight && listing && listing.serviceChargeMode === 'charged' ? (listing.serviceChargeFee || 0) : 0;
+    const hostPassthrough = cautionFee + serviceChargeFee;
+    const totalDue = rate + commission + platformFee + hostPassthrough;
     if (getWalletBalance(uid) < totalDue) return false;
     debitWallet(uid, totalDue);
     recordTransaction({
@@ -8271,13 +8367,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       amount: totalDue, status: 'SUCCESSFUL',
       meta: { recipient: booking.listingTitle, propertyName: booking.listingTitle, feeType: 'Shortlet Booking' }
     });
-    const listing = listings.find(l => l.id === booking.listingId);
     if (listing && listing.ownerId) {
-      creditWallet(listing.ownerId, rate);
+      const hostAmount = rate + hostPassthrough;
+      creditWallet(listing.ownerId, hostAmount);
       recordTransaction({
         userId: listing.ownerId, direction: 'credit', category: 'SHORTLET_PAYOUT',
         title: `Shortlet payout — Night ${nightNumber} of ${booking.nights} at ${booking.listingTitle}`,
-        amount: rate, status: 'SUCCESSFUL', meta: { propertyName: booking.listingTitle }
+        amount: hostAmount, status: 'SUCCESSFUL', meta: { propertyName: booking.listingTitle }
       });
     }
     return true;
@@ -8580,18 +8676,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
     halfyearly: { label: 'Half-Yearly', periodLabel: 'half-yearly', count: 2,  intervalMonths: 6 },
   };
 
-  function computeInstallmentBreakdown(totalAmount, frequency) {
+  // legalPct: the Landlord/Owner-selected Deed of Assignment processing fee
+  // percentage (5 or 10), chosen at listing time. Defaults to 5% for listings
+  // created before this selection existed.
+  function computeInstallmentBreakdown(totalAmount, frequency, legalPct) {
     const plan = INSTALLMENT_PLANS[frequency] || INSTALLMENT_PLANS.monthly;
+    const pct = (legalPct === 10 ? 0.10 : 0.05);
     const monthly = Math.round(totalAmount / plan.count);
     const commission = Math.round(totalAmount * 0.10);
-    const legal = Math.round(totalAmount * 0.05);
+    const legal = Math.round(totalAmount * pct);
     const upfront = monthly + commission + legal;
     const remainingMonths = plan.count - 1;
     const remainingTotal = monthly * remainingMonths;
     return {
       frequency, label: plan.label, periodLabel: plan.periodLabel,
       installmentCount: plan.count, intervalMonths: plan.intervalMonths,
-      monthly, commission, legal, upfront, remainingMonths, remainingTotal,
+      monthly, commission, legal, legalPct: pct * 100, upfront, remainingMonths, remainingTotal,
       grandTotal: totalAmount + commission + legal, isRenewal: false,
     };
   }
@@ -8606,17 +8706,25 @@ This voucher is auto-generated and serves as proof of settlement.`;
     return { monthly, commission, legal, upfront, remainingMonths, remainingTotal, grandTotal: totalAmount + commission + legal, isRenewal: false };
   }
 
-  // Phase 3 (Lease Drafting & Final Closing): annotates a Year-1 breakdown with
-  // the MainTown/Agent commission split. Legal fee is always 100% MainTown.
-  //   Agent-listed      -> maintown_take = legal_fee + 40% of commission | agent_take = 60% of commission
-  //   Direct-landlord    -> maintown_take = legal_fee + 100% of commission
+  // Phase 3 (Lease Drafting & Final Closing): annotates a Year-1/installment
+  // breakdown with the MainTown/Agent commission split. The commission split
+  // works the same for every listing type, but the Legal Fee's destination
+  // does not (see Fee Transparency policy):
+  //   Rent (tenancy agreement)     -> legal fee is 100% MainTown's.
+  //   Land (Deed of Assignment)    -> legal fee is 100% the Landlord/Owner's,
+  //                                   paid together with the first installment.
+  //   Agent-listed  -> maintown_commission = 40% of commission | agent_take = 60% of commission
+  //   Direct-listed -> maintown_commission = 100% of commission | agent_take = 0
   function annotateCommissionSplit(breakdown, listing) {
     if (!breakdown) return breakdown;
     const isAgentListing = !!(listing && listing.listedBy === 'agent');
+    const isLand = !!(listing && listing.type === 'land');
     breakdown.isAgentListing = isAgentListing;
+    breakdown.legalGoesToOwner = isLand;
     breakdown.maintownCommission = isAgentListing ? Math.round(breakdown.commission * 0.40) : breakdown.commission;
     breakdown.agentCommission = isAgentListing ? (breakdown.commission - breakdown.maintownCommission) : 0;
-    breakdown.maintownTake = breakdown.legal + breakdown.maintownCommission;
+    breakdown.ownerLegalTake = isLand ? (breakdown.legal || 0) : 0;
+    breakdown.maintownTake = isLand ? breakdown.maintownCommission : (breakdown.legal + breakdown.maintownCommission);
     breakdown.agentTake = breakdown.agentCommission;
     return breakdown;
   }
@@ -8784,9 +8892,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
       document.getElementById('s6-breakdown-label').innerHTML = '<i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Purchase Breakdown';
 
+      // Land purchases never carry a Caution Deposit/Service Charge — hide those rows.
+      document.getElementById('s6-caution-row').style.display = 'none';
+      document.getElementById('s6-service-row').style.display = 'none';
+
       if (checkoutLandPayment.mode === 'outright') {
         document.getElementById('s6-row1-label').textContent = 'Total Price';
-        document.getElementById('s6-row2-label').textContent = 'Legal Title & Deed Processing Fee';
+        document.getElementById('s6-row2-label').textContent = 'Deed of Assignment / Title Processing Fee (to Owner)';
         document.getElementById('s6-row3-label').textContent = 'Repayment Plan';
         document.getElementById('s6-rent-amount').textContent = formatMoney(checkoutLandPayment.totalPrice, 'ngn');
         document.getElementById('s6-deposit-amount').textContent = formatMoney(checkoutLandPayment.processingFee, 'ngn');
@@ -8797,11 +8909,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
         document.getElementById('s6-total-amount').textContent = formatMoney(checkoutLandPayment.totalPrice + checkoutLandPayment.processingFee + checkoutAiFeeNgn, 'ngn');
       } else {
         // Installment plan follows the SAME Year-1 formula as rentals: Total Price ÷ 12
-        // + 10% Commission + 5% Legal, all due upfront alongside Month 1; the remaining
-        // 11 installments auto-debit monthly (30 days apart) after the possession date.
+        // + 10% Commission + the Owner-selected 5%/10% Deed of Assignment fee, all due
+        // upfront alongside Installment 1; the remaining installments auto-debit on the
+        // chosen cadence after the possession date. Unlike the tenancy Legal Fee, the
+        // Deed of Assignment fee is paid straight to the Landlord/Owner, not MainTown.
         document.getElementById('s6-row1-label').textContent = `Downpayment (${checkoutLandPayment.label || 'Monthly'} Installment)`;
         document.getElementById('s6-row2-label').textContent = 'Agency Commission (10%)';
-        document.getElementById('s6-row3-label').textContent = 'Legal Title & Deed Processing Fee (5%)';
+        document.getElementById('s6-row3-label').textContent = `Deed of Assignment Fee (${checkoutLandPayment.legalPct || 5}% — to Owner)`;
         document.getElementById('s6-rent-amount').textContent = formatMoney(checkoutLandPayment.monthly, 'ngn');
         document.getElementById('s6-deposit-amount').textContent = formatMoney(checkoutLandPayment.commission, 'ngn');
         document.getElementById('s6-fee-amount').textContent = formatMoney(checkoutLandPayment.legal, 'ngn');
@@ -8815,7 +8929,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       document.getElementById('s6-breakdown-label').innerHTML = '<i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Rent Breakdown (Year 1)';
       document.getElementById('s6-row1-label').textContent = 'First Rent Installment';
       document.getElementById('s6-row2-label').textContent = 'Agency Commission (10%)';
-      document.getElementById('s6-row3-label').textContent = 'Caution & Service Deposit (5%)';
+      document.getElementById('s6-row3-label').textContent = 'Legal Fee (5%) — to MainTown';
 
       // Annual rent in NGN is the canonical figure the 10%/5% fees are calculated from —
       // use the stored annualPrice (set at listing submission), or fall back to
@@ -8823,6 +8937,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const monthlyNgn = parseFloat((listing.ngn || '').replace(/[^0-9.]/g, '')) || 0;
       const annualNgn = listing.annualPrice || (monthlyNgn * 12);
       checkoutRentBreakdown = annotateCommissionSplit(computeYear1Breakdown(annualNgn), listing);
+      // Caution Deposit & Service Charge: manually set by the Agent/Landlord/
+      // Sales staff at listing time, paid straight to the Landlord — never
+      // MainTown — alongside the first rent installment.
+      checkoutRentBreakdown.cautionFee = listing.cautionFee || 0;
+      checkoutRentBreakdown.serviceChargeFee = (listing.serviceChargeMode === 'charged') ? (listing.serviceChargeFee || 0) : 0;
       const rate = currentCurrency === 'usd' ? (1 / 1600) : 1;
 
       // MainTown AI Risk & Flex Scoring Fee: a one-time ₦5,000 fee added only to
@@ -8837,7 +8956,24 @@ This voucher is auto-generated and serves as proof of settlement.`;
       document.getElementById('s6-rent-amount').textContent = formatMoney(checkoutRentBreakdown.monthly * rate, currentCurrency);
       document.getElementById('s6-deposit-amount').textContent = formatMoney(checkoutRentBreakdown.commission * rate, currentCurrency);
       document.getElementById('s6-fee-amount').textContent = formatMoney(checkoutRentBreakdown.legal * rate, currentCurrency);
-      document.getElementById('s6-total-amount').textContent = formatMoney((checkoutRentBreakdown.upfront + checkoutAiFeeNgn) * rate, currentCurrency) + ' due now';
+
+      const cautionRow = document.getElementById('s6-caution-row');
+      const serviceRow = document.getElementById('s6-service-row');
+      if (checkoutRentBreakdown.cautionFee > 0) {
+        cautionRow.style.display = 'flex';
+        document.getElementById('s6-caution-amount').textContent = formatMoney(checkoutRentBreakdown.cautionFee * rate, currentCurrency);
+      } else {
+        cautionRow.style.display = 'none';
+      }
+      if (checkoutRentBreakdown.serviceChargeFee > 0) {
+        serviceRow.style.display = 'flex';
+        document.getElementById('s6-service-amount').textContent = formatMoney(checkoutRentBreakdown.serviceChargeFee * rate, currentCurrency);
+      } else {
+        serviceRow.style.display = 'none';
+      }
+
+      const extraDueNow = checkoutRentBreakdown.cautionFee + checkoutRentBreakdown.serviceChargeFee;
+      document.getElementById('s6-total-amount').textContent = formatMoney((checkoutRentBreakdown.upfront + extraDueNow + checkoutAiFeeNgn) * rate, currentCurrency) + ' due now';
     }
 
     renderDisbursementBreakdown('s6-disbursement-list', checkoutAiFeeNgn);
@@ -9438,7 +9574,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
         ? checkoutLandPayment.totalPrice + checkoutLandPayment.processingFee + checkoutAiFeeNgn
         : checkoutLandPayment.upfront + checkoutAiFeeNgn;
     }
-    return checkoutRentBreakdown ? checkoutRentBreakdown.upfront + checkoutAiFeeNgn : 0;
+    if (!checkoutRentBreakdown) return 0;
+    // Caution Deposit & Service Charge (if the Landlord/Agent set them) are
+    // due alongside the first rent installment — see applySplitPaymentSettlement.
+    const extra = (checkoutRentBreakdown.cautionFee || 0) + (checkoutRentBreakdown.serviceChargeFee || 0);
+    return checkoutRentBreakdown.upfront + extra + checkoutAiFeeNgn;
   }
 
   function refreshCheckoutPinGate() {
@@ -9541,22 +9681,34 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const rate = (!isLand && currentCurrency === 'usd') ? (1 / 1600) : 1;
     const fmt = n => formatMoney(n * rate, cur);
     const legal = b.legal || 0;
-    const maintownCommission = Math.max(0, (b.maintownTake || 0) - legal);
+    // Legal fee destination differs by listing type (see Fee Transparency
+    // policy): Land's Deed of Assignment fee is the Owner's; Rent's Legal
+    // Fee is MainTown's.
+    const legalGoesToOwner = b.legalGoesToOwner != null ? b.legalGoesToOwner : isLand;
+    const ownerLegalShare = legalGoesToOwner ? legal : 0;
+    const platformLegalShare = legalGoesToOwner ? 0 : legal;
+    const maintownCommission = b.maintownCommission != null ? b.maintownCommission : Math.max(0, (b.maintownTake || 0) - platformLegalShare);
     const agentTake = isAgentManaged ? (b.agentTake || 0) : 0;
+    const cautionFee = (!isLand && b.cautionFee) || 0;
+    const serviceChargeFee = (!isLand && b.serviceChargeFee) || 0;
+    const ownerExtras = ownerLegalShare + cautionFee + serviceChargeFee;
     const aiFee = aiFeeNgn || 0;
     const sub = t => `<span style="display:block; font-size:11px; font-weight:400; color:#64748b; margin-top:1px;">${t}</span>`;
+    let ownerSubLabel = 'Paid directly to their own account at the point of charge';
+    if (isLand && ownerLegalShare > 0) ownerSubLabel += ` + ${formatMoney(ownerLegalShare * rate, cur)} Deed of Assignment fee`;
+    if (!isLand && (cautionFee > 0 || serviceChargeFee > 0)) ownerSubLabel += ` + Caution Deposit/Service Charge`;
     const rows = [
-      `<div class="s5-hold-row"><span>${isLand ? "Seller / Developer's Share" : "Landlord's Share (Net Rent)"}${sub('Paid directly to their own account at the point of charge')}</span><strong>${fmt(b.monthly || 0)}</strong></div>`
+      `<div class="s5-hold-row"><span>${isLand ? "Seller / Developer's Share" : "Landlord's Share (Net Rent)"}${sub(ownerSubLabel)}</span><strong>${fmt((b.monthly || 0) + ownerExtras)}</strong></div>`
     ];
     if (agentTake > 0) {
       rows.push(`<div class="s5-hold-row"><span>Agent's Commission Share${sub('60% of the agent commission — paid directly to the agent')}</span><strong>${fmt(agentTake)}</strong></div>`);
     }
-    rows.push(`<div class="s5-hold-row"><span>MainTown's Share${sub(isAgentManaged ? '40% of agent commission + legal / processing fee' : 'Commission + legal / processing fee')}</span><strong>${fmt(maintownCommission + legal)}</strong></div>`);
+    rows.push(`<div class="s5-hold-row"><span>MainTown's Share${sub(isAgentManaged ? `40% of agent commission${platformLegalShare > 0 ? ' + legal fee' : ''}` : `Commission${platformLegalShare > 0 ? ' + legal fee' : ''}`)}</span><strong>${fmt(maintownCommission + platformLegalShare)}</strong></div>`);
     if (aiFee > 0) {
       rows.push(`<div class="s5-hold-row" style="color:#c4b5fd;"><span>MainTown AI Fee${sub('One-time')}</span><strong style="color:#c4b5fd;">${fmt(aiFee)}</strong></div>`);
     }
     rows.push('<div class="s5-hold-divider"></div>');
-    rows.push(`<div class="s5-hold-row"><span>Total Charged</span><strong style="color:#c084fc; font-size:15px;">${fmt((b.upfront || 0) + aiFee)}</strong></div>`);
+    rows.push(`<div class="s5-hold-row"><span>Total Charged</span><strong style="color:#c084fc; font-size:15px;">${fmt((b.upfront || 0) + (isLand ? 0 : (cautionFee + serviceChargeFee)) + aiFee)}</strong></div>`);
     el.innerHTML = rows.join('');
   }
 
@@ -9597,11 +9749,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Scenario A (Agent-Managed, listing.listedByRole === 'AGENT') and
   // Scenario B (Direct Landlord): Agent's 60% share of the 10% commission to
   // agent.walletBalance, MainTown's 40% (or, direct-listed, the full 10%) to
-  // platform_revenue.commissions, the Legal Processing Fee 100% to
-  // platform_revenue.legal_fees, and the net Landlord/Land Owner Balance to
-  // landlord.walletBalance — same as a Land sale already did, so the
-  // landlord/agent now withdraws to their bank as an explicit Wallet action
-  // instead of the platform silently deciding the money already left.
+  // platform_revenue.commissions, and the net Landlord/Land Owner Balance to
+  // landlord.walletBalance. See Fee Transparency policy for where the Legal
+  // Fee itself lands — it is NOT always MainTown's:
+  //   Rent      -> Legal Fee (tenancy agreement) is 100% platform_revenue.legal_fees.
+  //   Land      -> Deed of Assignment fee is 100% the Landlord/Owner's, folded
+  //                into their payout together with the first installment.
+  // Caution Deposit & Service Charge (rent/shortlet, set at listing time) are
+  // pure pass-throughs straight to the Landlord/Owner — MainTown never touches
+  // them — added on top of the net rent for the first payment only.
   // ==================================================================
   function creditPartyWallet(userId, amount, { title, category, propertyName, feeType }) {
     if (!userId || !(amount > 0)) return;
@@ -9615,22 +9771,34 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function applySplitPaymentSettlement(listing, breakdown) {
     if (!listing || !breakdown) return;
-    // Derive fields defensively rather than assuming a specific breakdown
-    // shape — the installment payload (built at the Land Payment modal) only
-    // carries maintownTake/agentTake, not the isAgentListing/maintownCommission
-    // fields annotateCommissionSplit adds; maintownTake is always legal +
-    // maintownCommission on both code paths, so back it out from that.
-    const legal = breakdown.legal || 0;
-    const maintownCommission = Math.max(0, (breakdown.maintownTake || 0) - legal);
-    const agentTake = breakdown.agentTake || 0;
     const isAgentManaged = listing.listedByRole ? listing.listedByRole === 'AGENT' : listing.listedBy === 'agent';
     const isLand = listing.type === 'land';
+    const legal = breakdown.legal || 0;
+    // legalGoesToOwner/maintownCommission are set explicitly by
+    // annotateCommissionSplit on every breakdown this function receives; fall
+    // back defensively (older code path / back-derive from maintownTake) only
+    // if a breakdown somehow arrives without them.
+    const legalGoesToOwner = (breakdown.legalGoesToOwner != null) ? breakdown.legalGoesToOwner : isLand;
+    const maintownCommission = (breakdown.maintownCommission != null)
+      ? breakdown.maintownCommission
+      : Math.max(0, (breakdown.maintownTake || 0) - (legalGoesToOwner ? 0 : legal));
+    const agentTake = breakdown.agentTake || 0;
+    const ownerLegalShare = legalGoesToOwner ? legal : 0;
+    const platformLegalShare = legalGoesToOwner ? 0 : legal;
 
-    creditPartyWallet(listing.ownerId, breakdown.monthly, {
+    // Caution Deposit & Service Charge: rent/shortlet only, pure pass-through
+    // to the Landlord/Owner, folded into their payout for the first payment.
+    const cautionFee = (!isLand && breakdown.cautionFee) || 0;
+    const serviceChargeFee = (!isLand && breakdown.serviceChargeFee) || 0;
+    const ownerAmount = (breakdown.monthly || 0) + ownerLegalShare + cautionFee + serviceChargeFee;
+
+    creditPartyWallet(listing.ownerId, ownerAmount, {
       title: `${isLand ? 'Land Owner' : 'Landlord'} Payout - ${listing.title || 'Property'}`,
       category: 'LANDLORD_PAYOUT',
       propertyName: listing.title,
-      feeType: isLand ? 'Land Owner Net Balance' : 'Net Rent Payout'
+      feeType: isLand
+        ? (ownerLegalShare > 0 ? 'Land Owner Net Balance + Deed of Assignment Fee' : 'Land Owner Net Balance')
+        : ((cautionFee + serviceChargeFee) > 0 ? 'Net Rent + Caution Deposit + Service Charge' : 'Net Rent Payout')
     });
     if (isAgentManaged) {
       creditPartyWallet(listing.agentId, agentTake, {
@@ -9644,7 +9812,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     appState = loadAppState();
     if (!appState.platform_revenue) appState.platform_revenue = { ai_processing_fees: 0, commissions: 0, legal_fees: 0 };
     appState.platform_revenue.commissions = (appState.platform_revenue.commissions || 0) + maintownCommission;
-    appState.platform_revenue.legal_fees = (appState.platform_revenue.legal_fees || 0) + legal;
+    appState.platform_revenue.legal_fees = (appState.platform_revenue.legal_fees || 0) + platformLegalShare;
     saveAppState(appState);
     window.dispatchEvent(new Event('maintown_state_updated'));
   }
@@ -9817,6 +9985,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('s6-invoice-rent').textContent = document.getElementById('s6-rent-amount').textContent;
     document.getElementById('s6-invoice-deposit').textContent = document.getElementById('s6-deposit-amount').textContent;
     document.getElementById('s6-invoice-fee').textContent = document.getElementById('s6-fee-amount').textContent;
+    // Caution Deposit / Service Charge rows only show on the invoice when
+    // they were shown at checkout (rent listings where the Landlord/Agent
+    // set them).
+    const cautionRowVisible = document.getElementById('s6-caution-row').style.display !== 'none';
+    document.getElementById('s6-invoice-caution-row').style.display = cautionRowVisible ? 'flex' : 'none';
+    if (cautionRowVisible) {
+      document.getElementById('s6-invoice-row4-label').textContent = document.getElementById('s6-row4-label').textContent;
+      document.getElementById('s6-invoice-caution').textContent = document.getElementById('s6-caution-amount').textContent;
+    }
+    const serviceRowVisible = document.getElementById('s6-service-row').style.display !== 'none';
+    document.getElementById('s6-invoice-service-row').style.display = serviceRowVisible ? 'flex' : 'none';
+    if (serviceRowVisible) {
+      document.getElementById('s6-invoice-row5-label').textContent = document.getElementById('s6-row5-label').textContent;
+      document.getElementById('s6-invoice-service').textContent = document.getElementById('s6-service-amount').textContent;
+    }
     document.getElementById('s6-invoice-ai-fee-label').innerHTML = document.getElementById('s6-ai-fee-label').innerHTML;
     document.getElementById('s6-invoice-ai-fee').textContent = document.getElementById('s6-ai-fee-amount').textContent;
     document.getElementById('s6-invoice-total').textContent = document.getElementById('s6-total-amount').textContent;
@@ -10258,6 +10441,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('tv-monthly-badge').style.display = 'none';
     document.getElementById('tv-fee-commission').textContent = '₦0';
     document.getElementById('tv-fee-legal').textContent = '₦0';
+    document.getElementById('tv-caution-fee').value = '';
+    document.getElementById('tv-service-fee').value = '';
+    setLegalPct('tv', 5);
+    setServiceChargeMode('tv', 'self');
+    updateAnnualCalc('tv');
     document.getElementById('tv-photo-upload').classList.remove('has-file');
     document.getElementById('tv-photo-upload-label').textContent = 'Property Photos';
     document.getElementById('tv-photo-thumbs').innerHTML = '';
@@ -10357,6 +10545,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // saved as a draft (status 'draft'), the listing is stored but filtered out of every
     // tenant-facing feed until explicitly published from My Properties.
     const currentUserName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Landlord';
+    const feeFields = getFeeFieldsFromForm('tv');
     const baseFields = {
       id: newId, title, location: address, listedBy: 'landlord', status: isPublished ? 'live' : 'draft',
       hasPhotos: tvPendingPhotoCount > 0, hasVideo: tvPendingHasVideo,
@@ -10368,7 +10557,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // hardcoded demo landlord.
       ownerId: getCurrentUserId(),
       listedByRole: 'LANDLORD',
-      availability: tvPendingAvailability.map(a => ({ date: a.date, slots: a.slots.slice() }))
+      availability: tvPendingAvailability.map(a => ({ date: a.date, slots: a.slots.slice() })),
+      // Caution Fee & Service Charge (rent/shortlet only — see Fee Transparency
+      // policy): set here by the Owner, paid straight to them, never MainTown.
+      cautionFee: feeFields.cautionFee,
+      serviceChargeMode: feeFields.serviceChargeMode,
+      serviceChargeFee: feeFields.serviceChargeFee
     };
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
@@ -10378,6 +10572,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } else {
       listingsFeed.unshift({
         ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land,
+        // Deed of Assignment legal/processing fee % (5 or 10, Owner-selected
+        // at listing time) — paid to the Owner with the buyer's first
+        // installment, never to MainTown.
+        legalFeePct: feeFields.legalFeePct,
         // Title Verification Documents — shown publicly on the listing so
         // buyers can judge title risk/completeness before ever messaging
         // anyone, and drives the Governor's Consent tracker after sale.
@@ -10665,11 +10863,73 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (priceLabel) priceLabel.textContent = type === 'shortlet' ? 'Nightly Rate (NGN)' : 'Annual Price (NGN)';
     if (priceInput) priceInput.placeholder = type === 'shortlet' ? 'e.g. 45000' : 'e.g. 2400000';
     document.getElementById(`${prefix}-fee-commission`).textContent = annual > 0 ? formatMoney(annual * 0.10, 'ngn') : '₦0';
-    document.getElementById(`${prefix}-fee-legal`).textContent = annual > 0 ? formatMoney(annual * 0.05, 'ngn') : '₦0';
+
+    // Listing Type Section Visibility: Deed of Assignment % selector is
+    // Land-only; Caution Fee/Service Charge are Rent & Shortlet-only. Legal
+    // fee destination/label also flips: Rent -> Legal Fee (to MainTown),
+    // Land -> Deed of Assignment Fee (owner-selected %, to Owner), Shortlet
+    // -> MainTown Platform Fee (no legal fee/tenancy agreement drafted).
+    const legalPctField = document.getElementById(`${prefix}-legal-pct-field`);
+    const cautionServiceFields = document.getElementById(`${prefix}-caution-service-fields`);
+    const feeLegalLabel = document.getElementById(`${prefix}-fee-legal-label`);
+    if (legalPctField) legalPctField.style.display = type === 'land' ? 'block' : 'none';
+    if (cautionServiceFields) cautionServiceFields.style.display = (type === 'rent' || type === 'shortlet') ? 'block' : 'none';
+
+    let legalAmount = 0;
+    if (type === 'land') {
+      const activePctBtn = document.querySelector(`#${prefix}-legal-pct-field .toggle-pill.active`);
+      const pct = activePctBtn ? Number(activePctBtn.dataset.pct) : 5;
+      legalAmount = annual * (pct / 100);
+      if (feeLegalLabel) feeLegalLabel.textContent = `Deed of Assignment Fee (${pct}% — to Owner)`;
+    } else if (type === 'shortlet') {
+      legalAmount = annual * 0.05;
+      if (feeLegalLabel) feeLegalLabel.textContent = 'MainTown Platform Fee (5%)';
+    } else {
+      legalAmount = annual * 0.05;
+      if (feeLegalLabel) feeLegalLabel.textContent = 'Legal & Title Agreement Fee (5% — to MainTown)';
+    }
+    document.getElementById(`${prefix}-fee-legal`).textContent = annual > 0 ? formatMoney(legalAmount, 'ngn') : '₦0';
   }
+  // Reads the Caution Fee / Service Charge / Deed-of-Assignment-% fields a
+  // listing form (s5 or tv) currently has set, for storing onto the listing
+  // at submission time.
+  function getFeeFieldsFromForm(prefix) {
+    const cautionInput = document.getElementById(`${prefix}-caution-fee`);
+    const serviceInput = document.getElementById(`${prefix}-service-fee`);
+    const serviceChargedBtn = document.getElementById(`${prefix}-service-mode-charged`);
+    const legalPct10Btn = document.getElementById(`${prefix}-legal-pct-10`);
+    const serviceChargeMode = (serviceChargedBtn && serviceChargedBtn.classList.contains('active')) ? 'charged' : 'self';
+    return {
+      cautionFee: cautionInput ? (parseFloat(cautionInput.value) || 0) : 0,
+      serviceChargeMode,
+      serviceChargeFee: (serviceChargeMode === 'charged' && serviceInput) ? (parseFloat(serviceInput.value) || 0) : 0,
+      legalFeePct: (legalPct10Btn && legalPct10Btn.classList.contains('active')) ? 10 : 5
+    };
+  }
+  function setLegalPct(prefix, pct) {
+    document.getElementById(`${prefix}-legal-pct-5`).classList.toggle('active', pct === 5);
+    document.getElementById(`${prefix}-legal-pct-10`).classList.toggle('active', pct === 10);
+    updateAnnualCalc(prefix);
+  }
+  function setServiceChargeMode(prefix, mode) {
+    document.getElementById(`${prefix}-service-mode-self`).classList.toggle('active', mode === 'self');
+    document.getElementById(`${prefix}-service-mode-charged`).classList.toggle('active', mode === 'charged');
+    document.getElementById(`${prefix}-service-fee-wrap`).style.display = mode === 'charged' ? 'block' : 'none';
+  }
+  ['s5', 'tv'].forEach(prefix => {
+    const pct5 = document.getElementById(`${prefix}-legal-pct-5`);
+    const pct10 = document.getElementById(`${prefix}-legal-pct-10`);
+    if (pct5) pct5.addEventListener('click', () => setLegalPct(prefix, 5));
+    if (pct10) pct10.addEventListener('click', () => setLegalPct(prefix, 10));
+    const svcSelf = document.getElementById(`${prefix}-service-mode-self`);
+    const svcCharged = document.getElementById(`${prefix}-service-mode-charged`);
+    if (svcSelf) svcSelf.addEventListener('click', () => setServiceChargeMode(prefix, 'self'));
+    if (svcCharged) svcCharged.addEventListener('click', () => setServiceChargeMode(prefix, 'charged'));
+  });
   document.getElementById('s5-listing-annual').addEventListener('input', () => updateAnnualCalc('s5'));
   document.getElementById('s5-listing-annual').addEventListener('change', () => updateAnnualCalc('s5'));
   document.getElementById('s5-listing-type').addEventListener('change', () => updateAnnualCalc('s5'));
+  updateAnnualCalc('s5'); // sync Caution/Service/Legal-% field visibility with the form's default listing type on first render
   document.getElementById('tv-annual').addEventListener('input', () => updateAnnualCalc('tv'));
   document.getElementById('tv-annual').addEventListener('change', () => updateAnnualCalc('tv'));
   document.getElementById('tv-listing-type').addEventListener('change', () => {
@@ -10793,6 +11053,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const companyId = (typeof getEnterpriseCompanyId === 'function') ? getEnterpriseCompanyId() : null;
       if (!companyId) { showToast('Unable to resolve your company account'); return; }
       const newId = Date.now();
+      const feeFields = getFeeFieldsFromForm('s5');
       const baseFields = {
         id: newId, title, location: address, listedBy: 'enterprise', status: 'draft',
         hasPhotos: s5PendingPhotoCount > 0, hasVideo: s5PendingHasVideo,
@@ -10800,6 +11061,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
         availability: s5PendingAvailability.map(a => ({ date: a.date, slots: a.slots.slice() })),
         ownerId: companyId, companyId, listedByStaffId: getCurrentUserId(),
         listedByRole: 'ENTERPRISE', workflowStatus: 'PENDING_LEGAL_REVIEW',
+        // Caution Fee & Service Charge (rent/shortlet only — see Fee
+        // Transparency policy): set here by Sales staff on the Owner's
+        // behalf, paid straight to the Owner, never MainTown.
+        cautionFee: feeFields.cautionFee,
+        serviceChargeMode: feeFields.serviceChargeMode,
+        serviceChargeFee: feeFields.serviceChargeFee
       };
       let listingData;
       if (type === 'rent') {
@@ -10808,7 +11075,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       } else if (type === 'shortlet') {
         listingData = { ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: PROPERTY_IMG_FALLBACK.shortlet };
       } else {
-        listingData = { ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land };
+        // Deed of Assignment legal/processing fee % (5 or 10, Owner-selected
+        // at listing time) — paid to the Owner with the buyer's first
+        // installment, never to MainTown.
+        listingData = { ...baseFields, type: 'land', totalPrice: annual, legalFeePct: feeFields.legalFeePct, img: PROPERTY_IMG_FALLBACK.land };
       }
       listingsFeed.unshift(listingData);
       saveListings();
@@ -10827,6 +11097,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       document.getElementById('s5-video-upload').classList.remove('has-file');
       document.getElementById('s5-video-upload-label').textContent = 'Video Walkthrough';
       document.getElementById('s5-monthly-badge').style.display = 'none';
+      setLegalPct('s5', 5);
+      setServiceChargeMode('s5', 'self');
 
       if (window.lucide) lucide.createIcons();
       if (typeof renderSalesHome === 'function') renderSalesHome();
@@ -10872,6 +11144,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
     const agentName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Agent';
     const newId = Date.now();
+    const feeFields = getFeeFieldsFromForm('s5');
     // A newly submitted listing is never published straight to the Tenant
     // feed — it stays out of `listingsFeed` entirely until Landlord
     // verification and MainTown's legal review both complete.
@@ -10892,6 +11165,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // member's own "My Listings" (Sales dashboard) once it goes live.
       companyId: (currentUserRole === 'enterprise_staff' && typeof getEnterpriseCompanyId === 'function') ? getEnterpriseCompanyId() : undefined,
       listedByStaffId: (currentUserRole === 'enterprise_staff') ? getCurrentUserId() : undefined,
+      // Caution Fee & Service Charge (rent/shortlet only — see Fee
+      // Transparency policy): set here by the Agent/Sales staff on the
+      // Landlord's behalf, paid straight to the Landlord, never MainTown.
+      cautionFee: feeFields.cautionFee,
+      serviceChargeMode: feeFields.serviceChargeMode,
+      serviceChargeFee: feeFields.serviceChargeFee
     };
     let listingData;
     if (type === 'rent') {
@@ -10900,7 +11179,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } else if (type === 'shortlet') {
       listingData = { ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: PROPERTY_IMG_FALLBACK.shortlet };
     } else {
-      listingData = { ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land };
+      // Deed of Assignment legal/processing fee % (5 or 10, Owner-selected at
+      // listing time) — paid to the Owner with the buyer's first
+      // installment, never to MainTown.
+      listingData = { ...baseFields, type: 'land', totalPrice: annual, legalFeePct: feeFields.legalFeePct, img: PROPERTY_IMG_FALLBACK.land };
     }
 
     agentListings.unshift({
@@ -10933,6 +11215,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('s5-monthly-badge').style.display = 'none';
     document.getElementById('s5-fee-commission').textContent = '₦0';
     document.getElementById('s5-fee-legal').textContent = '₦0';
+    setLegalPct('s5', 5);
+    setServiceChargeMode('s5', 'self');
 
     document.getElementById('s5-tab-mine').click();
     showToast(`Sent to ${landlordName} for verification via WhatsApp, SMS & Email`);
@@ -11153,17 +11437,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // frequency (Monthly/Quarterly/Half-Yearly) is currently selected.
   function renderInstallmentPanel() {
     if (!landModalListing) return;
-    const b = computeInstallmentBreakdown(landModalListing.totalPrice, landModalFreq);
+    const b = computeInstallmentBreakdown(landModalListing.totalPrice, landModalFreq, landModalListing.legalFeePct);
     document.getElementById('lp-monthly-label').textContent = `${b.label} Installment`;
     document.getElementById('lp-monthly').textContent = formatMoney(b.monthly, 'ngn') + ` / ${b.frequency === 'monthly' ? 'mo' : b.periodLabel}`;
     document.getElementById('lp-commission').textContent = formatMoney(b.commission, 'ngn');
     document.getElementById('lp-legal').textContent = formatMoney(b.legal, 'ngn');
+    const legalLabelEl = document.getElementById('lp-legal-label');
+    if (legalLabelEl) legalLabelEl.textContent = `Deed of Assignment Fee (${b.legalPct}%) — paid to Owner`;
     document.getElementById('lp-down-label').textContent = `Total Due Now (Installment 1 + Fees)`;
     document.getElementById('lp-down').textContent = formatMoney(b.upfront, 'ngn');
     document.getElementById('lp-firstdate-label').textContent = `Remaining ${b.remainingMonths} Installment${b.remainingMonths === 1 ? '' : 's'}`;
     document.getElementById('lp-firstdate').textContent = `${b.remainingMonths} × ${formatMoney(b.monthly, 'ngn')} = ${formatMoney(b.remainingTotal, 'ngn')}`;
     document.getElementById('lp-installment-explainer').textContent =
-      `${b.label} plan: pay Installment 1 + 10% Commission + 5% Legal Fee now. The remaining ${b.remainingMonths} installment${b.remainingMonths === 1 ? '' : 's'} auto-debit ${b.periodLabel}, starting from your possession date.`;
+      `${b.label} plan: pay Installment 1 + 10% Commission + ${b.legalPct}% Deed of Assignment Fee now. The remaining ${b.remainingMonths} installment${b.remainingMonths === 1 ? '' : 's'} auto-debit ${b.periodLabel}, starting from your possession date. The Deed of Assignment Fee is paid straight to the Landlord/Owner together with Installment 1 — MainTown never collects it.`;
   }
 
   // Inspection-First Checkout Gate: true only once a physical inspection for
@@ -11260,13 +11546,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (landModalMode === 'outright') {
       payload = { mode: 'outright', totalPrice: landModalListing.totalPrice, processingFee: fee };
     } else {
-      const b = annotateCommissionSplit(computeInstallmentBreakdown(landModalListing.totalPrice, landModalFreq), landModalListing);
+      const b = annotateCommissionSplit(computeInstallmentBreakdown(landModalListing.totalPrice, landModalFreq, landModalListing.legalFeePct), landModalListing);
       payload = {
         mode: 'installment', months: b.installmentCount,
         frequency: b.frequency, label: b.label, periodLabel: b.periodLabel, intervalMonths: b.intervalMonths,
-        monthly: b.monthly, commission: b.commission, legal: b.legal,
+        monthly: b.monthly, commission: b.commission, legal: b.legal, legalPct: b.legalPct,
         upfront: b.upfront, remainingMonths: b.remainingMonths, remainingTotal: b.remainingTotal,
-        maintownTake: b.maintownTake, agentTake: b.agentTake
+        maintownTake: b.maintownTake, agentTake: b.agentTake,
+        maintownCommission: b.maintownCommission, legalGoesToOwner: b.legalGoesToOwner, ownerLegalTake: b.ownerLegalTake
       };
     }
     landPaymentModal.classList.remove('open');
