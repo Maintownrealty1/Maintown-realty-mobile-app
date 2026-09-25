@@ -1845,11 +1845,11 @@
      shared .insp-mgmt-card — wraps instead of overflowing the card on
      narrow screens when the label + pill/button don't fit one line. */
   .oa-status-row {
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 6px 10px; margin-bottom: 8px;
+    display: flex; flex-direction: column; align-items: flex-start;
+    gap: 5px; margin-bottom: 12px;
   }
   .oa-status-row:last-child { margin-bottom: 0; }
-  .oa-status-label { flex: 1 1 140px; min-width: 0; margin: 0 !important; }
+  .oa-status-label { flex: 1 1 auto; min-width: 0; margin: 0 !important; }
 
   .s5-add-btn {
     width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -3112,13 +3112,23 @@
   <div id="landlord-view" class="role-view hidden">
     <div id="s5-landlord-verify-queue"><!-- populated dynamically: Agent-submitted listings awaiting this Landlord's verification --></div>
 
-    <button type="button" class="s5-add-btn" id="s5-add-property-btn">
-      <i data-lucide="plus-circle" class="w-4 h-4"></i> Add New Property
-    </button>
+    <!-- Add/My switcher — mirrors the Agent view's "Upload New Listing" /
+         "My Listings" tab pattern. "Add New Property" keeps its existing
+         behavior (opens the dedicated Verify Title screen via
+         navigateTo('screen-add-property')) rather than an inline form,
+         since that screen already handles photo/video/title-doc uploads;
+         "My Properties" stays active here so returning from Add still
+         lands back on the list. -->
+    <div class="s5-tabs">
+      <div class="s5-tab landlord-tab" id="s5-add-property-btn" data-tab="add">Add New Property</div>
+      <div class="s5-tab landlord-tab active" id="s5-tab-landlord-mine" data-tab="mine">My Properties</div>
+    </div>
 
-    <p class="s5-section-label"><i data-lucide="building-2" class="w-4 h-4 text-purple-400"></i>My Properties</p>
-    <div id="s5-landlord-list">
-      <!-- populated dynamically -->
+    <div id="s5-landlord-mine-panel">
+      <p class="s5-section-label"><i data-lucide="building-2" class="w-4 h-4 text-purple-400"></i>My Properties</p>
+      <div id="s5-landlord-list">
+        <!-- populated dynamically -->
+      </div>
     </div>
   </div>
 
@@ -10287,6 +10297,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // agreement sign-off captured up front.
     if (checkoutListing && checkoutListing.type === 'shortlet') {
       finalizeShortletCheckout();
+      // BUGFIX: this branch used to return before the two steps every other
+      // checkout path relies on below (see the Land/Rent flow further down)
+      // — it never flipped the listing to RENTED and never cleared
+      // checkoutPaymentPending, so a paid shortlet kept showing as available
+      // on the feed AND kept resurfacing the "Continue Your Payment" card on
+      // Home forever, since saveCheckoutResumeState() never got called to
+      // drop the stale localStorage record either.
+      markListingUnavailableAfterCheckout(checkoutListing);
+      checkoutPaymentPending = false;
+      saveCheckoutResumeState();
       checkoutAuthSubmitting = false;
       navigateTo('screen-5');
       return;
@@ -11098,15 +11118,33 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   // ---- Agent view: upload listing form + mandatory landlord mapping ----
-  document.querySelectorAll('.s5-tab').forEach(tab => {
+  // Scoped to exclude .landlord-tab so the Landlord view's own Add/My
+  // switcher (bound separately below) doesn't get its active state wiped
+  // by, or accidentally toggle, the Agent view's panels.
+  document.querySelectorAll('.s5-tab:not(.landlord-tab)').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.s5-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.s5-tab:not(.landlord-tab)').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       const target = tab.dataset.tab;
       document.getElementById('s5-agent-new').style.display = target === 'new' ? 'block' : 'none';
       document.getElementById('s5-agent-mine').style.display = target === 'mine' ? 'block' : 'none';
       if (target === 'mine') renderAgentListings();
       if (window.lucide) lucide.createIcons();
+    });
+  });
+
+  // ---- Landlord view: Add New Property / My Properties switcher ----
+  // "Add New Property" keeps its existing dedicated-screen behavior (see
+  // the navigateTo('screen-add-property') handler above) — it's styled as
+  // a tab here purely to match the Agent view's toggle pattern, but tapping
+  // it navigates away rather than swapping an inline panel. "My Properties"
+  // is the only tab that actually needs to (re)claim the active state, so
+  // returning from Add still shows the list as active.
+  document.querySelectorAll('.landlord-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      if (tab.dataset.tab !== 'mine') return;
+      document.querySelectorAll('.landlord-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
     });
   });
 
