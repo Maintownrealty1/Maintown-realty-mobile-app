@@ -3635,10 +3635,12 @@
     <div id="s6-landsignoff-section" style="display:none;">
       <p class="s5-section-label" style="margin-top: 0;"><i data-lucide="pen-tool" class="w-4 h-4 text-purple-400"></i>Land Allocation &amp; Payment Sign-Off</p>
       <div class="signoff-box" id="s6-signoff-box">
-        <p>By proceeding with this Land &amp; Property purchase, you acknowledge and accept the following terms in full:</p>
-        <p><strong>Clause A — Title Verification Window:</strong> Independent survey and Land Registry (C of O / Gazette) title verification is completed before physical allocation. Your instalment payments are split automatically at the point of charge — MainTown does not hold your funds during this process.</p>
-        <p><strong>Clause B — Installment Schedule &amp; Default:</strong> Installment payments carry a 30-day grace period. Defaults exceeding 60 days trigger automated contract restructuring or property forfeiture subject to administrative fees.</p>
-        <p><strong>Clause C — Auto-Debit Payment Split:</strong> Each instalment (or outright payment) is split automatically at the point of charge between the Seller/Developer and MainTown. Physical allocation and Deed of Assignment execution follow the payment schedule set out for that listing.</p>
+        <p>By proceeding with this transaction, you acknowledge and agree to the following binding terms:</p>
+        <p><strong>Clause 1 — Pre-Checkout Inspection &amp; Satisfaction:</strong> Checkout requires prior completion of physical or virtual property inspection. By initiating payment, you confirm you (or your authorized representative) have inspected the land, verified its condition, and logged your status as Satisfied within the platform.</p>
+        <p><strong>Clause 2 — Title Verification &amp; Allocation Window:</strong> Independent survey checks and Land Registry verification (C of O, Gazette, or layout plans) are finalized prior to physical land allocation. Physical allocation is executed upon clean title confirmation and adherence to the agreed payment plan.</p>
+        <p><strong>Clause 3 — Automated Non-Custodial Split Payments:</strong> All payments (outright or installment) are processed instantly via automated payment split logic directly to the designated accounts of the Seller/Developer and MainTown Realty. MainTown Realty operates as a non-custodial facilitator and does not hold or escrow transaction funds.</p>
+        <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule. A mandatory 30-day grace period applies to overdue payments. Payments remaining in default beyond 60 days trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
+        <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to you via the MainTown Realty logistics network.</p>
         <p>Scroll to the bottom of this box to unlock the signature field below.</p>
       </div>
       <div class="field">
@@ -5093,6 +5095,49 @@
 
     <button type="button" id="tv-submit-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Submit for Verification</button>
     <button type="button" id="tv-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
+<!-- Vendor Activation & Land Sales Policy Modal — 2-step gate shown to a
+     Landlord/Owner (or Agent) the first time they try to list or sell a
+     Land & Property listing without both KYC and the Vendor Policy on file.
+     Core listing/payout/contract actions stay locked until both steps are
+     complete (see isVendorActivated()). -->
+<div id="vendor-activation-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap"><i data-lucide="shield-check" class="w-6 h-6 text-purple-400"></i></div>
+    <h2 class="modal-title">Vendor Activation Required</h2>
+    <p class="modal-sub">Complete both steps below to unlock Land &amp; Property listings, payouts, and contract execution.</p>
+
+    <div class="kyc-list" style="margin-bottom:16px;">
+      <div class="kyc-item" id="va-kyc-item" style="cursor:default;">
+        <div class="kyc-item-icon-wrap"><i data-lucide="user-check" class="w-4 h-4"></i></div>
+        <div class="kyc-item-text">
+          <p class="kyc-item-title">Step 1 · KYC &amp; Identity Verification</p>
+          <p class="kyc-item-status" id="va-kyc-status">Not yet verified</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="s5-section-label" style="margin-top:0;"><i data-lucide="file-text" class="w-4 h-4 text-purple-400"></i>Step 2 · MainTown Vendor Activation &amp; Land Sales Policy</p>
+    <div class="signoff-box" id="va-signoff-box" style="max-height:220px;">
+      <p><strong>1. KYC &amp; Identity Verification:</strong> You agree to submit valid government identification and bank account details matching your identity prior to listing or receiving funds.</p>
+      <p><strong>2. Pre-Listing Document Authenticity:</strong> You warrant that all uploaded survey plans, Certificates of Occupancy (C of O), or Gazettes are authentic and unencumbered. You consent to automated digital verification via MainTown's AI inspection engine prior to listing approval.</p>
+      <p><strong>3. 24-Hour Digital Contract Countersignature:</strong> Upon a buyer's checkout, you agree to digitally countersign the generated Contract of Sale within 24 hours. Automated platform reminders will trigger every 5 hours until executed.</p>
+      <p><strong>4. Automated Non-Custodial Split Payouts:</strong> You accept that buyer payments (outright or installments) are split automatically at the point of charge and routed directly to your verified payout account, minus platform commissions and legal deed processing fees.</p>
+      <p><strong>5. Deed Execution &amp; Verified Physical Delivery:</strong> Upon 100% completion of buyer payments, you agree to upload the executed Deed of Assignment and surrender original physical title instruments exclusively to the MainTown Realty Logistics Team for secure buyer delivery. Off-platform physical document transfers are strictly prohibited.</p>
+      <p><strong>6. Pre-Checkout Inspection Access:</strong> You agree to facilitate physical or virtual buyer inspections, acknowledging that buyer checkout remains locked until the buyer logs an in-app Satisfied status.</p>
+    </div>
+
+    <label class="agree-row" style="margin: 4px 0 14px;">
+      <input type="checkbox" id="va-policy-checkbox" class="agree-checkbox">
+      <span>I have read and agree to the MainTown Vendor Activation &amp; Land Sales Policy above.</span>
+    </label>
+
+    <p class="login-error-msg" id="va-error-msg"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span id="va-error-text">Please check the box above to continue.</span></p>
+
+    <button type="button" id="va-activate-btn" class="btn-primary" style="margin-top:10px; margin-bottom:12px;" disabled>Activate Vendor Account</button>
+    <button type="button" id="va-cancel-btn" class="btn-secondary">Cancel</button>
   </div>
 </div>
 
@@ -8874,7 +8919,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // co-signer label ("Seller" for a land sale vs "Landlord" for a rental)
     // all follow the same branch, mirroring the Purchase/Rent Breakdown
     // label swap directly below.
-    document.getElementById('s6-agreement-title-text').textContent = isLand ? 'Execute Land Purchase Agreement' : 'Execute Tenancy Agreement';
+    document.getElementById('s6-agreement-title-text').textContent = isLand ? 'Accept Purchase & Installment Terms' : 'Execute Tenancy Agreement';
     document.getElementById('s6-agreement-doc-name').textContent = isLand ? 'Land_Purchase_Agreement.pdf' : 'Tenancy_Agreement.pdf';
     document.getElementById('s6-agreement-doc-sub').textContent = isLand ? 'Standard MainTown Land Allocation & Title Transfer Terms' : 'Standard MainTown Realty lease terms';
     document.getElementById('s6-agreement-cosign-label').textContent = isLand ? 'Seller Signature' : 'Landlord Signature';
@@ -10509,11 +10554,41 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   document.getElementById('tv-cancel-btn').addEventListener('click', () => titleVerifyModal.classList.remove('open'));
+
+  // ---- Vendor Activation Modal: wiring ----
+  document.getElementById('va-policy-checkbox').addEventListener('change', (e) => {
+    document.getElementById('va-activate-btn').disabled = !e.target.checked;
+    if (e.target.checked) document.getElementById('va-error-msg').classList.remove('show');
+  });
+  document.getElementById('va-activate-btn').addEventListener('click', () => {
+    if (!document.getElementById('va-policy-checkbox').checked) {
+      document.getElementById('va-error-msg').classList.add('show');
+      return;
+    }
+    setVendorActivated(getCurrentUserId());
+    document.getElementById('vendor-activation-modal').classList.remove('open');
+    showToast('Vendor account activated — Land & Property actions unlocked');
+    const cb = vendorActivationPendingCallback;
+    vendorActivationPendingCallback = null;
+    if (cb) cb();
+  });
+  document.getElementById('va-cancel-btn').addEventListener('click', () => {
+    vendorActivationPendingCallback = null;
+    document.getElementById('vendor-activation-modal').classList.remove('open');
+  });
+
   document.getElementById('tv-submit-btn').addEventListener('click', () => {
     const title = document.getElementById('tv-title').value.trim();
     const address = document.getElementById('tv-address').value.trim();
     const type = document.getElementById('tv-listing-type').value;
     const annual = parseFloat(document.getElementById('tv-annual').value) || 0;
+    // Vendor Activation Gate: Land & Property listings require KYC + Vendor
+    // Policy sign-off on file before this landlord/agent can list/sell one.
+    if (type === 'land' && !isVendorActivated(getCurrentUserId())) {
+      titleVerifyModal.classList.remove('open');
+      requireVendorActivation(getCurrentUserId(), () => titleVerifyModal.classList.add('open'));
+      return;
+    }
     if (!title || !address || !annual) {
       showToast('Please fill in property title, address, and price');
       return;
@@ -15493,7 +15568,16 @@ available in the Post-Lease Hub and this chat thread.`
       // per uploaded document, keyed by companyId — list/download/upload, plus
       // formally sending a document to the CEO for review & approval (which
       // also drops a flagged message into that staff member's CEO thread).
-      legalDocuments: []
+      legalDocuments: [],
+      // ---- Vendor Activation Gate (Land & Property Sales). Keyed by user id.
+      // { kycCompleted, policyAccepted, policyAcceptedAt } — a landlord/agent
+      // must have both true before they can list/sell Land & Property, sign
+      // a Contract of Sale, or receive a split payout for one. Frank (the
+      // fixed demo landlord) is deliberately seeded KYC-done-but-not-yet-
+      // policy-accepted so the gate has a ready demo case out of the box.
+      vendorActivation: {
+        frank: { kycCompleted: true, policyAccepted: false, policyAcceptedAt: null }
+      }
     };
   }
   function loadAppState() {
@@ -15522,6 +15606,55 @@ available in the Post-Lease Hub and this chat thread.`
     try { localStorage.setItem('maintown_app_state', JSON.stringify(state)); } catch (e) {}
   }
   let appState = loadAppState();
+
+  // ==================================================================
+  // ---- Vendor Activation Gate (Land & Property Sales) ----
+  // A Landlord/Owner (or Agent) must have KYC done AND the Vendor Policy
+  // accepted before they can list/sell Land & Property, execute a Contract
+  // of Sale, or receive a split payout for one. See defaultAppState().vendorActivation.
+  // ==================================================================
+  function getVendorActivation(userId) {
+    return (appState.vendorActivation && appState.vendorActivation[userId]) ||
+      { kycCompleted: false, policyAccepted: false, policyAcceptedAt: null };
+  }
+  function isVendorActivated(userId) {
+    const v = getVendorActivation(userId);
+    return !!(v.kycCompleted && v.policyAccepted);
+  }
+  // KYC is treated as already satisfied for any account that has completed
+  // this app's own onboarding/claim flow (all three fixed demo identities,
+  // plus any auto-provisioned Landlord once claimed) — the Vendor Policy
+  // sign-off is the one remaining step gating Land & Property actions.
+  function hasKycOnFile(userId) {
+    const v = getVendorActivation(userId);
+    if (v.kycCompleted) return true;
+    return !(typeof DEMO_USERS !== 'undefined' && DEMO_USERS[userId]) ? false : true;
+  }
+  function setVendorActivated(userId) {
+    if (!appState.vendorActivation) appState.vendorActivation = {};
+    appState.vendorActivation[userId] = {
+      kycCompleted: true,
+      policyAccepted: true,
+      policyAcceptedAt: new Date().toISOString()
+    };
+    saveAppState(appState);
+  }
+  let vendorActivationPendingCallback = null;
+  function requireVendorActivation(userId, onActivated) {
+    if (isVendorActivated(userId)) { onActivated(); return; }
+    vendorActivationPendingCallback = onActivated;
+    openVendorActivationModal(userId);
+  }
+  function openVendorActivationModal(userId) {
+    const kycDone = hasKycOnFile(userId);
+    document.getElementById('va-kyc-status').textContent = kycDone ? 'Verified' : 'Not yet verified';
+    document.getElementById('va-kyc-item').classList.toggle('uploaded', kycDone);
+    document.getElementById('va-policy-checkbox').checked = false;
+    document.getElementById('va-activate-btn').disabled = true;
+    document.getElementById('va-error-msg').classList.remove('show');
+    document.getElementById('vendor-activation-modal').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
 
   // ==================================================================
   // ---- Per-Landlord / Per-Agent Settlement Ledger (maintown_app_state.payouts) ----
