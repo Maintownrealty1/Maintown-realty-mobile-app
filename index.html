@@ -3181,7 +3181,7 @@
 
         <div class="fee-preview-box">
           <p class="s5-section-label" style="margin:0 0 8px;"><i data-lucide="calculator" class="w-4 h-4 text-purple-400"></i>Standardized Fee Structure Preview</p>
-          <div class="row"><span>Agency / Listing Commission (10%)</span><strong id="s5-fee-commission">₦0</strong></div>
+          <div class="row" id="s5-fee-commission-row"><span>Agency / Listing Commission (10%)</span><strong id="s5-fee-commission">₦0</strong></div>
           <div class="row" id="s5-fee-legal-row"><span id="s5-fee-legal-label">Legal &amp; Title Agreement Fee (5%)</span><strong id="s5-fee-legal">₦0</strong></div>
         </div>
 
@@ -5058,7 +5058,7 @@
 
     <div class="fee-preview-box">
       <p class="s5-section-label" style="margin:0 0 8px;"><i data-lucide="calculator" class="w-4 h-4 text-purple-400"></i>Standardized Fee Structure Preview</p>
-      <div class="row"><span>Agency / Listing Commission (10%)</span><strong id="tv-fee-commission">₦0</strong></div>
+      <div class="row" id="tv-fee-commission-row"><span>Agency / Listing Commission (10%)</span><strong id="tv-fee-commission">₦0</strong></div>
       <div class="row" id="tv-fee-legal-row"><span id="tv-fee-legal-label">Legal &amp; Title Agreement Fee (5%)</span><strong id="tv-fee-legal">₦0</strong></div>
     </div>
 
@@ -5216,7 +5216,6 @@
     <div class="fee-preview-box">
       <div class="row"><span>Nightly Rate</span><strong id="sb-nightly-rate">₦0</strong></div>
       <div class="row"><span>Night 1 (Due Now)</span><strong id="sb-night1">₦0</strong></div>
-      <div class="row"><span>Booking Commission (10%)</span><strong id="sb-commission">₦0</strong></div>
       <div class="row"><span>MainTown Platform Fee (5%)</span><strong id="sb-legal">₦0</strong></div>
       <div class="row" id="sb-caution-row" style="display:none;"><span>Caution Deposit (to host)</span><strong id="sb-caution">₦0</strong></div>
       <div class="row" id="sb-service-row" style="display:none;"><span>Service Charge (to host)</span><strong id="sb-service">₦0</strong></div>
@@ -5230,6 +5229,29 @@
 
     <button type="button" id="sb-confirm-btn" class="btn-primary" style="margin-top:14px; margin-bottom:12px;">Pay &amp; Book Now</button>
     <button type="button" id="sb-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
+<!-- Shortlet Extension / Terminate Prompt — fires once a tenant's paid
+     nights run out. Toggle between paying for another night (stay
+     continues, auto-debit resumes for one more night) or terminating the
+     stay outright (host is notified the tenant is leaving). -->
+<div id="shortlet-extension-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <i data-lucide="calendar-clock" class="w-6 h-6 text-purple-400"></i>
+    </div>
+    <h2 class="modal-title">Continue Your Stay?</h2>
+    <p class="modal-sub" id="se-property-name">—</p>
+
+    <div class="fee-preview-box">
+      <div class="row"><span>Next Night Rate</span><strong id="se-next-rate">₦0</strong></div>
+      <div class="row"><span>MainTown Platform Fee (5%)</span><strong id="se-next-fee">₦0</strong></div>
+      <div class="row"><span>Total Due</span><strong id="se-next-total">₦0</strong></div>
+    </div>
+
+    <button type="button" id="se-pay-btn" class="btn-primary" style="margin-top:14px; margin-bottom:10px;"><i data-lucide="wallet" class="w-4 h-4"></i>Pay For Another Night</button>
+    <button type="button" id="se-terminate-btn" class="btn-secondary" style="color:#f87171; border-color: rgba(248,113,113,0.35);"><i data-lucide="log-out" class="w-4 h-4"></i>Terminate Stay</button>
   </div>
 </div>
 
@@ -7057,6 +7079,20 @@ document.addEventListener('DOMContentLoaded', () => {
       txnId: landHandoverTxnId || null
     });
     saveAppState(appState);
+
+    // Prompt the Seller/Owner to upload the Deed of Assignment the moment
+    // this sale is fully paid. Outright purchases are 100% settled the
+    // instant checkout completes, so this fires right here. This prototype
+    // has no ongoing installment-balance ledger (each plan only tracks the
+    // upfront payment taken at checkout — see computeInstallmentBreakdown),
+    // so there's no later "final installment paid" event to hook a second
+    // trigger onto; once that ledger exists, gate this behind the plan
+    // reaching 100% instead of firing on every acquisition.
+    if (listing.ownerId) {
+      pushPlatformNotification('landlord', 'payment', 'Full Payment Received — Deed Required',
+        `${listing.title} has been paid in full. Please upload the Deed of Assignment and other title documents from your Asset Portfolio.`,
+        { screen: 'screen-owner-assets' }, 'DEED_UPLOAD_REQUIRED', null, listing.ownerId);
+    }
   }
 
   // ==================================================================
@@ -7311,6 +7347,14 @@ document.addEventListener('DOMContentLoaded', () => {
     pushPlatformNotification('tenant', 'message', `${bundleLabel} Issued`,
       `Your ${bundleLabel} for ${asset.title} have been issued and are ready to download from My Assets. A physical copy will also be sent to you separately.`,
       { screen: 'assetHub' }, 'DEED_ISSUED', null, asset.ownerId);
+
+    // Once the digital Deed is uploaded against a fully-paid sale, remind the
+    // Seller/Owner that the ORIGINAL physical title instruments must now go
+    // out exclusively through MainTown Realty logistics — never handed to
+    // the buyer directly (see Clause 5 / Owner Terms §5).
+    pushPlatformNotification('landlord', 'message', 'Send Physical Documents to Logistics',
+      `${asset.title} is fully paid and the digital Deed of Assignment is uploaded. Please send the original physical title documents to the MainTown Realty logistics team for secure delivery to the buyer.`,
+      { screen: 'screen-owner-assets' }, 'PHYSICAL_DOCS_TO_LOGISTICS', null, asset.ownerId);
 
     showToast(`${file.name} issued to ${resolveUserName(asset.ownerId)} — buyer notified`);
     populateScreenOwnerAssets();
@@ -8363,19 +8407,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!sbListing) return;
     const nights = Math.max(1, parseInt(document.getElementById('sb-nights').value) || 1);
     const rate = sbListing.nightlyRate || 0;
-    const commission = Math.round(rate * 0.10);
-    // Shortlet stays carry a MainTown Platform Fee instead of a Legal Fee — no
-    // tenancy agreement is drafted for a shortlet booking (see the Fee
-    // Transparency onboarding policy).
+    // Shortlet stays carry only the MainTown Platform Fee (5%, auto-calculated
+    // off the nightly rate) — no Agency Commission and no Legal Fee/tenancy
+    // agreement is drafted for a shortlet booking (see the Fee Transparency
+    // onboarding policy).
     const platformFee = Math.round(rate * 0.05);
     // Caution Deposit & Service Charge (host-set at listing time) are charged
     // once, alongside Night 1, and paid straight to the host — never MainTown.
     const cautionFee = sbListing.cautionFee || 0;
     const serviceChargeFee = (sbListing.serviceChargeMode === 'charged') ? (sbListing.serviceChargeFee || 0) : 0;
-    const totalNow = rate + commission + platformFee + cautionFee + serviceChargeFee;
+    const totalNow = rate + platformFee + cautionFee + serviceChargeFee;
     document.getElementById('sb-nightly-rate').textContent = formatMoney(rate, 'ngn');
     document.getElementById('sb-night1').textContent = formatMoney(rate, 'ngn');
-    document.getElementById('sb-commission').textContent = formatMoney(commission, 'ngn');
     document.getElementById('sb-legal').textContent = formatMoney(platformFee, 'ngn');
     const cautionRow = document.getElementById('sb-caution-row');
     if (cautionRow) cautionRow.style.display = cautionFee > 0 ? 'flex' : 'none';
@@ -8405,24 +8448,25 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('sb-nights').addEventListener('input', recalcShortletBooking);
   document.getElementById('sb-cancel-btn').addEventListener('click', () => shortletBookingModal.classList.remove('open'));
 
-  // Charges one night (rate + commission + MainTown Platform Fee) from the
-  // tenant's wallet and credits the host their share; used for both the
-  // up-front Night 1 charge and every subsequent auto-debited night.
-  // Shortlet stays carry a Platform Fee, not a Legal Fee — see Fee
-  // Transparency policy. The Caution Deposit & Service Charge (if the host
-  // set them at listing time) are only added to Night 1 and are paid to the
-  // host in full, same as the nightly rate — never to MainTown.
+  // Charges one night (rate + MainTown Platform Fee, auto-calculated off the
+  // nightly rate) from the tenant's wallet and auto-splits it, crediting the
+  // host their share immediately; used for both the up-front Night 1 charge
+  // and every subsequent auto-debited night. No Agency Commission applies to
+  // shortlet stays — only the 5% Platform Fee (no Legal Fee either, since no
+  // tenancy agreement is drafted — see Fee Transparency policy). The Caution
+  // Deposit & Service Charge (if the host set them at listing time) are only
+  // added to Night 1 and are paid to the host in full, same as the nightly
+  // rate — never to MainTown.
   function chargeShortletNight(booking, nightNumber) {
     const uid = booking.tenantId;
     const rate = booking.nightlyRate;
-    const commission = Math.round(rate * 0.10);
     const platformFee = Math.round(rate * 0.05);
     const listing = listings.find(l => l.id === booking.listingId);
     const isFirstNight = nightNumber === 1;
     const cautionFee = isFirstNight ? (listing && listing.cautionFee || 0) : 0;
     const serviceChargeFee = isFirstNight && listing && listing.serviceChargeMode === 'charged' ? (listing.serviceChargeFee || 0) : 0;
     const hostPassthrough = cautionFee + serviceChargeFee;
-    const totalDue = rate + commission + platformFee + hostPassthrough;
+    const totalDue = rate + platformFee + hostPassthrough;
     if (getWalletBalance(uid) < totalDue) return false;
     debitWallet(uid, totalDue);
     recordTransaction({
@@ -8467,12 +8511,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
       }
       booking.nightsPaid = nextNight;
       if (booking.nightsPaid >= booking.nights) {
-        booking.status = 'COMPLETED';
+        // The booked (paid-for) period is up — instead of silently ending
+        // the stay, hand the tenant a toggle: pay for another night, or
+        // terminate. The stay pauses here (status AWAITING_DECISION) until
+        // they choose either action.
+        booking.status = 'AWAITING_DECISION';
         clearInterval(shortletAutoDebitTimers[bookingId]);
         delete shortletAutoDebitTimers[bookingId];
-        pushPlatformNotification('tenant', 'booking', 'Shortlet Stay Fully Paid',
-          `Night ${nextNight} of ${booking.nights} at "${booking.listingTitle}" was auto-debited — your stay is now fully paid.`,
-          null, 'shortlet', null, booking.tenantId);
+        pushPlatformNotification('tenant', 'booking', 'Your Stay Is Ending — Action Needed',
+          `Night ${nextNight} of ${booking.nights} at "${booking.listingTitle}" is paid. Pay for another night or terminate your stay.`,
+          { screen: 'shortletExtension', bookingId: booking.id }, 'shortlet', null, booking.tenantId);
       } else {
         pushPlatformNotification('tenant', 'booking', 'Shortlet Night Auto-Debited',
           `Night ${nextNight} of ${booking.nights} at "${booking.listingTitle}" was auto-debited from your wallet.`,
@@ -8487,13 +8535,71 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // (a fresh page load would otherwise lose the setInterval handles above).
   shortletBookings.filter(b => b.status === 'ACTIVE').forEach(b => scheduleShortletAutoDebit(b.id));
 
+  // ---- Shortlet Extension / Terminate Prompt ----
+  const shortletExtensionModal = document.getElementById('shortlet-extension-modal');
+  let seActiveBookingId = null;
+
+  function openShortletExtensionModal(bookingId) {
+    const booking = shortletBookings.find(b => b.id === bookingId);
+    if (!booking || booking.status !== 'AWAITING_DECISION') return;
+    seActiveBookingId = bookingId;
+    const rate = booking.nightlyRate;
+    const fee = Math.round(rate * 0.05);
+    document.getElementById('se-property-name').textContent = booking.listingTitle;
+    document.getElementById('se-next-rate').textContent = prFormat(rate);
+    document.getElementById('se-next-fee').textContent = prFormat(fee);
+    document.getElementById('se-next-total').textContent = prFormat(rate + fee);
+    shortletExtensionModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('se-pay-btn').addEventListener('click', () => {
+    const booking = shortletBookings.find(b => b.id === seActiveBookingId);
+    if (!booking) return;
+    booking.nights += 1; // extend the commitment by exactly the one night being paid for
+    const nextNight = booking.nightsPaid + 1;
+    const charged = chargeShortletNight(booking, nextNight);
+    if (!charged) {
+      booking.nights -= 1;
+      showToast("Payment failed — fund your wallet and try again");
+      return;
+    }
+    booking.nightsPaid = nextNight;
+    booking.status = 'ACTIVE';
+    saveShortletBookings();
+    shortletExtensionModal.classList.remove('open');
+    scheduleShortletAutoDebit(booking.id);
+    pushPlatformNotification('tenant', 'booking', 'Stay Extended',
+      `Night ${nextNight} at "${booking.listingTitle}" was paid — your stay continues.`,
+      null, 'shortlet', null, booking.tenantId);
+    showToast('Payment successful — stay extended by one night');
+    window.dispatchEvent(new Event('maintown_state_updated'));
+    seActiveBookingId = null;
+  });
+
+  document.getElementById('se-terminate-btn').addEventListener('click', () => {
+    const booking = shortletBookings.find(b => b.id === seActiveBookingId);
+    if (!booking) return;
+    booking.status = 'TERMINATED';
+    saveShortletBookings();
+    shortletExtensionModal.classList.remove('open');
+    const listing = listings.find(l => l.id === booking.listingId);
+    if (listing && listing.ownerId) {
+      pushPlatformNotification('landlord', 'booking', 'Tenant Ending Shortlet Stay',
+        `The tenant at "${booking.listingTitle}" has terminated their stay after Night ${booking.nightsPaid}.`,
+        null, 'shortlet', null, listing.ownerId);
+    }
+    showToast('Stay terminated — host notified');
+    window.dispatchEvent(new Event('maintown_state_updated'));
+    seActiveBookingId = null;
+  });
+
   document.getElementById('sb-confirm-btn').addEventListener('click', () => {
     if (!sbListing) return;
     const nights = Math.max(1, parseInt(document.getElementById('sb-nights').value) || 1);
     const rate = sbListing.nightlyRate || 0;
-    const commission = Math.round(rate * 0.10);
-    const legal = Math.round(rate * 0.05);
-    const totalNow = rate + commission + legal;
+    const platformFee = Math.round(rate * 0.05);
+    const totalNow = rate + platformFee;
     const uid = getCurrentUserId();
     if (getWalletBalance(uid) < totalNow) {
       shortletBookingModal.classList.remove('open');
@@ -9445,6 +9551,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!checkoutListing || !checkoutTenantSignature) return;
     handover = {
       listingTitle: checkoutListing.title,
+      isLand: checkoutListing.type === 'land',
+      sellerId: checkoutListing.ownerId || null,
       tenantSignature: checkoutTenantSignature,
       tenantSignedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       landlordSignature: null,
@@ -9458,7 +9566,35 @@ This voucher is auto-generated and serves as proof of settlement.`;
       `Tenant signed the agreement for ${checkoutListing.title} — awaiting your countersignature.`,
       { screen: 'handoverReview' }, 'TENANT_SIGNED_AGREEMENT');
     showToast('Landlord notified — signed agreement sent for their sign-off');
+
+    // Land & Property sales carry Clause 5 / Owner Terms §3: countersignature
+    // reminders fire every 5 hours until the Seller executes. (Rent/Shortlet
+    // tenancy agreements only get the one initial ping above.)
+    if (handover.isLand) startCountersignReminder();
   }
+
+  // ---- Seller Countersignature Reminder (Land & Property only) ----
+  // A real deployment would run this every 5 hours server-side; here an
+  // accelerated interval stands in for that window so the flow can be
+  // demoed live, same pattern as SHORTLET_DEMO_DAY_MS.
+  const LAND_COUNTERSIGN_REMINDER_DEMO_MS = 15000;
+  let countersignReminderTimer = null;
+  function startCountersignReminder() {
+    if (countersignReminderTimer) clearInterval(countersignReminderTimer);
+    countersignReminderTimer = setInterval(() => {
+      if (!handover || handover.status === 'completed' || !handover.isLand) {
+        clearInterval(countersignReminderTimer);
+        countersignReminderTimer = null;
+        return;
+      }
+      pushPlatformNotification('landlord', 'message', 'Countersignature Still Pending',
+        `Reminder: the Contract of Sale for ${handover.listingTitle} is still awaiting your countersignature.`,
+        { screen: 'handoverReview' }, 'COUNTERSIGN_REMINDER', null, handover.sellerId || undefined);
+    }, LAND_COUNTERSIGN_REMINDER_DEMO_MS);
+  }
+  // Resume the reminder loop after a page reload if a Land handover is still
+  // sitting unsigned (a fresh load would otherwise lose the interval handle).
+  if (handover && handover.status === 'tenant-signed' && handover.isLand) startCountersignReminder();
 
   // ---- Landlord Agreement Review & Sign-Off Sheet ----
   const handoverReviewModal = document.getElementById('handover-review-modal');
@@ -9590,6 +9726,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     handover.landlordSignedAt = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     handover.status = 'completed';
     saveHandover();
+    if (countersignReminderTimer) { clearInterval(countersignReminderTimer); countersignReminderTimer = null; }
 
     // Notify the Tenant exclusively through the bell — the executed copy is
     // ready to download from their Post-Lease Hub.
@@ -10957,7 +11094,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const priceInput = document.getElementById(`${prefix}-annual`) || document.getElementById(`${prefix}-listing-annual`);
     if (priceLabel) priceLabel.textContent = type === 'shortlet' ? 'Nightly Rate (NGN)' : 'Annual Price (NGN)';
     if (priceInput) priceInput.placeholder = type === 'shortlet' ? 'e.g. 45000' : 'e.g. 2400000';
-    document.getElementById(`${prefix}-fee-commission`).textContent = annual > 0 ? formatMoney(annual * 0.10, 'ngn') : '₦0';
+    // Shortlet listings carry no Agency/Listing Commission — only the
+    // MainTown Platform Fee (5%) below, auto-calculated off the nightly rate.
+    const commissionRow = document.getElementById(`${prefix}-fee-commission-row`);
+    if (commissionRow) commissionRow.style.display = type === 'shortlet' ? 'none' : 'flex';
+    document.getElementById(`${prefix}-fee-commission`).textContent = (type !== 'shortlet' && annual > 0) ? formatMoney(annual * 0.10, 'ngn') : '₦0';
 
     // Listing Type Section Visibility: Deed of Assignment % selector is
     // Land-only; Caution Fee/Service Charge are Rent & Shortlet-only. Legal
@@ -12055,6 +12196,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ctaBtn.onclick = () => {
         notificationDetailModal.classList.remove('open');
         openHandoverReviewModal();
+      };
+    } else if (notif.route && notif.route.screen === 'shortletExtension' && notif.route.bookingId) {
+      ctaLabel.textContent = 'Pay or Terminate Stay';
+      ctaBtn.style.display = 'flex';
+      ctaBtn.onclick = () => {
+        notificationDetailModal.classList.remove('open');
+        openShortletExtensionModal(notif.route.bookingId);
       };
     } else if (notif.route && notif.route.screen === 'resumeCheckout') {
       // Picks up exactly where the tenant left off: screen-6 was never reset
