@@ -3388,24 +3388,9 @@
               <input class="field-input" id="s5-landlord-email" type="email" placeholder="landlord@example.com">
             </div>
 
-            <p class="s5-section-label" style="margin-top:6px;"><i data-lucide="landmark" class="w-4 h-4 text-purple-400"></i>Payout Bank Account</p>
-            <div class="field">
-              <label class="field-label">Settlement Bank Name</label>
-              <input class="field-input" id="s5-landlord-bank-name" type="text" placeholder="e.g. GTBank, Access Bank">
-            </div>
-            <div class="field">
-              <label class="field-label">Settlement Bank Account Number</label>
-              <input class="field-input" id="s5-landlord-bank-account" type="text" placeholder="10-digit NUBAN account number" inputmode="numeric" maxlength="10">
-            </div>
-            <div class="field">
-              <label class="field-label">BVN or NIN</label>
-              <input class="field-input" id="s5-landlord-bvn-nin" type="text" placeholder="11-digit BVN or NIN" inputmode="numeric" maxlength="11">
-            </div>
-            <button type="button" id="s5-resolve-nuban-btn" class="btn-secondary" style="margin-bottom:10px;">
-              <i data-lucide="search-check" class="w-3.5 h-3.5"></i> Resolve Account Name
-            </button>
-            <div class="rent-badge" id="s5-nuban-resolved" style="display:none; align-items:center; gap:6px;">
-              <i data-lucide="badge-check" class="w-3.5 h-3.5"></i><span>—</span>
+            <div class="s5-notice-box" style="margin-top:10px;">
+              <i data-lucide="shield-check" class="w-5 h-5"></i>
+              <p>The landlord sets up their own payout bank account and BVN/NIN when they claim their account — you won't need to enter those on their behalf.</p>
             </div>
           </div>
         </div>
@@ -5206,7 +5191,7 @@
   <div class="modal-card">
     <div class="modal-icon-wrap"><i data-lucide="shield-check" class="w-6 h-6 text-purple-400"></i></div>
     <h2 class="modal-title">Vendor Activation Required</h2>
-    <p class="modal-sub">Complete both steps below to unlock Land &amp; Property listings, payouts, and contract execution.</p>
+    <p class="modal-sub">Complete both steps below to unlock your dashboard, listings, payouts, and contract execution.</p>
 
     <div class="kyc-list" style="margin-bottom:16px;">
       <div class="kyc-item" id="va-kyc-item" style="cursor:default;">
@@ -5218,7 +5203,27 @@
       </div>
     </div>
 
-    <p class="s5-section-label" style="margin-top:0;"><i data-lucide="file-text" class="w-4 h-4 text-purple-400"></i>Step 2 · MainTown Vendor Activation &amp; Land Sales Policy</p>
+    <p class="s5-section-label" style="margin-top:0;"><i data-lucide="landmark" class="w-4 h-4 text-purple-400"></i>Step 1 · Payout Account Details</p>
+    <div class="field">
+      <label class="field-label">Settlement Bank Name</label>
+      <input class="field-input" id="va-bank-name" type="text" placeholder="e.g. GTBank, Access Bank">
+    </div>
+    <div class="field">
+      <label class="field-label">Settlement Bank Account Number</label>
+      <input class="field-input" id="va-bank-account" type="text" placeholder="10-digit NUBAN account number" inputmode="numeric" maxlength="10">
+    </div>
+    <div class="field">
+      <label class="field-label">BVN or NIN</label>
+      <input class="field-input" id="va-bvn-nin" type="text" placeholder="11-digit BVN or NIN" inputmode="numeric" maxlength="11">
+    </div>
+    <button type="button" id="va-resolve-nuban-btn" class="btn-secondary" style="margin-bottom:10px;">
+      <i data-lucide="search-check" class="w-3.5 h-3.5"></i> Resolve Account Name
+    </button>
+    <div class="rent-badge" id="va-nuban-resolved" style="display:none; align-items:center; gap:6px; margin-bottom:10px;">
+      <i data-lucide="badge-check" class="w-3.5 h-3.5"></i><span>—</span>
+    </div>
+
+    <p class="s5-section-label"><i data-lucide="file-text" class="w-4 h-4 text-purple-400"></i>Step 2 · MainTown Vendor Activation &amp; Land Sales Policy</p>
     <div class="signoff-box" id="va-signoff-box" style="max-height:220px;">
       <p><strong>1. KYC &amp; Identity Verification:</strong> You agree to submit valid government identification and bank account details matching your identity prior to listing or receiving funds.</p>
       <p><strong>2. Pre-Listing Document Authenticity:</strong> You warrant that all uploaded survey plans, Certificates of Occupancy (C of O), or Gazettes are authentic and unencumbered. You consent to automated digital verification via MainTown's AI inspection engine prior to listing approval.</p>
@@ -5242,7 +5247,7 @@
          matter how tall the policy text renders on a given screen. -->
     <div class="va-sticky-footer">
       <p class="login-error-msg" id="va-error-msg"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span id="va-error-text">Please check the box above to continue.</span></p>
-      <button type="button" id="va-activate-btn" class="btn-primary" style="margin-top:10px; margin-bottom:12px;" disabled>Activate Vendor Account</button>
+      <button type="button" id="va-activate-btn" class="btn-primary" style="margin-top:10px; margin-bottom:12px;">Activate Vendor Account</button>
       <button type="button" id="va-cancel-btn" class="btn-secondary">Cancel</button>
     </div>
   </div>
@@ -11169,18 +11174,61 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   // ---- Vendor Activation Modal: wiring ----
+  // Simulated automated NUBAN name resolution — a real integration would call
+  // the bank/NIBSS name-enquiry API; here we echo back the account holder's
+  // name once the account number and bank look valid.
+  document.getElementById('va-resolve-nuban-btn').addEventListener('click', () => {
+    const acct = document.getElementById('va-bank-account').value.trim();
+    const bank = document.getElementById('va-bank-name').value.trim();
+    const resolvedEl = document.getElementById('va-nuban-resolved');
+    if (!/^\d{10}$/.test(acct) || !bank) {
+      resolvedEl.style.display = 'none';
+      showToast('Enter a valid 10-digit NUBAN account number and bank name first');
+      return;
+    }
+    const holder = appState.users[getCurrentUserId()];
+    const typedName = (holder && holder.name) || '';
+    resolvedEl.style.display = 'flex';
+    resolvedEl.querySelector('span').textContent = `Resolved Account Name: ${(typedName || 'ACCOUNT HOLDER').toUpperCase()}`;
+    if (window.lucide) lucide.createIcons();
+  });
   document.getElementById('va-policy-checkbox').addEventListener('change', (e) => {
-    document.getElementById('va-activate-btn').disabled = !e.target.checked;
     if (e.target.checked) document.getElementById('va-error-msg').classList.remove('show');
   });
   document.getElementById('va-activate-btn').addEventListener('click', () => {
-    if (!document.getElementById('va-policy-checkbox').checked) {
-      document.getElementById('va-error-msg').classList.add('show');
+    const bankName = document.getElementById('va-bank-name').value.trim();
+    const bankAccount = document.getElementById('va-bank-account').value.trim();
+    const bvnNin = document.getElementById('va-bvn-nin').value.trim();
+    const errEl = document.getElementById('va-error-msg');
+    const errText = document.getElementById('va-error-text');
+
+    // Step 1: Payout Account Details must be filled and valid first.
+    if (!bankName || !bankAccount || !bvnNin) {
+      errText.textContent = 'Please complete Step 1 — payout bank account and BVN/NIN — first.';
+      errEl.classList.add('show');
       return;
     }
-    setVendorActivated(getCurrentUserId());
+    if (!/^\d{10}$/.test(bankAccount)) {
+      errText.textContent = 'Bank account number must be exactly 10 digits (NUBAN).';
+      errEl.classList.add('show');
+      return;
+    }
+    if (!/^\d{10,11}$/.test(bvnNin)) {
+      errText.textContent = 'BVN/NIN must be a 10 or 11-digit number.';
+      errEl.classList.add('show');
+      return;
+    }
+    // Step 2: Legal Policy sign-off.
+    if (!document.getElementById('va-policy-checkbox').checked) {
+      errText.textContent = 'Please check the box above to continue.';
+      errEl.classList.add('show');
+      return;
+    }
+
+    const userId = getCurrentUserId();
+    setVendorActivated(userId, { bankName, bankAccount, bvnNin });
     document.getElementById('vendor-activation-modal').classList.remove('open');
-    showToast('Vendor account activated — Land & Property actions unlocked');
+    showToast('Vendor account activated — dashboard unlocked');
     const cb = vendorActivationPendingCallback;
     vendorActivationPendingCallback = null;
     if (cb) cb();
@@ -11721,25 +11769,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('s5-landlord-mode-existing').addEventListener('click', () => setLandlordMode('existing'));
   document.getElementById('s5-landlord-mode-new').addEventListener('click', () => setLandlordMode('new'));
 
-  // Simulated automated NUBAN name resolution — a real integration would call
-  // the bank/NIBSS name-enquiry API; here we echo back the typed Landlord
-  // name once the account number and bank look valid, matching the "resolved
-  // account name" confirmation pattern of a real payout KYC flow.
-  document.getElementById('s5-resolve-nuban-btn').addEventListener('click', () => {
-    const acct = document.getElementById('s5-landlord-bank-account').value.trim();
-    const bank = document.getElementById('s5-landlord-bank-name').value.trim();
-    const resolvedEl = document.getElementById('s5-nuban-resolved');
-    if (!/^\d{10}$/.test(acct) || !bank) {
-      resolvedEl.style.display = 'none';
-      showToast('Enter a valid 10-digit NUBAN account number and bank name first');
-      return;
-    }
-    const typedName = document.getElementById('s5-landlord-name').value.trim();
-    resolvedEl.style.display = 'flex';
-    resolvedEl.querySelector('span').textContent = `Resolved Account Name: ${(typedName || 'ACCOUNT HOLDER').toUpperCase()}`;
-    if (window.lucide) lucide.createIcons();
-  });
-
   // Simulated Automated Invitation (WhatsApp/SMS/Email) to the Landlord/Owner,
   // reusing the same welcomeAlerts log the Claim flow already reads from, plus
   // a real in-app notification so it shows up in their Notification Center.
@@ -11847,24 +11876,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
       landlordName = document.getElementById('s5-landlord-name').value.trim();
       landlordPhone = document.getElementById('s5-landlord-phone').value.trim();
       landlordEmail = document.getElementById('s5-landlord-email').value.trim();
-      landlordBankAccount = document.getElementById('s5-landlord-bank-account').value.trim();
-      landlordBankName = document.getElementById('s5-landlord-bank-name').value.trim();
-      const bvnNin = document.getElementById('s5-landlord-bvn-nin').value.trim();
 
-      if (!landlordName || !landlordPhone || !landlordEmail || !landlordBankAccount || !landlordBankName || !bvnNin) {
-        showToast('Please fill in all New Landlord/Owner details, including BVN/NIN');
+      if (!landlordName || !landlordPhone || !landlordEmail) {
+        showToast('Please fill in all New Landlord/Owner details');
         return;
       }
-      if (!/^\d{10}$/.test(landlordBankAccount)) { showToast('Bank account number must be exactly 10 digits (NUBAN)'); return; }
-      if (!/^\d{10,11}$/.test(bvnNin)) { showToast('BVN/NIN must be a 10 or 11-digit number'); return; }
 
       // Auto-Provisioning: find-or-create the Landlord's profile in
       // maintown_app_state.users. A brand-new Landlord is created with
       // status PENDING_CLAIM and a temp access code; the listing routes to
-      // them via ownerId while agentId stays this Agent's id.
-      const landlordProvision = provisionLandlord(landlordName, landlordPhone, landlordEmail, landlordBankAccount, landlordBankName);
+      // them via ownerId while agentId stays this Agent's id. Payout bank
+      // account and BVN/NIN are deliberately NOT collected here — the
+      // landlord supplies those themselves at the Vendor Activation gate
+      // (Step 1) the first time they claim their account.
+      const landlordProvision = provisionLandlord(landlordName, landlordPhone, landlordEmail);
       landlordUser = landlordProvision.record;
-      landlordUser.bvnNin = bvnNin;
       saveAppState(appState);
     }
 
@@ -11933,7 +11959,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
     e.target.reset();
     setLandlordMode('existing');
-    document.getElementById('s5-nuban-resolved').style.display = 'none';
     document.getElementById('s5-photo-upload').classList.remove('has-file');
     document.getElementById('s5-photo-upload-label').textContent = 'Property Photos';
     document.getElementById('s5-video-upload').classList.remove('has-file');
@@ -16308,13 +16333,23 @@ available in the Post-Lease Hub and this chat thread.`
     if (v.kycCompleted) return true;
     return !(typeof DEMO_USERS !== 'undefined' && DEMO_USERS[userId]) ? false : true;
   }
-  function setVendorActivated(userId) {
+  function setVendorActivated(userId, accountDetails) {
     if (!appState.vendorActivation) appState.vendorActivation = {};
     appState.vendorActivation[userId] = {
       kycCompleted: true,
       policyAccepted: true,
       policyAcceptedAt: new Date().toISOString()
     };
+    // Step 1 · Payout Account Details are entered by the user themselves at
+    // this gate (no longer collected by the Agent on a new landlord's
+    // behalf) and saved onto their own profile here.
+    if (accountDetails) {
+      const rec = appState.users[userId];
+      if (rec) {
+        rec.settlementBank = { bankName: accountDetails.bankName, accountNumber: accountDetails.bankAccount };
+        rec.bvnNin = accountDetails.bvnNin;
+      }
+    }
     saveAppState(appState);
   }
   let vendorActivationPendingCallback = null;
@@ -16327,8 +16362,15 @@ available in the Post-Lease Hub and this chat thread.`
     const kycDone = hasKycOnFile(userId);
     document.getElementById('va-kyc-status').textContent = kycDone ? 'Verified' : 'Not yet verified';
     document.getElementById('va-kyc-item').classList.toggle('uploaded', kycDone);
+    // Step 1 · Payout Account Details — prefill if this user already has a
+    // settlement bank on file (e.g. re-opening the gate), otherwise blank.
+    const rec = appState.users[userId];
+    const bank = (rec && rec.settlementBank) || {};
+    document.getElementById('va-bank-name').value = bank.bankName || '';
+    document.getElementById('va-bank-account').value = bank.accountNumber || '';
+    document.getElementById('va-bvn-nin').value = (rec && rec.bvnNin) || '';
+    document.getElementById('va-nuban-resolved').style.display = 'none';
     document.getElementById('va-policy-checkbox').checked = false;
-    document.getElementById('va-activate-btn').disabled = true;
     document.getElementById('va-error-msg').classList.remove('show');
     document.getElementById('vendor-activation-modal').classList.add('open');
     if (window.lucide) lucide.createIcons();
@@ -16543,8 +16585,10 @@ available in the Post-Lease Hub and this chat thread.`
   function provisionLandlord(name, phone, email, bankAccountNumber, bankName) {
     const existing = findLandlordUserByContact(email, phone);
     if (existing) {
-      // Keep settlement bank details current if the agent supplied new ones.
-      existing.settlementBank = { accountNumber: bankAccountNumber, bankName: bankName };
+      // Bank details are no longer supplied by the Agent — only overwrite if
+      // explicitly passed (kept for backward compatibility); otherwise leave
+      // whatever the landlord has already set themselves via Vendor Activation.
+      if (bankAccountNumber && bankName) existing.settlementBank = { accountNumber: bankAccountNumber, bankName: bankName };
       saveAppState(appState);
       return { record: existing, isNew: false };
     }
@@ -16553,7 +16597,10 @@ available in the Post-Lease Hub and this chat thread.`
       id, name, phone, email: normalizeContact(email), role: 'landlord',
       status: 'PENDING_CLAIM',
       tempCode: generateTempCode(),
-      settlementBank: { accountNumber: bankAccountNumber, bankName: bankName },
+      // Payout bank account and BVN/NIN aren't collected from the Agent
+      // anymore — left unset until the landlord completes Step 1 of Vendor
+      // Activation themselves.
+      settlementBank: (bankAccountNumber && bankName) ? { accountNumber: bankAccountNumber, bankName: bankName } : null,
       walletPin: null,
       escrowLedger: [],
       welcomeAlerts: [],
