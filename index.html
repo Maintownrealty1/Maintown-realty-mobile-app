@@ -1382,10 +1382,18 @@
   .ent-promo-sub { font-size: 11.5px; color: #cbd5e1; margin: 0; line-height: 1.4; }
   .ent-promo-cta { font-size: 12px; font-weight: 600; color: #c084fc; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
 
-  .ent-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .ent-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
+  .ent-header-identity { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto; overflow: hidden; }
+  .ent-header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .ent-logo { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; background: rgba(147,51,234,0.15); display: flex; align-items: center; justify-content: center; color: #c084fc; font-weight: 700; font-size: 16px; flex-shrink: 0; }
-  .ent-company-name { font-size: 16px; font-weight: 700; color: #fff; margin: 0; }
-  .ent-role-badge { font-size: 10.5px; font-weight: 700; letter-spacing: .03em; color: #c084fc; background: rgba(147,51,234,0.15); border: 1px solid rgba(147,51,234,0.4); border-radius: 999px; padding: 2px 9px; text-transform: uppercase; }
+  .ent-company-name { font-size: 16px; font-weight: 700; color: #fff; margin: 0 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ent-role-badge { font-size: 10.5px; font-weight: 700; letter-spacing: .03em; color: #c084fc; background: rgba(147,51,234,0.15); border: 1px solid rgba(147,51,234,0.4); border-radius: 999px; padding: 2px 9px; text-transform: uppercase; display: inline-block; white-space: nowrap; }
+  /* Compact icon buttons (Message CEO / Message Team) — matches the same
+     38x38 rounded-square language as .bell-btn on the Tenant/Landlord
+     header, instead of the old bordered text+icon pills that wrapped onto
+     a second line and crowded the company name/role badge on narrow screens. */
+  .ent-icon-btn { position: relative; width: 38px; height: 38px; border-radius: 12px; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; display: flex; align-items: center; justify-content: center; color: #cbd5e1; cursor: pointer; flex-shrink: 0; }
+  .ent-icon-btn:hover { border-color: #a855f7; color: #fff; }
 
   .ent-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
   .ent-tabs::-webkit-scrollbar { display: none; }
@@ -3445,16 +3453,20 @@
     <button type="button" id="ent-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
 
     <div class="ent-header">
-      <div class="ent-logo" id="ent-header-logo">—</div>
-      <div style="flex:1; min-width:0;">
-        <p class="ent-company-name" id="ent-header-company">Company</p>
-        <span class="ent-role-badge" id="ent-header-role-badge">CEO</span>
+      <div class="ent-header-identity">
+        <div class="ent-logo" id="ent-header-logo">—</div>
+        <div style="min-width:0; overflow:hidden;">
+          <p class="ent-company-name" id="ent-header-company">Company</p>
+          <span class="ent-role-badge" id="ent-header-role-badge">CEO</span>
+        </div>
       </div>
-      <button type="button" id="ent-header-team-btn" class="ent-list-action-btn" title="Message a team member"><i data-lucide="users" class="w-3.5 h-3.5"></i>Team</button>
-      <button type="button" class="bell-btn" id="ent-header-bell-btn" title="Notifications">
-        <i data-lucide="bell" class="w-4 h-4"></i>
-        <span class="bell-dot" id="ent-header-bell-dot"></span>
-      </button>
+      <div class="ent-header-actions">
+        <button type="button" id="ent-header-team-btn" class="ent-icon-btn" title="Message a team member"><i data-lucide="users" class="w-4 h-4"></i></button>
+        <button type="button" class="bell-btn" id="ent-header-bell-btn" title="Notifications">
+          <i data-lucide="bell" class="w-4 h-4"></i>
+          <span class="bell-dot" id="ent-header-bell-dot"></span>
+        </button>
+      </div>
     </div>
 
     <div class="ent-tabs" id="ent-tabs">
@@ -3533,17 +3545,21 @@
 <div id="screen-ent-sales" class="screen-view hidden pb-24">
   <div class="app-shell" style="padding-top:24px;">
     <div class="ent-header">
-      <div class="ent-logo" id="ent-sales-logo">—</div>
-      <div style="flex:1; min-width:0;">
-        <p class="ent-company-name" id="ent-sales-company">Company</p>
-        <span class="ent-role-badge">Sales Manager</span>
+      <div class="ent-header-identity">
+        <div class="ent-logo" id="ent-sales-logo">—</div>
+        <div style="min-width:0; overflow:hidden;">
+          <p class="ent-company-name" id="ent-sales-company">Company</p>
+          <span class="ent-role-badge">Sales Manager</span>
+        </div>
       </div>
-      <button type="button" id="ent-sales-message-ceo-btn" class="ent-list-action-btn" title="Message CEO"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>CEO</button>
-      <button type="button" id="ent-sales-team-btn" class="ent-list-action-btn" title="Message a team member"><i data-lucide="users" class="w-3.5 h-3.5"></i>Team</button>
-      <button type="button" class="bell-btn" id="ent-sales-bell-btn" title="Notifications">
-        <i data-lucide="bell" class="w-4 h-4"></i>
-        <span class="bell-dot" id="ent-sales-bell-dot"></span>
-      </button>
+      <div class="ent-header-actions">
+        <button type="button" id="ent-sales-message-ceo-btn" class="ent-icon-btn" title="Message CEO"><i data-lucide="message-square" class="w-4 h-4"></i></button>
+        <button type="button" id="ent-sales-team-btn" class="ent-icon-btn" title="Message a team member"><i data-lucide="users" class="w-4 h-4"></i></button>
+        <button type="button" class="bell-btn" id="ent-sales-bell-btn" title="Notifications">
+          <i data-lucide="bell" class="w-4 h-4"></i>
+          <span class="bell-dot" id="ent-sales-bell-dot"></span>
+        </button>
+      </div>
     </div>
 
     <!-- Home panel -->
@@ -3618,17 +3634,21 @@
 <div id="screen-ent-finance" class="screen-view hidden pb-24">
   <div class="app-shell" style="padding-top:24px;">
     <div class="ent-header">
-      <div class="ent-logo" id="ent-finance-logo">—</div>
-      <div style="flex:1; min-width:0;">
-        <p class="ent-company-name" id="ent-finance-company">Company</p>
-        <span class="ent-role-badge">Finance Officer</span>
+      <div class="ent-header-identity">
+        <div class="ent-logo" id="ent-finance-logo">—</div>
+        <div style="min-width:0; overflow:hidden;">
+          <p class="ent-company-name" id="ent-finance-company">Company</p>
+          <span class="ent-role-badge">Finance Officer</span>
+        </div>
       </div>
-      <button type="button" id="ent-finance-message-ceo-btn" class="ent-list-action-btn" title="Message CEO"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>CEO</button>
-      <button type="button" id="ent-finance-team-btn" class="ent-list-action-btn" title="Message a team member"><i data-lucide="users" class="w-3.5 h-3.5"></i>Team</button>
-      <button type="button" class="bell-btn" id="ent-finance-bell-btn" title="Notifications">
-        <i data-lucide="bell" class="w-4 h-4"></i>
-        <span class="bell-dot" id="ent-finance-bell-dot"></span>
-      </button>
+      <div class="ent-header-actions">
+        <button type="button" id="ent-finance-message-ceo-btn" class="ent-icon-btn" title="Message CEO"><i data-lucide="message-square" class="w-4 h-4"></i></button>
+        <button type="button" id="ent-finance-team-btn" class="ent-icon-btn" title="Message a team member"><i data-lucide="users" class="w-4 h-4"></i></button>
+        <button type="button" class="bell-btn" id="ent-finance-bell-btn" title="Notifications">
+          <i data-lucide="bell" class="w-4 h-4"></i>
+          <span class="bell-dot" id="ent-finance-bell-dot"></span>
+        </button>
+      </div>
     </div>
 
     <!-- Home panel -->
@@ -3672,17 +3692,21 @@
 <div id="screen-ent-legal-dash" class="screen-view hidden pb-24">
   <div class="app-shell" style="padding-top:24px;">
     <div class="ent-header">
-      <div class="ent-logo" id="ent-legal-logo">—</div>
-      <div style="flex:1; min-width:0;">
-        <p class="ent-company-name" id="ent-legal-company">Company</p>
-        <span class="ent-role-badge">Legal Officer</span>
+      <div class="ent-header-identity">
+        <div class="ent-logo" id="ent-legal-logo">—</div>
+        <div style="min-width:0; overflow:hidden;">
+          <p class="ent-company-name" id="ent-legal-company">Company</p>
+          <span class="ent-role-badge">Legal Officer</span>
+        </div>
       </div>
-      <button type="button" id="ent-legal-message-ceo-btn" class="ent-list-action-btn" title="Message CEO"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>CEO</button>
-      <button type="button" id="ent-legal-team-btn" class="ent-list-action-btn" title="Message a team member"><i data-lucide="users" class="w-3.5 h-3.5"></i>Team</button>
-      <button type="button" class="bell-btn" id="ent-legal-bell-btn" title="Notifications">
-        <i data-lucide="bell" class="w-4 h-4"></i>
-        <span class="bell-dot" id="ent-legal-bell-dot"></span>
-      </button>
+      <div class="ent-header-actions">
+        <button type="button" id="ent-legal-message-ceo-btn" class="ent-icon-btn" title="Message CEO"><i data-lucide="message-square" class="w-4 h-4"></i></button>
+        <button type="button" id="ent-legal-team-btn" class="ent-icon-btn" title="Message a team member"><i data-lucide="users" class="w-4 h-4"></i></button>
+        <button type="button" class="bell-btn" id="ent-legal-bell-btn" title="Notifications">
+          <i data-lucide="bell" class="w-4 h-4"></i>
+          <span class="bell-dot" id="ent-legal-bell-dot"></span>
+        </button>
+      </div>
     </div>
 
     <!-- Home panel -->
@@ -7085,14 +7109,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!Array.isArray(appState.assets)) appState.assets = [];
     const already = appState.assets.find(a => a.listingId === listing.id && a.ownerId === uid);
     if (already) return;
+    const isInstallment = !!(lease && /installment/i.test(lease.amountLabel || ''));
+    // installmentsTotal/installmentsPaid: Month 1 is always paid upfront at
+    // checkout, so a fresh installment purchase starts at 1 of N. Outright
+    // purchases are 1 of 1 (fully paid already).
+    const installmentsTotal = isInstallment ? (lease.remainingMonths || 0) + 1 : 1;
     appState.assets.unshift({
       id: `AST-${Date.now().toString(36).toUpperCase()}`,
       ownerId: uid,
+      // sellerId: who actually listed/sold this property (from the listing
+      // itself), kept separately from `ownerId` above — which, confusingly,
+      // is the BUYER's id (the asset's new owner) — so seller-targeted
+      // notifications (Deed upload requests/reminders, physical-docs-to-
+      // logistics) can reach the right account instead of the buyer's.
+      sellerId: listing.ownerId || null,
       listingId: listing.id,
       title: listing.title,
       location: listing.location,
       amountLabel: lease ? lease.amountLabel : 'Paid in Full (Outright)',
-      paymentMode: (lease && /installment/i.test(lease.amountLabel || '')) ? 'installment' : 'outright',
+      paymentMode: isInstallment ? 'installment' : 'outright',
+      // Installment Ledger: tracks how many of the total installments have
+      // actually been auto-debited (see scheduleLandInstallmentAutoDebit).
+      // The Deed-of-Assignment request only fires once installmentsPaid
+      // reaches installmentsTotal — never on the first (checkout) payment.
+      installmentsPaid: 1,
+      installmentsTotal: installmentsTotal,
+      monthlyAmount: isInstallment ? (lease.monthlyAmount || 0) : 0,
       // cofOStatus is derived from the Consent Tracker below and kept in sync
       // on every stage advance (see oa-advance-consent-btn) so the handful of
       // places that display it (Asset Hub, dashboard) never go stale.
@@ -7120,20 +7162,99 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     saveAppState(appState);
 
-    // Prompt the Seller/Owner to upload the Deed of Assignment the moment
-    // this sale is fully paid. Outright purchases are 100% settled the
-    // instant checkout completes, so this fires right here. This prototype
-    // has no ongoing installment-balance ledger (each plan only tracks the
-    // upfront payment taken at checkout — see computeInstallmentBreakdown),
-    // so there's no later "final installment paid" event to hook a second
-    // trigger onto; once that ledger exists, gate this behind the plan
-    // reaching 100% instead of firing on every acquisition.
-    if (listing.ownerId) {
-      pushPlatformNotification('landlord', 'payment', 'Full Payment Received — Deed Required',
-        `${listing.title} has been paid in full. Please upload the Deed of Assignment and other title documents from your Asset Portfolio.`,
-        { screen: 'screen-owner-assets' }, 'DEED_UPLOAD_REQUIRED', null, listing.ownerId);
+    const asset = appState.assets[0];
+    if (isInstallment && asset.installmentsPaid < asset.installmentsTotal) {
+      // Still owes further installments — the Deed request waits for the
+      // final one (see scheduleLandInstallmentAutoDebit) instead of firing
+      // on this first, upfront payment.
+      scheduleLandInstallmentAutoDebit(asset.id);
+    } else {
+      requestDeedUpload(asset, listing.ownerId);
     }
   }
+
+  // Fires once a sale is genuinely 100% paid — outright immediately, or
+  // installment once the final installment lands — and starts the 5-hour
+  // reminder loop that nudges the Seller until they actually upload it.
+  function requestDeedUpload(asset, ownerId) {
+    if (!ownerId || !asset) return;
+    pushPlatformNotification('landlord', 'payment', 'Full Payment Received — Deed Required',
+      `${asset.title} has been paid in full. Please upload the Deed of Assignment and other title documents from your Asset Portfolio.`,
+      { screen: 'screen-owner-assets' }, 'DEED_UPLOAD_REQUIRED', null, ownerId);
+    startDeedReminder(asset.id);
+  }
+
+  // ---- Land Installment Auto-Debit (Month 2 onward) ----
+  // A real deployment would auto-debit on each installment's real due date
+  // (see intervalMonths on the plan); here an accelerated interval stands
+  // in so the flow can be demoed live, same pattern as scheduleShortletAutoDebit.
+  const LAND_INSTALLMENT_DEMO_MS = 12000;
+  const landInstallmentAutoDebitTimers = {};
+  function scheduleLandInstallmentAutoDebit(assetId) {
+    if (landInstallmentAutoDebitTimers[assetId]) clearInterval(landInstallmentAutoDebitTimers[assetId]);
+    landInstallmentAutoDebitTimers[assetId] = setInterval(() => {
+      appState = loadAppState();
+      const asset = (appState.assets || []).find(a => a.id === assetId);
+      if (!asset || asset.paymentMode !== 'installment' || asset.installmentsPaid >= asset.installmentsTotal) {
+        clearInterval(landInstallmentAutoDebitTimers[assetId]);
+        delete landInstallmentAutoDebitTimers[assetId];
+        return;
+      }
+      const nextInstallment = asset.installmentsPaid + 1;
+      // Prototype note: like the rest of this checkout flow, this doesn't
+      // check the buyer's real wallet balance before "auto-debiting" —
+      // it mirrors scheduleShortletAutoDebit's simplification, not a gap
+      // specific to installments.
+      asset.installmentsPaid = nextInstallment;
+      saveAppState(appState);
+      if (asset.installmentsPaid >= asset.installmentsTotal) {
+        clearInterval(landInstallmentAutoDebitTimers[assetId]);
+        delete landInstallmentAutoDebitTimers[assetId];
+        pushPlatformNotification('tenant', 'payment', 'Final Installment Paid',
+          `Installment ${nextInstallment} of ${asset.installmentsTotal} for ${asset.title} was auto-debited — your purchase is now paid in full.`,
+          { screen: 'screen-land-handover' }, 'INSTALLMENT_DEBITED', null, asset.ownerId);
+        requestDeedUpload(asset, asset.sellerId);
+      } else {
+        pushPlatformNotification('tenant', 'payment', 'Installment Auto-Debited',
+          `Installment ${nextInstallment} of ${asset.installmentsTotal} for ${asset.title} was auto-debited from your wallet.`,
+          null, 'INSTALLMENT_DEBITED', null, asset.ownerId);
+      }
+      window.dispatchEvent(new Event('maintown_state_updated'));
+    }, LAND_INSTALLMENT_DEMO_MS);
+  }
+  // Resume auto-debit timers for any still-mid-installment assets after a
+  // page reload (a fresh load would otherwise lose the setInterval handles).
+  // Loads its own snapshot via loadAppState() rather than the shared
+  // `appState` global, since that global isn't initialized yet this early
+  // in the script (see `let appState = loadAppState()` further down).
+  (loadAppState().assets || []).filter(a => a.paymentMode === 'installment' && a.installmentsPaid < a.installmentsTotal)
+    .forEach(a => scheduleLandInstallmentAutoDebit(a.id));
+
+  // ---- Seller Deed-of-Assignment Upload Reminder ----
+  // Mirrors startCountersignReminder: fires every 5 hours (demo-accelerated)
+  // until the Seller actually uploads the Deed (asset.deedAvailable).
+  const DEED_UPLOAD_REMINDER_DEMO_MS = 15000;
+  const deedReminderTimers = {};
+  function startDeedReminder(assetId) {
+    if (deedReminderTimers[assetId]) clearInterval(deedReminderTimers[assetId]);
+    deedReminderTimers[assetId] = setInterval(() => {
+      appState = loadAppState();
+      const asset = (appState.assets || []).find(a => a.id === assetId);
+      if (!asset || asset.deedAvailable) {
+        clearInterval(deedReminderTimers[assetId]);
+        delete deedReminderTimers[assetId];
+        return;
+      }
+      pushPlatformNotification('landlord', 'payment', 'Deed of Assignment Still Required',
+        `Reminder: ${asset.title} is fully paid and still awaiting your Deed of Assignment upload.`,
+        { screen: 'screen-owner-assets' }, 'DEED_UPLOAD_REMINDER', null, asset.sellerId);
+    }, DEED_UPLOAD_REMINDER_DEMO_MS);
+  }
+  // Resume deed reminders for any fully-paid-but-undeeded assets after
+  // reload. Same loadAppState() note as above applies here.
+  (loadAppState().assets || []).filter(a => (a.paymentMode !== 'installment' || a.installmentsPaid >= a.installmentsTotal) && !a.deedAvailable)
+    .forEach(a => startDeedReminder(a.id));
+
 
   // ==================================================================
   // ---- Owner Asset Portfolio (Landlord/Owner — Sold vs Available Land
@@ -7392,9 +7513,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Seller/Owner that the ORIGINAL physical title instruments must now go
     // out exclusively through MainTown Realty logistics — never handed to
     // the buyer directly (see Clause 5 / Owner Terms §5).
+    // BUGFIX: this used to target asset.ownerId, which is actually the
+    // BUYER's id (the asset's new owner) — a 'landlord'-role notification
+    // sent there never reached the actual Seller. Use asset.sellerId instead.
     pushPlatformNotification('landlord', 'message', 'Send Physical Documents to Logistics',
       `${asset.title} is fully paid and the digital Deed of Assignment is uploaded. Please send the original physical title documents to the MainTown Realty logistics team for secure delivery to the buyer.`,
-      { screen: 'screen-owner-assets' }, 'PHYSICAL_DOCS_TO_LOGISTICS', null, asset.ownerId);
+      { screen: 'screen-owner-assets' }, 'PHYSICAL_DOCS_TO_LOGISTICS', null, asset.sellerId);
 
     showToast(`${file.name} issued to ${resolveUserName(asset.ownerId)} — buyer notified`);
     populateScreenOwnerAssets();
@@ -9815,9 +9939,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
     saveHandover();
     // Recent Activity was removed from the dashboard home view — this event now
     // routes exclusively through the Notification Bell.
+    // BUGFIX: this used to broadcast with no forUserId, matched only by
+    // `forRole === 'landlord'` — meaning it showed for whichever
+    // landlord-type account happened to be logged in, not necessarily the
+    // actual Seller of this listing (a real gap for Sales-Staff-listed land,
+    // where the "Seller" is a specific company/CEO account). Scoped to
+    // handover.sellerId now, same as the countersign reminder below.
     pushPlatformNotification('landlord', 'message', 'Signed Agreement Received',
       `Tenant signed the agreement for ${checkoutListing.title} — awaiting your countersignature.`,
-      { screen: 'handoverReview' }, 'TENANT_SIGNED_AGREEMENT');
+      { screen: 'handoverReview' }, 'TENANT_SIGNED_AGREEMENT', null, handover.sellerId || undefined);
     showToast('Landlord notified — signed agreement sent for their sign-off');
 
     // Land & Property sales carry Clause 5 / Owner Terms §3: countersignature
