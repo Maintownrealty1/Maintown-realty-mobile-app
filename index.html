@@ -5193,18 +5193,16 @@
     <h2 class="modal-title">Vendor Activation Required</h2>
     <p class="modal-sub">Complete both steps below to unlock your dashboard, listings, payouts, and contract execution.</p>
 
-    <div class="kyc-list" style="margin-bottom:16px;">
-      <div class="kyc-item" id="va-kyc-item" style="cursor:default;">
-        <div class="kyc-item-icon-wrap"><i data-lucide="user-check" class="w-4 h-4"></i></div>
-        <div class="kyc-item-text">
-          <p class="kyc-item-title">Step 1 · KYC &amp; Identity Verification</p>
-          <p class="kyc-item-status" id="va-kyc-status">Not yet verified</p>
-        </div>
-      </div>
+    <p class="s5-section-label" style="margin-top:0;"><i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i>Step 1 · KYC &amp; Identity Verification</p>
+    <div class="kyc-list" id="va-kyc-list" style="margin-bottom:16px;">
+      <!-- Populated by renderVaKycList() in openVendorActivationModal() with two
+           tap-to-upload items: National ID/NIN, then a live selfie capture —
+           built the same way as the Screen 2 signup KYC list (kyc-file-input,
+           capture="user" for the selfie, simulateUpload() progress + preview). -->
     </div>
+    <p class="kyc-item-status" id="va-kyc-hint" style="margin: -8px 0 16px; color:#64748b;">Tap each item above to upload</p>
 
-    <p class="s5-section-label" style="margin-top:0;"><i data-lucide="landmark" class="w-4 h-4 text-purple-400"></i>Step 1 · Payout Account Details</p>
-    <div class="field">
+    <p class="s5-section-label" style="margin-top:0;"><i data-lucide="landmark" class="w-4 h-4 text-purple-400"></i>Step 1 · Payout Account Details</p>    <div class="field">
       <label class="field-label">Settlement Bank Name</label>
       <input class="field-input" id="va-bank-name" type="text" placeholder="e.g. GTBank, Access Bank">
     </div>
@@ -5248,7 +5246,6 @@
     <div class="va-sticky-footer">
       <p class="login-error-msg" id="va-error-msg"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span id="va-error-text">Please check the box above to continue.</span></p>
       <button type="button" id="va-activate-btn" class="btn-primary" style="margin-top:10px; margin-bottom:12px;">Activate Vendor Account</button>
-      <button type="button" id="va-cancel-btn" class="btn-secondary">Cancel</button>
     </div>
   </div>
 </div>
@@ -11202,7 +11199,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const errEl = document.getElementById('va-error-msg');
     const errText = document.getElementById('va-error-text');
 
-    // Step 1: Payout Account Details must be filled and valid first.
+    // Step 1a: KYC — National ID/NIN + live selfie must both be uploaded.
+    if (!vaKycComplete()) {
+      errText.textContent = 'Please upload your National ID/NIN and take a live selfie photo first.';
+      errEl.classList.add('show');
+      return;
+    }
+    // Step 1b: Payout Account Details must be filled and valid.
     if (!bankName || !bankAccount || !bvnNin) {
       errText.textContent = 'Please complete Step 1 — payout bank account and BVN/NIN — first.';
       errEl.classList.add('show');
@@ -11233,10 +11236,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     vendorActivationPendingCallback = null;
     if (cb) cb();
   });
-  document.getElementById('va-cancel-btn').addEventListener('click', () => {
-    vendorActivationPendingCallback = null;
-    document.getElementById('vendor-activation-modal').classList.remove('open');
-  });
+  // No Cancel button by design: every step (KYC upload, payout account
+  // details, legal policy sign-off) must be completed before this modal can
+  // close, so a Landlord/Agent can't dismiss their way into the dashboard
+  // without finishing verification.
 
   document.getElementById('tv-submit-btn').addEventListener('click', () => {
     const title = document.getElementById('tv-title').value.trim();
@@ -16359,9 +16362,7 @@ available in the Post-Lease Hub and this chat thread.`
     openVendorActivationModal(userId);
   }
   function openVendorActivationModal(userId) {
-    const kycDone = hasKycOnFile(userId);
-    document.getElementById('va-kyc-status').textContent = kycDone ? 'Verified' : 'Not yet verified';
-    document.getElementById('va-kyc-item').classList.toggle('uploaded', kycDone);
+    renderVaKycList(userId);
     // Step 1 · Payout Account Details — prefill if this user already has a
     // settlement bank on file (e.g. re-opening the gate), otherwise blank.
     const rec = appState.users[userId];
@@ -16374,6 +16375,105 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('va-error-msg').classList.remove('show');
     document.getElementById('vendor-activation-modal').classList.add('open');
     if (window.lucide) lucide.createIcons();
+  }
+
+  // ---- Vendor Activation Modal: KYC upload list (National ID/NIN + a live
+  // selfie capture) — same tap-to-upload / progress-fill / preview pattern as
+  // the Screen 2 signup KYC list, but kept fully self-contained (its own
+  // counter, its own upload-animation helper) so it never touches Screen 2's
+  // own kycUploadedCount/updateKycContinueState state.
+  const VA_KYC_ITEMS = [
+    { key: 'id', text: 'National ID / NIN', icon: 'id-card' },
+    { key: 'selfie', text: 'Live Photo (Selfie)', icon: 'camera', selfie: true }
+  ];
+  let vaKycUploadedCount = 0;
+  function vaKycComplete() { return vaKycUploadedCount >= VA_KYC_ITEMS.length; }
+  function updateVaKycHint() {
+    const hint = document.getElementById('va-kyc-hint');
+    hint.textContent = vaKycComplete()
+      ? 'Identity verification complete'
+      : `Tap each item above to upload (${vaKycUploadedCount}/${VA_KYC_ITEMS.length})`;
+  }
+  function vaSimulateUpload(itemEl, cb) {
+    if (itemEl.classList.contains('uploading')) return;
+    const isReupload = itemEl.classList.contains('uploaded');
+    itemEl.classList.remove('uploaded');
+    itemEl.classList.add('uploading');
+    const statusEl = itemEl.querySelector('.kyc-item-status');
+    const fillEl = itemEl.querySelector('.kyc-progress-fill');
+    const iconWrap = itemEl.querySelector('.kyc-item-icon-wrap');
+    statusEl.textContent = isReupload ? 'Replacing file...' : 'Uploading...';
+    fillEl.style.width = '0%';
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 20;
+      fillEl.style.width = Math.min(progress, 100) + '%';
+      if (progress >= 100) {
+        clearInterval(interval);
+        itemEl.classList.remove('uploading');
+        itemEl.classList.add('uploaded');
+        statusEl.textContent = isReupload ? 'File replaced successfully' : 'Uploaded successfully';
+        iconWrap.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400"></i>`;
+        if (window.lucide) lucide.createIcons();
+        if (isReupload) showToast('Document replaced');
+        if (cb) cb(isReupload);
+      }
+    }, 140);
+  }
+  function renderVaKycList(userId) {
+    const list = document.getElementById('va-kyc-list');
+    const alreadyVerified = hasKycOnFile(userId);
+    vaKycUploadedCount = alreadyVerified ? VA_KYC_ITEMS.length : 0;
+    list.innerHTML = '';
+    VA_KYC_ITEMS.forEach((docItem) => {
+      const item = document.createElement('div');
+      item.className = 'kyc-item' + (alreadyVerified ? ' uploaded' : '');
+      item.innerHTML = `
+        <div class="kyc-item-icon-wrap">
+          <i data-lucide="${alreadyVerified ? 'check-circle-2' : docItem.icon}" class="w-5 h-5 ${alreadyVerified ? 'text-emerald-400' : 'text-slate-400'}"></i>
+        </div>
+        ${docItem.selfie ? `<img class="kyc-selfie-thumb" alt="Selfie preview" style="${alreadyVerified ? 'display:block;' : 'display:none;'}">` : ''}
+        <div class="kyc-item-text">
+          <p class="kyc-item-title">${docItem.text}</p>
+          <p class="kyc-item-status">${alreadyVerified ? 'Uploaded successfully' : (docItem.selfie ? 'Tap to take/upload a photo' : 'Tap to upload')}</p>
+        </div>
+        <button type="button" class="kyc-reupload-btn" title="Re-upload / Replace">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
+        <input type="file" hidden class="kyc-file-input" id="va-kyc-file-${docItem.key}"${docItem.selfie ? ' accept="image/*" capture="user"' : ' accept="image/*,application/pdf"'}>
+        <div class="kyc-progress-track"><div class="kyc-progress-fill"${alreadyVerified ? ' style="width:100%"' : ''}></div></div>
+      `;
+      const fileInput = item.querySelector('.kyc-file-input');
+      // Clicking the card (fresh or already uploaded) opens the file picker /
+      // camera — for the selfie item, capture="user" opens the front camera
+      // directly on mobile for a live photo instead of only the file library.
+      item.addEventListener('click', () => {
+        if (item.classList.contains('uploading')) return;
+        fileInput.click();
+      });
+      fileInput.addEventListener('change', () => {
+        if (docItem.selfie && fileInput.files && fileInput.files[0]) {
+          const thumb = item.querySelector('.kyc-selfie-thumb');
+          const reader = new FileReader();
+          reader.onload = (ev) => { if (thumb) { thumb.src = ev.target.result; thumb.style.display = 'block'; } };
+          reader.readAsDataURL(fileInput.files[0]);
+        }
+        const wasUploaded = item.classList.contains('uploaded');
+        vaSimulateUpload(item, (isReupload) => {
+          if (!isReupload && !wasUploaded) vaKycUploadedCount += 1;
+          updateVaKycHint();
+        });
+      });
+      fileInput.addEventListener('cancel', () => {
+        const wasUploaded = item.classList.contains('uploaded');
+        vaSimulateUpload(item, (isReupload) => {
+          if (!isReupload && !wasUploaded) vaKycUploadedCount += 1;
+          updateVaKycHint();
+        });
+      });
+      list.appendChild(item);
+    });
+    updateVaKycHint();
   }
 
   // ==================================================================
