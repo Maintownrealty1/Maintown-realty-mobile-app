@@ -5221,19 +5221,17 @@
       <i data-lucide="badge-check" class="w-3.5 h-3.5"></i><span>—</span>
     </div>
 
-    <p class="s5-section-label"><i data-lucide="file-text" class="w-4 h-4 text-purple-400"></i>Step 2 · MainTown Vendor Activation &amp; Land Sales Policy</p>
-    <div class="signoff-box" id="va-signoff-box" style="max-height:220px;">
-      <p><strong>1. KYC &amp; Identity Verification:</strong> You agree to submit valid government identification and bank account details matching your identity prior to listing or receiving funds.</p>
-      <p><strong>2. Pre-Listing Document Authenticity:</strong> You warrant that all uploaded survey plans, Certificates of Occupancy (C of O), or Gazettes are authentic and unencumbered. You consent to automated digital verification via MainTown's AI inspection engine prior to listing approval.</p>
-      <p><strong>3. 24-Hour Digital Contract Countersignature:</strong> Upon a buyer's checkout, you agree to digitally countersign the generated Contract of Sale within 24 hours. Automated platform reminders will trigger every 5 hours until executed.</p>
-      <p><strong>4. Automated Non-Custodial Split Payouts:</strong> You accept that buyer payments (outright or installments) are split automatically at the point of charge and routed directly to your verified payout account, minus platform commissions and legal deed processing fees.</p>
-      <p><strong>5. Deed Execution &amp; Verified Physical Delivery:</strong> Upon 100% completion of buyer payments, you agree to upload the executed Deed of Assignment and surrender original physical title instruments exclusively to the MainTown Realty Logistics Team for secure buyer delivery. Off-platform physical document transfers are strictly prohibited.</p>
-      <p><strong>6. Pre-Checkout Inspection Access:</strong> You agree to facilitate physical or virtual buyer inspections, acknowledging that buyer checkout remains locked until the buyer logs an in-app Satisfied status.</p>
+    <p class="s5-section-label"><i data-lucide="file-text" class="w-4 h-4 text-purple-400"></i>Step 2 · MainTown Vendor Activation &amp; Landlord Terms of Service</p>
+    <div class="signoff-box legal-box" id="va-signoff-box" style="max-height:220px;">
+      <!-- Populated by renderVaSignoffBox() in openVendorActivationModal() from
+           legalContent.landlord.sections — the same universal policy text
+           shown at onboarding Screen 3, so there's one single source of truth
+           instead of a second, separately-maintained copy. -->
     </div>
 
     <label class="agree-row" style="margin: 4px 0 14px;">
       <input type="checkbox" id="va-policy-checkbox" class="agree-checkbox">
-      <span>I have read and agree to the MainTown Vendor Activation &amp; Land Sales Policy above.</span>
+      <span>I have read and agree to the MainTown Vendor Activation &amp; Landlord Terms of Service above.</span>
     </label>
 
     <!-- Sticky CTA footer: on shorter phones this modal's content (KYC status +
@@ -6871,15 +6869,16 @@ document.addEventListener('DOMContentLoaded', () => {
       label: 'Landlord, Developer & Owner',
       roleIcon: 'key-round',
       sections: [
-        { title: 'Section 1: Title, Ownership & Documentation Warranties', body: "Declaration that property titles (C of O, Gazette, Governor's Consent, Excision) or rental authorization rights are authentic, unencumbered, and free of legal dispute." },
-        { title: 'Section 2: Automated Payment Disbursement', body: 'Monthly Rentals &amp; Shortlets — each payment is split automatically at the point of charge, with the Landlord\'s share paid directly to their own account. Land &amp; Property Sales — each instalment (or outright payment) is split automatically at the point of charge, with the Seller/Developer\'s share paid directly to their own account. Physical allocation and Deed of Assignment execution follow the payment schedule set out in the listing.' },
-        { title: 'Section 3: Habitability Standards & Repair SLAs', body: 'Obligation to maintain functional power, water, structural integrity, and estate amenities. Landlords must address critical repairs within 48 hours. MainTown reserves the right to withhold monthly payout releases until critical repairs are resolved.', critical: true },
-        { title: 'Section 4: Default, Restructuring & Inventory Repossession', body: "Agreement to MainTown's 30-day grace period and 60-day default policy for installment buyers and monthly renters. Authorizes MainTown to restructure or re-list defaulted inventory.", critical: true },
-        { title: 'Section 5: Shortlet Calendar Accuracy & Caution Deposit Rules', body: 'Requirement to maintain accurate shortlet availability. Double-booking results in owner-funded guest relocation fees. Damage claims against caution deposits must be submitted within 24 hours of checkout with photo/video proof.' },
-        { title: 'Section 6: Fraud, Dual-Leasing & Zero Tolerance', body: 'Immediate account termination, forfeiture of pending payouts, listing removal, and referral to law enforcement for fake listings, fraudulent titles, or executing side-deals/double-leases.', critical: true },
-        { title: 'Section 7: Verification Walkthroughs & Inspection Access', body: 'Agreement to allow scheduled virtual or physical walkthrough inspections by authorized MainTown verification agents prior to and during listing activation.' },
-        { title: 'Section 8: Non-Circumvention & Direct Payment Ban', body: 'Strict prohibition against bypassing the platform\'s payment system to request cash, direct bank transfers, or off-platform renewals from MainTown users. Violations incur platform ban and legal recovery of lost fees.', critical: true },
-        { title: 'Section 9: Fee Transparency & Collection', body: 'MainTown collects the Legal Fee for drafting tenancy agreements directly, for transparency — it is never yours to set or collect. Any Caution Deposit and Service Charge you configure for a rental or shortlet listing (or leave as self-service, with no service charge) are paid directly to you alongside the tenant\'s rent/shortlet payments. For Land &amp; Property Sales, the Deed of Assignment legal/processing fee (5% or 10%, as you select at listing) is paid directly to you together with the buyer\'s first installment payment — MainTown does not collect it. Shortlet listings carry a MainTown Platform Fee (5% of the nightly rate) instead of a Legal Fee.' }
+        { title: 'Section 1: Title, Ownership & Documentation Warranties', body: "Declaration that property titles (C of O, Gazette, Governor's Consent, Excision) or rental authorization rights are authentic, unencumbered, and free of legal dispute. For Land &amp; Property listings, you warrant that all uploaded survey plans, Certificates of Occupancy, or Gazettes are authentic and unencumbered, and you consent to automated digital verification via MainTown's AI inspection engine prior to listing approval." },
+        { title: 'Section 2: Automated Non-Custodial Payment Disbursement', body: 'Monthly Rentals &amp; Shortlets — each payment is split automatically at the point of charge, with the Landlord\'s share paid directly to their own account. Land &amp; Property Sales — each instalment (or outright payment) is split automatically at the point of charge, with the Seller/Developer\'s share paid directly to their own account. Payments are never held in escrow by MainTown; each charge is routed directly to your verified payout account, minus platform commissions and legal/deed processing fees. Physical allocation and Deed of Assignment execution follow the payment schedule set out in the listing.' },
+        { title: 'Section 3: Contract Countersignature Timing (Land & Property)', body: "Upon a buyer's checkout on a Land &amp; Property sale, you agree to digitally countersign the generated Contract of Sale within 24 hours. Automated platform reminders will trigger every 5 hours until executed.", critical: true },
+        { title: 'Section 4: Habitability Standards & Repair SLAs', body: 'Obligation to maintain functional power, water, structural integrity, and estate amenities. Landlords must address critical repairs within 48 hours. MainTown reserves the right to withhold monthly payout releases until critical repairs are resolved.', critical: true },
+        { title: 'Section 5: Default, Restructuring, Deed Execution & Physical Delivery', body: "Agreement to MainTown's 30-day grace period and 60-day default policy for installment buyers and monthly renters. Authorizes MainTown to restructure or re-list defaulted inventory. Upon 100% completion of buyer payments for a Land &amp; Property sale, you agree to upload the executed Deed of Assignment and surrender original physical title instruments exclusively to the MainTown Realty Logistics Team for secure buyer delivery. Off-platform physical document transfers are strictly prohibited.", critical: true },
+        { title: 'Section 6: Shortlet Calendar Accuracy & Caution Deposit Rules', body: 'Requirement to maintain accurate shortlet availability. Double-booking results in owner-funded guest relocation fees. Damage claims against caution deposits must be submitted within 24 hours of checkout with photo/video proof.' },
+        { title: 'Section 7: Fraud, Dual-Leasing & Zero Tolerance', body: 'Immediate account termination, forfeiture of pending payouts, listing removal, and referral to law enforcement for fake listings, fraudulent titles, or executing side-deals/double-leases.', critical: true },
+        { title: 'Section 8: Verification Walkthroughs & Inspection Access', body: "Agreement to allow scheduled virtual or physical walkthrough inspections by authorized MainTown verification agents prior to and during listing activation. This includes facilitating buyer inspections at checkout — for Land &amp; Property sales, buyer checkout remains locked until the buyer logs an in-app Satisfied status." },
+        { title: 'Section 9: Non-Circumvention & Direct Payment Ban', body: 'Strict prohibition against bypassing the platform\'s payment system to request cash, direct bank transfers, or off-platform renewals from MainTown users. Violations incur platform ban and legal recovery of lost fees.', critical: true },
+        { title: 'Section 10: Fee Transparency & Collection', body: 'MainTown collects the Legal Fee for drafting tenancy agreements directly, for transparency — it is never yours to set or collect. Any Caution Deposit and Service Charge you configure for a rental or shortlet listing (or leave as self-service, with no service charge) are paid directly to you alongside the tenant\'s rent/shortlet payments. For Land &amp; Property Sales, the Deed of Assignment legal/processing fee (5% or 10%, as you select at listing) is paid directly to you together with the buyer\'s first installment payment — MainTown does not collect it. Shortlet listings carry a MainTown Platform Fee (5% of the nightly rate) instead of a Legal Fee.' }
       ]
     },
     agent: {
@@ -16361,8 +16360,28 @@ available in the Post-Lease Hub and this chat thread.`
     vendorActivationPendingCallback = onActivated;
     openVendorActivationModal(userId);
   }
+  // Renders the Vendor Activation gate's Step 2 policy box from the exact
+  // same legalContent.landlord.sections used on the onboarding Terms of
+  // Service screen — one shared source of truth instead of a duplicate,
+  // separately-maintained copy of the policy text.
+  function renderVaSignoffBox() {
+    const box = document.getElementById('va-signoff-box');
+    const sections = legalContent.landlord.sections;
+    box.innerHTML = sections.map(s => {
+      const heading = `<h3><i data-lucide="scale" class="text-purple-400"></i>${s.title}</h3>`;
+      if (s.critical) {
+        return `<div class="critical-section">
+          <div class="critical-badge"><i data-lucide="alert-triangle" class="text-amber-400"></i>Eviction &amp; Compliance Warning</div>
+          ${heading}<p>${s.body}</p>
+        </div>`;
+      }
+      return `${heading}<p>${s.body}</p>`;
+    }).join('');
+    if (window.lucide) lucide.createIcons();
+  }
   function openVendorActivationModal(userId) {
     renderVaKycList(userId);
+    renderVaSignoffBox();
     // Step 1 · Payout Account Details — prefill if this user already has a
     // settlement bank on file (e.g. re-opening the gate), otherwise blank.
     const rec = appState.users[userId];
