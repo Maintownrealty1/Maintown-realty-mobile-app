@@ -1797,7 +1797,7 @@
   .s5-action-btn:hover { border-color: #334155; }
   .s5-action-btn.primary { background: linear-gradient(90deg, #9333ea, #7e22ce); border: none; color: #fff; }
   /* ---- Inspection-First Checkout Gate: locked "View Payment Options" state
-       (Land/Property Details) until the ₦5,000 AI Assessment fee is paid ---- */
+       (Land/Property Details) until the one-time ₦5,000 screening fee is paid ---- */
   .s5-action-btn.land-pay-btn.locked {
     background: rgba(245,158,11,0.08); border: 1px dashed rgba(245,158,11,0.4); color: #fbbf24;
   }
@@ -6011,8 +6011,8 @@
   <div class="modal-card">
     <div class="modal-icon-wrap"><i data-lucide="shield-check" class="w-6 h-6"></i></div>
     <h2 class="modal-title">Credit &amp; Background Screening</h2>
-    <p class="modal-sub">Complete your ₦5,000 background and credit verification to unlock flexible payment options.</p>
-    <div class="rent-badge" style="margin-bottom:16px;"><i data-lucide="wallet" class="w-3.5 h-3.5"></i><span>Screening Fee: ₦5,000 · 100% to MainTown Realty</span></div>
+    <p class="modal-sub">Complete your one-time ₦5,000 background and credit verification to unlock flexible payment options. You only pay this once — it is never charged again at checkout.</p>
+    <div class="rent-badge" style="margin-bottom:16px;"><i data-lucide="wallet" class="w-3.5 h-3.5"></i><span>One-time Screening Fee: ₦5,000 · 100% to MainTown Realty</span></div>
     <button type="button" id="screening-pay-btn" class="btn-primary" style="margin-top:0; margin-bottom:10px;">Pay ₦5,000 &amp; Continue</button>
     <button type="button" id="screening-cancel-btn" class="btn-secondary">Not now</button>
   </div>
@@ -6164,7 +6164,7 @@
       </div>
 
       <!-- Platform AI Revenue (Model B) — ops/admin visibility into the cumulative
-           one-time AI processing fees (₦5,000 rentals / ₦15,000 land) collected
+           the one-time ₦5,000 screening fee and ₦15,000 land title-vetting fee collected
            across every account sharing this demo's maintown_app_state store. -->
       <div class="ai-revenue-card" id="ai-revenue-card" style="display:none;">
         <div class="ai-revenue-card-top">
@@ -6172,7 +6172,7 @@
           <span class="ai-revenue-badge">Model B</span>
         </div>
         <p class="ai-revenue-amount" id="ai-revenue-amount">₦0</p>
-        <p class="ai-revenue-sub">Cumulative one-time AI processing fees collected across all accounts on this device — ₦5,000 per rental checkout, ₦15,000 per land/property checkout.</p>
+        <p class="ai-revenue-sub">Cumulative fees collected across all accounts on this device — a one-time ₦5,000 screening fee per account, and ₦15,000 per land/property checkout.</p>
       </div>
 
       <p class="txn-section-title">What it's doing for you</p>
@@ -6350,7 +6350,7 @@
     <!-- Quick Deposit presets -->
     <p class="field-label" style="margin-bottom:8px;">Quick Deposit</p>
     <div class="fw-quick-grid">
-      <button type="button" class="fw-quick-btn" data-quick-amount="5000">₦5,000<span class="fw-quick-sub">AI Fee</span></button>
+      <button type="button" class="fw-quick-btn" data-quick-amount="5000">₦5,000<span class="fw-quick-sub">Screening</span></button>
       <button type="button" class="fw-quick-btn" data-quick-amount="50000">₦50,000</button>
       <button type="button" class="fw-quick-btn" data-quick-amount="1000000">₦1,000,000</button>
       <button type="button" class="fw-quick-btn" data-quick-amount="10000000">₦10,000,000</button>
@@ -6600,6 +6600,7 @@
       st.leases = [];
       st.inspections = [];
       st.notifications = [];
+      st.screening = {};
       st.current_view = null;
       st.platform_revenue = { ai_processing_fees: 0, commissions: 0, legal_fees: 0 };
       if (st.users && typeof st.users === 'object') {
@@ -7494,7 +7495,11 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="clause-block">
           <h4><i data-lucide="key-round" class="w-3.5 h-3.5 text-purple-400"></i>Direct Landlord Listings</h4>
-          <p>₦0 agent inspection fee. Only a flat ₦5,000 MainTown service fee applies.</p>
+          <p>₦0 agent inspection fee. Only a flat ₦5,000 MainTown inspection fee applies.</p>
+        </div>
+        <h3><i data-lucide="shield-check" class="text-purple-400"></i>Screening Fee Policy</h3>
+        <div class="clause-block">
+          <p>A one-time ₦5,000 credit and background screening fee is paid once, before your first inspection request or purchase. It is not charged again at checkout or on later rentals.</p>
         </div>
         <h3><i data-lucide="landmark" class="text-purple-400"></i>Land &amp; Property Buyer Policy</h3>
         <div class="clause-block">
@@ -8373,7 +8378,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         asCard("Seller / Developer's share", 'The purchase price, paid straight to the seller\'s own account at the point of charge.'),
         asCard('Deed of Assignment fee', 'Set by the owner at 5% or 10% of the price and paid directly to them with your first installment. MainTown does not collect it.'),
         asCard('Agency Commission (10%)', 'Split in two halves: your 5% goes to MainTown; the seller\'s 5% goes to the listing agent, or to MainTown if no agent was involved.'),
-        asCard('One-time processing fee', '₦15,000 on land and property purchases. It covers title vetting and secure split-payment set-up.')
+        asCard('Title vetting & processing fee', '₦15,000 per land or property purchase. It covers title vetting and secure split-payment set-up, and is separate from the one-time ₦5,000 screening fee.')
       ];
     } else if (type === 'shortlet') {
       cards = [
@@ -8386,7 +8391,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         asCard("Landlord's share (net rent)", 'Your rent, paid straight to the landlord\'s own account at the point of charge.'),
         asCard('Caution Deposit & Service Charge', 'Both are set by the landlord or agent and paid directly to them alongside your rent. MainTown takes no cut.'),
         asCard('Legal Fee (tenancy agreement)', 'Collected by MainTown directly for drafting your tenancy agreement, so it is never collected by the landlord or agent.'),
-        asCard('One-time processing fee', '₦5,000 on rentals. It covers the automated credit-risk check that speeds up approval.')
+        asCard('One-time screening fee', '₦5,000, paid once when you first request an inspection or start a purchase. It covers your credit and background screening and is not charged again at checkout.')
       ];
     }
     cards.push('<p class="as-note">Payment is split automatically at the point of charge by the licensed payment provider. MainTown never holds your funds. The rows in your Payment Disbursement Breakdown show the exact amounts for this listing.</p>');
@@ -8396,7 +8401,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function assistTodo() {
     const items = [];
     const uid = getCurrentUserId();
-    if (!screeningCompleted) {
+    if (!isScreeningCompleted()) {
       items.push({ done: false, t: 'Complete credit screening', b: 'One-time ₦5,000 check needed before you can request an inspection.', go: 'screening', cta: 'Start screening' });
     } else {
       items.push({ done: true, t: 'Credit screening complete', b: 'You are cleared to request inspections.' });
@@ -8885,12 +8890,30 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Blocks inspection scheduling and lease/land-purchase requests until the
   // one-time screening checkout has been completed for this demo session.
   // ==================================================================
-  let screeningCompleted = false;
-  try { screeningCompleted = localStorage.getItem('mtr_screening_completed') === 'true'; } catch (e) {}
+  // Tied to the logged-in ACCOUNT (appState.screening[userId]), not the device:
+  // paying once clears that account for good, and a different account signing in
+  // on the same phone still has to pay its own one-time fee.
+  function isScreeningCompleted() {
+    const uid = getCurrentUserId();
+    if (!uid) return false;
+    try {
+      const st = loadAppState();
+      return !!(st.screening && st.screening[uid] && st.screening[uid].paid);
+    } catch (e) { return false; }
+  }
+  function markScreeningCompleted() {
+    const uid = getCurrentUserId();
+    if (!uid) return;
+    appState = loadAppState();
+    if (!appState.screening) appState.screening = {};
+    appState.screening[uid] = { paid: true, paidAt: new Date().toISOString() };
+    saveAppState(appState);
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  }
   let screeningPendingAction = null;
 
   function requireScreening(action) {
-    if (screeningCompleted) { action(); return; }
+    if (isScreeningCompleted()) { action(); return; }
     screeningPendingAction = action;
     document.getElementById('screening-modal')?.classList.add('open');
   }
@@ -8901,12 +8924,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   document.getElementById('screening-pay-btn')?.addEventListener('click', () => {
-    screeningCompleted = true;
-    try { localStorage.setItem('mtr_screening_completed', 'true'); } catch (e) {}
+    markScreeningCompleted();
     logTransaction({
       dealStage: 'APPLICATION', escrowStatus: 'RELEASED', gross: 5000,
       maintownRevenue: 5000, status: 'COMPLETED'
     });
+    // Screening is the only ₦5,000 fee a renter pays — count it in platform revenue here.
+    try { if (typeof creditAiProcessingFee === 'function') creditAiProcessingFee(5000); } catch (e) {}
     document.getElementById('screening-modal')?.classList.remove('open');
     showToast('Credit screening complete — flexible payment options unlocked');
     // Refresh the Land/Property feed so any locked "View Payment Options"
@@ -9268,11 +9292,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
                A/B/C option-picker screen is skipped for land, since land has no
                separate "cart" path and the toggle modal already carries its own
                Inspection-First Checkout Gate. -->
-          <button type="button" class="s5-action-btn primary land-pay-btn${(screeningCompleted && !unavailable) ? '' : ' locked'}${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%;" ${unavailable ? 'disabled' : ''}>${unavailable
+          <button type="button" class="s5-action-btn primary land-pay-btn${(isScreeningCompleted() && !unavailable) ? '' : ' locked'}${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%;" ${unavailable ? 'disabled' : ''}>${unavailable
             ? '<i data-lucide="lock" class="w-4 h-4"></i>Sold — Unavailable'
-            : (screeningCompleted
+            : (isScreeningCompleted()
               ? '<i data-lucide="shopping-bag" class="w-4 h-4"></i>Buy Now'
-              : '<i data-lucide="lock" class="w-4 h-4"></i>Buy Now — Pay ₦5,000 AI Fee to Unlock')}</button>
+              : '<i data-lucide="lock" class="w-4 h-4"></i>Buy Now — Complete ₦5,000 Screening to Unlock')}</button>
           ${unavailable ? `<p class="s5-unavailable-notice sold"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i>This property is no longer available as it has been successfully SOLD.</p>` : ''}
         </div>
       </div>`;
@@ -10021,7 +10045,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   let checkoutRentBreakdown = null; // { monthly, commission, legal, upfront, remainingMonths, remainingTotal } — set in openCheckout for rentals
   let checkoutAgreementUploaded = false; // true once the agreement has been digitally executed (signed)
   let checkoutTenantSignature = null; // { mode: 'draw'|'type', data: dataURL or typed name }
-  let checkoutAiFeeNgn = 0; // MainTown AI Model B one-time fee (₦5,000 rent / ₦15,000 land) for the current checkout, always in NGN
+  let checkoutAiFeeNgn = 0; // MainTown one-time land title-vetting fee (₦15,000) for the current checkout, always in NGN — rentals carry none (screening is paid once up front)
   // Short-Let Checkout Revamp: date-range + itemized breakdown for the currently
   // open shortlet checkout. Populated by openShortletDatesModal()/computeShortletBreakdown()
   // before openCheckout(listing) is called — see "PART: SHORT-LET CHECKOUT REVAMP" below.
@@ -10408,6 +10432,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         document.getElementById('s6-fee-amount').textContent = 'Outright — N/A';
         checkoutAiFeeNgn = 15000;
         document.getElementById('s6-ai-fee-label').innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown AI Title Vetting &amp; Secure Split-Pay Fee';
+        document.getElementById('s6-ai-fee-row').style.display = '';
         document.getElementById('s6-ai-fee-amount').textContent = formatMoney(checkoutAiFeeNgn, 'ngn');
         document.getElementById('s6-total-amount').textContent = formatMoney(checkoutLandPayment.totalPrice + checkoutLandPayment.processingFee + checkoutAiFeeNgn, 'ngn');
       } else {
@@ -10426,6 +10451,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         document.getElementById('s6-fee-amount').textContent = formatMoney(checkoutLandPayment.legal, 'ngn');
         checkoutAiFeeNgn = 15000;
         document.getElementById('s6-ai-fee-label').innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown AI Title Vetting &amp; Secure Split-Pay Fee';
+        document.getElementById('s6-ai-fee-row').style.display = '';
         document.getElementById('s6-ai-fee-amount').textContent = formatMoney(checkoutAiFeeNgn, 'ngn');
         document.getElementById('s6-total-amount').textContent = formatMoney(checkoutLandPayment.upfront + checkoutAiFeeNgn, 'ngn') + ' due now';
       }
@@ -10482,6 +10508,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
       checkoutAiFeeNgn = 0; // no MainTown AI fee on short-let stays — Platform Fee (5%) below covers it
       document.getElementById('s6-ai-fee-label').innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown Platform Fee (5%) — Night 1';
+      document.getElementById('s6-ai-fee-row').style.display = '';
       document.getElementById('s6-ai-fee-amount').textContent = formatMoney(sl.platformFee, 'ngn');
       document.getElementById('s6-total-amount').textContent = formatMoney(sl.dueNowAmount, 'ngn') + ' due now';
 
@@ -10516,14 +10543,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       checkoutRentBreakdown.serviceChargeFee = (listing.serviceChargeMode === 'charged') ? (listing.serviceChargeFee || 0) : 0;
       const rate = currentCurrency === 'usd' ? (1 / 1600) : 1;
 
-      // MainTown AI Risk & Flex Scoring Fee: a one-time ₦5,000 fee added only to
-      // the FIRST rent installment's checkout (Flex Rent). Subsequent recurring
-      // monthly/quarterly installments are handled by populatePayRentScreen(),
-      // a separate flow that never sets/reads checkoutAiFeeNgn, so they never
-      // carry this fee.
-      checkoutAiFeeNgn = 5000;
-      document.getElementById('s6-ai-fee-label').innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown AI Risk &amp; Flex Scoring Fee';
-      document.getElementById('s6-ai-fee-amount').textContent = formatMoney(checkoutAiFeeNgn * rate, currentCurrency);
+      // No MainTown fee is added at rental checkout. The one-time ₦5,000 credit
+      // screening fee is paid once, up front (see requireScreening()), and is
+      // never charged again at checkout — so the AI fee row stays hidden here.
+      checkoutAiFeeNgn = 0;
+      document.getElementById('s6-ai-fee-row').style.display = 'none';
+      document.getElementById('s6-ai-fee-amount').textContent = '—';
 
       document.getElementById('s6-rent-amount').textContent = formatMoney(checkoutRentBreakdown.monthly * rate, currentCurrency);
       document.getElementById('s6-deposit-amount').textContent = formatMoney(checkoutRentBreakdown.commission * rate, currentCurrency);
@@ -11566,7 +11591,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
 
     // MainTown AI Model B Revenue: credit the one-time AI processing fee
-    // (₦5,000 Risk & Flex Scoring for rentals, ₦15,000 Title Vetting & Secure
+    // (₦15,000 Title Vetting & Secure
     // Split-Pay for land/property purchases) to the cumulative platform ledger.
     const aiFeePaidNgn = checkoutAiFeeNgn;
     if (checkoutListing && checkoutAiFeeNgn > 0) {
@@ -11672,6 +11697,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     document.getElementById('s6-invoice-ai-fee-label').innerHTML = document.getElementById('s6-ai-fee-label').innerHTML;
     document.getElementById('s6-invoice-ai-fee').textContent = document.getElementById('s6-ai-fee-amount').textContent;
+    document.getElementById('s6-invoice-ai-fee-row').style.display = (document.getElementById('s6-ai-fee-amount').textContent.trim() === '—') ? 'none' : '';
     document.getElementById('s6-invoice-total').textContent = document.getElementById('s6-total-amount').textContent;
 
     const txRef = 'MTR-' + Date.now().toString(36).toUpperCase();
@@ -17273,6 +17299,8 @@ available in the Post-Lease Hub and this chat thread.`
       chats: [],
       // Auto-provisioned Landlord accounts (Agent-listing flow), keyed by landlord id.
       users: {},
+      // One-time credit screening status, keyed by userId: { paid, paidAt }.
+      screening: {},
       // Lease records keyed by listingId — tracks move-in scheduling status
       // (moveInDate / moveInStatus) so it's visible across Landlord/Agent
       // dashboards regardless of which account is currently logged in.
