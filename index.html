@@ -876,6 +876,8 @@
      z-index: 60, or they render visually behind the sheet instead of on
      top of it. */
   #fund-wallet-modal, #withdraw-wallet-modal { z-index: 65; }
+  /* Transaction receipt opens from the Wallet sheet (z 60) and full-screen views (z 70) — must sit on top */
+  #txn-receipt-modal { z-index: 90; }
   .sheet-card {
     background: #0b0f19; border: 1px solid #1e293b; border-bottom: none;
     border-top-left-radius: 24px; border-top-right-radius: 24px;
