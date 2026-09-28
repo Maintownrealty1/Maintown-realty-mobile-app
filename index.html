@@ -2803,6 +2803,142 @@
     *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
   }
 
+
+
+  /* ================================================================
+     MainTown Premium Refinement — full app pass
+     Shared shell, onboarding, dashboard, marketplace, finance, trust,
+     documents, profile, modals and enterprise surfaces.
+     ================================================================ */
+  .app-shell {
+    width: 100%; max-width: 430px; min-height: 100svh; margin: 0 auto;
+    background: linear-gradient(180deg, #0b1220 0%, #080d18 100%);
+    box-shadow: 0 0 80px rgba(0,0,0,.22);
+  }
+  .screen:not(.welcome-screen), .screen-view { min-height: 100svh; padding: 20px 20px 154px; }
+  .screen-view { background: linear-gradient(180deg, #0b1220 0%, #080d18 100%); }
+  .brand-row { display: flex; align-items: center; gap: 10px; margin: 2px 0 36px; }
+  .brand-logo { width: 34px; height: 34px; border-radius: 10px; box-shadow: 0 6px 14px rgba(0,0,0,.24); }
+  .brand-name { font-size: 14px; font-weight: 750; letter-spacing: -.02em; color: #f8fafc; }
+  .brand-tagline { font-size: 10px; color: #8190a7; margin-top: 2px; }
+  .progress-row { margin: 0 0 32px; }
+  .progress-label, .progress-step { color: #91a0b6; font-size: 11px; }
+  .progress-track { height: 4px; border-radius: 99px; background: #1b2940; overflow: hidden; margin-top: 10px; }
+  .progress-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #5b3fd1, #8873e9); }
+  .title { color: #f8fafc; font-size: 28px; line-height: 1.12; letter-spacing: -.045em; font-weight: 750; margin-bottom: 8px; }
+  .subtitle { color: #8d9bb0; font-size: 13px; line-height: 1.55; margin-bottom: 26px; }
+  .role-grid { display: grid; gap: 10px; margin: 0 0 28px; }
+  .role-card {
+    display: flex; align-items: center; gap: 13px; padding: 15px; text-align: left;
+    border: 1px solid #25344c; border-radius: 15px; background: #111b2d; color: #eef2f8;
+    transition: border-color .18s ease, background .18s ease, transform .18s ease;
+  }
+  .role-card:hover, .role-card.selected { border-color: #7663dc; background: #17233a; transform: translateY(-1px); }
+  .role-card-icon { width: 38px; height: 38px; border-radius: 11px; background: rgba(91,63,209,.14); color: #b9adff; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .role-card-title { font-size: 13px; font-weight: 700; margin: 0 0 3px; }
+  .role-card-sub { font-size: 11px; color: #8190a7; margin: 0; }
+  .field { margin-bottom: 16px; }
+  .field-label { color: #9aa8bb; font-size: 11px; font-weight: 650; margin: 0 0 7px; }
+  .field-input { width: 100%; min-height: 50px; padding: 0 14px; font-size: 13px; }
+  .field-input::placeholder { color: #52617a; }
+  .btn-primary, .btn-secondary { font-weight: 700; font-size: 13px; letter-spacing: -.005em; }
+  .login-helper, .demo-quick-item, .demo-flow-card, #login-demo-section, #login-pending-toggle {
+    border-color: #25344c !important; background: #101a2c !important; border-radius: 15px !important;
+  }
+  .demo-quick-item { padding: 13px 14px !important; }
+  .demo-quick-btn { border-radius: 10px !important; background: rgba(91,63,209,.18) !important; border: 1px solid rgba(118,99,220,.35) !important; color: #dcd7ff !important; }
+  .login-error-msg { border-radius: 12px; }
+
+  /* Dashboard: executive summary first, actions second. */
+  .dash-header { margin: 2px 0 22px; padding-top: 4px; }
+  .dash-greeting { color: #8391a6; font-size: 12px; margin-bottom: 3px; }
+  .dash-name { color: #f8fafc; font-size: 22px; line-height: 1.1; font-weight: 750; letter-spacing: -.04em; }
+  .dash-card { padding: 22px; margin-bottom: 20px; min-height: 142px; background: linear-gradient(145deg, #222e4a, #121d32); }
+  .dash-card-label { color: #aebbd0; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+  .dash-card-value { font-size: 30px; letter-spacing: -.04em; margin: 10px 0 5px; }
+  .dash-card-sub { color: #9aa8bb; font-size: 12px; }
+  .dash-card-tap-hint { color: #b8adff; font-size: 10px; margin-top: 14px; }
+  .dash-section-title { margin: 26px 0 12px; }
+  .dash-grid { gap: 10px; margin-bottom: 18px; }
+  .dash-tile { min-height: 112px; padding: 16px 12px; background: #101a2c; border-color: #25344c; border-radius: 16px; }
+  .dash-tile:hover { background: #17233a; border-color: #6557c5; }
+  .dash-tile-icon-wrap { width: 38px; height: 38px; border-radius: 11px; margin-bottom: 10px; }
+  .dash-tile-label { color: #d9e0eb; font-size: 11.5px; font-weight: 650; }
+  .dash-summary-card { border-radius: 15px; padding: 14px; }
+
+  /* Marketplace: property photography and trust metadata take priority. */
+  .s5-topbar { position: sticky; top: 0; z-index: 7; padding-top: 2px; padding-bottom: 12px; margin: -2px -20px 18px; padding-left: 20px; padding-right: 20px; background: rgba(11,18,32,.92); backdrop-filter: blur(16px); }
+  .s5-search-wrap { height: 46px; border-radius: 13px; background: #111b2d; border-color: #2a3952; }
+  .s5-search-wrap input { font-size: 12px; }
+  .s5-role-header { padding: 0; margin-bottom: 20px; }
+  .s5-role-eyebrow { color: #b8adff; font-size: 10px; letter-spacing: .1em; }
+  .s5-role-title { font-size: 26px; line-height: 1.1; letter-spacing: -.045em; font-weight: 750; }
+  .s5-role-sub { color: #8d9bb0; margin-top: 7px; }
+  .toggle-pill-row, .s5-currency-toggle, .s5-tabs { background: #101a2c; border-color: #25344c; border-radius: 13px; }
+  .toggle-pill.active, .s5-currency-btn.active { background: #5b3fd1; }
+  .s5-feed { gap: 16px; }
+  .s5-card { background: #101a2c; border-color: #25344c; border-radius: 18px; }
+  .s5-card-img-wrap { height: 190px; }
+  .s5-card-body { padding: 17px; }
+  .s5-card-title { font-size: 16px; letter-spacing: -.02em; }
+  .s5-card-price { color: #c4b9ff; font-size: 18px; }
+  .s5-card-actions { gap: 9px; }
+  .s5-action-btn { min-height: 44px; border-radius: 11px; }
+  .s5-action-btn.primary { background: #5b3fd1; }
+  .s5-verified-badge { background: rgba(11,76,62,.94); }
+
+  /* Wallet, rent and secure checkout: bank-grade information density. */
+  .wallet-balance-card, .pr-balance-card { background: linear-gradient(145deg, #222e4a, #121d32); border-radius: 20px; border-color: #34435d; padding: 22px; }
+  .wallet-balance-value, .pr-balance-amount { font-size: 32px; letter-spacing: -.045em; }
+  .wallet-action-btn { min-height: 42px; border-radius: 10px; }
+  .wallet-mini-card, .wallet-txn-row, .pr-method-card, .fee-preview-box, .agreement-preview-card, .receipt-box { background: #101a2c; border-color: #25344c; border-radius: 15px; }
+  .wallet-txn-row, .pr-method-card { padding: 15px; }
+  .wallet-txn-title, .pr-method-title { font-size: 13px; }
+  .pr-progress-track { height: 8px; border-radius: 99px; background: #25344c; }
+  .pr-progress-fill { background: #5b3fd1; }
+  .pay-option, .split-item, .stage-item, .ticket-item, .thread-item, .notif-item { background: #101a2c; border-color: #25344c; border-radius: 15px; }
+  .pay-option.selected { border-color: #7663dc; background: rgba(91,63,209,.12); }
+  .callout-box { background: rgba(184,148,82,.09); border-color: rgba(184,148,82,.34); }
+  .callout-box p { color: #e7d7b6; }
+  .doc-action-btn, .lease-doc-btn { border-radius: 10px; }
+
+  /* Account, documents, enterprise and modal surfaces. */
+  .s5-card-title, .ent-company-name, .modal-title, .sheet-title { letter-spacing: -.025em; }
+  .profile-avatar-lg { border: 3px solid #5b3fd1; box-shadow: 0 0 0 6px rgba(91,63,209,.12); }
+  .profile-avatar-edit-btn { background: #5b3fd1; }
+  .pr-toggle-row { background: #101a2c; border-color: #25344c; border-radius: 15px; }
+  .ent-header { padding: 0; }
+  .ent-metric-card, .ent-list-item, .ent-team-card, .ent-quick-card, .ent-promo-card { background: #101a2c; border-color: #25344c; border-radius: 16px; }
+  .ent-promo-card { background: linear-gradient(145deg, #222e4a, #121d32); border-color: #4b5b7a; padding: 18px; }
+  .ent-promo-icon, .ent-list-icon { background: rgba(91,63,209,.15); color: #c4b9ff; }
+  .ent-tabs { gap: 7px; }
+  .ent-tab-btn { background: #101a2c; border-color: #25344c; border-radius: 10px; }
+  .ent-tab-btn.active { background: rgba(91,63,209,.18); border-color: #7663dc; }
+  .modal-card, .sheet-card { background: #101a2c; border: 1px solid #34435d; border-radius: 22px; box-shadow: 0 24px 70px rgba(0,0,0,.42); }
+  .modal-overlay, .sheet-overlay { background: rgba(3,7,15,.78); backdrop-filter: blur(8px); }
+  .modal-icon-wrap { background: rgba(91,63,209,.14); border-color: rgba(118,99,220,.32); }
+  .modal-icon-wrap svg { color: #c4b9ff; }
+  .s5-status-success, .s5-status-badge { border-radius: 999px; }
+
+  /* Bottom navigation becomes a floating command rail. */
+  #app-bottom-nav { padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+  .dash-nav { padding: 11px 10px; border-radius: 20px; background: rgba(16,26,44,.95) !important; border-color: #2c3c57 !important; }
+  .dash-nav-item { min-width: 58px; min-height: 42px; gap: 5px; border-radius: 12px; padding: 5px 8px; font-weight: 650; }
+  .dash-nav-item.active { background: rgba(91,63,209,.18); color: #c4b9ff; }
+  .dash-nav-item.active .nav-icon { color: #c4b9ff; }
+
+  /* Light theme remains premium rather than becoming a flat inversion. */
+  body.light-theme .app-shell, body.light-theme .screen-view { background: #f5f7fb; }
+  body.light-theme .s5-topbar { background: rgba(245,247,251,.92); }
+  body.light-theme .role-card, body.light-theme .dash-tile, body.light-theme .s5-card,
+  body.light-theme .wallet-txn-row, body.light-theme .wallet-mini-card, body.light-theme .pr-method-card,
+  body.light-theme .ent-metric-card, body.light-theme .ent-list-item, body.light-theme .ent-team-card,
+  body.light-theme .ent-quick-card, body.light-theme .demo-quick-item, body.light-theme #login-demo-section { background: #fff !important; border-color: #e0e6ef !important; }
+  body.light-theme .title, body.light-theme .s5-role-title, body.light-theme .s5-card-title, body.light-theme .dash-name { color: #101827; }
+  body.light-theme .subtitle, body.light-theme .s5-role-sub, body.light-theme .dash-greeting { color: #617089; }
+  body.light-theme .field-input { color: #101827; }
+  body.light-theme .dash-nav { background: rgba(255,255,255,.96) !important; }
+
 </style>
 </head>
 <body>
@@ -7577,11 +7713,15 @@ document.addEventListener('DOMContentLoaded', () => {
     .forEach(a => scheduleLandInstallmentAutoDebit(a.id));
 
   // ---- Seller Deed-of-Assignment Upload Reminder ----
-  // Mirrors startCountersignReminder: fires every 5 hours (demo-accelerated)
-  // until the Seller actually uploads the Deed (asset.deedAvailable).
+  // Temporarily paused: the repeating demo reminder was too intrusive in the
+  // dashboard and is not yet backed by a real server-side schedule. The
+  // one-time "Full Payment Received — Deed Required" notification above still
+  // informs the Seller; this flag only pauses the repeating follow-up notices.
+  const DEED_UPLOAD_REMINDERS_ENABLED = false;
   const DEED_UPLOAD_REMINDER_DEMO_MS = 15000;
   const deedReminderTimers = {};
   function startDeedReminder(assetId) {
+    if (!DEED_UPLOAD_REMINDERS_ENABLED) return;
     if (deedReminderTimers[assetId]) clearInterval(deedReminderTimers[assetId]);
     deedReminderTimers[assetId] = setInterval(() => {
       appState = loadAppState();
@@ -7598,8 +7738,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // Resume deed reminders for any fully-paid-but-undeeded assets after
   // reload. Same loadAppState() note as above applies here.
-  (loadAppState().assets || []).filter(a => (a.paymentMode !== 'installment' || a.installmentsPaid >= a.installmentsTotal) && !a.deedAvailable)
-    .forEach(a => startDeedReminder(a.id));
+  if (DEED_UPLOAD_REMINDERS_ENABLED) {
+    (loadAppState().assets || []).filter(a => (a.paymentMode !== 'installment' || a.installmentsPaid >= a.installmentsTotal) && !a.deedAvailable)
+      .forEach(a => startDeedReminder(a.id));
+  }
 
 
   // ==================================================================
@@ -16255,16 +16397,36 @@ available in the Post-Lease Hub and this chat thread.`
   }
 
   function saveAccountRecord() {
+    // Keep newly onboarded accounts in the same session path as pre-seeded
+    // demo accounts. Without this identity, dashboard modules that depend on
+    // getCurrentUserId() (including Enterprise upgrade) cannot render.
+    const existingUser = (typeof loadCurrentUser === 'function' && loadCurrentUser()) || {};
+    const existingAccount = (typeof loadSavedAccount === 'function' && loadSavedAccount()) || {};
+    const id = existingUser.id || existingAccount.id || `user_${Date.now()}`;
+    const fullName = (document.getElementById('reg-fullname')?.value || '').trim();
+    const email = (document.getElementById('reg-email')?.value || '').trim();
+    const role = currentUserRole || existingUser.role || existingAccount.role || 'tenant';
     const account = {
-      role: currentUserRole || 'tenant',
-      fullName: (document.getElementById('reg-fullname')?.value || '').trim(),
+      id, role, fullName,
       occupation: (document.getElementById('reg-occupation')?.value || '').trim(),
-      email: (document.getElementById('reg-email')?.value || '').trim(),
+      email,
       phone: (document.getElementById('reg-phone')?.value || '').trim(),
       countryCode: document.getElementById('country-code')?.value || '+234',
       photo: currentUserSelfieDataUrl || null
     };
     try { localStorage.setItem('mtr_account', JSON.stringify(account)); } catch (e) {}
+    if (typeof saveCurrentUser === 'function') {
+      saveCurrentUser({ id, name: fullName || roleDisplayNames[role], email, role });
+    }
+    if (typeof loadAppState === 'function' && typeof saveAppState === 'function') {
+      appState = loadAppState();
+      appState.users = appState.users || {};
+      appState.users[id] = {
+        ...(appState.users[id] || {}), id, name: fullName || roleDisplayNames[role],
+        email, role, status: 'ACTIVE'
+      };
+      saveAppState(appState);
+    }
     return account;
   }
 
