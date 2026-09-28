@@ -1049,6 +1049,36 @@
   .screen { animation: fadeIn 0.35s ease; }
   .screen.hidden-screen { display: none; }
 
+  /* ---- Welcome: full-screen Lagos slideshow behind the content ---- */
+  .welcome-screen { position: relative; z-index: 1; }
+  /* opacity-only entrance: a transform on this element would trap the fixed slideshow inside it */
+  .screen.welcome-screen { animation: welcomeFade 0.35s ease; }
+  @keyframes welcomeFade { from { opacity: 0; } to { opacity: 1; } }
+  .welcome-slideshow { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: #0B0F19; }
+  .welcome-slide {
+    position: absolute; inset: 0; background-size: cover; background-position: center;
+    opacity: 0; transform: scale(1);
+    filter: saturate(1.15) contrast(1.05);
+    transition: opacity 1.6s ease-in-out, transform 0s linear 1.6s; /* snap back only after the fade-out */
+    will-change: opacity, transform;
+  }
+  .welcome-slide.active {
+    opacity: 1; transform: scale(1.12);
+    transition: opacity 1.6s ease-in-out, transform 9s linear; /* slow push-in while visible */
+  }
+  .welcome-slideshow::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(11,15,25,0.55) 0%, rgba(11,15,25,0.35) 30%, rgba(11,15,25,0.55) 62%, rgba(11,15,25,0.92) 100%);
+  }
+  .welcome-center, .welcome-actions { position: relative; z-index: 2; }
+  .welcome-brand-name, .welcome-tagline, .welcome-subtitle { text-shadow: 0 2px 16px rgba(0,0,0,0.55); }
+  .welcome-subtitle { color: #cbd5e1; }
+  .btn-welcome-secondary { background: rgba(19,25,39,0.72); backdrop-filter: blur(6px); }
+  @media (prefers-reduced-motion: reduce) {
+    .welcome-slide.active { transform: scale(1); }
+  }
+
   /* ---- Welcome / Splash screen ---- */
   .welcome-screen {
     min-height: 100vh; min-height: 100dvh;
@@ -1284,49 +1314,25 @@
 
   /* ---- MainTown AI: header pill button + Live Activity Feed drawer ---- */
   .mtai-pill {
-    position: relative; display: flex; align-items: center; gap: 7px;
-    height: 38px; padding: 0 10px 0 8px; border-radius: 999px;
-    background: rgba(15,23,42,0.85); border: 1px solid rgba(168,85,247,0.35);
-    cursor: pointer; flex-shrink: 0; max-width: 132px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    position: relative; width: 38px; height: 38px; border-radius: 12px;
+    background: rgba(15,23,42,0.8); border: 1px solid #1e293b; color: #cbd5e1;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; padding: 0;
+    transition: border-color 0.15s ease, color 0.15s ease;
   }
-  .mtai-pill:hover { border-color: rgba(168,85,247,0.7); box-shadow: 0 0 14px rgba(168,85,247,0.2); }
-  .mtai-left { position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .mtai-robot-icon {
-    width: 20px; height: 20px; display: block;
-    filter: drop-shadow(0px 0px 8px rgba(168, 85, 247, 0.75));
-  }
-  .mtai-status-dot {
-    position: absolute; bottom: -2px; right: -2px; width: 8px; height: 8px;
-    border-radius: 999px; border: 1.5px solid #0b0f19;
-  }
-  .mtai-status-dot.online { background: #10b981; animation: mtaiPulse 1.8s ease-in-out infinite; }
-  .mtai-status-dot.offline { background: #f43f5e; }
-  @keyframes mtaiPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.55); }
-    50% { box-shadow: 0 0 0 4px rgba(16,185,129,0); }
-  }
-  .mtai-text-wrap { flex: 1; min-width: 0; overflow: hidden; }
-  .mtai-text {
-    display: block; font-size: 12px; font-weight: 600; color: #e9d5ff;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    opacity: 1;
-  }
-  .mtai-text.mtai-faded { opacity: 0; }
+  .mtai-pill:hover { border-color: #334155; color: #e2e8f0; }
   .mtai-badge {
-    display: none; align-items: center; justify-content: center;
-    min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px;
-    background: #e11d48; color: #fff; font-size: 10px; font-weight: 700;
-    flex-shrink: 0; box-shadow: 0 0 8px rgba(225,29,72,0.6);
+    display: none; align-items: center; justify-content: center; position: absolute; top: -5px; right: -5px;
+    min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px;
+    background: #e11d48; color: #fff; font-size: 10px; font-weight: 700; border: 1.5px solid #0b0f19;
   }
   .mtai-badge.show { display: flex; }
 
   .mtai-drawer-header-icon-wrap {
-    width: 40px; height: 40px; border-radius: 12px; background: rgba(59,7,100,0.5);
-    border: 1px solid rgba(168,85,247,0.4); display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 12px; background: rgba(15,23,42,0.8);
+    border: 1px solid #1e293b; color: #cbd5e1; display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
-  .mtai-drawer-header-icon-wrap svg { width: 20px; height: 20px; filter: drop-shadow(0px 0px 6px rgba(168,85,247,0.7)); }
   .mtai-feed-empty { font-size: 12.5px; color: #64748b; text-align: center; padding: 28px 12px; }
   .mtai-feed-action-btn {
     margin-top: 8px; display: inline-flex; align-items: center; gap: 5px;
@@ -1375,6 +1381,35 @@
   body.light-theme .dl-loc { color: #64748b; }
   /* Odd tile count (tenant without Find a Home): let the last tile span the full row */
   .dash-grid .dash-tile.dash-tile-wide { grid-column: 1 / -1; }
+  /* ---- Ask MainTown: quiet contextual help links + sheet content ---- */
+  .as-link {
+    display: inline-flex; align-items: center; gap: 6px; background: none; border: none; padding: 0;
+    color: #a78bfa; font-size: 12.5px; font-weight: 600; cursor: pointer; margin: 0 0 14px;
+  }
+  .as-link:hover { color: #c4b5fd; }
+  .as-card { padding: 12px 14px; border: 1px solid #1e293b; border-radius: 12px; background: rgba(15,23,42,0.6); margin-bottom: 10px; }
+  .as-card-title { font-size: 13px; font-weight: 600; color: #e2e8f0; margin: 0 0 4px; }
+  .as-card-body { font-size: 12.5px; color: #94a3b8; line-height: 1.5; margin: 0; }
+  .as-todo { display: flex; align-items: flex-start; gap: 10px; }
+  .as-todo-icon { flex-shrink: 0; width: 22px; height: 22px; border-radius: 999px; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .as-todo-icon.done { background: rgba(16,185,129,0.15); color: #34d399; }
+  .as-todo-icon.open { background: rgba(148,163,184,0.15); color: #cbd5e1; }
+  .as-action {
+    margin-top: 8px; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #c4b5fd;
+    background: rgba(15,23,42,0.8); border: 1px solid #334155; border-radius: 999px; padding: 5px 12px; cursor: pointer;
+  }
+  .as-pick { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .as-pick input { width: 18px; height: 18px; accent-color: #8b5cf6; flex-shrink: 0; }
+  .as-cmp-scroll { overflow-x: auto; margin: 0 -4px 10px; }
+  .as-cmp-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .as-cmp-table th, .as-cmp-table td { text-align: left; padding: 9px 8px; border-bottom: 1px solid #1e293b; vertical-align: top; color: #cbd5e1; }
+  .as-cmp-table th { color: #e2e8f0; font-weight: 600; }
+  .as-cmp-table td:first-child { color: #64748b; white-space: nowrap; }
+  .as-note { font-size: 11.5px; color: #64748b; line-height: 1.5; margin: 6px 0 0; }
+  body.light-theme .as-card { background: #f8fafc; border-color: #e2e8f0; }
+  body.light-theme .as-card-title, body.light-theme .as-cmp-table th { color: #0f172a; }
+  body.light-theme .as-card-body, body.light-theme .as-cmp-table td { color: #475569; }
+  body.light-theme .as-link { color: #7c3aed; }
   .dash-section-title { font-size: 13px; font-weight: 600; color: #e2e8f0; margin: 0 0 12px; }
   .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
   .dash-tile {
@@ -2938,6 +2973,12 @@
 <!-- ===================== SCREEN WELCOME: Splash / Entry ===================== -->
 <div id="screen-welcome" class="screen welcome-screen">
 
+  <!-- Full-screen Lagos background slideshow (same photos as the maintownrealty.com hero) -->
+  <div class="welcome-slideshow" aria-hidden="true">
+    <div class="welcome-slide active" style="background-image:url('https://images.unsplash.com/photo-1559833064-6f4573ec1ac9?fm=jpg&q=80&w=1400&auto=format&fit=crop');"></div>
+    <div class="welcome-slide" style="background-image:url('https://images.unsplash.com/photo-1618828665347-d870c38c95c7?fm=jpg&q=80&w=1400&auto=format&fit=crop');"></div>
+  </div>
+
   <div class="welcome-center">
     <div class="welcome-logo-wrap">
       <div class="welcome-logo-glow"></div>
@@ -3351,30 +3392,8 @@
       <p class="dash-name" id="dash-user-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">User</p>
     </div>
     <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
-      <button type="button" class="mtai-pill" id="mtai-pill" aria-label="MainTown AI — open Command Center">
-        <span class="mtai-left">
-          <svg class="mtai-robot-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect x="4" y="8" width="16" height="12" rx="4" fill="#A855F7"/>
-            <rect x="4" y="8" width="16" height="12" rx="4" fill="url(#mtaiGrad)" fill-opacity="0.35"/>
-            <rect x="9.5" y="1.5" width="5" height="5" rx="2.5" fill="#9333EA"/>
-            <rect x="11.2" y="4.5" width="1.6" height="4" fill="#9333EA"/>
-            <circle cx="9" cy="14" r="2" fill="#0B0F19"/>
-            <circle cx="15" cy="14" r="2" fill="#0B0F19"/>
-            <circle cx="9" cy="14" r="0.9" fill="#E9D5FF"/>
-            <circle cx="15" cy="14" r="0.9" fill="#E9D5FF"/>
-            <rect x="8.5" y="17.3" width="7" height="1.6" rx="0.8" fill="#0B0F19" fill-opacity="0.55"/>
-            <rect x="1.5" y="12" width="2.5" height="4" rx="1.25" fill="#9333EA"/>
-            <rect x="20" y="12" width="2.5" height="4" rx="1.25" fill="#9333EA"/>
-            <defs>
-              <linearGradient id="mtaiGrad" x1="4" y1="8" x2="20" y2="20" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#E9D5FF"/>
-                <stop offset="1" stop-color="#A855F7" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-          </svg>
-          <span class="mtai-status-dot online" id="mtai-status-dot"></span>
-        </span>
-        <span class="mtai-text-wrap"><span class="mtai-text transition-opacity duration-700 ease-in-out" id="mtai-text">MainTown AI</span></span>
+      <button type="button" class="mtai-pill" id="mtai-pill" aria-label="Activity &amp; Verification">
+        <i data-lucide="sparkle" class="w-4 h-4"></i>
         <span class="mtai-badge" id="mtai-badge">0</span>
       </button>
       <button type="button" class="bell-btn" id="dash-bell-btn">
@@ -3451,6 +3470,8 @@
       <button type="button" class="s5-currency-btn active" data-currency="ngn">Local Rent (NGN)</button>
       <button type="button" class="s5-currency-btn" data-currency="usd">Diaspora Flex-Rent (USD/EUR)</button>
     </div>
+
+    <button type="button" class="as-link" id="s5-compare-link" data-assist="compare"><i data-lucide="columns-2" class="w-3.5 h-3.5"></i>Compare listings</button>
 
     <div class="s5-feed" id="s5-listing-feed">
       <!-- populated dynamically -->
@@ -4213,6 +4234,7 @@
     </div>
 
     <p class="s5-section-label"><i data-lucide="layers" class="w-4 h-4 text-purple-400"></i>Payment Disbursement Breakdown</p>
+    <button type="button" class="as-link" data-assist="fees"><i data-lucide="circle-help" class="w-3.5 h-3.5"></i>Explain these fees</button>
     <div class="s5-hold-preview" id="s6-disbursement-list"><!-- populated by renderDisbursementBreakdown() --></div>
 
     <p class="s5-section-label"><i data-lucide="wallet" class="w-4 h-4 text-purple-400"></i>Payment Source</p>
@@ -6082,6 +6104,24 @@
   </div>
 </div>
 
+<!-- ===================== Ask MainTown — contextual help sheet ===================== -->
+<div id="mt-assist-modal" class="sheet-overlay" style="z-index:95;">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div style="min-width:0;">
+        <h2 class="sheet-title" id="mt-assist-title" style="margin:0;">Ask MainTown</h2>
+        <p class="sheet-subtitle" id="mt-assist-sub"></p>
+      </div>
+      <button type="button" class="sheet-close-btn" id="mt-assist-close" aria-label="Close"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+    </div>
+    <div id="mt-assist-body"></div>
+    <div class="mtai-drawer-footer" style="margin-top:14px;">
+      <button type="button" class="btn-primary" id="mt-assist-done" style="margin-top:0;">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===================== MainTown AI — Unified Command Center Drawer ===================== -->
 <!-- Single drawer opened from the header's glowing robot pill. Tab 1 is the
      role-filtered Live Activity Feed; Tab 2 is the background Engine's
@@ -6092,22 +6132,9 @@
     <div class="sheet-handle"></div>
     <div class="sheet-header">
       <div style="display:flex; align-items:center; gap:10px;">
-        <div class="mtai-drawer-header-icon-wrap">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect x="4" y="8" width="16" height="12" rx="4" fill="#A855F7"/>
-            <rect x="9.5" y="1.5" width="5" height="5" rx="2.5" fill="#9333EA"/>
-            <rect x="11.2" y="4.5" width="1.6" height="4" fill="#9333EA"/>
-            <circle cx="9" cy="14" r="2" fill="#0B0F19"/>
-            <circle cx="15" cy="14" r="2" fill="#0B0F19"/>
-            <circle cx="9" cy="14" r="0.9" fill="#E9D5FF"/>
-            <circle cx="15" cy="14" r="0.9" fill="#E9D5FF"/>
-            <rect x="8.5" y="17.3" width="7" height="1.6" rx="0.8" fill="#0B0F19" fill-opacity="0.55"/>
-            <rect x="1.5" y="12" width="2.5" height="4" rx="1.25" fill="#9333EA"/>
-            <rect x="20" y="12" width="2.5" height="4" rx="1.25" fill="#9333EA"/>
-          </svg>
-        </div>
+        <div class="mtai-drawer-header-icon-wrap"><i data-lucide="activity" class="w-5 h-5"></i></div>
         <div>
-          <h2 class="sheet-title" style="margin:0;"><span>MainTown AI</span></h2>
+          <h2 class="sheet-title" style="margin:0;"><span>Activity &amp; Verification</span></h2>
           <p class="sheet-subtitle" id="mtai-feed-subtitle">Everything relevant to your account, in one place</p>
         </div>
       </div>
@@ -6121,7 +6148,7 @@
         <i data-lucide="activity" class="w-3.5 h-3.5"></i> Activity Feed
       </button>
       <button type="button" class="mtai-tab-btn" id="mtai-tab-btn-engine" data-tab="engine" role="tab" aria-selected="false">
-        <i data-lucide="bot" class="w-3.5 h-3.5"></i> Engine Status
+        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Verification
       </button>
     </div>
 
@@ -6582,6 +6609,26 @@
     }
     localStorage.setItem(FLAG, String(Date.now()));
   } catch (e) { /* storage unavailable — nothing to clean */ }
+})();
+
+// ---- Welcome screen: rotating full-screen background ----
+(function welcomeSlideshow() {
+  const slides = document.querySelectorAll('.welcome-slideshow .welcome-slide');
+  if (slides.length < 2) return;
+  // warm the cache so the crossfade never flashes an empty frame
+  slides.forEach(s => {
+    const m = /url\(['"]?([^'")]+)['"]?\)/.exec(s.style.backgroundImage || '');
+    if (m) { const im = new Image(); im.src = m[1]; }
+  });
+  let cur = 0;
+  setInterval(() => {
+    if (document.hidden) return;
+    const screen = document.getElementById('screen-welcome');
+    if (!screen || screen.classList.contains('hidden-screen')) return;
+    slides[cur].classList.remove('active');
+    cur = (cur + 1) % slides.length;
+    slides[cur].classList.add('active');
+  }, 6000);
 })();
 
 // ---- Payment provider (wallets, split-payment & holds are run by this licensed provider, never by MainTown) ----
@@ -8293,6 +8340,167 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (window.lucide) lucide.createIcons();
   }
 
+  // ==================================================================
+  // ---- Ask MainTown: contextual help (rule-based, reads live app state) ----
+  // Explain fees / what to complete / compare listings. Everything shown is
+  // derived from the listing, fee policy text and account state already in the
+  // app — no generated answers.
+  // ==================================================================
+  const assistModal = document.getElementById('mt-assist-modal');
+  const assistBody = document.getElementById('mt-assist-body');
+  let assistCompareSel = [];
+
+  function assistOpen(title, sub, html) {
+    document.getElementById('mt-assist-title').textContent = title;
+    document.getElementById('mt-assist-sub').textContent = sub || '';
+    assistBody.innerHTML = html;
+    assistModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  function assistClose() { assistModal.classList.remove('open'); }
+  document.getElementById('mt-assist-close').addEventListener('click', assistClose);
+  document.getElementById('mt-assist-done').addEventListener('click', assistClose);
+  assistModal.addEventListener('click', (e) => { if (e.target === assistModal) assistClose(); });
+
+  const asCard = (t, b) => `<div class="as-card"><p class="as-card-title">${t}</p><p class="as-card-body">${b}</p></div>`;
+
+  function assistFees() {
+    const l = (typeof checkoutListing !== 'undefined') ? checkoutListing : null;
+    const type = l ? l.type : 'rent';
+    let cards = [];
+    if (type === 'land') {
+      cards = [
+        asCard("Seller / Developer's share", 'The purchase price, paid straight to the seller\'s own account at the point of charge.'),
+        asCard('Deed of Assignment fee', 'Set by the owner at 5% or 10% of the price and paid directly to them with your first installment. MainTown does not collect it.'),
+        asCard('Agency Commission (10%)', 'Split in two halves: your 5% goes to MainTown; the seller\'s 5% goes to the listing agent, or to MainTown if no agent was involved.'),
+        asCard('One-time processing fee', '₦15,000 on land and property purchases. It covers title vetting and secure split-payment set-up.')
+      ];
+    } else if (type === 'shortlet') {
+      cards = [
+        asCard('Nightly rate', 'Night 1 is paid when you book. Remaining nights are debited daily from your wallet until the stay is fully paid.'),
+        asCard('MainTown Platform Fee', '5% of the nightly rate. Shortlets carry this instead of a Legal Fee.'),
+        asCard('Caution Deposit & Service Charge', 'Set by the owner or agent and paid directly to them. Damage claims against the deposit must be raised within 24 hours of checkout, with photo or video proof.')
+      ];
+    } else {
+      cards = [
+        asCard("Landlord's share (net rent)", 'Your rent, paid straight to the landlord\'s own account at the point of charge.'),
+        asCard('Caution Deposit & Service Charge', 'Both are set by the landlord or agent and paid directly to them alongside your rent. MainTown takes no cut.'),
+        asCard('Legal Fee (tenancy agreement)', 'Collected by MainTown directly for drafting your tenancy agreement, so it is never collected by the landlord or agent.'),
+        asCard('One-time processing fee', '₦5,000 on rentals. It covers the automated credit-risk check that speeds up approval.')
+      ];
+    }
+    cards.push('<p class="as-note">Payment is split automatically at the point of charge by the licensed payment provider. MainTown never holds your funds. The rows in your Payment Disbursement Breakdown show the exact amounts for this listing.</p>');
+    assistOpen('Explain these fees', l ? l.title : '', cards.join(''));
+  }
+
+  function assistTodo() {
+    const items = [];
+    const uid = getCurrentUserId();
+    if (!screeningCompleted) {
+      items.push({ done: false, t: 'Complete credit screening', b: 'One-time ₦5,000 check needed before you can request an inspection.', go: 'screening', cta: 'Start screening' });
+    } else {
+      items.push({ done: true, t: 'Credit screening complete', b: 'You are cleared to request inspections.' });
+    }
+    let bal = 0;
+    try { bal = getWalletBalance(uid); } catch (e) {}
+    if (!(bal > 0)) items.push({ done: false, t: 'Fund your wallet', b: 'Your wallet is empty. Rent and shortlet payments are debited from it.', go: 'wallet', cta: 'Open wallet' });
+    else items.push({ done: true, t: 'Wallet funded', b: 'You have a balance available for payments.' });
+    if (typeof checkoutPaymentPending !== 'undefined' && checkoutPaymentPending && checkoutListing && !isListingUnavailable(checkoutListing)) {
+      items.push({ done: false, t: 'Finish your payment', b: `${checkoutListing.title} is waiting for checkout.`, go: 'checkout', cta: 'Continue checkout' });
+    }
+    let pending = 0;
+    if (typeof schedules !== 'undefined') pending = schedules.filter(s => s.status === 'Pending Approval').length;
+    if (pending) items.push({ done: false, t: `${pending} inspection request${pending > 1 ? 's' : ''} awaiting approval`, b: 'The landlord or agent has not confirmed yet.', go: 'inspections', cta: 'View schedule' });
+    const open = items.filter(i => !i.done).length;
+    const html = items.map(i => `
+      <div class="as-card as-todo">
+        <div class="as-todo-icon ${i.done ? 'done' : 'open'}"><i data-lucide="${i.done ? 'check' : 'circle'}" class="w-3.5 h-3.5"></i></div>
+        <div style="min-width:0;">
+          <p class="as-card-title">${i.t}</p>
+          <p class="as-card-body">${i.b}</p>
+          ${i.go ? `<button type="button" class="as-action" data-as-go="${i.go}">${i.cta}<i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></button>` : ''}
+        </div>
+      </div>`).join('');
+    assistOpen('What do I need to complete?', open ? `${open} item${open > 1 ? 's' : ''} open` : 'You are all caught up', html);
+  }
+
+  function assistCompareSelect() {
+    const list = rentListings().filter(p => !isListingUnavailable(p));
+    assistCompareSel = assistCompareSel.filter(id => list.some(p => String(p.id) === id));
+    if (list.length < 2) { assistOpen('Compare listings', '', asCard('Not enough listings yet', 'At least two available listings are needed to compare.')); return; }
+    const rows = list.map(p => `
+      <label class="as-card as-pick">
+        <input type="checkbox" data-as-pick="${p.id}" ${assistCompareSel.includes(String(p.id)) ? 'checked' : ''}>
+        <span style="min-width:0;">
+          <span class="as-card-title" style="display:block;">${liEsc(p.title)}</span>
+          <span class="as-card-body" style="display:block;">${p.type === 'shortlet' ? 'Shortlet' : 'Rent'} · ${currentCurrency === 'usd' ? p.usd : p.ngn}</span>
+        </span>
+      </label>`).join('');
+    assistOpen('Compare listings', 'Pick 2 or 3', rows + `<button type="button" class="btn-primary" id="as-compare-go" style="margin-top:4px;" ${assistCompareSel.length < 2 ? 'disabled' : ''}>Compare selected (${assistCompareSel.length})</button>`);
+  }
+
+  function assistCompareResult() {
+    const list = rentListings().filter(p => assistCompareSel.includes(String(p.id)));
+    const price = p => currentCurrency === 'usd' ? p.usd : p.ngn;
+    const row = (label, fn) => `<tr><td>${label}</td>${list.map(p => `<td>${fn(p)}</td>`).join('')}</tr>`;
+    const table = `
+      <div class="as-cmp-scroll"><table class="as-cmp-table">
+        <thead><tr><th></th>${list.map(p => `<th>${liEsc(p.title)}</th>`).join('')}</tr></thead>
+        <tbody>
+          ${row('Price', p => `<strong>${price(p)}</strong>`)}
+          ${row('Type', p => p.type === 'shortlet' ? 'Shortlet (nightly)' : 'Long-term rent')}
+          ${row('Location', p => liEsc(p.location))}
+          ${row('Bedrooms', p => liEsc(liBedrooms(p) || '—'))}
+          ${row('Listed by', p => liEsc(liListedBy(p)))}
+          ${row('Walkthrough video', p => p.hasVideo ? 'Yes' : 'No')}
+        </tbody>
+      </table></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        ${list.map(p => `<button type="button" class="as-action" data-as-details="${p.id}">Details: ${liEsc(p.title.length > 18 ? p.title.slice(0, 17) + '…' : p.title)}</button>`).join('')}
+      </div>
+      <button type="button" class="as-link" id="as-compare-back" style="margin-top:14px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Change selection</button>`;
+    assistOpen('Compare listings', `${list.length} selected`, table);
+  }
+
+  function openAssist(kind) {
+    if (kind === 'fees') assistFees();
+    else if (kind === 'todo') assistTodo();
+    else if (kind === 'compare') assistCompareSelect();
+  }
+
+  document.addEventListener('click', (e) => {
+    const trigger = e.target.closest('[data-assist]');
+    if (trigger) { openAssist(trigger.dataset.assist); return; }
+    if (!assistModal.contains(e.target)) return;
+    const go = e.target.closest('[data-as-go]');
+    if (go) {
+      assistClose();
+      const k = go.dataset.asGo;
+      if (k === 'screening') requireScreening(() => showToast('Credit screening already complete'));
+      else if (k === 'wallet') openWalletDashboard();
+      else if (k === 'checkout') navigateTo('screen-6');
+      else if (k === 'inspections') navigateTo('screen-inspections');
+      return;
+    }
+    const det = e.target.closest('[data-as-details]');
+    if (det) { assistClose(); openListingInfo(det.dataset.asDetails); return; }
+    if (e.target.closest('#as-compare-go')) { assistCompareResult(); return; }
+    if (e.target.closest('#as-compare-back')) { assistCompareSelect(); return; }
+  });
+  document.addEventListener('change', (e) => {
+    const pick = e.target.closest && e.target.closest('[data-as-pick]');
+    if (!pick) return;
+    const id = String(pick.dataset.asPick);
+    if (pick.checked) {
+      if (assistCompareSel.length >= 3) { pick.checked = false; showToast('You can compare up to 3 listings'); return; }
+      assistCompareSel.push(id);
+    } else {
+      assistCompareSel = assistCompareSel.filter(x => x !== id);
+    }
+    const btn = document.getElementById('as-compare-go');
+    if (btn) { btn.disabled = assistCompareSel.length < 2; btn.textContent = `Compare selected (${assistCompareSel.length})`; }
+  });
+
   // ---- Tenant dashboard: "Homes for rent" + "Shortlets" horizontal rows ----
   // Reads the same live feed as Screen 5 (rentListings()), skips anything already
   // RENTED, and hides a row entirely when it has nothing to show. Tapping a card
@@ -8324,7 +8532,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <button type="button" class="dl-viewall">${linkText}<i data-lucide="arrow-right" class="w-4 h-4"></i></button>
         <div class="dl-row">${items.map(card).join('')}</div>
       </div>` : '';
-    wrap.innerHTML = section('Homes for rent', 'View all homes to rent', rents)
+    wrap.innerHTML = '<button type="button" class="as-link" data-assist="todo"><i data-lucide="list-checks" class="w-3.5 h-3.5"></i>What do I need to complete?</button>'
+                   + section('Homes for rent', 'View all homes to rent', rents)
                    + section('Shortlets, stay by the night', 'View all shortlets', shorts);
     if (window.lucide) lucide.createIcons();
     startDashListingSlides();
@@ -8980,6 +9189,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function renderTenantFeed(currency) {
     const feed = document.getElementById('s5-listing-feed');
+    const cmpLink = document.getElementById('s5-compare-link'); if (cmpLink) cmpLink.style.display = 'inline-flex';
     const data = rentListings().filter(l => !isListingUnavailable(l));
     feed.innerHTML = data.map(p => {
       const isShortlet = p.type === 'shortlet';
@@ -9023,6 +9233,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function renderLandFeed() {
     const feed = document.getElementById('s5-listing-feed');
+    const cmpLink = document.getElementById('s5-compare-link'); if (cmpLink) cmpLink.style.display = 'none';
     const data = landListingsList().filter(l => !isListingUnavailable(l));
     feed.innerHTML = data.map(p => {
       const photos = (p.photos && p.photos.length) ? p.photos : [p.img];
