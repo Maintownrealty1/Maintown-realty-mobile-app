@@ -146,7 +146,7 @@
   body.light-theme .ent-stat-card {
     background: linear-gradient(135deg, #7c3aed, #9333ea);
     border: none;
-    box-shadow: 0 10px 24px rgba(124,58,237,0.28);
+    box-shadow: none;
   }
   body.light-theme .ent-stat-label { color: rgba(255,255,255,0.85); }
   body.light-theme .ent-stat-value { color: #ffffff; }
@@ -224,7 +224,7 @@
   body.light-theme .ent-promo-card {
     background: linear-gradient(135deg, #7c3aed, #9333ea);
     border: none;
-    box-shadow: 0 10px 24px rgba(124,58,237,0.28);
+    box-shadow: none;
   }
   body.light-theme .ent-promo-icon { background: rgba(255,255,255,0.2); color: #ffffff; }
   body.light-theme .ent-promo-title { color: #ffffff; }
@@ -310,7 +310,7 @@
     background: linear-gradient(135deg, #7c3aed, #9333ea);
     border-color: transparent;
     color: #ffffff;
-    box-shadow: 0 6px 16px rgba(124,58,237,0.25);
+    box-shadow: none;
   }
   body.light-theme .bell-btn i,
   body.light-theme .s5-back-btn i,
@@ -490,7 +490,7 @@
   body.light-theme .pr-balance-card {
     background: linear-gradient(135deg, #7c3aed, #9333ea);
     border-color: transparent;
-    box-shadow: 0 12px 28px rgba(124,58,237,0.28);
+    box-shadow: none;
   }
   body.light-theme .pr-balance-label { color: rgba(255,255,255,0.75); }
   body.light-theme .pr-balance-amount { color: #ffffff; }
@@ -630,7 +630,7 @@
      and any other .ent-choice-btn -> solid purple, not dark navy */
   body.light-theme .ent-choice-btn {
     background: linear-gradient(135deg, #7c3aed, #9333ea); border-color: transparent;
-    color: #ffffff; box-shadow: 0 6px 16px rgba(124,58,237,0.25);
+    color: #ffffff; box-shadow: none;
   }
   body.light-theme .ent-choice-btn:hover { border-color: transparent; }
 
@@ -743,7 +743,7 @@
   .brand-logo {
     width: 40px; height: 40px; border-radius: 12px;
     object-fit: cover; display: block;
-    box-shadow: 0 8px 20px rgba(147,51,234,0.35);
+    box-shadow: none;
     flex-shrink: 0;
   }
   .brand-name { font-weight: 600; color: #fff; font-size: 15px; line-height: 1.3; margin: 0; }
@@ -812,7 +812,7 @@
     width: 100%; margin-top: 8px; padding: 14px; border-radius: 12px;
     font-weight: 600; font-size: 14px; color: #fff; border: none; cursor: pointer;
     background: linear-gradient(90deg, #9333ea, #7e22ce);
-    box-shadow: 0 8px 20px rgba(147,51,234,0.25);
+    box-shadow: none;
     transition: all 0.15s ease;
   }
   .btn-primary:hover:not(:disabled) { background: linear-gradient(90deg, #a855f7, #9333ea); }
@@ -954,7 +954,7 @@
   .wallet-balance-card {
     background: linear-gradient(135deg, #9333ea, #581c87);
     border-radius: 20px; padding: 22px; margin-bottom: 16px;
-    box-shadow: 0 12px 30px rgba(147,51,234,0.25);
+    box-shadow: none;
   }
   .wallet-balance-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .wallet-balance-label { font-size: 12px; color: rgba(255,255,255,0.75); margin: 0; }
@@ -1027,7 +1027,7 @@
 
   /* Make the top earnings card on Landlord/Agent dashboards feel clickable */
   .dash-card.clickable { cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
-  .dash-card.clickable:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(147,51,234,0.32); }
+  .dash-card.clickable:hover { transform: translateY(-1px); box-shadow: none; }
   .dash-card-tap-hint {
     display: flex; align-items: center; gap: 4px; font-size: 11px; color: rgba(255,255,255,0.85);
     margin-top: 10px; font-weight: 500;
@@ -1062,11 +1062,11 @@
   .welcome-logo-wrap { position: relative; margin-bottom: 32px; }
   .welcome-logo-glow {
     position: absolute; inset: 0; border-radius: 28px; background: #8b5cf6;
-    filter: blur(32px); opacity: 0.45; transform: scale(1.15);
+    filter: blur(32px); opacity: 0; display: none; transform: scale(1.15);
   }
   .welcome-logo {
     position: relative; width: 112px; height: 112px; border-radius: 28px;
-    box-shadow: 0 20px 45px rgba(139,92,246,0.45);
+    box-shadow: none;
     display: block;
   }
   .welcome-brand-name { font-size: 28px; font-weight: 700; color: #fff; margin: 0; letter-spacing: -0.01em; }
@@ -1079,7 +1079,7 @@
   .btn-welcome-primary {
     width: 100%; padding: 16px; border-radius: 16px; border: none; cursor: pointer;
     font-weight: 600; font-size: 14px; color: #fff; background: #8b5cf6;
-    box-shadow: 0 12px 28px rgba(139,92,246,0.35); transition: all 0.15s ease;
+    box-shadow: none; transition: all 0.15s ease;
   }
   .btn-welcome-primary:hover { background: #7c3aed; }
   .btn-welcome-primary:active { transform: scale(0.98); }
@@ -1339,7 +1339,7 @@
   .dash-card {
     background: linear-gradient(135deg, #9333ea, #581c87);
     border-radius: 18px; padding: 20px; margin-bottom: 20px;
-    box-shadow: 0 12px 30px rgba(147,51,234,0.25);
+    box-shadow: none;
   }
   .dash-card-label { font-size: 12px; color: rgba(255,255,255,0.75); margin: 0 0 6px; }
   .dash-card-value { font-size: 24px; font-weight: 700; color: #fff; margin: 0 0 4px; letter-spacing: -0.01em; }
@@ -1601,7 +1601,7 @@
   }
   .insp-mgr-btn:disabled { cursor: not-allowed; opacity: 0.7; }
   /* Confirm: filled primary button, emerald accent */
-  .insp-mgr-accept { background: #10b981; color: #ffffff; border: 1px solid #10b981; box-shadow: 0 6px 16px rgba(16,185,129,0.3); }
+  .insp-mgr-accept { background: #10b981; color: #ffffff; border: 1px solid #10b981; box-shadow: none; }
   .insp-mgr-accept:hover { background: #059669; border-color: #059669; }
   /* Decline: subtle outlined button, red border only */
   .insp-mgr-decline { background: transparent; color: #f87171; border: 1px solid rgba(248,113,113,0.5); }
@@ -1707,7 +1707,7 @@
     position: absolute; top: 10px; right: 10px; display: inline-flex; align-items: center; gap: 4px;
     background: rgba(6,78,59,0.95); border: 1px solid #34d399; color: #34d399;
     font-size: 10.5px; font-weight: 700; padding: 4px 8px; border-radius: 999px; backdrop-filter: blur(2px);
-    box-shadow: 0 2px 8px rgba(6,78,59,0.45);
+    box-shadow: none;
   }
   .s5-live-media-badge {
     position: absolute; top: 10px; left: 10px; display: inline-flex; align-items: center; gap: 4px;
@@ -1795,7 +1795,7 @@
   .s5-video-preview-btn:hover { background: linear-gradient(0deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 70%, transparent 100%); }
   .s5-video-play-circle {
     flex-shrink: 0; width: 26px; height: 26px; border-radius: 999px; background: rgba(147,51,234,0.9);
-    display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(147,51,234,0.5);
+    display: flex; align-items: center; justify-content: center; box-shadow: none;
   }
   .s5-video-play-circle svg { width: 12px; height: 12px; }
   .s5-video-preview-label { font-size: 11.5px; font-weight: 600; color: #fff; text-align: left; }
@@ -1897,7 +1897,7 @@
     width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
     padding: 13px; border-radius: 12px; font-weight: 600; font-size: 13px; color: #fff;
     border: none; cursor: pointer; background: linear-gradient(90deg, #9333ea, #7e22ce);
-    box-shadow: 0 8px 20px rgba(147,51,234,0.25); margin-bottom: 20px;
+    box-shadow: none; margin-bottom: 20px;
   }
 
   .s5-tabs { display: flex; gap: 6px; margin-bottom: 18px; }
@@ -2477,7 +2477,7 @@
   .cart-item-datetime .field-input { padding: 10px 12px; font-size: 12.5px; }
   .cart-summary-card {
     background: linear-gradient(135deg, #9333ea, #581c87); border-radius: 18px; padding: 18px;
-    margin-bottom: 20px; box-shadow: 0 12px 30px rgba(147,51,234,0.25);
+    margin-bottom: 20px; box-shadow: none;
   }
   .cart-summary-row { display: flex; justify-content: space-between; font-size: 12.5px; color: rgba(255,255,255,0.85); padding: 4px 0; }
   .cart-summary-row strong { color: #fff; font-size: 15px; }
@@ -2507,9 +2507,9 @@
   .insp-primary-btn {
     width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 8px;
     padding: 13px; border-radius: 12px; font-size: 13.5px; font-weight: 600; color: #fff; background: #8b5cf6;
-    border: none; cursor: pointer; box-shadow: 0 8px 24px rgba(139,92,246,0.35); transition: box-shadow 0.15s ease;
+    border: none; cursor: pointer; box-shadow: none; transition: box-shadow 0.15s ease;
   }
-  .insp-primary-btn:hover { box-shadow: 0 10px 28px rgba(139,92,246,0.5); }
+  .insp-primary-btn:hover { box-shadow: none; }
   .insp-primary-btn:disabled { cursor: not-allowed; opacity: 0.55; box-shadow: none; background: rgba(148,163,184,0.1); color: #64748b; }
   .insp-secondary-full-btn {
     width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -2575,7 +2575,7 @@
   .pr-switch-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 999px; background: #fff; transition: transform 0.2s ease; }
   .pr-switch input:checked + .pr-switch-track { background: #8b5cf6; }
   .pr-switch input:checked + .pr-switch-track .pr-switch-thumb { transform: translateX(18px); }
-  .pr-pay-btn { display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(139,92,246,0.4); }
+  .pr-pay-btn { display: flex; align-items: center; justify-content: center; box-shadow: none; }
 
   /* ==================================================================
      ---- SCREEN MY-LEASE: Digital Vault & Title Audit ----
@@ -2717,7 +2717,7 @@
     background: radial-gradient(130% 150% at 0% 0%, #6d28d9 0%, #3b1c7d 42%, #120b2e 100%);
     border: 1px solid rgba(196,181,253,0.22);
     border-radius: 22px; padding: 22px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 24px 48px -24px rgba(109,40,217,0.65);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
   }
   .dash-card-value, .ent-stat-value { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; }
   .dash-card-label, .ent-stat-label { font-weight: 600; }
@@ -2726,7 +2726,7 @@
   .btn-primary, .s5-action-btn.primary {
     border-radius: 14px; font-weight: 700;
     background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 12px 24px -12px rgba(109,40,217,0.8);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.22);
   }
   .btn-secondary, .s5-action-btn { border-radius: 14px; font-weight: 600; }
   .field-input { border-radius: 14px; }
@@ -4636,7 +4636,7 @@
       </div>
     </div>
   </div>
-  <button type="button" id="s7-simulate-default-btn" class="s5-add-btn" style="background: linear-gradient(90deg,#b91c1c,#991b1b); box-shadow: 0 8px 20px rgba(185,28,28,0.25);">
+  <button type="button" id="s7-simulate-default-btn" class="s5-add-btn" style="background: linear-gradient(90deg,#b91c1c,#991b1b); box-shadow: none;">
     <i data-lucide="alert-triangle" class="w-4 h-4"></i> Simulate Tenant Payment Default
   </button>
 
@@ -5191,7 +5191,7 @@
     </label>
   </div>
 
-  <button type="button" id="profile-logout-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: 0 8px 20px rgba(239,68,68,0.25); display:flex; align-items:center; justify-content:center; gap:6px; margin-top: 16px;">
+  <button type="button" id="profile-logout-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: none; display:flex; align-items:center; justify-content:center; gap:6px; margin-top: 16px;">
     <i data-lucide="log-out" class="w-4 h-4"></i> Log Out
   </button>
 
@@ -5284,7 +5284,7 @@
       <button type="button" class="insp-reason-chip" data-reason="Other">Other</button>
     </div>
 
-    <button type="button" id="insp-cancel-confirm-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: 0 8px 20px rgba(239,68,68,0.25); margin-top: 18px;">Yes, Cancel Inspection</button>
+    <button type="button" id="insp-cancel-confirm-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: none; margin-top: 18px;">Yes, Cancel Inspection</button>
     <button type="button" id="insp-cancel-keep-btn" class="btn-secondary">Keep Inspection</button>
   </div>
 </div>
@@ -5301,7 +5301,7 @@
     <h2 class="modal-title">Delete Listing?</h2>
     <p class="modal-sub">This will permanently remove <strong id="del-listing-title">—</strong> from your listings and take it down from the Tenant Search Feed. This can't be undone.</p>
 
-    <button type="button" id="del-listing-confirm-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: 0 8px 20px rgba(239,68,68,0.25); margin-top: 4px;">
+    <button type="button" id="del-listing-confirm-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: none; margin-top: 4px;">
       <i data-lucide="trash-2" class="w-4 h-4"></i> Yes, Delete Listing
     </button>
     <button type="button" id="del-listing-keep-btn" class="btn-secondary">Keep Listing</button>
@@ -5317,7 +5317,7 @@
     <h2 class="modal-title">Delete Team Member?</h2>
     <p class="modal-sub">This will permanently remove <strong id="del-staff-name">—</strong> from your team and revoke all access. This can't be undone.</p>
 
-    <button type="button" id="del-staff-confirm-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: 0 8px 20px rgba(239,68,68,0.25); margin-top: 4px;">
+    <button type="button" id="del-staff-confirm-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: none; margin-top: 4px;">
       <i data-lucide="trash-2" class="w-4 h-4"></i> Yes, Delete Team Member
     </button>
     <button type="button" id="del-staff-keep-btn" class="btn-secondary">Keep Team Member</button>
