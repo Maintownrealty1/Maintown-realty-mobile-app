@@ -18,6 +18,7 @@
     width: 100% !important;
     max-width: 100% !important;
     overflow-x: hidden !important;
+    overflow-x: clip !important; /* clip (not hidden) so position:sticky works on the dashboard */
     margin: 0 !important;
     padding: 0 !important;
   }
@@ -1301,6 +1302,15 @@
   .dash-header {
     display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;
   }
+  /* Dashboard top block (greeting + rent card) stays pinned while the page scrolls */
+  .dash-sticky {
+    position: sticky; top: 0; z-index: 30;
+    background: #0B0F19;
+    margin: 0 -20px 8px; padding: 16px 20px 4px;
+  }
+  .dash-sticky .dash-header { margin-bottom: 16px; }
+  .dash-sticky .dash-card { margin-bottom: 12px; }
+  body.light-theme .dash-sticky { background: #ffffff; }
   .dash-greeting { font-size: 12px; color: #64748b; margin: 0 0 2px; }
   .dash-name { font-size: 17px; font-weight: 600; color: #fff; margin: 0; }
   .dash-avatar {
@@ -3414,6 +3424,7 @@
 <!-- ===================== SCREEN 4: Main App Dashboard ===================== -->
 <div id="screen-4" class="screen-view hidden pb-24" style="min-height: calc(100vh - 72px);">
 
+  <div class="dash-sticky" id="dash-sticky">
   <div class="dash-header">
     <div style="min-width:0; flex-shrink:1; overflow:hidden;">
       <p class="dash-greeting">Welcome back,</p>
@@ -3439,6 +3450,7 @@
     <div class="dash-card-tap-hint" id="dash-card-tap-hint" style="display:none;">
       <i data-lucide="wallet" class="w-3 h-3"></i> Tap to view transaction &amp; payout history
     </div>
+  </div>
   </div>
 
   <!-- My Assets Portfolio: now surfaced as a "Portfolio Assets" Quick Action
