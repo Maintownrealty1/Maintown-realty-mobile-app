@@ -1398,7 +1398,17 @@
   /* Odd tile count (tenant): the last tile keeps the exact same size as every other
      tile (one grid column = (100% - gap) / 2) and sits centred on its own row,
      instead of stretching across the full width. */
-  .dash-grid .dash-tile.dash-tile-wide { grid-column: 1 / -1; justify-self: center; width: calc(50% - 5px); }
+  .dash-grid .dash-tile.dash-tile-wide {
+    grid-column: 1 / -1; justify-self: stretch; width: 100%;
+    display: flex; align-items: center; gap: 14px; text-align: left; padding: 14px 16px;
+  }
+  .dash-grid .dash-tile.dash-tile-wide .dash-tile-icon-wrap { margin: 0; flex-shrink: 0; }
+  .dash-grid .dash-tile.dash-tile-wide .dash-tile-label { font-size: 13.5px; font-weight: 600; color: #e2e8f0; }
+  .dash-grid .dash-tile.dash-tile-wide::after {
+    content: ''; width: 8px; height: 8px; margin: 0 6px 0 auto; flex-shrink: 0;
+    border-right: 2px solid #64748b; border-top: 2px solid #64748b; transform: rotate(45deg);
+  }
+  body.light-theme .dash-grid .dash-tile.dash-tile-wide .dash-tile-label { color: #0f172a; }
   /* ---- Ask MainTown: quiet contextual help links + sheet content ---- */
 
   /* ==================================================================
@@ -9002,7 +9012,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const wrap = document.getElementById('dash-listings-wrap');
     if (!wrap) return;
     if (role !== 'tenant') { wrap.innerHTML = ''; return; }
-    const available = rentListings().filter(p => !isListingUnavailable(p) && inCurrentMarket(p));
+    // Only complete listings get a card, so an incomplete record can never leave a stray label on Home.
+    const available = rentListings().filter(p => !isListingUnavailable(p) && inCurrentMarket(p) && p.title && (p.ngn || p.usd));
     const rents = available.filter(p => p.type === 'rent').slice(0, 8);
     const shorts = available.filter(p => p.type === 'shortlet').slice(0, 8);
     const card = (p) => {
