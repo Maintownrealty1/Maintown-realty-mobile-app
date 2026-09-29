@@ -1535,6 +1535,9 @@
   .ent-list-action-btn { flex-shrink: 0; font-size: 11.5px; font-weight: 600; padding: 7px 11px; border-radius: 9px; border: 1px solid #334155; background: rgba(30,41,59,0.8); color: #e2e8f0; cursor: pointer; display: flex; align-items: center; gap: 4px; }
   .ent-list-action-btn.danger { border-color: rgba(248,113,113,0.4); color: #f87171; }
   .ent-list-action-btn.primary { border-color: #a855f7; background: rgba(147,51,234,0.2); color: #fff; }
+  .ent-list-action-btn.ent-preview-btn { width: fit-content; margin-top: 8px; padding: 5px 11px; color: #c4b5fd; background: rgba(148,163,184,0.1); border-color: rgba(167,139,250,0.35); }
+  .ent-list-action-btn.ent-preview-btn:hover { background: rgba(167,139,250,0.18); }
+  body.light-theme .ent-list-action-btn.ent-preview-btn { color: #6d28d9; background: #f3e8ff; border-color: #d8b4fe; }
 
   /* ---- Team & Access: stacked card layout ----
      Name/badge/email/status sit in their own row above a full-width
@@ -3937,7 +3940,7 @@
     <div id="ent-tab-legal" class="ent-tab-panel" style="display:none;">
       <p class="s5-section-label"><i data-lucide="scale" class="w-4 h-4 text-purple-400"></i>Pending Legal Review</p>
       <div id="ent-legal-list"></div>
-      <p class="s5-section-label" style="margin-top:20px;"><i data-lucide="file-check-2" class="w-4 h-4 text-purple-400"></i>Tenancy Documents from Legal</p>
+      <p class="s5-section-label" style="margin-top:20px;"><i data-lucide="file-check-2" class="w-4 h-4 text-purple-400"></i>Agreements &amp; Documents</p>
       <div id="ent-ceo-legal-docs-list"></div>
     </div>
 
@@ -4025,14 +4028,6 @@
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
         </button>
-        <button type="button" class="ent-quick-card" id="ent-sales-documents-card">
-          <div class="ent-quick-card-icon"><i data-lucide="file-check-2" class="w-5 h-5"></i></div>
-          <div class="ent-quick-card-text">
-            <p class="ent-quick-card-title">Documents to Forward</p>
-            <p class="ent-quick-card-sub">Tenancy agreements the CEO has approved for your clients</p>
-          </div>
-          <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
-        </button>
       </div>
     </div>
 
@@ -4048,13 +4043,6 @@
       <button type="button" id="ent-sales-inspections-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
       <p class="ent-panel-title">Inspections</p>
       <div id="ent-sales-inspections-list"></div>
-    </div>
-
-    <!-- Documents-to-forward panel (CEO-approved tenancy agreements awaiting delivery to a client) -->
-    <div id="ent-sales-documents-panel" style="display:none;">
-      <button type="button" id="ent-sales-documents-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
-      <p class="ent-panel-title">Documents to Forward</p>
-      <div id="ent-sales-documents-list"></div>
     </div>
   </div>
 </div>
@@ -4144,7 +4132,7 @@
       <div class="ent-stat-card">
         <p class="ent-stat-label">Documents Pending Review</p>
         <p class="ent-stat-value" id="ent-legal-stat-pending">0</p>
-        <p class="ent-stat-sub">Title verifications waiting on you</p>
+        <p class="ent-stat-sub">Title verifications and agreements waiting on you</p>
       </div>
 
       <div class="ent-quick-grid">
@@ -4156,6 +4144,13 @@
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
         </button>
+      </div>
+
+      <!-- Agreements signed by clients on Sales-listed properties, waiting for
+           the CEO's countersignature — Legal reviews and can remind the CEO. -->
+      <div id="ent-legal-countersign-section" style="margin-top:22px; display:none;">
+        <p class="s5-section-label"><i data-lucide="pen-line" class="w-4 h-4 text-purple-400"></i>Awaiting CEO Countersignature</p>
+        <div id="ent-legal-countersign-list"></div>
       </div>
 
       <!-- Documents the CEO has countersigned/approved — surfaced straight on
@@ -4193,17 +4188,31 @@
 
 <!-- ===================== MODAL: Legal — Upload Document ===================== -->
 <div id="ent-legal-upload-modal" class="modal-overlay">
-  <div class="modal-card">
+  <div class="modal-card" style="max-height:88vh; overflow-y:auto;">
     <div class="modal-icon-wrap"><i data-lucide="upload" class="w-8 h-8 text-purple-400"></i></div>
     <h2 class="modal-title">Upload Legal Document</h2>
-    <p class="modal-sub">Add a document to your company's legal document library.</p>
+    <p class="modal-sub">Upload it here, then send it to the CEO. The CEO reviews it and sends it to the buyer named below.</p>
     <div class="field">
-      <label class="field-label">Document Name</label>
-      <input class="field-input" id="ent-legal-doc-name" type="text" placeholder="e.g. Tenancy Agreement — Horizon Gardens">
+      <label class="field-label">Document Type</label>
+      <select class="field-input" id="ent-legal-doc-type">
+        <option value="Deed of Assignment">Deed of Assignment</option>
+        <option value="Purchase Agreement">Purchase Agreement</option>
+        <option value="Tenancy Agreement">Tenancy Agreement</option>
+        <option value="Other">Other (internal, not for a buyer)</option>
+      </select>
     </div>
     <div class="field">
-      <label class="field-label">Related Listing (optional — required to forward a signed tenancy agreement to a client)</label>
-      <select class="field-input" id="ent-legal-doc-listing"><option value="">— Not linked to a listing —</option></select>
+      <label class="field-label">Document Name</label>
+      <input class="field-input" id="ent-legal-doc-name" type="text" placeholder="e.g. Deed of Assignment — Horizon Gardens Plot 12">
+    </div>
+    <div class="field" id="ent-legal-doc-listing-field">
+      <label class="field-label">Property</label>
+      <select class="field-input" id="ent-legal-doc-listing"><option value="">Select the property</option></select>
+    </div>
+    <div class="field" id="ent-legal-doc-buyer-field">
+      <label class="field-label">Buyer / Client this document is for</label>
+      <select class="field-input" id="ent-legal-doc-buyer"><option value="">Select a property first</option></select>
+      <p id="ent-legal-doc-buyer-hint" style="font-size:11.5px; color:#64748b; margin:6px 2px 0; line-height:1.5;">Only buyers with a completed payment on the property are listed.</p>
     </div>
     <div class="s5-upload-box" id="ent-legal-doc-upload-box">
       <i data-lucide="file-text" class="w-5 h-5"></i>
@@ -4212,6 +4221,28 @@
     </div>
     <button type="button" id="ent-legal-doc-save-btn" class="btn-primary" style="margin-top:14px;">Save Document</button>
     <button type="button" id="ent-legal-doc-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
+<!-- ===================== MODAL: CEO — Review document before sending to buyer ===================== -->
+<div id="ent-doc-review-modal" class="modal-overlay">
+  <div class="modal-card" style="max-height:88vh; overflow-y:auto;">
+    <div class="modal-icon-wrap"><i data-lucide="file-search" class="w-8 h-8 text-purple-400"></i></div>
+    <h2 class="modal-title">Review Document</h2>
+    <p class="modal-sub">Check the document and the buyer below before it is sent.</p>
+    <div class="fee-preview-box" id="edr-details"></div>
+    <button type="button" id="edr-view-btn" class="btn-secondary" style="margin-bottom:12px;"><i data-lucide="eye" class="w-4 h-4"></i> View Document</button>
+    <label style="display:flex; gap:10px; align-items:flex-start; font-size:12.5px; color:#cbd5e1; line-height:1.5; margin:4px 0 14px; cursor:pointer;">
+      <input type="checkbox" id="edr-confirm" style="margin-top:3px; flex-shrink:0;">
+      <span id="edr-confirm-text">I have reviewed this document and confirm it is for this buyer.</span>
+    </label>
+    <button type="button" id="edr-send-btn" class="btn-primary" disabled>Send to Buyer</button>
+    <div class="field" style="margin-top:14px;">
+      <label class="field-label">Or return it to Legal with a reason</label>
+      <input class="field-input" id="edr-return-note" type="text" placeholder="e.g. Wrong plot number on page 2">
+    </div>
+    <button type="button" id="edr-return-btn" class="btn-secondary">Return to Legal</button>
+    <button type="button" id="edr-close-btn" class="btn-secondary">Close</button>
   </div>
 </div>
 <!-- ===================== END MODAL ===================== -->
@@ -11240,18 +11271,115 @@ This voucher is auto-generated and serves as proof of settlement.`;
   } catch (e) { handover = null; }
   function saveHandover() { try { localStorage.setItem('mtr_handover', JSON.stringify(handover)); } catch (e) {} }
 
+  // ---- Enterprise buyer registry ----
+  // Every completed checkout on a company listing is recorded against the
+  // exact buyer account, so documents (Deed, agreements) can only ever be
+  // addressed to someone who actually bought/rented that property.
+  function registerEnterpriseDeal(listing, buyerId, buyerName) {
+    if (!isEnterpriseListing(listing) || !buyerId) return;
+    appState.enterpriseDeals = appState.enterpriseDeals || [];
+    const exists = appState.enterpriseDeals.some(x => x.buyerId === buyerId && String(x.listingId) === String(listing.id));
+    if (exists) return;
+    const u = (appState.users && appState.users[buyerId]) || {};
+    appState.enterpriseDeals.unshift({
+      id: Date.now(), companyId: listing.companyId || listing.ownerId, listingId: listing.id, listingTitle: listing.title,
+      isLand: listing.type === 'land', buyerId, buyerName: buyerName || u.name || 'Buyer',
+      buyerEmail: u.email || '', buyerPhone: u.phone || '', salesStaffId: listing.listedByStaffId || null, at: Date.now()
+    });
+    saveAppState(appState);
+  }
+  function maskContactValue(v) {
+    v = String(v || '');
+    if (!v) return '';
+    if (v.includes('@')) { const [n, d] = v.split('@'); return (n.slice(0, 1) + '***@' + d); }
+    return v.length > 4 ? '••••' + v.slice(-4) : v;
+  }
+  // Buyers on record for a listing: recorded deals + land assets + wallet purchase/rent payments.
+  function getListingBuyers(listing) {
+    if (!listing) return [];
+    const out = {};
+    const add = (id, at, fallbackName) => {
+      if (!id) return;
+      const u = (appState.users && appState.users[id]) || {};
+      const deal = (appState.enterpriseDeals || []).find(x => x.buyerId === id && String(x.listingId) === String(listing.id)) || {};
+      const cur = out[id] || {};
+      out[id] = {
+        id, name: u.name || deal.buyerName || fallbackName || cur.name || 'Buyer',
+        contact: maskContactValue(u.email || deal.buyerEmail || u.phone || deal.buyerPhone || ''),
+        at: Math.max(cur.at || 0, at || 0)
+      };
+    };
+    (appState.enterpriseDeals || []).filter(x => String(x.listingId) === String(listing.id)).forEach(x => add(x.buyerId, x.at, x.buyerName));
+    (appState.assets || []).filter(a => String(a.listingId) === String(listing.id)).forEach(a => add(a.ownerId, a.purchaseDate));
+    (appState.transactions || []).filter(t => (t.category === 'PURCHASE_PAYMENT' || t.category === 'RENT_PAYMENT') && t.meta && t.meta.propertyName === listing.title && t.meta.companyId === (listing.companyId || listing.ownerId))
+      .forEach(t => add(t.userId, t.timestamp));
+    return Object.values(out).sort((a, b) => (b.at || 0) - (a.at || 0));
+  }
+
+  // ---- Enterprise: countersign queue (Sales-listed properties only) ----
+  // When a transaction activates on a listing that a SALES staff member added
+  // for a company, the agreement/contract awaiting countersignature drops
+  // into the CEO's Legal review AND the company's Legal staff queue (who can
+  // review it and remind the CEO). Returns the queued doc (or null).
+  function companyStaffIdsByRole(companyId, staffRole) {
+    return Object.keys(appState.users || {}).filter(id => {
+      const u = appState.users[id];
+      return u && u.role === 'enterprise_staff' && u.companyId === companyId && u.staffRole === staffRole;
+    });
+  }
+  function isSalesListedEnterpriseListing(listing) {
+    if (!isEnterpriseListing(listing) || !listing.listedByStaffId) return false;
+    const staff = appState.users && appState.users[listing.listedByStaffId];
+    return !!(staff && staff.role === 'enterprise_staff' && staff.staffRole === 'sales');
+  }
+  function queueCountersignDocForCompany(listing, handoverObj) {
+    if (!isSalesListedEnterpriseListing(listing)) return null;
+    const companyId = listing.companyId || listing.ownerId;
+    if (!companyId) return null;
+    const isLand = listing.type === 'land';
+    appState.legalDocuments = appState.legalDocuments || [];
+    const doc = {
+      id: Date.now(), companyId, kind: 'COUNTERSIGN', isLand,
+      name: `${isLand ? 'Contract of Sale' : 'Tenancy Agreement'} — ${listing.title}`,
+      fileDataUrl: null, uploadedBy: null, uploadedAt: Date.now(),
+      status: 'PENDING_COUNTERSIGN',
+      listingId: listing.id, listingTitle: listing.title,
+      salesStaffId: listing.listedByStaffId,
+      buyerId: handoverObj.buyerId || null, buyerName: handoverObj.buyerName || null,
+      tenantSignedAt: handoverObj.tenantSignedAt,
+      handoverSnapshot: JSON.parse(JSON.stringify(handoverObj)),
+      reminderCount: 0
+    };
+    appState.legalDocuments.unshift(doc);
+    saveAppState(appState);
+    companyStaffIdsByRole(companyId, 'legal').forEach(legalId => {
+      pushPlatformNotification('legal', 'message', 'Agreement Awaiting Countersignature',
+        `The ${isLand ? 'contract of sale' : 'tenancy agreement'} for ${listing.title} is signed by the client and is now with the CEO for countersignature. Review it and remind the CEO if needed.`,
+        { screen: 'screen-ent-legal-dash' }, 'COUNTERSIGN_QUEUED', null, legalId);
+    });
+    return doc;
+  }
+
   function createHandoverForTenantSignOff() {
     if (!checkoutListing || !checkoutTenantSignature) return;
+    const salesListedCompanyId = isSalesListedEnterpriseListing(checkoutListing) ? (checkoutListing.companyId || checkoutListing.ownerId || null) : null;
+    const buyerUid = currentDemoUserId();
+    const buyerRec = (buyerUid && appState.users && appState.users[buyerUid]) || (typeof loadCurrentUser === 'function' ? loadCurrentUser() : null) || {};
+    registerEnterpriseDeal(checkoutListing, buyerUid, buyerRec.name);
     handover = {
+      buyerId: buyerUid || null,
+      buyerName: buyerRec.name || null,
       listingTitle: checkoutListing.title,
       isLand: checkoutListing.type === 'land',
-      sellerId: checkoutListing.ownerId || null,
+      sellerId: salesListedCompanyId || checkoutListing.ownerId || null,
       tenantSignature: checkoutTenantSignature,
       tenantSignedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       landlordSignature: null,
       landlordSignedAt: null,
       status: 'tenant-signed'
     };
+    const countersignDoc = queueCountersignDocForCompany(checkoutListing, handover);
+    if (countersignDoc) handover.docId = countersignDoc.id;
     saveHandover();
     // Recent Activity was removed from the dashboard home view — this event now
     // routes exclusively through the Notification Bell.
@@ -11263,7 +11391,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // handover.sellerId now, same as the countersign reminder below.
     pushPlatformNotification('landlord', 'message', 'Signed Agreement Received',
       `Tenant signed the agreement for ${checkoutListing.title} — awaiting your countersignature.`,
-      { screen: 'handoverReview' }, 'TENANT_SIGNED_AGREEMENT', null, handover.sellerId || undefined);
+      { screen: 'handoverReview', docId: handover.docId || null }, 'TENANT_SIGNED_AGREEMENT', null, handover.sellerId || undefined);
     showToast('Landlord notified — signed agreement sent for their sign-off');
 
     // Land & Property sales carry Clause 5 / Owner Terms §3: countersignature
@@ -11420,6 +11548,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (window.lucide) lucide.createIcons();
   }
 
+  // Restores the agreement behind a specific countersign doc (several can be
+  // waiting at once) and opens the standard review & sign sheet for the CEO.
+  function openCountersignForDoc(docId) {
+    const d = (appState.legalDocuments || []).find(x => String(x.id) === String(docId));
+    if (!d || !d.handoverSnapshot) { openHandoverReviewModal(); return; }
+    if (d.status === 'COUNTERSIGNED') { showToast('Already countersigned and sent back'); return; }
+    handover = Object.assign({}, d.handoverSnapshot, { status: 'tenant-signed', docId: d.id });
+    saveHandover();
+    openHandoverReviewModal();
+  }
   document.getElementById('hr-close-btn').addEventListener('click', () => handoverReviewModal.classList.remove('open'));
 
   document.getElementById('hr-sign-send-btn').addEventListener('click', () => {
@@ -11432,11 +11570,36 @@ This voucher is auto-generated and serves as proof of settlement.`;
     saveHandover();
     if (countersignReminderTimer) { clearInterval(countersignReminderTimer); countersignReminderTimer = null; }
 
+    // Enterprise: mark the queued countersign doc as done, and tell Legal + the
+    // Sales staff member handling this client that it has gone back.
+    if (handover.docId) {
+      const cd = (appState.legalDocuments || []).find(x => String(x.id) === String(handover.docId));
+      if (cd && cd.status !== 'COUNTERSIGNED') {
+        cd.status = 'COUNTERSIGNED';
+        cd.countersignedAt = Date.now();
+        cd.countersignedBy = getCurrentUserId();
+        cd.landlordSignature = handover.landlordSignature;
+        saveAppState(appState);
+        companyStaffIdsByRole(cd.companyId, 'legal').forEach(legalId => {
+          pushPlatformNotification('legal', 'message', 'Agreement Countersigned',
+            `The CEO countersigned "${cd.name}" and sent it back to the client.`,
+            { screen: 'screen-ent-legal-dash' }, 'COUNTERSIGN_DONE', null, legalId);
+        });
+        if (cd.salesStaffId) {
+          pushPlatformNotification('sales', 'message', 'Agreement Countersigned',
+            `The CEO countersigned the ${cd.isLand ? 'contract of sale' : 'tenancy agreement'} for ${cd.listingTitle} — it has been sent back to your client.`,
+            { screen: 'screen-ent-sales' }, 'COUNTERSIGN_DONE', null, cd.salesStaffId);
+        }
+        if (typeof renderCeoLegalDocsList === 'function') renderCeoLegalDocsList();
+        window.dispatchEvent(new Event('maintown_state_updated'));
+      }
+    }
+
     // Notify the Tenant exclusively through the bell — the executed copy is
     // ready to download from their Post-Lease Hub.
     pushPlatformNotification('tenant', 'message', 'Agreement Fully Executed',
       `Your dual-signed agreement for ${handover.listingTitle} is ready to download.`,
-      { screen: 'screen-post-lease' }, 'AGREEMENT_EXECUTED');
+      { screen: 'screen-post-lease' }, 'AGREEMENT_EXECUTED', null, handover.buyerId || undefined);
 
     showToast('Agreement signed & sent — executed copy available to both parties');
     populateScreen4();
@@ -14097,7 +14260,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ctaBtn.style.display = 'flex';
       ctaBtn.onclick = () => {
         notificationDetailModal.classList.remove('open');
-        openHandoverReviewModal();
+        if (notif.route.docId) openCountersignForDoc(notif.route.docId); else openHandoverReviewModal();
+      };
+    } else if (notif.route && notif.route.screen === 'entLegalReview') {
+      ctaLabel.textContent = 'Review Document';
+      ctaBtn.style.display = 'flex';
+      ctaBtn.onclick = () => {
+        notificationDetailModal.classList.remove('open');
+        openEnterpriseDashboard();
+        if (getEnterpriseStaffRole() === 'ceo') switchEnterpriseTab('legal');
       };
     } else if (notif.route && notif.route.screen === 'shortletExtension' && notif.route.bookingId) {
       ctaLabel.textContent = 'Pay or Terminate Stay';
@@ -16512,13 +16683,13 @@ available in the Post-Lease Hub and this chat thread.`
   function renderAssetHubEnterpriseDocs(asset) {
     const wrap = document.getElementById('ah-enterprise-docs-list');
     if (!wrap || !asset) return;
-    const docs = (appState.tenantLeaseDocuments || []).filter(d => d.listingType === 'land' && d.listingTitle === asset.title);
+    const docs = (appState.tenantLeaseDocuments || []).filter(d => d.listingType === 'land' && d.listingTitle === asset.title && d.buyerId && d.buyerId === currentDemoUserId());
     wrap.innerHTML = docs.map(d => `
       <div class="s5-list-item" style="margin-bottom: 10px;">
         <div class="s5-list-icon"><i data-lucide="file-check-2" class="w-5 h-5"></i></div>
         <div class="s5-list-text">
           <p class="s5-list-title">${d.fileName}</p>
-          <p class="s5-list-sub"><span class="ml-stamp-badge"><i data-lucide="badge-check" class="w-3 h-3"></i>Forwarded by Sales</span></p>
+          <p class="s5-list-sub"><span class="ml-stamp-badge"><i data-lucide="badge-check" class="w-3 h-3"></i>${d.docType || 'Document'} · Sent by your seller</span></p>
         </div>
         <button type="button" class="s5-back-btn ml-doc-btn" data-view-ent-asset-doc="${d.id}" style="width:auto; padding:0 14px;">
           <i data-lucide="eye" class="w-4 h-4"></i><span>View</span>
@@ -16825,7 +16996,7 @@ available in the Post-Lease Hub and this chat thread.`
   function renderMyLeaseEnterpriseDocs() {
     const wrap = document.getElementById('ml-enterprise-docs-list');
     if (!wrap) return;
-    const docs = (appState.tenantLeaseDocuments || []).filter(d => d.listingType !== 'land');
+    const docs = (appState.tenantLeaseDocuments || []).filter(d => d.listingType !== 'land' && d.buyerId && d.buyerId === currentDemoUserId());
     wrap.innerHTML = docs.map(d => `
       <div class="s5-list-item" style="margin-bottom: 10px;">
         <div class="s5-list-icon"><i data-lucide="file-check-2" class="w-5 h-5"></i></div>
@@ -19025,6 +19196,7 @@ available in the Post-Lease Hub and this chat thread.`
           <p class="ent-list-title">${l.title}</p>
           <p class="ent-list-sub">${l.location}${l.estateName ? ' · ' + l.estateName : ''} · ${statusLabel[l.workflowStatus] || l.workflowStatus || 'Live'}</p>
           ${l.removalRequested ? `<p class="ent-list-sub" style="color:#d97706; margin-top:3px; display:flex; align-items:center; gap:4px;"><i data-lucide="clock" class="w-3 h-3"></i>Removal requested — awaiting CEO review</p>` : ''}
+          <button type="button" class="ent-list-action-btn ent-preview-btn" data-preview-listing="${l.id}"><i data-lucide="eye" class="w-3 h-3"></i>Preview</button>
         </div>
         ${l.removalRequested
           ? `<span class="status-pill warning">Pending</span>`
@@ -19048,6 +19220,12 @@ available in the Post-Lease Hub and this chat thread.`
     window.dispatchEvent(new Event('maintown_state_updated'));
   }
   document.getElementById('ent-sales-listings-list').addEventListener('click', (e) => {
+    const previewBtn = e.target.closest('[data-preview-listing]');
+    if (previewBtn) {
+      const pl = myEnterpriseListings().find(x => String(x.id) === previewBtn.dataset.previewListing);
+      openOwnerListingPreview(pl, pl && pl.workflowStatus);
+      return;
+    }
     const btn = e.target.closest('[data-request-removal]');
     if (!btn) return;
     const l = myEnterpriseListings().find(x => String(x.id) === btn.dataset.requestRemoval);
@@ -19055,92 +19233,11 @@ available in the Post-Lease Hub and this chat thread.`
     requestListingRemoval(l);
   });
 
-  // ==================================================================
-  // ---- Documents to Forward (Legal -> CEO -> Sales -> Client) ----
-  // Once Legal uploads a signed tenancy agreement and the CEO approves it,
-  // it lands here for the assigned Sales staff member — the one who posted
-  // that listing — to hand it straight to their client.
-  // ==================================================================
-  function renderSalesDocumentsToForward() {
-    const uid = getCurrentUserId();
-    const docs = companyLegalDocuments().filter(d => d.salesStaffId === uid && (d.status === 'APPROVED' || d.status === 'DELIVERED_TO_CLIENT'));
-    const list = document.getElementById('ent-sales-documents-list');
-    list.innerHTML = docs.length ? docs.map(d => `
-      <div class="ent-list-item">
-        <div class="ent-list-icon"><i data-lucide="file-check-2" class="w-4 h-4"></i></div>
-        <div class="ent-list-text">
-          <p class="ent-list-title">${d.name}</p>
-          <p class="ent-list-sub">${d.listingTitle || ''} · ${d.status === 'DELIVERED_TO_CLIENT' ? 'Delivered to client' : 'Approved — ready to forward'}</p>
-        </div>
-        ${d.status === 'APPROVED' ? `<button type="button" class="ent-list-action-btn primary" data-forward-doc="${d.id}"><i data-lucide="send" class="w-3.5 h-3.5"></i>Forward to Client</button>` : `<span class="ent-doc-status-badge ent-doc-status-approved"><i data-lucide="check" class="w-3 h-3"></i>Delivered</span>`}
-      </div>`).join('')
-      : `<div class="ent-empty"><i data-lucide="file-check-2"></i><p>No CEO-approved documents waiting to be forwarded yet.</p></div>`;
-    if (window.lucide) lucide.createIcons();
-  }
-  document.getElementById('ent-sales-documents-list')?.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-forward-doc]');
-    if (!btn) return;
-    const uid = getCurrentUserId();
-    const d = (appState.legalDocuments || []).find(x => String(x.id) === btn.dataset.forwardDoc);
-    if (!d) return;
-    const conv = conversations.find(c => c.salesStaffId === uid && c.listingTitle === d.listingTitle);
-    if (!conv) {
-      showToast('No client conversation for this listing yet — a client must book an inspection first.');
-      return;
-    }
-    // Land/Property Sale documents (Deed of Assignment, Purchase Agreement)
-    // and rental documents (Tenancy Agreement) route to different client-facing
-    // screens — a buyer's completed paperwork belongs in My Assets, not My Lease.
-    const relatedListing = d.listingId ? listings.find(l => String(l.id) === String(d.listingId)) : null;
-    const isLandDoc = !!(relatedListing && relatedListing.type === 'land');
-    const docKindLabel = isLandDoc ? 'Signed Purchase Agreement / Deed of Assignment' : 'Signed Tenancy Agreement';
-    const clientScreen = isLandDoc ? 'screen-asset-hub' : 'screen-my-lease';
-
-    const tenantName = (getConversationPeer(conv).name) || 'Client';
-    conv.messages.push({
-      from: 'them',
-      type: 'lease-doc',
-      fileName: d.name,
-      fileSize: '842 KB',
-      dateSigned: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-      listingTitle: d.listingTitle,
-      tenantName,
-      hostName: (appState.users[uid] && appState.users[uid].name) || 'Sales Manager',
-      hostLabel: 'Sales Manager',
-      rentLabel: isLandDoc ? 'See agreement for purchase terms' : 'See agreement for terms',
-      fileDataUrl: d.fileDataUrl || null
-    });
-    conv.status = 'active';
-    saveConversations();
-
-    d.status = 'DELIVERED_TO_CLIENT';
-    d.deliveredAt = Date.now();
-    saveAppState(appState);
-
-    // Client-facing document card — shown in My Lease (rentals) or
-    // My Assets (Land/Property Sale), in addition to the chat bubble.
-    appState.tenantLeaseDocuments = appState.tenantLeaseDocuments || [];
-    appState.tenantLeaseDocuments.unshift({
-      id: Date.now(), listingTitle: d.listingTitle, fileName: d.name, fileDataUrl: d.fileDataUrl || null,
-      listingType: isLandDoc ? 'land' : 'rent',
-      deliveredAt: Date.now(), deliveredBy: uid
-    });
-    saveAppState(appState);
-
-    updateAllBellDots(true);
-    pushPlatformNotification('tenant', 'message', docKindLabel,
-      `Your ${docKindLabel.toLowerCase()} for ${d.listingTitle} has arrived — view it in ${isLandDoc ? 'My Assets' : 'My Lease'} or in Messages.`,
-      { screen: clientScreen }, 'LEASE_DOC_DELIVERED');
-    showToast('Forwarded to your client');
-    renderSalesDocumentsToForward();
-  });
-
   function openSalesDashboard() {
     renderSalesHeader();
     document.getElementById('ent-sales-home').style.display = 'block';
     document.getElementById('ent-sales-listings-panel').style.display = 'none';
     document.getElementById('ent-sales-inspections-panel').style.display = 'none';
-    document.getElementById('ent-sales-documents-panel').style.display = 'none';
     renderSalesHome();
     navigateTo('screen-ent-sales');
   }
@@ -19163,17 +19260,6 @@ available in the Post-Lease Hub and this chat thread.`
   });
   document.getElementById('ent-sales-inspections-back-btn').addEventListener('click', () => {
     document.getElementById('ent-sales-inspections-panel').style.display = 'none';
-    document.getElementById('ent-sales-home').style.display = 'block';
-    renderSalesHome();
-  });
-  // Documents to Forward — CEO-approved tenancy agreements awaiting delivery to a client.
-  document.getElementById('ent-sales-documents-card').addEventListener('click', () => {
-    document.getElementById('ent-sales-home').style.display = 'none';
-    document.getElementById('ent-sales-documents-panel').style.display = 'block';
-    renderSalesDocumentsToForward();
-  });
-  document.getElementById('ent-sales-documents-back-btn').addEventListener('click', () => {
-    document.getElementById('ent-sales-documents-panel').style.display = 'none';
     document.getElementById('ent-sales-home').style.display = 'block';
     renderSalesHome();
   });
@@ -19299,14 +19385,69 @@ available in the Post-Lease Hub and this chat thread.`
   }
   function renderLegalHome() {
     const pending = enterpriseListings().filter(l => l.workflowStatus === 'PENDING_LEGAL_REVIEW');
-    document.getElementById('ent-legal-stat-pending').textContent = String(pending.length);
+    const awaitingReview = companyLegalDocuments().filter(d => d.kind === 'COUNTERSIGN' && d.status === 'PENDING_COUNTERSIGN' && !d.legalReviewedAt);
+    document.getElementById('ent-legal-stat-pending').textContent = String(pending.length + awaitingReview.length);
+    renderLegalCountersignQueue();
     renderLegalCountersignedDocs();
   }
+  // Agreements/contracts signed by a client on a Sales-listed property that
+  // are sitting with the CEO for countersignature. Legal can mark them
+  // reviewed (which tells the CEO) and send the CEO a reminder.
+  function renderLegalCountersignQueue() {
+    const section = document.getElementById('ent-legal-countersign-section');
+    const list = document.getElementById('ent-legal-countersign-list');
+    if (!section || !list) return;
+    const docs = companyLegalDocuments().filter(d => d.kind === 'COUNTERSIGN' && d.status === 'PENDING_COUNTERSIGN');
+    if (!docs.length) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    list.innerHTML = docs.map(d => `
+      <div class="ent-list-item" style="align-items:flex-start;">
+        <div class="ent-list-icon"><i data-lucide="file-signature" class="w-4 h-4"></i></div>
+        <div class="ent-list-text">
+          <p class="ent-list-title">${d.name}</p>
+          <p class="ent-list-sub">Client signed ${d.tenantSignedAt || ''} · Awaiting CEO countersignature${d.reminderCount ? ' · Reminded ' + d.reminderCount + '×' : ''}</p>
+          <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+            ${d.legalReviewedAt
+              ? `<span class="ent-doc-status-badge ent-doc-status-approved"><i data-lucide="check" class="w-3 h-3"></i>Reviewed</span>`
+              : `<button type="button" class="ent-list-action-btn" data-legal-review-doc="${d.id}"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i>Mark Reviewed</button>`}
+            <button type="button" class="ent-list-action-btn primary" data-legal-remind-doc="${d.id}"><i data-lucide="bell-ring" class="w-3.5 h-3.5"></i>Remind CEO</button>
+          </div>
+        </div>
+      </div>`).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('ent-legal-countersign-list').addEventListener('click', (e) => {
+    const reviewBtn = e.target.closest('[data-legal-review-doc]');
+    const remindBtn = e.target.closest('[data-legal-remind-doc]');
+    const docId = reviewBtn ? reviewBtn.dataset.legalReviewDoc : remindBtn ? remindBtn.dataset.legalRemindDoc : null;
+    if (!docId) return;
+    const d = companyLegalDocuments().find(x => String(x.id) === String(docId));
+    if (!d || d.status !== 'PENDING_COUNTERSIGN') return;
+    if (reviewBtn) {
+      d.legalReviewedAt = Date.now();
+      d.legalReviewedBy = getCurrentUserId();
+      saveAppState(appState);
+      pushPlatformNotification('landlord', 'message', 'Legal Review Complete',
+        `Legal has reviewed "${d.name}" — it is ready for your countersignature.`,
+        { screen: 'handoverReview', docId: d.id }, 'COUNTERSIGN_REVIEWED', null, d.companyId);
+      showToast('Marked as reviewed — the CEO has been notified');
+    } else {
+      d.reminderCount = (d.reminderCount || 0) + 1;
+      d.lastReminderAt = Date.now();
+      saveAppState(appState);
+      pushPlatformNotification('landlord', 'message', 'Countersignature Reminder',
+        `Reminder from Legal: "${d.name}" is still waiting for your countersignature.`,
+        { screen: 'handoverReview', docId: d.id }, 'COUNTERSIGN_REMINDER', null, d.companyId);
+      showToast('Reminder sent to the CEO');
+    }
+    renderLegalCountersignQueue();
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  });
   // Documents the CEO has countersigned (APPROVED) or that have gone all
   // the way through to the client (DELIVERED_TO_CLIENT) — pulled straight
   // onto Legal's own dashboard, newest first.
   function renderLegalCountersignedDocs() {
-    const docs = companyLegalDocuments().filter(d => d.status === 'APPROVED' || d.status === 'DELIVERED_TO_CLIENT');
+    const docs = companyLegalDocuments().filter(d => d.status === 'APPROVED' || d.status === 'COUNTERSIGNED' || d.status === 'DELIVERED_TO_CLIENT');
     const section = document.getElementById('ent-legal-countersigned-section');
     const list = document.getElementById('ent-legal-countersigned-list');
     if (!section || !list) return;
@@ -19317,7 +19458,7 @@ available in the Post-Lease Hub and this chat thread.`
         <div class="ent-list-icon"><i data-lucide="file-check-2" class="w-4 h-4"></i></div>
         <div class="ent-list-text">
           <p class="ent-list-title">${d.name}</p>
-          <p class="ent-list-sub">${d.listingTitle ? d.listingTitle + ' · ' : ''}${d.status === 'DELIVERED_TO_CLIENT' ? 'Delivered to Client' : 'Countersigned — Forwarded to Sales'}</p>
+          <p class="ent-list-sub">${d.listingTitle ? d.listingTitle + ' · ' : ''}${d.status === 'DELIVERED_TO_CLIENT' ? 'Sent to ' + (d.buyerName || 'client') : (d.status === 'COUNTERSIGNED' ? 'Countersigned — Sent back to client' : 'Approved by CEO')}</p>
         </div>
         <button type="button" class="ent-list-action-btn" data-download-doc="${d.id}" title="Download"><i data-lucide="download" class="w-3.5 h-3.5"></i></button>
       </div>`).join('');
@@ -19326,44 +19467,53 @@ available in the Post-Lease Hub and this chat thread.`
   document.getElementById('ent-legal-countersigned-list').addEventListener('click', (e) => {
     const dlBtn = e.target.closest('[data-download-doc]');
     if (!dlBtn) return;
-    const d = companyLegalDocuments().find(x => String(x.id) === dlBtn.dataset.downloadDoc);
-    showToast(`Downloading ${(d && d.name) || 'document'}`);
+    openDocFile(companyLegalDocuments().find(x => String(x.id) === dlBtn.dataset.downloadDoc));
   });
-  const LEGAL_DOC_STATUS_LABEL = { DRAFT: 'Not Sent', SENT_TO_CEO: 'Sent to CEO', APPROVED: 'Approved — Forwarded to Sales', DELIVERED_TO_CLIENT: 'Delivered to Client', REJECTED: 'Rejected' };
-  const LEGAL_DOC_STATUS_CLASS = { DRAFT: 'ent-doc-status-draft', SENT_TO_CEO: 'ent-doc-status-sent', APPROVED: 'ent-doc-status-approved', DELIVERED_TO_CLIENT: 'ent-doc-status-approved', REJECTED: 'ent-doc-status-rejected' };
+  const LEGAL_DOC_STATUS_LABEL = { DRAFT: 'Not Sent', SENT_TO_CEO: 'Sent to CEO', RETURNED: 'Returned by CEO', PENDING_COUNTERSIGN: 'Awaiting CEO Countersignature', COUNTERSIGNED: 'Countersigned — Sent Back', APPROVED: 'Approved by CEO', DELIVERED_TO_CLIENT: 'Delivered to Client', REJECTED: 'Rejected' };
+  const LEGAL_DOC_STATUS_CLASS = { DRAFT: 'ent-doc-status-draft', SENT_TO_CEO: 'ent-doc-status-sent', RETURNED: 'ent-doc-status-rejected', PENDING_COUNTERSIGN: 'ent-doc-status-sent', COUNTERSIGNED: 'ent-doc-status-approved', APPROVED: 'ent-doc-status-approved', DELIVERED_TO_CLIENT: 'ent-doc-status-approved', REJECTED: 'ent-doc-status-rejected' };
   function renderLegalDocs() {
-    const docs = companyLegalDocuments();
+    const docs = companyLegalDocuments().filter(d => d.kind !== 'COUNTERSIGN');
     const list = document.getElementById('ent-legal-docs-list');
     list.innerHTML = docs.length ? docs.map(d => `
-      <div class="ent-list-item">
+      <div class="ent-list-item" style="flex-wrap:wrap;">
         <div class="ent-list-icon"><i data-lucide="file-text" class="w-4 h-4"></i></div>
         <div class="ent-list-text">
           <p class="ent-list-title">${d.name}</p>
-          <p class="ent-list-sub">${new Date(d.uploadedAt).toLocaleDateString()}</p>
+          <p class="ent-list-sub">${d.docType ? d.docType + ' · ' : ''}${d.buyerName ? 'For ' + d.buyerName + ' · ' : ''}${new Date(d.uploadedAt).toLocaleDateString()}</p>
+          ${d.status === 'RETURNED' && d.returnNote ? `<p class="ent-list-sub" style="color:#f87171; margin-top:3px;">CEO note: ${d.returnNote}</p>` : ''}
         </div>
         <span class="ent-doc-status-badge ${LEGAL_DOC_STATUS_CLASS[d.status] || 'ent-doc-status-draft'}">${LEGAL_DOC_STATUS_LABEL[d.status] || d.status}</span>
-        <button type="button" class="ent-list-action-btn" data-download-doc="${d.id}" title="Download"><i data-lucide="download" class="w-3.5 h-3.5"></i></button>
-        ${d.status === 'DRAFT' ? `<button type="button" class="ent-list-action-btn primary" data-send-doc="${d.id}" title="Send to CEO"><i data-lucide="send" class="w-3.5 h-3.5"></i></button>` : ''}
+        <button type="button" class="ent-list-action-btn" data-download-doc="${d.id}" title="View"><i data-lucide="eye" class="w-3.5 h-3.5"></i></button>
+        ${(d.status === 'DRAFT' || d.status === 'RETURNED') ? `<button type="button" class="ent-list-action-btn primary" data-send-doc="${d.id}" title="Send to CEO"><i data-lucide="send" class="w-3.5 h-3.5"></i>${d.status === 'RETURNED' ? 'Resend' : 'Send to CEO'}</button>` : ''}
       </div>`).join('')
       : `<div class="ent-empty"><i data-lucide="scale"></i><p>No documents yet — tap Upload Document above.</p></div>`;
     if (window.lucide) lucide.createIcons();
+  }
+  function openDocFile(d) {
+    if (d && d.fileDataUrl) window.open(d.fileDataUrl, '_blank');
+    else showToast(`No file attached to ${(d && d.name) || 'this document'}`);
   }
   document.getElementById('ent-legal-docs-list').addEventListener('click', (e) => {
     const dlBtn = e.target.closest('[data-download-doc]');
     const sendBtn = e.target.closest('[data-send-doc]');
     if (dlBtn) {
-      const d = companyLegalDocuments().find(x => String(x.id) === dlBtn.dataset.downloadDoc);
-      showToast(`Downloading ${(d && d.name) || 'document'}`);
+      openDocFile(companyLegalDocuments().find(x => String(x.id) === dlBtn.dataset.downloadDoc));
       return;
     }
     if (sendBtn) {
       const d = companyLegalDocuments().find(x => String(x.id) === sendBtn.dataset.sendDoc);
-      if (!d) return;
+      if (!d || (d.status !== 'DRAFT' && d.status !== 'RETURNED')) return;
+      if (d.buyerId && !d.fileDataUrl) { showToast('Attach the document file before sending it to the CEO'); return; }
       d.status = 'SENT_TO_CEO';
       d.sentAt = Date.now();
+      delete d.returnNote;
       saveAppState(appState);
-      flagItemToCeo(`Document — "${d.name}" needs your review & approval`);
+      pushPlatformNotification('landlord', 'message', 'Document Awaiting Your Review',
+        `Legal sent "${d.name}"${d.buyerName ? ' for ' + d.buyerName : ''} — review it and send it to the buyer.`,
+        { screen: 'entLegalReview' }, 'DOC_SENT_TO_CEO', null, d.companyId);
+      showToast('Sent to the CEO for review');
       renderLegalDocs();
+      window.dispatchEvent(new Event('maintown_state_updated'));
     }
   });
   function openLegalDashboard() {
@@ -19384,15 +19534,43 @@ available in the Post-Lease Hub and this chat thread.`
     renderLegalHome();
   });
   let entLegalPendingDocDataUrl = null;
+  const LEGAL_CLIENT_DOC_TYPES = ['Deed of Assignment', 'Purchase Agreement', 'Tenancy Agreement'];
+  function legalDocIsForBuyer() { return LEGAL_CLIENT_DOC_TYPES.includes(document.getElementById('ent-legal-doc-type').value); }
+  function refreshLegalDocFields() {
+    const forBuyer = legalDocIsForBuyer();
+    document.getElementById('ent-legal-doc-listing-field').style.display = forBuyer ? '' : 'none';
+    document.getElementById('ent-legal-doc-buyer-field').style.display = forBuyer ? '' : 'none';
+  }
+  function refreshLegalDocBuyers() {
+    const sel = document.getElementById('ent-legal-doc-buyer');
+    const hint = document.getElementById('ent-legal-doc-buyer-hint');
+    const listingId = document.getElementById('ent-legal-doc-listing').value;
+    if (!listingId) { sel.innerHTML = '<option value="">Select a property first</option>'; return; }
+    const listing = enterpriseListings().find(l => String(l.id) === String(listingId));
+    const buyers = getListingBuyers(listing);
+    if (!buyers.length) {
+      sel.innerHTML = '<option value="">No buyer on record for this property</option>';
+      hint.textContent = 'No buyer has completed a payment on this property yet, so a document cannot be addressed to anyone.';
+      return;
+    }
+    hint.textContent = 'Only buyers with a completed payment on this property are listed. Check the name and contact carefully.';
+    sel.innerHTML = '<option value="">Select the buyer</option>' + buyers.map(b => `<option value="${b.id}">${b.name}${b.contact ? ' · ' + b.contact : ''}</option>`).join('');
+    if (buyers.length === 1) sel.value = '';
+  }
+  document.getElementById('ent-legal-doc-type').addEventListener('change', refreshLegalDocFields);
+  document.getElementById('ent-legal-doc-listing').addEventListener('change', refreshLegalDocBuyers);
   document.getElementById('ent-legal-upload-doc-btn').addEventListener('click', () => {
     document.getElementById('ent-legal-doc-name').value = '';
+    document.getElementById('ent-legal-doc-type').value = 'Deed of Assignment';
     document.getElementById('ent-legal-doc-upload-label').textContent = 'Choose File (PDF/Image)';
     document.getElementById('ent-legal-doc-upload-box').classList.remove('has-file');
+    document.getElementById('ent-legal-doc-file').value = '';
     entLegalPendingDocDataUrl = null;
     const sel = document.getElementById('ent-legal-doc-listing');
-    const live = enterpriseListings().filter(l => l.workflowStatus === 'LIVE');
-    sel.innerHTML = '<option value="">— Not linked to a listing —</option>' +
-      live.map(l => `<option value="${l.id}">${l.title}</option>`).join('');
+    const withBuyers = enterpriseListings().filter(l => getListingBuyers(l).length);
+    sel.innerHTML = '<option value="">Select the property</option>' + withBuyers.map(l => `<option value="${l.id}">${l.title}</option>`).join('');
+    refreshLegalDocFields();
+    refreshLegalDocBuyers();
     document.getElementById('ent-legal-upload-modal').classList.add('open');
   });
   document.getElementById('ent-legal-doc-cancel-btn').addEventListener('click', () => {
@@ -19410,21 +19588,35 @@ available in the Post-Lease Hub and this chat thread.`
   });
   document.getElementById('ent-legal-doc-save-btn').addEventListener('click', () => {
     const name = document.getElementById('ent-legal-doc-name').value.trim();
+    const docType = document.getElementById('ent-legal-doc-type').value;
+    const forBuyer = legalDocIsForBuyer();
     if (!name) { showToast('Please give the document a name'); return; }
+    if (!entLegalPendingDocDataUrl) { showToast('Please attach the document file'); return; }
     const companyId = getEnterpriseCompanyId();
-    const listingId = document.getElementById('ent-legal-doc-listing').value || null;
-    const listing = listingId ? enterpriseListings().find(l => String(l.id) === String(listingId)) : null;
+    let listing = null, buyer = null;
+    if (forBuyer) {
+      const listingId = document.getElementById('ent-legal-doc-listing').value;
+      const buyerId = document.getElementById('ent-legal-doc-buyer').value;
+      if (!listingId) { showToast('Select the property this document is for'); return; }
+      listing = enterpriseListings().find(l => String(l.id) === String(listingId));
+      if (!buyerId) { showToast('Select the buyer this document is for'); return; }
+      buyer = getListingBuyers(listing).find(b => b.id === buyerId);
+      if (!listing || !buyer) { showToast('That buyer is not on record for this property'); return; }
+    }
     appState.legalDocuments = appState.legalDocuments || [];
     appState.legalDocuments.unshift({
-      id: Date.now(), companyId, name, fileDataUrl: entLegalPendingDocDataUrl || null,
+      id: Date.now(), companyId, name, docType, fileDataUrl: entLegalPendingDocDataUrl,
       uploadedBy: getCurrentUserId(), uploadedAt: Date.now(), status: 'DRAFT',
       listingId: listing ? listing.id : null,
       listingTitle: listing ? listing.title : null,
       salesStaffId: listing ? listing.listedByStaffId : null,
+      buyerId: buyer ? buyer.id : null,
+      buyerName: buyer ? buyer.name : null,
+      isLand: !!(listing && listing.type === 'land')
     });
     saveAppState(appState);
     document.getElementById('ent-legal-upload-modal').classList.remove('open');
-    showToast('Document uploaded to your legal library');
+    showToast('Document saved — send it to the CEO when ready');
     renderLegalDocs();
   });
 
@@ -19663,6 +19855,7 @@ available in the Post-Lease Hub and this chat thread.`
         <div class="ent-list-text">
           <p class="ent-list-title">${l.title}</p>
           <p class="ent-list-sub">${l.location}${l.estateName ? ' · ' + l.estateName : ''} · ${statusLabel[l.workflowStatus] || l.workflowStatus || 'Live'}</p>
+          <button type="button" class="ent-list-action-btn ent-preview-btn" data-preview-listing="${l.id}"><i data-lucide="eye" class="w-3 h-3"></i>Preview</button>
         </div>
         ${l.removalRequested ? `<span class="status-pill warning">Removal Requested</span>` : ''}
       </div>`).join('')
@@ -19690,6 +19883,12 @@ available in the Post-Lease Hub and this chat thread.`
       </div>`).join('');
     if (window.lucide) lucide.createIcons();
   }
+  document.getElementById('ent-inventory-list').addEventListener('click', (e) => {
+    const previewBtn = e.target.closest('[data-preview-listing]');
+    if (!previewBtn) return;
+    const pl = enterpriseListings().find(x => String(x.id) === previewBtn.dataset.previewListing);
+    openOwnerListingPreview(pl, pl && pl.workflowStatus);
+  });
   document.getElementById('ent-removal-requests-list').addEventListener('click', (e) => {
     const approveBtn = e.target.closest('[data-approve-removal]');
     const declineBtn = e.target.closest('[data-decline-removal]');
@@ -19905,44 +20104,129 @@ available in the Post-Lease Hub and this chat thread.`
     }
   });
 
-  // ---- CEO's view of the Legal library: approve a tenancy agreement Legal
-  // has sent up, which forwards it straight to the assigned Sales staff
-  // member so THEY can hand it to the client. ----
-  const CEO_DOC_STATUS_LABEL = { DRAFT: 'Not Sent', SENT_TO_CEO: 'Awaiting Your Approval', APPROVED: 'Forwarded to Sales', DELIVERED_TO_CLIENT: 'Delivered to Client', REJECTED: 'Rejected' };
+  // ---- CEO's view of the Legal library: (1) agreements/contracts that clients
+  // have signed on Sales-listed properties and that now need the CEO's
+  // countersignature, and (2) documents Legal has sent up for approval. ----
+  const CEO_DOC_STATUS_LABEL = { DRAFT: 'Not Sent', SENT_TO_CEO: 'Awaiting Your Review', RETURNED: 'Returned to Legal', PENDING_COUNTERSIGN: 'Awaiting Your Countersignature', COUNTERSIGNED: 'Countersigned — Sent Back to Client', APPROVED: 'Approved', DELIVERED_TO_CLIENT: 'Delivered to Client', REJECTED: 'Rejected' };
   function renderCeoLegalDocsList() {
     const list = document.getElementById('ent-ceo-legal-docs-list');
     if (!list) return;
-    const docs = companyLegalDocuments().filter(d => d.status !== 'DRAFT');
+    const rank = d => d.status === 'PENDING_COUNTERSIGN' ? 0 : d.status === 'SENT_TO_CEO' ? 1 : 2;
+    const docs = companyLegalDocuments().filter(d => d.status !== 'DRAFT' && d.status !== 'RETURNED').sort((a, b) => rank(a) - rank(b) || (b.uploadedAt || 0) - (a.uploadedAt || 0));
     list.innerHTML = docs.length ? docs.map(d => `
       <div class="ent-list-item">
-        <div class="ent-list-icon"><i data-lucide="file-check-2" class="w-4 h-4"></i></div>
+        <div class="ent-list-icon"><i data-lucide="${d.kind === 'COUNTERSIGN' ? 'file-signature' : 'file-check-2'}" class="w-4 h-4"></i></div>
         <div class="ent-list-text">
           <p class="ent-list-title">${d.name}</p>
-          <p class="ent-list-sub">${d.listingTitle ? d.listingTitle + ' · ' : ''}${CEO_DOC_STATUS_LABEL[d.status] || d.status}</p>
+          <p class="ent-list-sub">${d.docType ? d.docType + ' · ' : ''}${d.kind !== 'COUNTERSIGN' && d.listingTitle ? d.listingTitle + ' · ' : ''}${d.buyerName && d.kind !== 'COUNTERSIGN' ? 'For ' + d.buyerName + ' · ' : ''}${CEO_DOC_STATUS_LABEL[d.status] || d.status}${d.status === 'PENDING_COUNTERSIGN' && d.legalReviewedAt ? ' · Reviewed by Legal' : ''}${d.status === 'PENDING_COUNTERSIGN' && d.reminderCount ? ' · Legal reminded ' + d.reminderCount + '×' : ''}</p>
         </div>
-        ${d.status === 'SENT_TO_CEO' ? `<button type="button" class="ent-list-action-btn primary" data-approve-doc="${d.id}"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i>Approve &amp; Forward</button>` : ''}
+        ${d.status === 'PENDING_COUNTERSIGN' ? `<button type="button" class="ent-list-action-btn primary" data-countersign-doc="${d.id}"><i data-lucide="pen-line" class="w-3.5 h-3.5"></i>Countersign</button>` : ''}
+        ${d.status === 'SENT_TO_CEO' ? `<button type="button" class="ent-list-action-btn primary" data-review-doc="${d.id}"><i data-lucide="file-search" class="w-3.5 h-3.5"></i>Review</button>` : ''}
       </div>`).join('')
-      : `<div class="ent-empty"><i data-lucide="file-check-2"></i><p>No documents sent up from Legal yet.</p></div>`;
+      : `<div class="ent-empty"><i data-lucide="file-check-2"></i><p>No agreements or documents waiting on you yet.</p></div>`;
     if (window.lucide) lucide.createIcons();
   }
-  document.getElementById('ent-ceo-legal-docs-list')?.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-approve-doc]');
-    if (!btn) return;
-    const d = (appState.legalDocuments || []).find(x => String(x.id) === btn.dataset.approveDoc);
-    if (!d) return;
-    if (!d.salesStaffId) {
-      showToast('Link this document to a listing (so we know which Sales staff to forward it to) before approving.');
-      return;
-    }
-    d.status = 'APPROVED';
-    d.approvedAt = Date.now();
-    d.approvedBy = getCurrentUserId();
+  // ---- CEO: review a document, confirm the buyer, then send it (or return it to Legal) ----
+  let edrDocId = null;
+  function isCeoSession() { return getEnterpriseStaffRole() === 'ceo'; }
+  function openDocReview(docId) {
+    if (!isCeoSession()) { showToast('Only the CEO can review and send documents'); return; }
+    const d = (appState.legalDocuments || []).find(x => String(x.id) === String(docId));
+    if (!d || d.status !== 'SENT_TO_CEO') return;
+    const listing = d.listingId ? enterpriseListings().find(l => String(l.id) === String(d.listingId)) : null;
+    const buyer = (listing && d.buyerId) ? getListingBuyers(listing).find(b => b.id === d.buyerId) : null;
+    edrDocId = d.id;
+    const row = (k, v, warn) => `<div class="row"><span>${k}</span><strong${warn ? ' style="color:#f87171;"' : ''}>${v}</strong></div>`;
+    const uploader = (appState.users && appState.users[d.uploadedBy] && appState.users[d.uploadedBy].name) || 'Legal';
+    document.getElementById('edr-details').innerHTML =
+      row('Document', d.name) + row('Type', d.docType || 'Document') + row('Property', d.listingTitle || '—') +
+      (d.buyerId
+        ? row('Send to', buyer ? buyer.name : 'Buyer not on record', !buyer) + row('Contact', buyer ? (buyer.contact || '—') : '—') + row('Payment on record', buyer && buyer.at ? new Date(buyer.at).toLocaleDateString() : '—', !buyer)
+        : row('Send to', 'No buyer (internal document)')) +
+      row('Prepared by', uploader) + row('File', d.fileDataUrl ? 'Attached' : 'Missing', !d.fileDataUrl);
+    document.getElementById('edr-confirm').checked = false;
+    document.getElementById('edr-confirm-text').textContent = d.buyerId
+      ? `I have reviewed this document and confirm it is for ${d.buyerName || 'this buyer'} on ${d.listingTitle || 'this property'}.`
+      : 'I have reviewed this document and approve it.';
+    document.getElementById('edr-send-btn').textContent = d.buyerId ? 'Send to Buyer' : 'Approve';
+    document.getElementById('edr-send-btn').disabled = true;
+    document.getElementById('edr-return-note').value = '';
+    document.getElementById('ent-doc-review-modal').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  function closeDocReview() { document.getElementById('ent-doc-review-modal').classList.remove('open'); edrDocId = null; }
+  document.getElementById('edr-confirm').addEventListener('change', (e) => { document.getElementById('edr-send-btn').disabled = !e.target.checked; });
+  document.getElementById('edr-close-btn').addEventListener('click', closeDocReview);
+  document.getElementById('edr-view-btn').addEventListener('click', () => {
+    openDocFile((appState.legalDocuments || []).find(x => String(x.id) === String(edrDocId)));
+  });
+  document.getElementById('edr-return-btn').addEventListener('click', () => {
+    const d = (appState.legalDocuments || []).find(x => String(x.id) === String(edrDocId));
+    if (!d || d.status !== 'SENT_TO_CEO' || !isCeoSession()) return;
+    const note = document.getElementById('edr-return-note').value.trim();
+    if (!note) { showToast('Add a short reason so Legal knows what to fix'); return; }
+    d.status = 'RETURNED';
+    d.returnNote = note;
+    d.returnedAt = Date.now();
     saveAppState(appState);
-    pushPlatformNotification('sales', 'message', 'Tenancy Agreement Approved',
-      `The CEO approved "${d.name}"${d.listingTitle ? ' for ' + d.listingTitle : ''} — forward it to your client.`,
-      { screen: 'screen-ent-sales' }, 'DOC_APPROVED', null, d.salesStaffId);
-    showToast('Approved — forwarded to the assigned Sales staff member');
+    companyStaffIdsByRole(d.companyId, 'legal').forEach(legalId => {
+      pushPlatformNotification('legal', 'message', 'Document Returned by CEO',
+        `"${d.name}" was returned: ${note}`, { screen: 'screen-ent-legal-dash' }, 'DOC_RETURNED', null, legalId);
+    });
+    closeDocReview();
+    showToast('Returned to Legal');
     renderCeoLegalDocsList();
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  });
+  document.getElementById('edr-send-btn').addEventListener('click', () => {
+    const d = (appState.legalDocuments || []).find(x => String(x.id) === String(edrDocId));
+    if (!d || d.status !== 'SENT_TO_CEO' || !isCeoSession()) return;
+    if (!document.getElementById('edr-confirm').checked) return;
+    if (!d.buyerId) {
+      d.status = 'APPROVED'; d.approvedAt = Date.now(); d.approvedBy = getCurrentUserId();
+      saveAppState(appState);
+      closeDocReview(); showToast('Document approved'); renderCeoLegalDocsList(); return;
+    }
+    // Final safety check: the buyer must still be on record for THIS property,
+    // and the file must be attached — otherwise nothing is sent.
+    const listing = enterpriseListings().find(l => String(l.id) === String(d.listingId));
+    const buyer = getListingBuyers(listing).find(b => b.id === d.buyerId);
+    if (!listing || !buyer) { showToast('This buyer is no longer on record for the property — nothing was sent'); return; }
+    if (!d.fileDataUrl) { showToast('The document file is missing — return it to Legal'); return; }
+    const isLandDoc = listing.type === 'land';
+    d.status = 'DELIVERED_TO_CLIENT';
+    d.deliveredAt = Date.now();
+    d.deliveredBy = getCurrentUserId();
+    d.deliveredToBuyerId = buyer.id;
+    appState.tenantLeaseDocuments = appState.tenantLeaseDocuments || [];
+    appState.tenantLeaseDocuments.unshift({
+      id: Date.now(), listingTitle: d.listingTitle, fileName: d.name, docType: d.docType, fileDataUrl: d.fileDataUrl,
+      listingType: isLandDoc ? 'land' : 'rent', buyerId: buyer.id, sourceDocId: d.id,
+      deliveredAt: Date.now(), deliveredBy: getCurrentUserId()
+    });
+    saveAppState(appState);
+    pushPlatformNotification('tenant', 'message', d.docType || 'Document Delivered',
+      `Your ${(d.docType || 'document').toLowerCase()} for ${d.listingTitle} is ready — view it in ${isLandDoc ? 'My Assets' : 'My Lease'}.`,
+      { screen: isLandDoc ? 'screen-asset-hub' : 'screen-my-lease' }, 'LEASE_DOC_DELIVERED', null, buyer.id);
+    companyStaffIdsByRole(d.companyId, 'legal').forEach(legalId => {
+      pushPlatformNotification('legal', 'message', 'Document Sent to Buyer',
+        `"${d.name}" was sent to ${buyer.name}.`, { screen: 'screen-ent-legal-dash' }, 'DOC_DELIVERED', null, legalId);
+    });
+    if (d.salesStaffId) {
+      pushPlatformNotification('sales', 'message', 'Document Sent to Buyer',
+        `The CEO sent the ${(d.docType || 'document').toLowerCase()} for ${d.listingTitle} to ${buyer.name}.`,
+        { screen: 'screen-ent-sales' }, 'DOC_DELIVERED', null, d.salesStaffId);
+    }
+    closeDocReview();
+    showToast(`Sent to ${buyer.name}`);
+    renderCeoLegalDocsList();
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  });
+  document.getElementById('ent-ceo-legal-docs-list')?.addEventListener('click', (e) => {
+    const signBtn = e.target.closest('[data-countersign-doc]');
+    if (signBtn) { if (!isCeoSession()) { showToast('Only the CEO can countersign'); return; } openCountersignForDoc(signBtn.dataset.countersignDoc); return; }
+    const reviewBtn = e.target.closest('[data-review-doc]');
+    if (reviewBtn) openDocReview(reviewBtn.dataset.reviewDoc);
   });
 
   // ---- Tab: Financial Ledger & Audit Receipts (read-only, no withdrawal) ----
