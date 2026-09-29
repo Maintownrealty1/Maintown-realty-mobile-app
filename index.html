@@ -1856,6 +1856,19 @@
   .s5-filter-btn:hover { color: #c084fc; }
 
   .s5-role-header { margin-bottom: 18px; }
+  /* Tenant Search: header, market selector and both tab rows stay pinned; only the feed scrolls */
+  #screen-5:not(.s5-staff) .s5-pinned {
+    position: sticky; top: 0; z-index: 30; background: #0B0F19;
+    margin: 0 -20px 14px; padding: 14px 20px 10px;
+    border-bottom: 1px solid #1e293b;
+  }
+  body.light-theme #screen-5:not(.s5-staff) .s5-pinned { background: #ffffff; border-bottom-color: #e5e7eb; }
+  #screen-5:not(.s5-staff) .s5-topbar { margin-bottom: 12px; }
+  #screen-5:not(.s5-staff) .s5-role-header { margin-bottom: 12px; }
+  #screen-5:not(.s5-staff) #s5-market-bar { margin: 2px 0 0; }
+  #s5-tenant-pin-controls .toggle-pill-row { margin-bottom: 10px; }
+  #s5-tenant-pin-controls .s5-currency-toggle { margin-bottom: 0; }
+  #screen-5.s5-staff #s5-tenant-pin-controls { display: none; }
   /* Landlord / Agent / Sales: no search bar; header is pinned with the back arrow beside it */
   #screen-5.s5-staff .s5-pinned {
     position: sticky; top: 0; z-index: 30; background: #0B0F19;
@@ -3747,10 +3760,8 @@
     <p class="s5-role-sub" id="s5-role-sub">Document-screened listings, local & diaspora-friendly.</p>
     <div id="s5-market-bar"></div>
   </div>
-  </div><!-- /s5-pinned -->
 
-  <!-- ---- TENANT VIEW: Search & Book ---- -->
-  <div id="tenant-view" class="role-view hidden">
+  <div id="s5-tenant-pin-controls">
     <div class="toggle-pill-row">
       <button type="button" class="toggle-pill active" id="s5-tab-rent" data-listing-type="rent">For Rent</button>
       <button type="button" class="toggle-pill" id="s5-tab-land" data-listing-type="land">Buy Land &amp; Properties</button>
@@ -3760,7 +3771,11 @@
       <button type="button" class="s5-currency-btn active" data-currency="ngn">Local Rent (NGN)</button>
       <button type="button" class="s5-currency-btn" data-currency="usd">Diaspora Flex-Rent (USD/EUR)</button>
     </div>
+  </div>
+  </div><!-- /s5-pinned -->
 
+  <!-- ---- TENANT VIEW: Search & Book ---- -->
+  <div id="tenant-view" class="role-view hidden">
     <button type="button" class="as-link" id="s5-compare-link" data-assist="compare"><i data-lucide="columns-2" class="w-3.5 h-3.5"></i>Compare listings</button>
 
     <div class="s5-feed" id="s5-listing-feed">
@@ -3793,8 +3808,12 @@
         <p class="mkt-city-hint" id="tv-city-hint"></p>
       </div>
       <div class="field">
-        <label class="field-label">Area / Address</label>
-        <input class="field-input" id="tv-address" type="text" placeholder="Area and street, e.g. Wuse 2, Aminu Kano Cres.">
+        <label class="field-label">Area</label>
+        <select class="field-input" id="tv-area" disabled><option value="">Select city first</option></select>
+      </div>
+      <div class="field">
+        <label class="field-label">Street / Address</label>
+        <input class="field-input" id="tv-address" type="text" placeholder="Street or estate, e.g. Aminu Kano Cres.">
       </div>
 
       <div class="field">
@@ -3937,8 +3956,12 @@
           <p class="mkt-city-hint" id="s5-listing-city-hint"></p>
         </div>
         <div class="field">
-          <label class="field-label">Area / Address</label>
-          <input class="field-input" id="s5-listing-address" type="text" required placeholder="Area and street, e.g. Wuse 2, Aminu Kano Cres.">
+          <label class="field-label">Area</label>
+          <select class="field-input" id="s5-listing-area" required disabled><option value="">Select city first</option></select>
+        </div>
+        <div class="field">
+          <label class="field-label">Street / Address</label>
+          <input class="field-input" id="s5-listing-address" type="text" required placeholder="Street or estate, e.g. Aminu Kano Cres.">
         </div>
         <div class="field">
           <label class="field-label">Listing Type</label>
@@ -9750,12 +9773,63 @@ This voucher is auto-generated and serves as proof of settlement.`;
   ];
 
 
+  // ---- Areas (State -> City -> Area) ----
+  // One source of truth for the Area dropdown on listing forms and the upcoming
+  // filter drawer. type: 'urban' = Urban area, 'community' = Local community.
+  // To add an area, add [name, type] under its city id. Listing `area` stores the id.
+  const STATE_OF = { lagos:'Lagos State', abuja:'FCT', ogun:'Ogun State', ibadan:'Oyo State', portharcourt:'Rivers State', asaba:'Delta State', warri:'Delta State', toronto:'Ontario', calgary:'Alberta' };
+  const AREA_TYPE_LABEL = { urban:'Urban areas', community:'Local communities' };
+  const AREA_DATA = {
+    lagos: [['Victoria Island','urban'],['Ikoyi','urban'],['Oniru','urban'],['Lekki Phase 1','urban'],['Ajah','urban'],['Yaba','urban'],['Surulere','urban'],['Ikeja GRA','urban'],['Maryland','urban'],['Gbagada','urban'],['Magodo','urban'],
+            ['Sangotedo','community'],['Awoyaya','community'],['Abijo','community'],['Lakowe','community'],['Ibeju-Lekki','community'],['Epe','community'],['Ikorodu','community'],['Badagry','community']],
+    abuja: [['Maitama','urban'],['Asokoro','urban'],['Wuse 2','urban'],['Jabi','urban'],['Garki','urban'],['Gwarinpa','urban'],['Lugbe','community'],['Kubwa','community'],['Kuje','community'],['Gwagwalada','community']],
+    ogun: [['Abeokuta','urban'],['Ijebu-Ode','urban'],['Sagamu','community'],['Sango Ota','community'],['Ifo','community'],['Mowe','community']],
+    ibadan: [['Bodija','urban'],['Jericho','urban'],['Oluyole','urban'],['Akobo','community'],['Apata','community']],
+    portharcourt: [['Old GRA','urban'],['Trans-Amadi','urban'],['Peter Odili Rd','urban'],['Rumuokoro','community'],['Eleme','community']],
+    asaba: [['Asaba GRA','urban'],['Okpanam Road','urban'],['Cable Point','urban'],['Ibusa','community']],
+    warri: [['Effurun','urban'],['Okumagba Estate','urban'],['Airport Road','urban']],
+    toronto: [['Scarborough','urban'],['North York','urban'],['Etobicoke','urban']],
+    calgary: [['Beltline','urban'],['Brentwood','urban'],['Kensington','urban']]
+  };
+  function slugArea(n) { return String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
+  function marketAreaList(cityId) {
+    const raw = AREA_DATA[cityId];
+    if (raw) return raw.map(([n, t]) => ({ id: slugArea(n), n, type: t }));
+    const m = MARKETS.find(x => x.id === cityId);
+    return ((m && m.areas) || []).map(a => ({ id: slugArea(a.n), n: a.n, type: 'urban' }));
+  }
+  // Area id for a listing: uses the saved `area`, otherwise infers it from the
+  // location text (longest whole-name match), so older listings map automatically.
+  function listingAreaId(l) {
+    if (l && l.area) return l.area;
+    const loc = String((l && (l.location || l.address)) || '').toLowerCase();
+    let best = null;
+    marketAreaList(listingMarketId(l)).forEach(a => {
+      const nm = a.n.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (new RegExp('(^|[^a-z0-9])' + nm + '([^a-z0-9]|$)').test(loc) && (!best || a.n.length > best.n.length)) best = a;
+    });
+    return best ? best.id : '';
+  }
+  function populateAreaSelect(citySelId, areaSelId) {
+    const cs = document.getElementById(citySelId), as = document.getElementById(areaSelId);
+    if (!cs || !as) return;
+    const list = marketAreaList(cs.value);
+    const opts = t => list.filter(a => a.type === t).map(a => `<option value="${a.id}">${a.n}</option>`).join('');
+    as.innerHTML = '<option value="">' + (cs.value ? 'Select area' : 'Select city first') + '</option>'
+      + (opts('urban') ? `<optgroup label="${AREA_TYPE_LABEL.urban}">${opts('urban')}</optgroup>` : '')
+      + (opts('community') ? `<optgroup label="${AREA_TYPE_LABEL.community}">${opts('community')}</optgroup>` : '');
+    as.disabled = !cs.value || !list.length;
+    as.value = '';
+  }
+
   // ---- City field on listing forms (landlord / agent / sales) ----
   // Every new listing is stamped with a `city` id so it lands in the right
   // market automatically. The dropdown is built from MARKETS (one source of truth).
-  function composeListingLocation(address, cityId) {
+  function composeListingLocation(address, cityId, areaId) {
     const m = MARKETS.find(x => x.id === cityId);
-    const a = String(address || '').trim();
+    let a = String(address || '').trim();
+    const ar = areaId ? marketAreaList(cityId).find(x => x.id === areaId) : null;
+    if (ar && !a.toLowerCase().includes(ar.n.toLowerCase())) a = a ? a + ', ' + ar.n : ar.n;
     if (!m) return a;
     const base = m.name.replace(/ State$/i, '').toLowerCase();
     return a.toLowerCase().includes(base) ? a : (a ? a + ', ' + m.name : m.name);
@@ -9778,6 +9852,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.addEventListener('change', (e) => { if (e.target && e.target.matches && e.target.matches('select[data-city-select]')) updateCityHint(e.target); });
   document.addEventListener('reset', () => setTimeout(() => document.querySelectorAll('select[data-city-select]').forEach(updateCityHint), 0));
   populateCitySelects();
+  const AREA_FORM_PAIRS = { 'tv-city': 'tv-area', 's5-listing-city': 's5-listing-area' };
+  Object.keys(AREA_FORM_PAIRS).forEach(c => populateAreaSelect(c, AREA_FORM_PAIRS[c]));
+  document.addEventListener('change', (e) => { const t = e.target; if (t && t.id && AREA_FORM_PAIRS[t.id]) populateAreaSelect(t.id, AREA_FORM_PAIRS[t.id]); });
+  document.addEventListener('reset', () => setTimeout(() => Object.keys(AREA_FORM_PAIRS).forEach(c => populateAreaSelect(c, AREA_FORM_PAIRS[c])), 0));
   function marketLinedUpCount(id) {
     return rentListings().concat(landListingsList()).filter(l => !isListingUnavailable(l) && listingMarketId(l) === id).length;
   }
@@ -13479,6 +13557,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('tv-title').value = '';
     document.getElementById('tv-address').value = '';
     document.getElementById('tv-city').value = '';
+    populateAreaSelect('tv-city', 'tv-area');
     document.getElementById('tv-city-hint').className = 'mkt-city-hint';
     document.getElementById('tv-listing-type').value = 'rent';
     document.getElementById('tv-annual').value = '';
@@ -13645,6 +13724,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const title = document.getElementById('tv-title').value.trim();
     const address = document.getElementById('tv-address').value.trim();
     const cityId = document.getElementById('tv-city').value;
+    const areaId = document.getElementById('tv-area').value;
     const type = document.getElementById('tv-listing-type').value;
     const annual = parseFloat(document.getElementById('tv-annual').value) || 0;
     // Vendor Activation Gate: Land & Property listings require KYC + Vendor
@@ -13661,6 +13741,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
     if (!cityId) { showToast('Please select the city this property is in'); return; }
+    if (!areaId && marketAreaList(cityId).length) { showToast('Please select the area this property is in'); return; }
     if (!document.getElementById('tv-listing-auth-toggle').checked) {
       showToast('Please confirm the Listing Authorization & Title Disclaimer to continue');
       return;
@@ -13683,7 +13764,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const requiresConsent = titleDocuments.some(d => (TITLE_DOC_TYPES.find(t => t.id === d.id) || {}).requiresConsent);
     const isPublished = document.getElementById('tv-publish-toggle').checked;
     const newId = Date.now();
-    landlordProperties.unshift({ id: newId, title, address: composeListingLocation(address, cityId), status: 'escrow', listingId: newId, ownerId: getCurrentUserId() });
+    landlordProperties.unshift({ id: newId, title, address: composeListingLocation(address, cityId, areaId), status: 'escrow', listingId: newId, ownerId: getCurrentUserId() });
     renderLandlordList();
 
     // Media Visibility: photos/walkthrough video uploaded here are stored on the listing
@@ -13694,7 +13775,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const currentUserName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Landlord';
     const feeFields = getFeeFieldsFromForm('tv');
     const baseFields = {
-      id: newId, title, location: composeListingLocation(address, cityId), city: cityId, listedBy: 'landlord', status: isPublished ? 'live' : 'draft',
+      id: newId, title, location: composeListingLocation(address, cityId, areaId), city: cityId, area: areaId, listedBy: 'landlord', status: isPublished ? 'live' : 'draft',
       hasPhotos: tvPendingPhotoCount > 0, hasVideo: tvPendingHasVideo,
       photos: tvPendingPhotoUrls.slice(), videoUrl: tvPendingVideoUrl,
       photoKeys: tvPendingPhotoKeys.slice(), videoKey: tvPendingVideoKey,
@@ -14238,6 +14319,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const title = document.getElementById('s5-listing-title').value.trim();
     const address = document.getElementById('s5-listing-address').value.trim();
     const cityId = document.getElementById('s5-listing-city').value;
+    const areaId = document.getElementById('s5-listing-area').value;
     const type = document.getElementById('s5-listing-type').value;
     const annual = parseFloat(document.getElementById('s5-listing-annual').value) || 0;
 
@@ -14246,6 +14328,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
     if (!cityId) { showToast('Please select the city this property is in'); return; }
+    if (!areaId && marketAreaList(cityId).length) { showToast('Please select the area this property is in'); return; }
     if (!document.getElementById('s5-listing-auth-toggle').checked) {
       showToast('Please confirm the Listing Authorization & Title Disclaimer to continue');
       return;
@@ -14260,7 +14343,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const newId = Date.now();
       const feeFields = getFeeFieldsFromForm('s5');
       const baseFields = {
-        id: newId, title, location: composeListingLocation(address, cityId), city: cityId, listedBy: 'enterprise', status: 'draft',
+        id: newId, title, location: composeListingLocation(address, cityId, areaId), city: cityId, area: areaId, listedBy: 'enterprise', status: 'draft',
         hasPhotos: s5PendingPhotoCount > 0, hasVideo: s5PendingHasVideo,
         photos: s5PendingPhotoUrls.slice(), videoUrl: s5PendingVideoUrl,
         photoKeys: s5PendingPhotoKeys.slice(), videoKey: s5PendingVideoKey,
@@ -14354,7 +14437,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // feed — it stays out of `listingsFeed` entirely until Landlord
     // verification and MainTown's legal review both complete.
     const baseFields = {
-      id: newId, title, location: composeListingLocation(address, cityId), city: cityId, listedBy: 'agent', status: 'draft',
+      id: newId, title, location: composeListingLocation(address, cityId, areaId), city: cityId, area: areaId, listedBy: 'agent', status: 'draft',
       hasPhotos: s5PendingPhotoCount > 0, hasVideo: s5PendingHasVideo,
       photos: s5PendingPhotoUrls.slice(), videoUrl: s5PendingVideoUrl,
         photoKeys: s5PendingPhotoKeys.slice(), videoKey: s5PendingVideoKey,
