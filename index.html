@@ -3002,6 +3002,19 @@
   body.light-theme .ent-attention { background: #fffbeb; border-color: #fde68a; color: #78350f; }
   body.light-theme .ent-attention strong { color: #0f172a; }
   body.light-theme .ent-attention.ok { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+
+  /* ---- Bottom nav: fully solid so scrolled content disappears behind it (no see-through) ---- */
+  #app-bottom-nav { padding-top: 10px; padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+  #app-bottom-nav::before {
+    content: ''; position: absolute; z-index: -1; top: 0; bottom: 0;
+    left: 50%; width: 100vw; transform: translateX(-50%);
+    background: #0B0F19;
+  }
+  body.light-theme #app-bottom-nav::before { background: #ffffff; }
+  body:not(.light-theme) #app-bottom-nav .dash-nav {
+    background: #0f172a;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
 </style>
 </head>
 <body>
