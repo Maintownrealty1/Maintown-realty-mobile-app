@@ -1360,6 +1360,11 @@
   .dl-row {
     display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
     margin: 0 -20px; padding: 0 20px 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    /* BUGFIX: scroll-snap aligns the first card to the scroller's very edge and
+       ignores padding, so the first card sat flush against the screen edge.
+       scroll-padding gives the snap position the same 20px inset as the
+       headings above, so the first card lines up with them. */
+    scroll-padding-left: 20px; scroll-padding-right: 20px;
   }
   .dl-row::-webkit-scrollbar { display: none; }
   .dl-card { flex: 0 0 236px; scroll-snap-align: start; cursor: pointer; }
@@ -1379,8 +1384,10 @@
   body.light-theme .dl-viewall { color: #7c3aed; }
   body.light-theme .dl-title-line { color: #334155; }
   body.light-theme .dl-loc { color: #64748b; }
-  /* Odd tile count (tenant without Find a Home): let the last tile span the full row */
-  .dash-grid .dash-tile.dash-tile-wide { grid-column: 1 / -1; }
+  /* Odd tile count (tenant): the last tile keeps the exact same size as every other
+     tile (one grid column = (100% - gap) / 2) and sits centred on its own row,
+     instead of stretching across the full width. */
+  .dash-grid .dash-tile.dash-tile-wide { grid-column: 1 / -1; justify-self: center; width: calc(50% - 5px); }
   /* ---- Ask MainTown: quiet contextual help links + sheet content ---- */
   .as-link {
     display: inline-flex; align-items: center; gap: 6px; background: none; border: none; padding: 0;
@@ -2870,6 +2877,27 @@
   .li-row span { color: #8391a7; flex-shrink: 0; }
   .li-row strong { color: #f1f5f9; font-weight: 600; text-align: right; }
   .li-note { font-size: 11.5px; color: #7c8aa0; margin: 8px 2px 0; line-height: 1.5; }
+  /* Owner preview (Landlord / Agent): tag on the hero + status note */
+  .li-preview-tag {
+    position: absolute; top: 12px; left: 12px; z-index: 2; display: none; align-items: center; gap: 5px;
+    padding: 6px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: #ede9fe; background: rgba(88,28,135,0.72); border: 1px solid rgba(192,132,252,0.5);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  }
+  .li-preview-tag svg { width: 12px; height: 12px; }
+  .li-hero .s5-slide-nav, .li-hero .s5-slide-counter { display: none; }
+  .li-preview-note {
+    display: flex; align-items: flex-start; gap: 8px; margin: -6px 0 18px; padding: 10px 12px; border-radius: 12px;
+    font-size: 12px; line-height: 1.5; color: #ddd6fe; background: rgba(124,58,237,0.12); border: 1px solid rgba(167,139,250,0.28);
+  }
+  .li-preview-note svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; }
+  .s5-list-preview-btn {
+    width: fit-content; margin-top: 8px; padding: 5px 11px;
+    background: rgba(148,163,184,0.1); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.35);
+  }
+  .s5-list-preview-btn:hover { background: rgba(167,139,250,0.18); }
+  body.light-theme .s5-list-preview-btn { color: #6d28d9; background: #f3e8ff; border-color: #d8b4fe; }
+  body.light-theme .li-preview-note { color: #5b21b6; background: #f5f3ff; border-color: #ddd6fe; }
   .li-actions {
     display: flex; gap: 8px; position: sticky; bottom: 0; padding: 14px 20px calc(16px + env(safe-area-inset-bottom, 0px));
     background: linear-gradient(to top, #0d1424 72%, rgba(13,20,36,0));
@@ -5270,6 +5298,10 @@
   <div class="li-card">
     <div class="li-hero">
       <img id="li-hero-img" alt="">
+      <span class="li-preview-tag" id="li-preview-tag"><i data-lucide="eye"></i>Preview</span>
+      <button type="button" class="s5-slide-nav prev" id="li-prev" aria-label="Previous photo"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+      <button type="button" class="s5-slide-nav next" id="li-next" aria-label="Next photo"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+      <span class="s5-slide-counter" id="li-counter">1 / 1</span>
       <button type="button" class="li-close" id="li-close-btn" aria-label="Close listing details"><i data-lucide="x" class="w-4 h-4"></i></button>
     </div>
     <div class="li-body" id="li-body"></div>
@@ -9007,8 +9039,141 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // it is the SAME array object as `listings` (not a copy), so every push via
   // either name is instantly reflected in rentListings()/landListingsList().
   const listingsFeed = listings;
+  // ==================================================================
+  // ---- Listing Media Store (photos + walkthrough video) ----
+  // BUGFIX: uploaded listing photos/videos used to be kept only as
+  // URL.createObjectURL() "blob:" links. Those links die on page reload, but
+  // they were being JSON-serialised into localStorage, so after a refresh the
+  // live feed had nothing valid to show. It also always overwrote `img` with
+  // the grey "Image unavailable" placeholder, so photos never appeared on the
+  // rent/shortlet cards at all.
+  //
+  // Now the real files are stored in IndexedDB (no 5 MB localStorage limit,
+  // handles video) under short keys. The listing only stores those keys
+  // (photoKeys / videoKey); fresh blob URLs are rebuilt from IndexedDB on
+  // load and applied to each listing's photos / img / videoUrl.
+  // ==================================================================
+  const MediaStore = (function () {
+    const DB_NAME = 'mtr_media', STORE = 'files';
+    const urlCache = new Map(); // key -> blob: URL valid for this page session
+    let dbPromise = null;
+
+    function openDb() {
+      if (dbPromise) return dbPromise;
+      dbPromise = new Promise((resolve, reject) => {
+        if (!window.indexedDB) { reject(new Error('IndexedDB unavailable')); return; }
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = () => { req.result.createObjectStore(STORE); };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      dbPromise.catch(() => { dbPromise = null; }); // allow a retry next time
+      return dbPromise;
+    }
+
+    function newKey(kind) {
+      return kind + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+    }
+
+    // Saves the file to IndexedDB (in the background) and returns a blob URL
+    // that can be used immediately for previews and the live feed.
+    function store(key, file) {
+      const url = URL.createObjectURL(file);
+      urlCache.set(key, url);
+      openDb().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readwrite');
+        tx.objectStore(STORE).put(file, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = tx.onabort = () => reject(tx.error);
+      })).catch(err => console.warn('[MainTown] Could not persist listing media', key, err));
+      return url;
+    }
+
+    // Synchronously applies any already-known blob URLs to a listing.
+    function applyToListing(l) {
+      if (!l) return;
+      if (Array.isArray(l.photoKeys) && l.photoKeys.length) {
+        const urls = l.photoKeys.map(k => urlCache.get(k)).filter(Boolean);
+        if (urls.length) { l.photos = urls; l.img = urls[0]; }
+      }
+      if (l.videoKey) {
+        const v = urlCache.get(l.videoKey);
+        if (v) l.videoUrl = v;
+      }
+    }
+    function applyToAll(list) { list.forEach(applyToListing); }
+
+    // Loads any missing files from IndexedDB, then applies them.
+    async function hydrateAll(list) {
+      const wanted = [];
+      list.forEach(l => {
+        (Array.isArray(l.photoKeys) ? l.photoKeys : []).forEach(k => wanted.push(k));
+        if (l.videoKey) wanted.push(l.videoKey);
+      });
+      const missing = wanted.filter(k => !urlCache.has(k));
+      if (missing.length) {
+        try {
+          const db = await openDb();
+          await Promise.all(missing.map(k => new Promise(resolve => {
+            const req = db.transaction(STORE).objectStore(STORE).get(k);
+            req.onsuccess = () => { if (req.result) urlCache.set(k, URL.createObjectURL(req.result)); resolve(); };
+            req.onerror = () => resolve();
+          })));
+        } catch (err) {
+          console.warn('[MainTown] Could not load listing media', err);
+        }
+      }
+      applyToAll(list);
+    }
+
+    return { newKey, store, applyToListing, applyToAll, hydrateAll };
+  })();
+
+  // Cover image for a new listing: first uploaded photo, else the placeholder.
+  function listingCoverImg(l, type) {
+    return (l && Array.isArray(l.photos) && l.photos[0]) || PROPERTY_IMG_FALLBACK[type] || PROPERTY_IMG_FALLBACK.rent;
+  }
+
+  // Never persist "blob:" URLs — they are invalid after a reload. The
+  // durable references are photoKeys / videoKey (rebuilt by MediaStore).
+  function listingForStorage(l) {
+    const isBlob = v => typeof v === 'string' && v.indexOf('blob:') === 0;
+    const copy = { ...l };
+    if (Array.isArray(copy.photos)) copy.photos = copy.photos.filter(u => !isBlob(u));
+    if (isBlob(copy.videoUrl)) copy.videoUrl = null;
+    if (isBlob(copy.img)) copy.img = PROPERTY_IMG_FALLBACK[copy.type] || PROPERTY_IMG_FALLBACK.rent;
+    return copy;
+  }
   function saveListings() {
-    try { localStorage.setItem('mtr_listings', JSON.stringify(listings)); } catch (e) {}
+    try { localStorage.setItem('mtr_listings', JSON.stringify(listings.map(listingForStorage))); }
+    catch (e) { console.warn('[MainTown] Could not save listings', e); }
+    // BUGFIX: the Landlord's "My Properties" and the Agent's "My Listings"
+    // were plain in-memory arrays, so every refresh emptied them (and with
+    // them each card's Preview button). They are now saved alongside the
+    // listings and reloaded at startup. (These arrays are declared further
+    // down; the try/catch covers any save that fires before they exist.)
+    try {
+      localStorage.setItem('mtr_landlord_props', JSON.stringify(landlordProperties));
+      localStorage.setItem('mtr_agent_listings', JSON.stringify(
+        agentListings.map(e => (e && e.listingData) ? { ...e, listingData: listingForStorage(e.listingData) } : e)
+      ));
+    } catch (e) { /* not yet initialised, or storage unavailable */ }
+  }
+
+  // Boot: clear dead blob: URLs left in storage by older builds, then rebuild
+  // real media URLs from IndexedDB and refresh whatever screen is showing.
+  listings.forEach(l => {
+    const clean = listingForStorage(l);
+    if ('photos' in l) l.photos = clean.photos;
+    if ('videoUrl' in l) l.videoUrl = clean.videoUrl;
+    l.img = clean.img;
+  });
+  // Called once agentListings has been loaded (it is declared further down).
+  function bootHydrateListingMedia() {
+    const pool = listings.concat(agentListings.map(a => a && a.listingData).filter(Boolean));
+    MediaStore.hydrateAll(pool).then(() => {
+      window.dispatchEvent(new Event('maintown_state_updated'));
+    });
   }
 
   // ==================================================================
@@ -9062,6 +9227,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
   ];
 
   let agentListings = [];
+  try { const s = JSON.parse(localStorage.getItem('mtr_landlord_props')); if (Array.isArray(s)) landlordProperties = s; } catch (e) {}
+  try { const s = JSON.parse(localStorage.getItem('mtr_agent_listings')); if (Array.isArray(s)) agentListings = s; } catch (e) {}
+  bootHydrateListingMedia();
+  // The "legal review -> live" step runs on a timer; a refresh would kill it and
+  // leave the listing stuck in review, so restart it for anything still waiting.
+  agentListings.forEach(e => {
+    if (e && e.workflowStatus === 'LEGAL_REVIEW') setTimeout(() => activateAgentListing(e.id), 6000);
+  });
 
   // ==================================================================
   // ---- Host Availability Engine: Add/remove inspection date + time-slot
@@ -9414,17 +9587,55 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const btn = card && card.querySelector(selector);
     if (btn && !btn.disabled) btn.click();
   }
+  // Owner-preview state (Landlord / Agent tapping "Preview" on their own card).
+  let liPreviewListing = null;   // listing shown in preview mode, else null
+  let liPreviewStatus = '';
+  let liReturnCtx = null;        // lets the sheet reopen after the preview video is closed
+  let liPhotos = [], liPhotoIdx = 0, liHeroType = 'rent';
+
+  function liShowPhoto(i) {
+    if (!liPhotos.length) return;
+    liPhotoIdx = (i + liPhotos.length) % liPhotos.length;
+    const hero = document.getElementById('li-hero-img');
+    hero.onerror = () => handleImgError(hero, liHeroType);
+    hero.src = liPhotos[liPhotoIdx];
+    document.getElementById('li-counter').textContent = `${liPhotoIdx + 1} / ${liPhotos.length}`;
+  }
+  function liReopenPreviewAfterVideo() {
+    if (!liReturnCtx) return;
+    const c = liReturnCtx;
+    liReturnCtx = null;
+    openListingInfoFor(c.p, { preview: true, statusLabel: c.statusLabel });
+  }
+
+  // Tenant entry point (tap "Details" on a feed card).
   function openListingInfo(listingId) {
     const p = listings.find(l => String(l.id) === String(listingId));
     if (!p) return;
+    openListingInfoFor(p, {});
+  }
+  // Shared renderer. opts.preview = true is the Landlord/Agent preview: the
+  // exact same sheet a tenant sees, with a Preview tag, a status note, direct
+  // video playback, and the buy/rent button switched off.
+  function openListingInfoFor(p, opts) {
+    opts = opts || {};
+    const preview = !!opts.preview;
+    liPreviewListing = preview ? p : null;
+    liPreviewStatus = preview ? (opts.statusLabel || '') : '';
     const isLand = p.type === 'land';
     const isShortlet = p.type === 'shortlet';
     const unavailable = isListingUnavailable(p);
     const photos = (p.photos && p.photos.length) ? p.photos : [p.img];
 
+    liHeroType = isLand ? 'land' : (isShortlet ? 'shortlet' : 'rent');
+    liPhotos = photos;
+    liShowPhoto(0);
+    const multi = photos.length > 1;
+    document.getElementById('li-prev').style.display = multi ? 'flex' : 'none';
+    document.getElementById('li-next').style.display = multi ? 'flex' : 'none';
+    document.getElementById('li-counter').style.display = multi ? 'block' : 'none';
+    document.getElementById('li-preview-tag').style.display = preview ? 'inline-flex' : 'none';
     const hero = document.getElementById('li-hero-img');
-    hero.onerror = () => handleImgError(hero, isLand ? 'land' : (isShortlet ? 'shortlet' : 'rent'));
-    hero.src = photos[0];
     hero.alt = p.title || 'Listing photo';
 
     let priceMain, priceUnit;
@@ -9480,6 +9691,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <p class="li-loc"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${liEsc(p.location || '')}</p>
       <p class="li-price">${liEsc(priceMain)}<small>${liEsc(priceUnit)}</small></p>
       <div class="li-chips">${chips.join('')}</div>
+      ${preview ? `<p class="li-preview-note"><i data-lucide="eye"></i><span>${liEsc(opts.statusLabel || 'Preview')}. This is exactly how tenants see your listing; the buttons below are inactive in preview.</span></p>` : ''}
       <div class="li-section"><p class="li-h">About this listing</p><p class="li-story">${liEsc(liStory(p))}</p></div>
       <div class="li-section"><p class="li-h">Property details</p><div class="li-rows">${details.join('')}</div></div>
       <div class="li-section"><p class="li-h">Agent, legal and other fees</p><div class="li-rows">${fees.join('')}</div>
@@ -9493,7 +9705,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     let secondary = '';
     if (isLand && p.hasVideo) secondary = '<button type="button" class="s5-action-btn" data-li-proxy=".s5-video-preview-btn"><i data-lucide="video" class="w-4 h-4"></i>Site video</button>';
     else if (!isLand) secondary = '<button type="button" class="s5-action-btn" data-li-proxy=".wt-btn"><i data-lucide="video" class="w-4 h-4"></i>Walkthrough</button>';
-    document.getElementById('li-actions').innerHTML = `${secondary}<button type="button" class="s5-action-btn primary" data-li-proxy="${primarySel}" ${unavailable ? 'disabled' : ''}><i data-lucide="${primaryIcon}" class="w-4 h-4"></i>${primaryLabel}</button>`;
+    if (preview) {
+      const pvVideo = (p.hasVideo && p.videoUrl)
+        ? `<button type="button" class="s5-action-btn" data-li-preview-video><i data-lucide="video" class="w-4 h-4"></i>${isLand ? 'Play site video' : 'Play walkthrough'}</button>`
+        : '';
+      document.getElementById('li-actions').innerHTML = `${pvVideo}<button type="button" class="s5-action-btn primary" disabled style="opacity:.5; cursor:not-allowed;"><i data-lucide="${primaryIcon}" class="w-4 h-4"></i>${primaryLabel}</button>`;
+    } else {
+      document.getElementById('li-actions').innerHTML = `${secondary}<button type="button" class="s5-action-btn primary" data-li-proxy="${primarySel}" ${unavailable ? 'disabled' : ''}><i data-lucide="${primaryIcon}" class="w-4 h-4"></i>${primaryLabel}</button>`;
+    }
 
     const sheet = document.getElementById('listing-info-sheet');
     sheet.dataset.listingId = String(p.id);
@@ -9506,7 +9725,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const close = () => sheet.classList.remove('open');
     document.getElementById('li-close-btn').addEventListener('click', close);
     sheet.addEventListener('click', (e) => { if (e.target === sheet) close(); });
+    document.getElementById('li-prev').addEventListener('click', () => liShowPhoto(liPhotoIdx - 1));
+    document.getElementById('li-next').addEventListener('click', () => liShowPhoto(liPhotoIdx + 1));
     document.getElementById('li-actions').addEventListener('click', (e) => {
+      const pv = e.target.closest('[data-li-preview-video]');
+      if (pv) {
+        const p = liPreviewListing;
+        if (!p) return;
+        liReturnCtx = { p, statusLabel: liPreviewStatus };
+        close();
+        if (p.type === 'land') openSiteVideoModal(p, { preview: true });
+        else openWalkthroughModal(p.title, p, { preview: true });
+        return;
+      }
       const btn = e.target.closest('[data-li-proxy]');
       if (!btn || btn.disabled) return;
       const id = sheet.dataset.listingId;
@@ -9518,8 +9749,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // ---- Walkthrough Video Modal (Land / Property Purchase cards) ----
   const siteVideoModal = document.getElementById('site-video-modal');
   let siteVideoListing = null;
-  function openSiteVideoModal(listing) {
+  function openSiteVideoModal(listing, opts) {
     siteVideoListing = listing;
+    const svPreview = !!(opts && opts.preview);
+    if (!svPreview) liReturnCtx = null;
+    document.getElementById('sv-schedule-btn').style.display = svPreview ? 'none' : '';
     document.getElementById('sv-property-name').textContent = `${listing.title} — land boundary, drone footage & access roads`;
     const videoEl = document.getElementById('sv-video-el');
     videoEl.src = listing.videoUrl || 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
@@ -9532,6 +9766,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const videoEl = document.getElementById('sv-video-el');
     videoEl.pause();
     siteVideoModal.classList.remove('open');
+    liReopenPreviewAfterVideo();
   });
   document.getElementById('sv-schedule-btn').addEventListener('click', () => {
     document.getElementById('sv-video-el').pause();
@@ -9912,8 +10147,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // showing a broken/empty player.
   const WT_FALLBACK_VIDEO_URL = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
 
-  function openWalkthroughModal(title) {
-    walkthroughListing = rentListings().find(p => p.title === title) || null;
+  function openWalkthroughModal(title, listingOverride, opts) {
+    walkthroughListing = listingOverride || rentListings().find(p => p.title === title) || null;
+    const wtPreview = !!(opts && opts.preview);
+    if (!wtPreview) liReturnCtx = null;
+    document.getElementById('wt-payment-options-btn').style.display = wtPreview ? 'none' : 'flex';
     const listing = walkthroughListing;
     document.getElementById('wt-property-name').textContent = listing ? `${listing.title} — ${listing.location}` : title;
 
@@ -9933,6 +10171,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('wt-close-btn').addEventListener('click', () => {
     document.getElementById('wt-video-el').pause();
     walkthroughModal.classList.remove('open');
+    liReopenPreviewAfterVideo();
   });
 
   document.getElementById('wt-payment-options-btn').addEventListener('click', () => {
@@ -11964,12 +12203,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
         const s = statusMap[p.status];
         rightHtml = `<span class="s5-status-badge ${s.cls}">${s.label}</span>`;
       }
+      const previewListing = listings.find(l => p.listingId ? l.id === p.listingId : l.title === p.title);
+      const previewHtml = previewListing
+        ? `<button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="preview" data-listing-id="${previewListing.id}"><i data-lucide="eye" class="w-3 h-3"></i>Preview</button>`
+        : '';
       return `
         <div class="s5-list-item">
           <div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
           <div class="s5-list-text">
             <p class="s5-list-title">${p.title}</p>
             <p class="s5-list-sub">${p.address}</p>
+            ${previewHtml}
           </div>
           <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
             ${rightHtml}
@@ -11982,10 +12226,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
 
   document.getElementById('s5-landlord-list').addEventListener('click', (e) => {
+    const previewBtn = e.target.closest('[data-action="preview"]');
     const viewBtn = e.target.closest('[data-action="viewLive"]');
     const pubBtn = e.target.closest('[data-action="publish"]');
     const delBtn = e.target.closest('[data-action="delete"]');
-    if (viewBtn) {
+    if (previewBtn) {
+      openOwnerListingPreview(listings.find(l => String(l.id) === previewBtn.dataset.listingId));
+    } else if (viewBtn) {
       openLiveListingPreview(viewBtn.dataset.title, 'landlord');
     } else if (pubBtn) {
       publishListingByTitle(pubBtn.dataset.title, 'landlord');
@@ -12180,11 +12427,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     thumbs.innerHTML = '';
     tvPendingPhotoCount = e.target.files.length;
     tvPendingPhotoUrls = [];
+    tvPendingPhotoKeys = [];
     if (e.target.files.length) {
       box.classList.add('has-file');
       label.textContent = `${e.target.files.length} photo(s) selected`;
       Array.from(e.target.files).forEach((file, i) => {
-        const url = URL.createObjectURL(file);
+        const key = MediaStore.newKey('photo');
+        const url = MediaStore.store(key, file);
+        tvPendingPhotoKeys.push(key);
         tvPendingPhotoUrls.push(url);
         if (i < 6) {
           const img = document.createElement('img');
@@ -12200,7 +12450,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const label = document.getElementById('tv-video-upload-label');
     const meta = document.getElementById('tv-video-upload-meta');
     tvPendingHasVideo = e.target.files.length > 0;
-    tvPendingVideoUrl = e.target.files.length ? URL.createObjectURL(e.target.files[0]) : null;
+    tvPendingVideoKey = e.target.files.length ? MediaStore.newKey('video') : null;
+    tvPendingVideoUrl = e.target.files.length ? MediaStore.store(tvPendingVideoKey, e.target.files[0]) : null;
     if (e.target.files.length) {
       box.classList.add('has-file');
       label.textContent = e.target.files[0].name;
@@ -12336,6 +12587,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       id: newId, title, location: address, listedBy: 'landlord', status: isPublished ? 'live' : 'draft',
       hasPhotos: tvPendingPhotoCount > 0, hasVideo: tvPendingHasVideo,
       photos: tvPendingPhotoUrls.slice(), videoUrl: tvPendingVideoUrl,
+      photoKeys: tvPendingPhotoKeys.slice(), videoKey: tvPendingVideoKey,
       landlordName: currentUserName, landlordPhoto: currentUserSelfieDataUrl || null,
       agentName: null, agentPhoto: null,
       // Dynamic Recipient & Ownership Routing: a Landlord-created listing is
@@ -12352,12 +12604,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     };
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
-      listingsFeed.unshift({ ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent });
+      listingsFeed.unshift({ ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent') });
     } else if (type === 'shortlet') {
-      listingsFeed.unshift({ ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: PROPERTY_IMG_FALLBACK.shortlet });
+      listingsFeed.unshift({ ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: listingCoverImg(baseFields, 'shortlet') });
     } else {
       listingsFeed.unshift({
-        ...baseFields, type: 'land', totalPrice: annual, img: PROPERTY_IMG_FALLBACK.land,
+        ...baseFields, type: 'land', totalPrice: annual, img: listingCoverImg(baseFields, 'land'),
         // Deed of Assignment legal/processing fee % (5 or 10, Owner-selected
         // at listing time) — paid to the Owner with the buyer's first
         // installment, never to MainTown.
@@ -12375,6 +12627,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     tvPendingHasVideo = false;
     tvPendingPhotoUrls = [];
     tvPendingVideoUrl = null;
+    tvPendingPhotoKeys = [];
+    tvPendingVideoKey = null;
     tvPendingAvailability = [];
     renderAvailabilityList(tvPendingAvailability, 'tv');
 
@@ -12452,12 +12706,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
       } else {
         actionHtml = `<button type="button" class="s5-list-action-btn s5-list-publish-btn" data-action="publish" data-title="${l.title}"><i data-lucide="upload-cloud" class="w-3 h-3"></i>Publish Listing</button>`;
       }
+      const previewHtml = (listings.some(x => x.id === l.listingId) || l.listingData)
+        ? `<button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="preview" data-listing-id="${l.listingId}"><i data-lucide="eye" class="w-3 h-3"></i>Preview</button>`
+        : '';
       return `
       <div class="s5-list-item">
         <div class="s5-list-icon"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
         <div class="s5-list-text">
           <p class="s5-list-title">${l.title}</p>
           <p class="s5-list-sub">${l.address} · Landlord: ${l.landlordName}${l.hasVideo ? ' · 🎥 Walkthrough' : ''}</p>
+          ${previewHtml}
         </div>
         <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
           ${actionHtml}
@@ -12470,10 +12728,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
 
   document.getElementById('s5-agent-listings').addEventListener('click', (e) => {
+    const previewBtn = e.target.closest('[data-action="preview"]');
     const viewBtn = e.target.closest('[data-action="viewLive"]');
     const pubBtn = e.target.closest('[data-action="publish"]');
     const delBtn = e.target.closest('[data-action="delete"]');
-    if (viewBtn) {
+    if (previewBtn) {
+      const id = previewBtn.dataset.listingId;
+      const entry = agentListings.find(a => String(a.listingId) === id);
+      openOwnerListingPreview(listings.find(x => String(x.id) === id) || (entry && entry.listingData), entry && entry.workflowStatus);
+    } else if (viewBtn) {
       openLiveListingPreview(viewBtn.dataset.title, 'agent');
     } else if (pubBtn) {
       publishListingByTitle(pubBtn.dataset.title, 'agent');
@@ -12482,6 +12745,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
       openDeleteListingModal(delBtn.dataset.title, 'agent');
     }
   });
+
+  // ---- Owner Preview (Landlord / Agent): opens the same Details sheet tenants
+  //      see, for any of their listings — draft, in review, or live. ----
+  function ownerPreviewStatus(listing, workflow) {
+    if (isListingUnavailable(listing)) return listing.status === 'SOLD' ? 'Sold, no longer available' : 'Rented, no longer available';
+    const w = workflow || listing.workflowStatus;
+    if (w === 'PENDING_LANDLORD_VERIFICATION') return 'Pending landlord verification, not yet visible to tenants';
+    if (w === 'LEGAL_REVIEW' || w === 'PENDING_LEGAL_REVIEW') return 'In legal review, not yet visible to tenants';
+    if (listing.status === 'draft') return 'Draft, hidden from tenants until published';
+    return 'Live on the tenant feed';
+  }
+  function openOwnerListingPreview(listing, workflow) {
+    if (!listing) { showToast('Nothing to preview yet'); return; }
+    MediaStore.applyToListing(listing);
+    openListingInfoFor(listing, { preview: true, statusLabel: ownerPreviewStatus(listing, workflow) });
+  }
 
   // ---- Live Listing Preview: renders the exact tenant-facing card for a property so
   //      the Landlord/Agent can inspect their uploaded photos/video in real time. ----
@@ -12518,7 +12797,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     listing.status = 'live';
     saveListings();
     const agentEntry = agentListings.find(l => l.title === title);
-    if (agentEntry) agentEntry.status = 'live';
+    if (agentEntry) { agentEntry.status = 'live'; saveListings(); }
     if (!document.getElementById('tenant-view').classList.contains('hidden')) {
       if (currentListingType === 'land') renderLandFeed(); else renderTenantFeed(currentCurrency);
     }
@@ -12567,6 +12846,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       agentListings = agentListings.filter(l => l.title !== title);
       renderAgentListings();
     }
+    saveListings();
 
     // Re-render the live Tenant Search Feed if it's currently visible.
     if (!document.getElementById('tenant-view').classList.contains('hidden')) {
@@ -12580,6 +12860,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   let s5PendingHasVideo = false;
   let s5PendingPhotoUrls = [];
   let s5PendingVideoUrl = null;
+  let s5PendingPhotoKeys = [];
+  let s5PendingVideoKey = null;
+  let tvPendingPhotoKeys = [];
+  let tvPendingVideoKey = null;
   let tvPendingPhotoCount = 0;
   let tvPendingHasVideo = false;
   let tvPendingPhotoUrls = [];
@@ -12637,7 +12921,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const box = document.getElementById('s5-photo-upload');
     const label = document.getElementById('s5-photo-upload-label');
     s5PendingPhotoCount = e.target.files.length;
-    s5PendingPhotoUrls = Array.from(e.target.files).map(f => URL.createObjectURL(f));
+    s5PendingPhotoKeys = Array.from(e.target.files).map(() => MediaStore.newKey('photo'));
+    s5PendingPhotoUrls = Array.from(e.target.files).map((f, i) => MediaStore.store(s5PendingPhotoKeys[i], f));
     if (e.target.files.length) { box.classList.add('has-file'); label.textContent = `${e.target.files.length} photo(s) selected`; }
   });
   document.getElementById('s5-video-upload').addEventListener('click', () => document.getElementById('s5-video-file').click());
@@ -12645,7 +12930,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const box = document.getElementById('s5-video-upload');
     const label = document.getElementById('s5-video-upload-label');
     s5PendingHasVideo = e.target.files.length > 0;
-    s5PendingVideoUrl = e.target.files.length ? URL.createObjectURL(e.target.files[0]) : null;
+    s5PendingVideoKey = e.target.files.length ? MediaStore.newKey('video') : null;
+    s5PendingVideoUrl = e.target.files.length ? MediaStore.store(s5PendingVideoKey, e.target.files[0]) : null;
     if (e.target.files.length) { box.classList.add('has-file'); label.textContent = e.target.files[0].name; }
   });
 
@@ -12861,6 +13147,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         id: newId, title, location: address, listedBy: 'enterprise', status: 'draft',
         hasPhotos: s5PendingPhotoCount > 0, hasVideo: s5PendingHasVideo,
         photos: s5PendingPhotoUrls.slice(), videoUrl: s5PendingVideoUrl,
+        photoKeys: s5PendingPhotoKeys.slice(), videoKey: s5PendingVideoKey,
         availability: s5PendingAvailability.map(a => ({ date: a.date, slots: a.slots.slice() })),
         ownerId: companyId, companyId, listedByStaffId: getCurrentUserId(),
         listedByRole: 'ENTERPRISE', workflowStatus: 'PENDING_LEGAL_REVIEW',
@@ -12874,14 +13161,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
       let listingData;
       if (type === 'rent') {
         const monthly = Math.round(annual / 12);
-        listingData = { ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent };
+        listingData = { ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent') };
       } else if (type === 'shortlet') {
-        listingData = { ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: PROPERTY_IMG_FALLBACK.shortlet };
+        listingData = { ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: listingCoverImg(baseFields, 'shortlet') };
       } else {
         // Deed of Assignment legal/processing fee % (5 or 10, Owner-selected
         // at listing time) — paid to the Owner with the buyer's first
         // installment, never to MainTown.
-        listingData = { ...baseFields, type: 'land', totalPrice: annual, legalFeePct: feeFields.legalFeePct, img: PROPERTY_IMG_FALLBACK.land };
+        listingData = { ...baseFields, type: 'land', totalPrice: annual, legalFeePct: feeFields.legalFeePct, img: listingCoverImg(baseFields, 'land') };
       }
       listingsFeed.unshift(listingData);
       saveListings();
@@ -12891,6 +13178,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       s5PendingHasVideo = false;
       s5PendingPhotoUrls = [];
       s5PendingVideoUrl = null;
+      s5PendingPhotoKeys = [];
+      s5PendingVideoKey = null;
       s5PendingAvailability = [];
       renderAvailabilityList(s5PendingAvailability, 's5');
 
@@ -12952,6 +13241,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       id: newId, title, location: address, listedBy: 'agent', status: 'draft',
       hasPhotos: s5PendingPhotoCount > 0, hasVideo: s5PendingHasVideo,
       photos: s5PendingPhotoUrls.slice(), videoUrl: s5PendingVideoUrl,
+        photoKeys: s5PendingPhotoKeys.slice(), videoKey: s5PendingVideoKey,
       landlordName, landlordPhoto: null,
       agentName, agentPhoto: currentUserSelfieDataUrl || null,
       availability: s5PendingAvailability.map(a => ({ date: a.date, slots: a.slots.slice() })),
@@ -12975,14 +13265,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     let listingData;
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
-      listingData = { ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent };
+      listingData = { ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent') };
     } else if (type === 'shortlet') {
-      listingData = { ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: PROPERTY_IMG_FALLBACK.shortlet };
+      listingData = { ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: listingCoverImg(baseFields, 'shortlet') };
     } else {
       // Deed of Assignment legal/processing fee % (5 or 10, Owner-selected at
       // listing time) — paid to the Owner with the buyer's first
       // installment, never to MainTown.
-      listingData = { ...baseFields, type: 'land', totalPrice: annual, legalFeePct: feeFields.legalFeePct, img: PROPERTY_IMG_FALLBACK.land };
+      listingData = { ...baseFields, type: 'land', totalPrice: annual, legalFeePct: feeFields.legalFeePct, img: listingCoverImg(baseFields, 'land') };
     }
 
     agentListings.unshift({
@@ -13002,6 +13292,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     s5PendingHasVideo = false;
     s5PendingPhotoUrls = [];
     s5PendingVideoUrl = null;
+    s5PendingPhotoKeys = [];
+    s5PendingVideoKey = null;
     s5PendingAvailability = [];
     renderAvailabilityList(s5PendingAvailability, 's5');
 
@@ -13138,29 +13430,33 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // review, the listing activates on the marketplace with escrow milestone
     // protection. Simulated here with a short delay in place of a real
     // back-office review queue.
-    setTimeout(() => {
-      const stillPending = agentListings.find(l => l.id === entry.id);
-      if (!stillPending || stillPending.workflowStatus !== 'LEGAL_REVIEW') return;
-      stillPending.workflowStatus = 'LIVE';
-      stillPending.status = 'live';
-      if (stillPending.listingData) {
-        stillPending.listingData.status = 'live';
-        listingsFeed.unshift(stillPending.listingData);
-      }
-      saveListings();
-      pushPlatformNotification(
-        'landlord', 'listing', 'Title Verified — Listing Is Live',
-        `"${stillPending.title}" passed legal review and is now live on the marketplace with active automated payout protection.`,
-        null, 'listing_verification', null, stillPending.ownerId
-      );
-      pushPlatformNotification(
-        'agent', 'listing', 'Title Verified — Listing Is Live',
-        `"${stillPending.title}" passed legal review and is now live on the marketplace.`,
-        null, 'listing_verification', null, stillPending.agentId
-      );
-      window.dispatchEvent(new Event('maintown_state_updated'));
-    }, 6000);
+    setTimeout(() => activateAgentListing(entry.id), 6000);
   });
+
+  // Legal Review -> Live. Split out of the submit handler so a refresh during
+  // the review window can resume it (see startup code near agentListings).
+  function activateAgentListing(entryId) {
+    const stillPending = agentListings.find(l => l.id === entryId);
+    if (!stillPending || stillPending.workflowStatus !== 'LEGAL_REVIEW') return;
+    stillPending.workflowStatus = 'LIVE';
+    stillPending.status = 'live';
+    if (stillPending.listingData) {
+      stillPending.listingData.status = 'live';
+      if (!listingsFeed.some(l => l.id === stillPending.listingData.id)) listingsFeed.unshift(stillPending.listingData);
+    }
+    saveListings();
+    pushPlatformNotification(
+      'landlord', 'listing', 'Title Verified — Listing Is Live',
+      `"${stillPending.title}" passed legal review and is now live on the marketplace with active automated payout protection.`,
+      null, 'listing_verification', null, stillPending.ownerId
+    );
+    pushPlatformNotification(
+      'agent', 'listing', 'Title Verified — Listing Is Live',
+      `"${stillPending.title}" passed legal review and is now live on the marketplace.`,
+      null, 'listing_verification', null, stillPending.agentId
+    );
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  }
 
   // Agent-submitted listings awaiting this Landlord's action (or already
   // moving through legal review / live) — a separate queue from "My
@@ -19470,8 +19766,8 @@ available in the Post-Lease Hub and this chat thread.`
       };
       const price = parseFloat(r.price) || 0;
       const listingData = type === 'rent'
-        ? { ...baseFields, type: 'rent', annualPrice: price, ngn: `${formatMoney(Math.round(price / 12), 'ngn')} / mo`, usd: `$${Math.round(price / 12 / 1600)} / mo`, img: PROPERTY_IMG_FALLBACK.rent }
-        : { ...baseFields, type: 'land', totalPrice: price, img: PROPERTY_IMG_FALLBACK.land };
+        ? { ...baseFields, type: 'rent', annualPrice: price, ngn: `${formatMoney(Math.round(price / 12), 'ngn')} / mo`, usd: `$${Math.round(price / 12 / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent') }
+        : { ...baseFields, type: 'land', totalPrice: price, img: listingCoverImg(baseFields, 'land') };
       listingsFeed.unshift(listingData);
       imported++;
     });
@@ -19736,7 +20032,7 @@ available in the Post-Lease Hub and this chat thread.`
       if (typeof listings !== 'undefined') {
         try {
           const stored = JSON.parse(localStorage.getItem('mtr_listings'));
-          if (Array.isArray(stored)) { listings.length = 0; listings.push(...stored); }
+          if (Array.isArray(stored)) { listings.length = 0; listings.push(...stored); MediaStore.applyToAll(listings); }
         } catch (e) {}
       }
       if (currentListingType === 'land' && typeof renderLandFeed === 'function') renderLandFeed();
