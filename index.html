@@ -1766,7 +1766,7 @@
   .insp-status-confirmed { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
   .insp-status-conducted { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
   .insp-status-declined { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.4); }
-  .insp-mgmt-actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .insp-mgmt-actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0; align-items: center; }
   .insp-mgr-btn {
     flex: 1; min-width: 120px; display: flex; align-items: center; justify-content: center; gap: 6px;
     padding: 9px 10px; border-radius: 10px; font-size: 11.5px; font-weight: 600; cursor: pointer; border: none;
@@ -1846,6 +1846,19 @@
   .s5-filter-btn:hover { color: #c084fc; }
 
   .s5-role-header { margin-bottom: 18px; }
+  /* Landlord / Agent / Sales: no search bar; header is pinned with the back arrow beside it */
+  #screen-5.s5-staff .s5-pinned {
+    position: sticky; top: 0; z-index: 30; background: #0B0F19;
+    display: flex; align-items: flex-start; gap: 12px;
+    margin: 0 -20px 16px; padding: 14px 20px 12px; border-bottom: 1px solid #1e293b;
+  }
+  body.light-theme #screen-5.s5-staff .s5-pinned { background: #ffffff; border-bottom-color: #e5e7eb; }
+  #screen-5.s5-staff .s5-topbar { margin: 0; flex-shrink: 0; }
+  #screen-5.s5-staff .s5-search-wrap { display: none; }
+  #screen-5.s5-staff .s5-role-header { margin: 0; flex: 1; min-width: 0; }
+  #screen-5.s5-staff #s5-market-bar { display: none; }
+  #screen-5.s5-staff .s5-role-eyebrow { text-transform: none; letter-spacing: 0; font-size: 12.5px; max-width: 100%; }
+  #screen-5.s5-staff .s5-role-eyebrow span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .s5-role-eyebrow {
     display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600;
     color: #c084fc; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 4px;
@@ -2688,6 +2701,8 @@
     background: rgba(148,163,184,0.08); border: 1px solid rgba(148,163,184,0.2); padding: 5px 11px; border-radius: 999px;
   }
   .insp-divider { border-top: 1px solid rgba(30,41,59,0.5); margin: 14px 0; }
+  .insp-chip-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  #s5-landlord-verify-queue { margin-bottom: 8px; }
   .insp-primary-btn {
     width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 8px;
     padding: 13px; border-radius: 12px; font-size: 13.5px; font-weight: 600; color: #fff; background: #8b5cf6;
@@ -3698,6 +3713,7 @@
 <!-- ===================== SCREEN 5: Property Listing & Inspection Hub ===================== -->
 <div id="screen-5" class="screen-view hidden pb-24">
 
+  <div class="s5-pinned" id="s5-pinned">
   <div class="s5-topbar">
     <button type="button" class="s5-back-btn" id="s5-back-btn">
       <i data-lucide="arrow-left" class="w-4 h-4"></i>
@@ -3721,6 +3737,7 @@
     <p class="s5-role-sub" id="s5-role-sub">Document-screened listings, local & diaspora-friendly.</p>
     <div id="s5-market-bar"></div>
   </div>
+  </div><!-- /s5-pinned -->
 
   <!-- ---- TENANT VIEW: Search & Book ---- -->
   <div id="tenant-view" class="role-view hidden">
@@ -3743,8 +3760,6 @@
 
   <!-- ---- LANDLORD VIEW: My Properties & Title KYC ---- -->
   <div id="landlord-view" class="role-view hidden">
-    <div id="s5-landlord-verify-queue"><!-- populated dynamically: Agent-submitted listings awaiting this Landlord's verification --></div>
-
     <!-- Add/My switcher — mirrors the Agent view's "Upload New Listing" /
          "My Listings" tab pattern exactly: both panels are inline on this
          same screen, toggled by display instead of a screen navigation. -->
@@ -3883,6 +3898,7 @@
     </div>
 
     <div id="s5-landlord-mine-panel">
+      <div id="s5-landlord-verify-queue"><!-- populated dynamically: Agent-submitted listings awaiting this Landlord's verification --></div>
       <p class="s5-section-label"><i data-lucide="building-2" class="w-4 h-4 text-purple-400"></i>My Properties</p>
       <div id="s5-landlord-list">
         <!-- populated dynamically -->
@@ -10079,7 +10095,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const role = currentUserRole || 'tenant';
     const cfg = roleHeaderConfig[role];
 
-    document.getElementById('s5-role-eyebrow').innerHTML = `<i data-lucide="${cfg.icon}" class="w-3.5 h-3.5"></i><span>${cfg.eyebrow}</span>`;
+    const isStaffRole = role !== 'tenant';
+    document.getElementById('screen-5').classList.toggle('s5-staff', isStaffRole);
+    document.getElementById('s5-role-eyebrow').innerHTML = `<i data-lucide="${cfg.icon}" class="w-3.5 h-3.5"></i><span></span>`;
+    document.querySelector('#s5-role-eyebrow span').textContent = isStaffRole
+      ? ((document.getElementById('reg-fullname')?.value || '').trim() || roleDisplayNames[role])
+      : cfg.eyebrow;
     document.getElementById('s5-role-title').textContent = cfg.title;
     document.getElementById('s5-role-sub').textContent = cfg.sub;
 
@@ -13334,20 +13355,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
       : '';
     return `
       <div class="insp-mgmt-card" data-sched-id="${s.id}">
-        <div class="insp-mgmt-top">
+        <div class="insp-mgmt-top" style="padding-right:0; margin-bottom:12px;">
           <img class="insp-mgmt-img" src="${s.img}" alt="${s.title}" onerror="handleImgError(this,'rent')">
           <div class="insp-mgmt-text">
             <p class="insp-mgmt-title">${s.title}</p>
             <p class="insp-mgmt-loc"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${s.location}</p>
-            <div class="insp-mgmt-badges">
-              ${isLandSale ? `<span class="insp-date-badge"><i data-lucide="landmark" class="w-3 h-3"></i>Site Inspection · Client/Buyer</span>` : ''}
-              <span class="insp-date-badge"><i data-lucide="calendar" class="w-3 h-3"></i>${s.date || 'TBD'}</span>
-              <span class="insp-date-badge"><i data-lucide="clock" class="w-3 h-3"></i>${s.time || 'TBD'}</span>
-              <span class="insp-date-badge"><i data-lucide="shield-check" class="w-3 h-3"></i>${formatMoney(s.fee, 'ngn')} escrow</span>
-              <span class="s5-status-badge ${badgeClass}">${inspectionStatusBadgeLabel(s.status, false)}</span>
-            </div>
           </div>
         </div>
+        ${isLandSale ? `<p class="insp-meta-line" style="margin-bottom:6px;"><i data-lucide="landmark" class="w-3.5 h-3.5"></i>Site Inspection \u00b7 Client/Buyer</p>` : ''}
+        <p class="insp-meta-line"><i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i>${formatInspDateTime(s.date, s.time)}</p>
+        <div class="insp-chip-row">
+          <span class="s5-status-badge ${badgeClass}">${inspectionStatusBadgeLabel(s.status, false)}</span>
+          <span class="insp-escrow-badge"><i data-lucide="shield-check" class="w-3 h-3"></i>${formatMoney(s.fee, 'ngn')} escrow</span>
+        </div>
+        <div class="insp-divider"></div>
         <div class="insp-mgmt-actions-row">
           <button type="button" class="insp-mgr-btn insp-mgr-info" data-action="viewTenant" data-sched-id="${s.id}">View ${isLandSale ? 'Client' : 'Client'} Info</button>
           ${chatManagerButtonHTML(s, `data-sched-id="${s.id}"`)}
