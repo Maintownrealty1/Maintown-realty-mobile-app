@@ -3018,6 +3018,46 @@
     background: #0f172a;
     -webkit-backdrop-filter: none; backdrop-filter: none;
   }
+
+  /* ---- Enterprise dashboards (CEO + Sales / Finance / Legal staff) ----
+     The header and the main dashboard card stay pinned; everything below
+     (quick access, lists, alerts) scrolls underneath. Backgrounds are solid
+     so scrolled content disappears fully behind the pinned area. The header
+     height is measured in JS into --ent-header-h so the card pins right
+     underneath it. */
+  #screen-enterprise .ent-header,
+  #screen-ent-sales .ent-header,
+  #screen-ent-finance .ent-header,
+  #screen-ent-legal-dash .ent-header {
+    position: sticky; top: 0; z-index: 31;
+    background: #0B0F19;
+    padding: 12px 0; margin: 0 0 14px;
+    border-bottom: 1px solid rgba(148,163,184,0.12);
+  }
+  body.light-theme #screen-enterprise .ent-header,
+  body.light-theme #screen-ent-sales .ent-header,
+  body.light-theme #screen-ent-finance .ent-header,
+  body.light-theme #screen-ent-legal-dash .ent-header {
+    background: #ffffff; border-bottom-color: rgba(15,23,42,0.08);
+  }
+  #screen-enterprise #ent-tab-overview .ent-vault,
+  #screen-ent-sales #ent-sales-home > .ent-stat-card,
+  #screen-ent-legal-dash #ent-legal-home > .ent-stat-card,
+  #screen-ent-finance #ent-finance-home > .ent-stat-row {
+    position: sticky; top: var(--ent-header-h, 76px); z-index: 30;
+  }
+  #screen-ent-sales #ent-sales-home > .ent-stat-card,
+  #screen-ent-legal-dash #ent-legal-home > .ent-stat-card,
+  #screen-ent-finance #ent-finance-home .ent-stat-card {
+    background-color: #0B0F19 !important;
+  }
+  body.light-theme #screen-ent-sales #ent-sales-home > .ent-stat-card,
+  body.light-theme #screen-ent-legal-dash #ent-legal-home > .ent-stat-card,
+  body.light-theme #screen-ent-finance #ent-finance-home .ent-stat-card {
+    background-color: #ffffff !important;
+  }
+  #screen-ent-finance #ent-finance-home > .ent-stat-row { background: #0B0F19; padding-bottom: 10px; margin-bottom: 10px; }
+  body.light-theme #screen-ent-finance #ent-finance-home > .ent-stat-row { background: #ffffff; }
 </style>
 </head>
 <body>
@@ -3940,6 +3980,10 @@
     <div id="ent-tab-legal" class="ent-tab-panel" style="display:none;">
       <p class="s5-section-label"><i data-lucide="scale" class="w-4 h-4 text-purple-400"></i>Pending Legal Review</p>
       <div id="ent-legal-list"></div>
+      <div id="ent-ceo-deed-requests-wrap" style="display:none;">
+        <p class="s5-section-label" style="margin-top:20px;"><i data-lucide="landmark" class="w-4 h-4 text-purple-400"></i>Deed Requests</p>
+        <div id="ent-ceo-deed-requests-list"></div>
+      </div>
       <p class="s5-section-label" style="margin-top:20px;"><i data-lucide="file-check-2" class="w-4 h-4 text-purple-400"></i>Agreements &amp; Documents</p>
       <div id="ent-ceo-legal-docs-list"></div>
     </div>
@@ -4020,6 +4064,14 @@
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
         </button>
+        <button type="button" class="ent-quick-card" id="ent-sales-allocation-card">
+          <div class="ent-quick-card-icon"><i data-lucide="map-pin-check" class="w-5 h-5"></i></div>
+          <div class="ent-quick-card-text">
+            <p class="ent-quick-card-title">Physical Allocation</p>
+            <p class="ent-quick-card-sub" id="ent-sales-allocation-sub">Confirm allocations for buyers of your listings</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
+        </button>
         <button type="button" class="ent-quick-card" id="ent-sales-inspections-card">
           <div class="ent-quick-card-icon"><i data-lucide="calendar-check" class="w-5 h-5"></i></div>
           <div class="ent-quick-card-text">
@@ -4036,6 +4088,13 @@
       <button type="button" id="ent-sales-listings-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
       <p class="ent-panel-title">My Listings</p>
       <div id="ent-sales-listings-list"></div>
+    </div>
+
+    <!-- Physical Allocation panel: buyer requests -> sales confirms -> buyer confirms -->
+    <div id="ent-sales-allocation-panel" style="display:none;">
+      <button type="button" id="ent-sales-allocation-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
+      <p class="ent-panel-title">Physical Allocation</p>
+      <div id="ent-sales-allocation-list"></div>
     </div>
 
     <!-- Inspections panel (on behalf of the CEO, once the listing is LIVE) -->
@@ -4144,6 +4203,13 @@
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
         </button>
+      </div>
+
+      <!-- Deed requests: created automatically once a buyer has paid in full.
+           Upload unlocks after physical allocation (and Governor's Consent, if required). -->
+      <div id="ent-legal-deed-requests-section" style="margin-top:22px; display:none;">
+        <p class="s5-section-label"><i data-lucide="landmark" class="w-4 h-4 text-purple-400"></i>Deed Requests</p>
+        <div id="ent-legal-deed-requests-list"></div>
       </div>
 
       <!-- Agreements signed by clients on Sales-listed properties, waiting for
@@ -6599,6 +6665,12 @@
       </div>
     </div>
 
+    <div id="hr-read-wrap">
+      <p class="s5-section-label"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i>Read the Full Agreement</p>
+      <div class="tenancy-policy-box" id="hr-agreement-box"></div>
+      <p class="tp-scroll-hint" id="hr-scroll-hint"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i><span>Scroll to the bottom to unlock signing</span></p>
+    </div>
+
     <div id="hr-sign-panel">
       <p class="s5-section-label"><i data-lucide="pen-tool" class="w-4 h-4 text-purple-400"></i>Apply Your Digital Signature</p>
       <div class="sig-tabs">
@@ -7871,9 +7943,41 @@ document.addEventListener('DOMContentLoaded', () => {
   // reminder loop that nudges the Seller until they actually upload it.
   function requestDeedUpload(asset, ownerId) {
     if (!ownerId || !asset) return;
-    pushPlatformNotification('landlord', 'payment', 'Full Payment Received — Deed Required',
-      `${asset.title} has been paid in full. Please upload the Deed of Assignment and other title documents from your Asset Portfolio.`,
-      { screen: 'screen-owner-assets' }, 'DEED_UPLOAD_REQUIRED', null, ownerId);
+    const listingForRequest = (typeof listings !== 'undefined') ? listings.find(l => String(l.id) === String(asset.listingId)) : null;
+    const isCompanySale = !!(listingForRequest && isEnterpriseListing(listingForRequest));
+    if (!isCompanySale) {
+      pushPlatformNotification('landlord', 'payment', 'Full Payment Received — Deed Required',
+        `${asset.title} has been paid in full. Please upload the Deed of Assignment and other title documents from your Asset Portfolio.`,
+        { screen: 'screen-owner-assets' }, 'DEED_UPLOAD_REQUIRED', null, ownerId);
+    }
+    // Company listings: the request also lands with Legal, tied to this exact
+    // buyer + asset. Upload stays locked until allocation (and consent) is done.
+    try {
+      const state = loadAppState();
+      const lst = (typeof listings !== 'undefined') ? listings.find(l => String(l.id) === String(asset.listingId)) : null;
+      if (lst && isEnterpriseListing(lst)) {
+        state.deedRequests = state.deedRequests || [];
+        if (!state.deedRequests.some(r => r.assetId === asset.id)) {
+          const buyer = (state.users && state.users[asset.ownerId]) || {};
+          state.deedRequests.unshift({
+            id: Date.now(), assetId: asset.id, companyId: lst.companyId || lst.ownerId, listingId: lst.id, listingTitle: lst.title,
+            buyerId: asset.ownerId, buyerName: buyer.name || 'Buyer', requestedAt: Date.now()
+          });
+          saveAppState(state);
+          appState = state;
+          // CEO alert straight away — Legal prepares the Deed, the CEO reviews it before it goes to the buyer.
+          pushPlatformNotification('landlord', 'payment', 'Deed Requested',
+            `${buyer.name || 'A buyer'} has paid in full for ${asset.title}. Legal has been notified and will prepare the Deed of Assignment once physical allocation${asset.requiresConsent ? " and Governor's Consent are" : ' is'} complete. You will review it before it is sent to the buyer.`,
+            { screen: 'entLegalReview', cta: 'View Deed Requests' }, 'DEED_REQUESTED_CEO', null, lst.companyId || lst.ownerId);
+          window.dispatchEvent(new Event('maintown_state_updated'));
+          companyStaffIdsByRole(lst.companyId || lst.ownerId, 'legal').forEach(legalId => {
+            pushPlatformNotification('legal', 'message', 'Deed Requested',
+              `${buyer.name || 'A buyer'} has paid in full for ${asset.title}. The Deed can be uploaded once physical allocation is completed${asset.requiresConsent ? " and Governor's Consent is granted" : ''}.`,
+              { screen: 'screen-ent-legal-dash' }, 'DEED_REQUESTED', null, legalId);
+          });
+        }
+      }
+    } catch (err) { console.error('deed request routing failed', err); }
     startDeedReminder(asset.id);
   }
 
@@ -8023,6 +8127,9 @@ document.addEventListener('DOMContentLoaded', () => {
           } else if (allocStatus === 'CONFIRMED') {
             allocLine = `Allocation scheduled: ${buyerAsset.allocationDateLabel}`;
             allocAction = `<span class="s5-status-badge insp-status-conducted" style="white-space:nowrap; flex-shrink:0;">Awaiting Buyer On-Site</span>`;
+          } else if (allocStatus === 'PENDING_APPROVAL' && allocationConfirmerFor(l).kind === 'sales') {
+            allocLine = `Allocation requested: ${buyerAsset.allocationDateLabel}`;
+            allocAction = `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap; flex-shrink:0;">Awaiting sales agent</span>`;
           } else if (allocStatus === 'PENDING_APPROVAL') {
             allocLine = `Allocation requested: ${buyerAsset.allocationDateLabel}`;
             allocAction = `<button type="button" class="s5-back-btn oa-confirm-allocation-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600; flex-shrink:0;"><i data-lucide="calendar-check" class="w-3.5 h-3.5"></i>Confirm Appointment</button>`;
@@ -8064,6 +8171,8 @@ document.addEventListener('DOMContentLoaded', () => {
           docsLabel = buyerAsset.requiresConsent ? 'Receipt, Deed &amp; C of O' : 'Receipt &amp; Deed of Assignment';
           if (buyerAsset.deedAvailable) {
             docsAction = `<span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap; flex-shrink:0;"><i data-lucide="badge-check" class="w-3 h-3"></i>Docs Issued</span>`;
+          } else if (allocStatus === 'ATTENDED' && !consentBlocking && isEnterpriseListing(l)) {
+            docsAction = `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap; flex-shrink:0;">Issued via Legal &amp; CEO review</span>`;
           } else if (allocStatus === 'ATTENDED' && !consentBlocking) {
             docsAction = `<button type="button" class="s5-back-btn oa-issue-deed-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600; flex-shrink:0;"><i data-lucide="upload" class="w-3.5 h-3.5"></i>Issue ${buyerAsset.requiresConsent ? 'Documents' : 'Receipt &amp; Deed'}</button>`;
           } else if (allocStatus === 'ATTENDED' && consentBlocking) {
@@ -8127,6 +8236,11 @@ document.addEventListener('DOMContentLoaded', () => {
       appState = loadAppState();
       const asset = (appState.assets || []).find(a => a.id === allocBtn.dataset.assetId);
       if (!asset || asset.allocationRequestStatus !== 'PENDING_APPROVAL') return;
+      const allocListing = listings.find(x => String(x.id) === String(asset.listingId));
+      if (allocListing && allocationConfirmerFor(allocListing).kind === 'sales') {
+        showToast('Only the sales agent handling this listing can confirm allocation');
+        return;
+      }
       asset.allocationRequestStatus = 'CONFIRMED';
       saveAppState(appState);
       pushPlatformNotification('tenant', 'message', 'Physical Allocation Confirmed',
@@ -8174,6 +8288,7 @@ document.addEventListener('DOMContentLoaded', () => {
     asset.consentUpdatedAt = Date.now();
     asset.cofOStatus = CONSENT_STAGE_LABELS[nextStage];
     saveAppState(appState);
+    if (nextStage === 'GRANTED') notifyLegalDeedReady(asset);
 
     const buyerMsg = nextStage === 'GRANTED'
       ? `Governor's Consent has been granted for ${asset.title}. Your Receipt, Deed of Assignment & C of O are now ready to be issued.`
@@ -8489,7 +8604,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function assistTodo() {
     const items = [];
     const uid = getCurrentUserId();
-    if (!isScreeningCompleted()) {
+    if (!isAiFeePayer()) {
+      // landlords/agents: no AI screening step at all
+    } else if (!isScreeningCompleted()) {
       items.push({ done: false, t: 'Complete credit screening', b: 'One-time ₦5,000 check needed before you can request an inspection.', go: 'screening', cta: 'Start screening' });
     } else {
       items.push({ done: true, t: 'Credit screening complete', b: 'You are cleared to request inspections.' });
@@ -8998,9 +9115,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     saveAppState(appState);
     window.dispatchEvent(new Event('maintown_state_updated'));
   }
+  // AI tools (credit screening, title vetting, risk scoring) are paid for ONLY
+  // by tenants/buyers. Landlords, agents and company staff are never charged.
+  function isAiFeePayer() { return (currentUserRole || 'tenant') === 'tenant'; }
   let screeningPendingAction = null;
 
   function requireScreening(action) {
+    if (!isAiFeePayer()) { showToast('AI tools are free for landlords and agents — screening is only for tenants and buyers'); return; }
     if (isScreeningCompleted()) { action(); return; }
     screeningPendingAction = action;
     document.getElementById('screening-modal')?.classList.add('open');
@@ -9012,6 +9133,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   document.getElementById('screening-pay-btn')?.addEventListener('click', () => {
+    if (!isAiFeePayer()) {
+      document.getElementById('screening-modal')?.classList.remove('open');
+      screeningPendingAction = null;
+      return;
+    }
     markScreeningCompleted();
     logTransaction({
       dealStage: 'APPLICATION', escrowStatus: 'RELEASED', gross: 5000,
@@ -10725,7 +10851,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         document.getElementById('s6-rent-amount').textContent = formatMoney(checkoutLandPayment.totalPrice, 'ngn');
         document.getElementById('s6-deposit-amount').textContent = formatMoney(checkoutLandPayment.processingFee, 'ngn');
         document.getElementById('s6-fee-amount').textContent = 'Outright — N/A';
-        checkoutAiFeeNgn = 15000;
+        checkoutAiFeeNgn = isAiFeePayer() ? 15000 : 0;
         document.getElementById('s6-ai-fee-label').innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown AI Title Vetting &amp; Secure Split-Pay Fee';
         document.getElementById('s6-ai-fee-row').style.display = '';
         document.getElementById('s6-ai-fee-amount').textContent = formatMoney(checkoutAiFeeNgn, 'ngn');
@@ -10744,7 +10870,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         document.getElementById('s6-rent-amount').textContent = formatMoney(checkoutLandPayment.monthly, 'ngn');
         document.getElementById('s6-deposit-amount').textContent = formatMoney(checkoutLandPayment.buyerCommission, 'ngn');
         document.getElementById('s6-fee-amount').textContent = formatMoney(checkoutLandPayment.legal, 'ngn');
-        checkoutAiFeeNgn = 15000;
+        checkoutAiFeeNgn = isAiFeePayer() ? 15000 : 0;
         document.getElementById('s6-ai-fee-label').innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown AI Title Vetting &amp; Secure Split-Pay Fee';
         document.getElementById('s6-ai-fee-row').style.display = '';
         document.getElementById('s6-ai-fee-amount').textContent = formatMoney(checkoutAiFeeNgn, 'ngn');
@@ -11316,6 +11442,83 @@ This voucher is auto-generated and serves as proof of settlement.`;
     return Object.values(out).sort((a, b) => (b.at || 0) - (a.at || 0));
   }
 
+  // ---- Deed of Assignment gating (mirrors the Owner Assets screen) ----
+  // Order of events for a Land/Property sale:
+  //   1. Full payment (outright, or the FINAL installment)  -> Deed is requested automatically
+  //   2. Physical allocation: buyer requests -> owner confirms -> buyer attends on-site
+  //   3. Governor's Consent granted (only when the title type requires it)
+  //   4. Only then can the Deed be uploaded and issued
+  function assetDeedStage(asset) {
+    if (!asset) return 'NONE';
+    if (asset.deedAvailable) return 'ISSUED';
+    if (asset.paymentMode === 'installment' && (asset.installmentsPaid || 0) < (asset.installmentsTotal || 1)) return 'PAYMENT';
+    if (asset.allocationRequestStatus !== 'ATTENDED') return 'ALLOCATION';
+    if (asset.requiresConsent && asset.consentStatus !== 'GRANTED') return 'CONSENT';
+    return 'READY';
+  }
+  const DEED_STAGE_LABEL = {
+    PAYMENT: 'Waiting for final installment',
+    ALLOCATION: 'Waiting for physical allocation',
+    CONSENT: "Waiting for Governor's Consent",
+    READY: 'Ready for Legal to upload',
+    ISSUED: 'Deed issued'
+  };
+  function companyDeedDoc(assetId) {
+    return (appState.legalDocuments || []).find(d => d.assetId === assetId && d.docType === 'Deed of Assignment');
+  }
+  // Buyers whose Deed can be uploaded right now for this listing.
+  function getDeedEligibleBuyers(listing) {
+    appState = loadAppState();
+    if (!listing) return [];
+    return (appState.assets || [])
+      .filter(a => String(a.listingId) === String(listing.id) && assetDeedStage(a) === 'READY' && !companyDeedDoc(a.id))
+      .map(a => {
+        const b = getListingBuyers(listing).find(x => x.id === a.ownerId) || {};
+        const u = (appState.users && appState.users[a.ownerId]) || {};
+        return { id: a.ownerId, name: u.name || b.name || 'Buyer', contact: b.contact || '', at: a.purchaseDate, assetId: a.id };
+      });
+  }
+  // Called when a step that unlocks the Deed completes; tells Legal it is now ready.
+  function notifyLegalDeedReady(asset) {
+    if (!asset || assetDeedStage(asset) !== 'READY') return;
+    const listing = (typeof listings !== 'undefined') ? listings.find(l => String(l.id) === String(asset.listingId)) : null;
+    if (!listing || !isEnterpriseListing(listing)) return;
+    const companyId = listing.companyId || listing.ownerId;
+    const buyerName = (appState.users && appState.users[asset.ownerId] && appState.users[asset.ownerId].name) || 'the buyer';
+    companyStaffIdsByRole(companyId, 'legal').forEach(legalId => {
+      pushPlatformNotification('legal', 'message', 'Deed Ready to Upload',
+        `${buyerName}'s payment and physical allocation${asset.requiresConsent ? " and Governor's Consent" : ''} for ${asset.title} are complete — you can now upload the Deed of Assignment.`,
+        { screen: 'screen-ent-legal-dash' }, 'DEED_READY', null, legalId);
+    });
+  }
+
+  // ---- Physical allocation routing (company listings) ----
+  // Buyer requests -> the SALES person who listed it confirms -> buyer confirms
+  // they attended. CEO + Legal + that sales person are told at every step.
+  // Listings the CEO added themselves (no sales person) fall back to the CEO confirming.
+  // Landlord/agent listings keep the simple buyer -> landlord -> buyer flow.
+  function allocationConfirmerFor(listing) {
+    if (!listing) return { kind: 'owner', id: null };
+    if (!isEnterpriseListing(listing)) return { kind: 'owner', id: listing.ownerId || null };
+    const st = listing.listedByStaffId && appState.users && appState.users[listing.listedByStaffId];
+    if (st && st.role === 'enterprise_staff' && st.staffRole === 'sales') return { kind: 'sales', id: listing.listedByStaffId };
+    return { kind: 'ceo', id: listing.companyId || listing.ownerId };
+  }
+  function notifyCompanyAllocation(listing, title, body, opts) {
+    opts = opts || {};
+    const companyId = listing.companyId || listing.ownerId;
+    const conf = allocationConfirmerFor(listing);
+    if (!opts.skipCeo) {
+      pushPlatformNotification('landlord', 'message', title, body, { screen: 'screen-owner-assets' }, opts.type || 'ALLOCATION_UPDATE', null, companyId);
+    }
+    companyStaffIdsByRole(companyId, 'legal').forEach(legalId => {
+      pushPlatformNotification('legal', 'message', title, body, { screen: 'screen-ent-legal-dash' }, opts.type || 'ALLOCATION_UPDATE', null, legalId);
+    });
+    if (conf.kind === 'sales' && !opts.skipSales) {
+      pushPlatformNotification('sales', 'message', title, body, { screen: 'salesAllocations', cta: 'Open Allocations' }, opts.type || 'ALLOCATION_UPDATE', null, conf.id);
+    }
+  }
+
   // ---- Enterprise: countersign queue (Sales-listed properties only) ----
   // When a transaction activates on a listing that a SALES staff member added
   // for a company, the agreement/contract awaiting countersignature drops
@@ -11352,6 +11555,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     };
     appState.legalDocuments.unshift(doc);
     saveAppState(appState);
+    window.dispatchEvent(new Event('maintown_state_updated'));
     companyStaffIdsByRole(companyId, 'legal').forEach(legalId => {
       pushPlatformNotification('legal', 'message', 'Agreement Awaiting Countersignature',
         `The ${isLand ? 'contract of sale' : 'tenancy agreement'} for ${listing.title} is signed by the client and is now with the CEO for countersignature. Review it and remind the CEO if needed.`,
@@ -11371,6 +11575,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       buyerName: buyerRec.name || null,
       listingTitle: checkoutListing.title,
       isLand: checkoutListing.type === 'land',
+      propertyAddress: checkoutListing.location || checkoutListing.title,
+      landlordName: checkoutListing.landlordName || (checkoutListing.type === 'land' ? 'the Seller' : 'the Landlord'),
+      priceLabel: checkoutListing.type === 'land'
+        ? (checkoutLandPayment && checkoutLandPayment.totalPrice ? formatMoney(checkoutLandPayment.totalPrice, 'ngn') : '—')
+        : (checkoutRentBreakdown ? formatMoney(checkoutRentBreakdown.monthly, 'ngn') : '—'),
       sellerId: salesListedCompanyId || checkoutListing.ownerId || null,
       tenantSignature: checkoutTenantSignature,
       tenantSignedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -11486,7 +11695,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   function updateHrSignState() {
-    hrSignSendBtn.disabled = hrSigMode === 'draw' ? !hrSigHasStrokes : !hrSigTypeInput.value.trim();
+    hrSignSendBtn.disabled = !hrReadDone || (hrSigMode === 'draw' ? !hrSigHasStrokes : !hrSigTypeInput.value.trim());
   }
   hrSigTypeInput.addEventListener('input', updateHrSignState);
 
@@ -11511,8 +11720,45 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('hr-tenant-sig-date').textContent = `Signed ${handover.tenantSignedAt}`;
   }
 
+  // The landlord/CEO reads the SAME agreement text the tenant/buyer read, and
+  // must scroll to the bottom before the signature panel unlocks.
+  const hrAgreementBox = document.getElementById('hr-agreement-box');
+  const hrScrollHint = document.getElementById('hr-scroll-hint');
+  let hrReadDone = false;
+  function buildHandoverAgreementHtml(h) {
+    const buyer = h.buyerName || (h.isLand ? 'the Buyer' : 'the Tenant');
+    if (!h.isLand) {
+      return buildTenancyPolicyHtml({ landlordName: h.landlordName || 'the Landlord', tenantName: buyer, propertyAddress: h.propertyAddress || h.listingTitle, monthlyRent: h.priceLabel || '—' });
+    }
+    const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    return `
+      <h1>Contract of Sale</h1>
+      <p>This Contract of Sale is made on <strong>${today}</strong> between <strong>${h.landlordName || 'the Seller'}</strong> (\"Seller/Developer\") and <strong>${buyer}</strong> (\"Buyer\"), for the land/property known as <strong>${h.propertyAddress || h.listingTitle}</strong>, at a total price of <strong>${h.priceLabel || '—'}</strong>, facilitated through MainTown Realty.</p>
+      <h1>Binding Terms</h1>
+      <p><strong>Clause 1 — Pre-Checkout Inspection &amp; Satisfaction:</strong> Checkout requires prior completion of physical or virtual property inspection. By initiating payment, the Buyer confirms they (or their authorized representative) have inspected the land, verified its condition, and logged their status as Satisfied within the platform.</p>
+      <p><strong>Clause 2 — Title Verification &amp; Allocation Window:</strong> Independent survey checks and Land Registry verification (C of O, Gazette, or layout plans) are finalized prior to physical land allocation. Physical allocation is executed upon clean title confirmation and adherence to the agreed payment plan.</p>
+      <p><strong>Clause 3 — Automated Non-Custodial Split Payments:</strong> All payments (outright or installment) are processed instantly via automated payment split logic directly to the designated accounts of the Seller/Developer and MainTown Realty. MainTown Realty operates as a non-custodial facilitator and does not hold or escrow transaction funds.</p>
+      <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule. A mandatory 30-day grace period applies to overdue payments. Payments remaining in default beyond 60 days trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
+      <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to the Buyer via the MainTown Realty logistics network.</p>
+      <h1>Signature</h1>
+      <p>By countersigning, the Seller acknowledges they have read, understood and agree to be bound by the terms of this Contract of Sale, already signed by the Buyer.</p>`;
+  }
+  function checkHrScrollBottom() {
+    if (hrReadDone) return;
+    const atBottom = hrAgreementBox.scrollTop + hrAgreementBox.clientHeight >= hrAgreementBox.scrollHeight - 6;
+    if (atBottom) {
+      hrReadDone = true;
+      hrScrollHint.classList.add('hidden');
+      document.getElementById('hr-sign-panel').classList.remove('tp-locked');
+      updateHrSignState();
+    }
+  }
+  hrAgreementBox.addEventListener('scroll', checkHrScrollBottom);
+
   function openHandoverReviewModal() {
     if (!handover) return;
+    hrAgreementBox.innerHTML = buildHandoverAgreementHtml(handover);
+    hrAgreementBox.scrollTop = 0;
     document.getElementById('hr-property-name').textContent = handover.listingTitle;
     renderHrTenantSigPreview();
 
@@ -11520,6 +11766,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const completedPanel = document.getElementById('hr-completed-panel');
     const landlordPreview = document.getElementById('hr-landlord-sig-preview');
 
+    hrReadDone = handover.status === 'completed';
+    hrScrollHint.classList.toggle('hidden', hrReadDone);
+    signPanel.classList.toggle('tp-locked', !hrReadDone);
     if (handover.status === 'completed') {
       signPanel.style.display = 'none';
       completedPanel.style.display = 'block';
@@ -11546,6 +11795,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     hrSigCtx.clearRect(0, 0, hrSigCanvas.width, hrSigCanvas.height);
     updateHrSignState();
     if (window.lucide) lucide.createIcons();
+    // If the text doesn't overflow the box, there is nothing to scroll — unlock right away.
+    requestAnimationFrame(checkHrScrollBottom);
   }
 
   // Restores the agreement behind a specific countersign doc (several can be
@@ -11561,7 +11812,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('hr-close-btn').addEventListener('click', () => handoverReviewModal.classList.remove('open'));
 
   document.getElementById('hr-sign-send-btn').addEventListener('click', () => {
-    if (hrSignSendBtn.disabled || !handover) return;
+    if (hrSignSendBtn.disabled || !handover || !hrReadDone) return;
     handover.landlordSignature = hrSigMode === 'draw'
       ? { mode: 'draw', data: hrSigCanvas.toDataURL('image/png') }
       : { mode: 'type', data: hrSigTypeInput.value.trim() };
@@ -14262,8 +14513,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
         notificationDetailModal.classList.remove('open');
         if (notif.route.docId) openCountersignForDoc(notif.route.docId); else openHandoverReviewModal();
       };
+    } else if (notif.route && notif.route.screen === 'salesAllocations') {
+      ctaLabel.textContent = notif.route.cta || 'Open Allocations';
+      ctaBtn.style.display = 'flex';
+      ctaBtn.onclick = () => {
+        notificationDetailModal.classList.remove('open');
+        openSalesDashboard();
+        openSalesAllocationsPanel();
+      };
     } else if (notif.route && notif.route.screen === 'entLegalReview') {
-      ctaLabel.textContent = 'Review Document';
+      ctaLabel.textContent = notif.route.cta || 'Review Document';
       ctaBtn.style.display = 'flex';
       ctaBtn.onclick = () => {
         notificationDetailModal.classList.remove('open');
@@ -16562,9 +16821,11 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('s6h-appt-attended').style.display = apptStatus === 'ATTENDED' ? 'inline-flex' : 'none';
 
     if (apptStatus === 'PENDING_APPROVAL') {
-      document.getElementById('s6h-appt-pending-text').textContent = `${apptLabel} requested for ${apptDateLabel} — awaiting Owner/Agent confirmation`;
+      document.getElementById('s6h-appt-pending-text').textContent = `${apptLabel} requested for ${apptDateLabel} — awaiting ${listing && isEnterpriseListing(listing) ? 'your sales agent' : 'Owner/Agent'} confirmation`;
     } else if (apptStatus === 'CONFIRMED') {
-      document.getElementById('s6h-appt-confirmed-text').textContent = `${apptLabel} confirmed for ${apptDateLabel}`;
+      document.getElementById('s6h-appt-confirmed-text').textContent = listing && isEnterpriseListing(listing)
+        ? `Your sales agent confirmed the ${apptLabel.toLowerCase()} is done. Please confirm you were there.`
+        : `${apptLabel} confirmed for ${apptDateLabel}`;
     } else if (apptStatus === 'ATTENDED') {
       document.getElementById('s6h-appt-attended-text').textContent = `${apptLabel} completed on ${apptDateLabel}`;
     }
@@ -16717,7 +16978,11 @@ available in the Post-Lease Hub and this chat thread.`
 
   document.getElementById('ah-deed-download-btn').addEventListener('click', () => {
     const asset = myAssets().find(a => a.id === activeAssetId);
-    if (asset && asset.deedAvailable) showToast('Downloading Deed of Assignment.pdf');
+    if (asset && asset.deedAvailable) {
+      const doc = (appState.tenantLeaseDocuments || []).find(x => x.id === asset.deedDocId);
+      if (doc && doc.fileDataUrl) window.open(doc.fileDataUrl, '_blank');
+      else showToast('Downloading Deed of Assignment.pdf');
+    }
   });
 
   document.getElementById('ah-message-btn').addEventListener('click', () => {
@@ -16757,13 +17022,18 @@ available in the Post-Lease Hub and this chat thread.`
 
     const buyerName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Client';
     const apptLabel = document.getElementById('s6h-appt-label').textContent;
-    if (listing.ownerId) {
+    if (isEnterpriseListing(listing)) {
+      const who = (appState.users && appState.users[asset.ownerId] && appState.users[asset.ownerId].name) || buyerName;
+      notifyCompanyAllocation(listing, 'Physical Allocation Requested',
+        `${who} requested a ${apptLabel.toLowerCase()} for ${listing.title} on ${formatted}. The sales agent handling this listing will confirm it.`,
+        { type: 'ALLOCATION_REQUESTED' });
+    } else if (listing.ownerId) {
       pushPlatformNotification('landlord', 'message', 'Physical Allocation Requested',
         `${buyerName} requested a ${apptLabel.toLowerCase()} for ${listing.title} on ${formatted}. Please confirm this date.`,
         { screen: 'screen-owner-assets' }, 'ALLOCATION_REQUESTED', null, listing.ownerId);
     }
 
-    showToast('Physical allocation requested — awaiting Owner/Agent confirmation');
+    showToast(isEnterpriseListing(listing) ? 'Physical allocation requested — awaiting your sales agent' : 'Physical allocation requested — awaiting Owner/Agent confirmation');
     populateScreenLandHandover();
   });
 
@@ -16780,8 +17050,14 @@ available in the Post-Lease Hub and this chat thread.`
     asset.allocationRequestStatus = 'ATTENDED';
     saveAppState(appState);
     window.dispatchEvent(new Event('maintown_state_updated'));
+    notifyLegalDeedReady(asset);
 
-    if (listing.ownerId) {
+    if (isEnterpriseListing(listing)) {
+      const who = (appState.users && appState.users[asset.ownerId] && appState.users[asset.ownerId].name) || 'The buyer';
+      notifyCompanyAllocation(listing, 'Physical Allocation Completed',
+        `${who} confirmed the physical allocation for ${asset.title} is complete. Legal can now prepare the Deed once any other requirements are met.`,
+        { type: 'ALLOCATION_ATTENDED' });
+    } else if (listing.ownerId) {
       pushPlatformNotification('landlord', 'message', 'Physical Allocation Completed',
         `${asset.title}'s physical allocation has been completed and confirmed by the buyer — you can now issue the Receipt & Deed of Assignment from your Asset Portfolio.`,
         { screen: 'screen-owner-assets' }, 'ALLOCATION_ATTENDED', null, listing.ownerId);
@@ -19184,6 +19460,10 @@ available in the Post-Lease Hub and this chat thread.`
     const totalValue = mine.reduce((sum, l) => sum + (l.annualPrice || l.totalPrice || 0), 0);
     document.getElementById('ent-sales-stat-count').textContent = String(mine.length);
     document.getElementById('ent-sales-stat-sub').textContent = `listing${mine.length === 1 ? '' : 's'} you've added · ${formatMoney(totalValue, 'ngn')} total value`;
+    const pendingAlloc = mySalesAllocationRows().filter(x => x.a.allocationRequestStatus === 'PENDING_APPROVAL').length;
+    document.getElementById('ent-sales-allocation-sub').textContent = pendingAlloc
+      ? `${pendingAlloc} request${pendingAlloc === 1 ? '' : 's'} waiting for your confirmation`
+      : 'Confirm allocations for buyers of your listings';
   }
   function renderSalesListings() {
     const mine = myEnterpriseListings();
@@ -19233,11 +19513,76 @@ available in the Post-Lease Hub and this chat thread.`
     requestListingRemoval(l);
   });
 
+  function mySalesAllocationRows() {
+    appState = loadAppState();
+    const uid = getCurrentUserId();
+    return (appState.assets || []).map(a => {
+      const l = listings.find(x => String(x.id) === String(a.listingId));
+      return { a, l };
+    }).filter(({ a, l }) => l && isEnterpriseListing(l) && l.listedByStaffId === uid && a.allocationRequestStatus);
+  }
+  function renderSalesAllocations() {
+    const list = document.getElementById('ent-sales-allocation-list');
+    const rows = mySalesAllocationRows();
+    const rank = { PENDING_APPROVAL: 0, CONFIRMED: 1, ATTENDED: 2 };
+    rows.sort((x, y) => (rank[x.a.allocationRequestStatus] ?? 3) - (rank[y.a.allocationRequestStatus] ?? 3));
+    list.innerHTML = rows.length ? rows.map(({ a }) => {
+      const buyer = (appState.users && appState.users[a.ownerId] && appState.users[a.ownerId].name) || 'Buyer';
+      let action;
+      if (a.allocationRequestStatus === 'PENDING_APPROVAL') action = `<button type="button" class="ent-list-action-btn primary" data-confirm-allocation="${a.id}"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i>Confirm Allocation Done</button>`;
+      else if (a.allocationRequestStatus === 'CONFIRMED') action = `<span class="ent-doc-status-badge ent-doc-status-sent">Awaiting buyer to confirm</span>`;
+      else action = `<span class="ent-doc-status-badge ent-doc-status-approved">Completed</span>`;
+      return `
+      <div class="ent-list-item" style="flex-wrap:wrap;">
+        <div class="ent-list-icon"><i data-lucide="map-pin-check" class="w-4 h-4"></i></div>
+        <div class="ent-list-text">
+          <p class="ent-list-title">${a.title}</p>
+          <p class="ent-list-sub">${buyer} · ${a.allocationDateLabel || 'Date to be agreed'}</p>
+        </div>
+        ${action}
+      </div>`;
+    }).join('') : `<div class="ent-empty"><i data-lucide="map-pin-check"></i><p>No allocation requests yet. They appear here once a buyer of your listing has paid and requests physical allocation.</p></div>`;
+    if (window.lucide) lucide.createIcons();
+  }
+  function openSalesAllocationsPanel() {
+    document.getElementById('ent-sales-home').style.display = 'none';
+    document.getElementById('ent-sales-allocation-panel').style.display = 'block';
+    renderSalesAllocations();
+  }
+  document.getElementById('ent-sales-allocation-card').addEventListener('click', openSalesAllocationsPanel);
+  document.getElementById('ent-sales-allocation-back-btn').addEventListener('click', () => {
+    document.getElementById('ent-sales-allocation-panel').style.display = 'none';
+    document.getElementById('ent-sales-home').style.display = 'block';
+    renderSalesHome();
+  });
+  document.getElementById('ent-sales-allocation-list').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-confirm-allocation]');
+    if (!btn) return;
+    const row = mySalesAllocationRows().find(x => x.a.id === btn.dataset.confirmAllocation);
+    if (!row || row.a.allocationRequestStatus !== 'PENDING_APPROVAL') return;
+    const { a, l } = row;
+    a.allocationRequestStatus = 'CONFIRMED';
+    a.allocationConfirmedBy = getCurrentUserId();
+    a.allocationConfirmedAt = Date.now();
+    saveAppState(appState);
+    pushPlatformNotification('tenant', 'message', 'Physical Allocation Confirmed',
+      `Your sales agent confirmed the physical allocation for ${a.title} is done. Please open the app and confirm you were there.`,
+      { screen: 'screen-land-handover' }, 'ALLOCATION_CONFIRMED', null, a.ownerId);
+    const buyer = (appState.users && appState.users[a.ownerId] && appState.users[a.ownerId].name) || 'the buyer';
+    notifyCompanyAllocation(l, 'Physical Allocation Confirmed',
+      `The sales agent confirmed the physical allocation for ${a.title} with ${buyer}. Waiting for the buyer to confirm.`,
+      { type: 'ALLOCATION_CONFIRMED', skipSales: true });
+    showToast('Confirmed — the buyer has been asked to confirm too');
+    renderSalesAllocations();
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  });
+
   function openSalesDashboard() {
     renderSalesHeader();
     document.getElementById('ent-sales-home').style.display = 'block';
     document.getElementById('ent-sales-listings-panel').style.display = 'none';
     document.getElementById('ent-sales-inspections-panel').style.display = 'none';
+    document.getElementById('ent-sales-allocation-panel').style.display = 'none';
     renderSalesHome();
     navigateTo('screen-ent-sales');
   }
@@ -19386,10 +19731,57 @@ available in the Post-Lease Hub and this chat thread.`
   function renderLegalHome() {
     const pending = enterpriseListings().filter(l => l.workflowStatus === 'PENDING_LEGAL_REVIEW');
     const awaitingReview = companyLegalDocuments().filter(d => d.kind === 'COUNTERSIGN' && d.status === 'PENDING_COUNTERSIGN' && !d.legalReviewedAt);
-    document.getElementById('ent-legal-stat-pending').textContent = String(pending.length + awaitingReview.length);
+    const readyDeeds = companyDeedRequests().filter(r => { const a = (appState.assets || []).find(x => x.id === r.assetId); return assetDeedStage(a) === 'READY' && !companyDeedDoc(r.assetId); });
+    document.getElementById('ent-legal-stat-pending').textContent = String(pending.length + awaitingReview.length + readyDeeds.length);
+    renderLegalDeedRequests();
     renderLegalCountersignQueue();
     renderLegalCountersignedDocs();
   }
+  function companyDeedRequests() {
+    const companyId = getEnterpriseCompanyId();
+    return (appState.deedRequests || []).filter(r => r.companyId === companyId);
+  }
+  function renderLegalDeedRequests() {
+    appState = loadAppState();
+    const section = document.getElementById('ent-legal-deed-requests-section');
+    const list = document.getElementById('ent-legal-deed-requests-list');
+    if (!section || !list) return;
+    const rows = companyDeedRequests().map(r => {
+      const asset = (appState.assets || []).find(a => a.id === r.assetId);
+      const doc = companyDeedDoc(r.assetId);
+      const stage = assetDeedStage(asset);
+      return { r, asset, doc, stage };
+    }).filter(x => x.asset && !(x.doc && x.doc.status === 'DELIVERED_TO_CLIENT') && x.stage !== 'ISSUED');
+    if (!rows.length) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    list.innerHTML = rows.map(({ r, doc, stage }) => {
+      let action;
+      if (doc) action = `<span class="ent-doc-status-badge ${LEGAL_DOC_STATUS_CLASS[doc.status] || 'ent-doc-status-draft'}">${LEGAL_DOC_STATUS_LABEL[doc.status] || doc.status}</span>`;
+      else if (stage === 'READY') action = `<button type="button" class="ent-list-action-btn primary" data-upload-deed="${r.assetId}"><i data-lucide="upload" class="w-3.5 h-3.5"></i>Upload Deed</button>`;
+      else action = `<span class="ent-doc-status-badge ent-doc-status-draft">${DEED_STAGE_LABEL[stage] || stage}</span>`;
+      return `
+      <div class="ent-list-item" style="flex-wrap:wrap;">
+        <div class="ent-list-icon"><i data-lucide="landmark" class="w-4 h-4"></i></div>
+        <div class="ent-list-text">
+          <p class="ent-list-title">Deed of Assignment — ${r.listingTitle}</p>
+          <p class="ent-list-sub">Requested for ${r.buyerName} · ${new Date(r.requestedAt).toLocaleDateString()}${!doc ? ' · ' + (DEED_STAGE_LABEL[stage] || '') : ''}</p>
+        </div>
+        ${action}
+      </div>`;
+    }).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('ent-legal-deed-requests-list').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-upload-deed]');
+    if (!btn) return;
+    const r = companyDeedRequests().find(x => x.assetId === btn.dataset.uploadDeed);
+    if (!r) return;
+    document.getElementById('ent-legal-home').style.display = 'none';
+    document.getElementById('ent-legal-docs-panel').style.display = 'block';
+    renderLegalDocs();
+    openLegalUploadModal({ type: 'Deed of Assignment', listingId: r.listingId, buyerId: r.buyerId, name: `Deed of Assignment — ${r.listingTitle}` });
+  });
+
   // Agreements/contracts signed by a client on a Sales-listed property that
   // are sitting with the CEO for countersignature. Legal can mark them
   // reviewed (which tells the CEO) and send the CEO a reminder.
@@ -19541,38 +19933,55 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('ent-legal-doc-listing-field').style.display = forBuyer ? '' : 'none';
     document.getElementById('ent-legal-doc-buyer-field').style.display = forBuyer ? '' : 'none';
   }
+  function legalEligibleBuyers(listing) {
+    return document.getElementById('ent-legal-doc-type').value === 'Deed of Assignment' ? getDeedEligibleBuyers(listing) : getListingBuyers(listing);
+  }
+  function refreshLegalDocListings(selectedId) {
+    const isDeed = document.getElementById('ent-legal-doc-type').value === 'Deed of Assignment';
+    const sel = document.getElementById('ent-legal-doc-listing');
+    const options = enterpriseListings().filter(l => (!isDeed || l.type === 'land') && legalEligibleBuyers(l).length);
+    sel.innerHTML = '<option value="">Select the property</option>' + options.map(l => `<option value="${l.id}">${l.title}</option>`).join('');
+    if (selectedId) sel.value = String(selectedId);
+  }
   function refreshLegalDocBuyers() {
     const sel = document.getElementById('ent-legal-doc-buyer');
     const hint = document.getElementById('ent-legal-doc-buyer-hint');
+    const isDeed = document.getElementById('ent-legal-doc-type').value === 'Deed of Assignment';
     const listingId = document.getElementById('ent-legal-doc-listing').value;
-    if (!listingId) { sel.innerHTML = '<option value="">Select a property first</option>'; return; }
-    const listing = enterpriseListings().find(l => String(l.id) === String(listingId));
-    const buyers = getListingBuyers(listing);
-    if (!buyers.length) {
-      sel.innerHTML = '<option value="">No buyer on record for this property</option>';
-      hint.textContent = 'No buyer has completed a payment on this property yet, so a document cannot be addressed to anyone.';
+    if (!listingId) {
+      sel.innerHTML = '<option value="">Select a property first</option>';
+      hint.textContent = isDeed
+        ? "Only properties with a buyer who has paid in full, completed physical allocation (and Governor's Consent where required) are listed."
+        : 'Only buyers with a completed payment on the property are listed.';
       return;
     }
-    hint.textContent = 'Only buyers with a completed payment on this property are listed. Check the name and contact carefully.';
+    const listing = enterpriseListings().find(l => String(l.id) === String(listingId));
+    const buyers = legalEligibleBuyers(listing);
+    if (!buyers.length) {
+      sel.innerHTML = '<option value="">No eligible buyer for this property</option>';
+      hint.textContent = isDeed ? 'No buyer is ready for a Deed on this property yet.' : 'No buyer has completed a payment on this property yet.';
+      return;
+    }
+    hint.textContent = 'Check the name and contact carefully. This is who the CEO will send the document to.';
     sel.innerHTML = '<option value="">Select the buyer</option>' + buyers.map(b => `<option value="${b.id}">${b.name}${b.contact ? ' · ' + b.contact : ''}</option>`).join('');
-    if (buyers.length === 1) sel.value = '';
   }
-  document.getElementById('ent-legal-doc-type').addEventListener('change', refreshLegalDocFields);
+  document.getElementById('ent-legal-doc-type').addEventListener('change', () => { refreshLegalDocFields(); refreshLegalDocListings(); refreshLegalDocBuyers(); });
   document.getElementById('ent-legal-doc-listing').addEventListener('change', refreshLegalDocBuyers);
-  document.getElementById('ent-legal-upload-doc-btn').addEventListener('click', () => {
-    document.getElementById('ent-legal-doc-name').value = '';
-    document.getElementById('ent-legal-doc-type').value = 'Deed of Assignment';
+  function openLegalUploadModal(pre) {
+    pre = pre || {};
+    document.getElementById('ent-legal-doc-name').value = pre.name || '';
+    document.getElementById('ent-legal-doc-type').value = pre.type || 'Deed of Assignment';
     document.getElementById('ent-legal-doc-upload-label').textContent = 'Choose File (PDF/Image)';
     document.getElementById('ent-legal-doc-upload-box').classList.remove('has-file');
     document.getElementById('ent-legal-doc-file').value = '';
     entLegalPendingDocDataUrl = null;
-    const sel = document.getElementById('ent-legal-doc-listing');
-    const withBuyers = enterpriseListings().filter(l => getListingBuyers(l).length);
-    sel.innerHTML = '<option value="">Select the property</option>' + withBuyers.map(l => `<option value="${l.id}">${l.title}</option>`).join('');
     refreshLegalDocFields();
+    refreshLegalDocListings(pre.listingId);
     refreshLegalDocBuyers();
+    if (pre.buyerId) document.getElementById('ent-legal-doc-buyer').value = pre.buyerId;
     document.getElementById('ent-legal-upload-modal').classList.add('open');
-  });
+  }
+  document.getElementById('ent-legal-upload-doc-btn').addEventListener('click', () => openLegalUploadModal());
   document.getElementById('ent-legal-doc-cancel-btn').addEventListener('click', () => {
     document.getElementById('ent-legal-upload-modal').classList.remove('open');
   });
@@ -19600,8 +20009,8 @@ available in the Post-Lease Hub and this chat thread.`
       if (!listingId) { showToast('Select the property this document is for'); return; }
       listing = enterpriseListings().find(l => String(l.id) === String(listingId));
       if (!buyerId) { showToast('Select the buyer this document is for'); return; }
-      buyer = getListingBuyers(listing).find(b => b.id === buyerId);
-      if (!listing || !buyer) { showToast('That buyer is not on record for this property'); return; }
+      buyer = legalEligibleBuyers(listing).find(b => b.id === buyerId);
+      if (!listing || !buyer) { showToast(docType === 'Deed of Assignment' ? 'That buyer is not ready for a Deed on this property' : 'That buyer is not on record for this property'); return; }
     }
     appState.legalDocuments = appState.legalDocuments || [];
     appState.legalDocuments.unshift({
@@ -19612,6 +20021,7 @@ available in the Post-Lease Hub and this chat thread.`
       salesStaffId: listing ? listing.listedByStaffId : null,
       buyerId: buyer ? buyer.id : null,
       buyerName: buyer ? buyer.name : null,
+      assetId: (buyer && buyer.assetId) || null,
       isLand: !!(listing && listing.type === 'land')
     });
     saveAppState(appState);
@@ -19660,11 +20070,34 @@ available in the Post-Lease Hub and this chat thread.`
   }
 
   // ---- Tab: Executive Overview ----
+  // Everything currently waiting on the CEO in Legal review: listing titles in
+  // review + documents/deeds Legal sent up (SENT_TO_CEO) + signed agreements
+  // awaiting countersignature (PENDING_COUNTERSIGN).
+  // Deed requests raised automatically once a buyer has paid in full that
+  // Legal has not yet sent up to the CEO (no document, or still a draft / returned).
+  function ceoOpenDeedRequests() {
+    const companyId = getEnterpriseCompanyId();
+    return (appState.deedRequests || []).filter(r => r.companyId === companyId).map(r => {
+      const asset = (appState.assets || []).find(a => a.id === r.assetId);
+      const doc = companyDeedDoc(r.assetId);
+      return { r, asset, doc, stage: assetDeedStage(asset) };
+    }).filter(x => x.asset && x.stage !== 'ISSUED' && !(x.doc && (x.doc.status === 'SENT_TO_CEO' || x.doc.status === 'DELIVERED_TO_CLIENT' || x.doc.status === 'APPROVED')));
+  }
+  function ceoLegalQueueCounts() {
+    const companyId = getEnterpriseCompanyId();
+    const titles = enterpriseListings().filter(l => l.workflowStatus === 'PENDING_LEGAL_REVIEW').length;
+    const docs = (appState.legalDocuments || []).filter(d => d.companyId === companyId && d.status === 'SENT_TO_CEO').length;
+    const agreements = (appState.legalDocuments || []).filter(d => d.companyId === companyId && d.status === 'PENDING_COUNTERSIGN').length;
+    const deeds = ceoOpenDeedRequests().length;
+    return { titles, docs, agreements, deeds, total: titles + docs + agreements + deeds };
+  }
   function renderEntOverview() {
+    appState = loadAppState();
     const companyId = getEnterpriseCompanyId();
     const myListings = enterpriseListings();
     const active = myListings.filter(l => l.status === 'live');
     const pendingLegal = myListings.filter(l => l.workflowStatus === 'PENDING_LEGAL_REVIEW');
+    const legalQueue = ceoLegalQueueCounts();
     const portfolioValue = myListings.reduce((sum, l) => sum + (l.annualPrice || l.totalPrice || 0), 0);
     const walletBalance = getWalletBalance(companyId);
 
@@ -19682,7 +20115,7 @@ available in the Post-Lease Hub and this chat thread.`
     pv.textContent = compact(portfolioValue);
     pv.title = formatMoney(portfolioValue, 'ngn');
     document.getElementById('ent-ov-active').textContent = String(active.length);
-    document.getElementById('ent-ov-pending').textContent = String(pendingLegal.length);
+    document.getElementById('ent-ov-pending').textContent = String(legalQueue.total);
 
     // Portfolio status split (real counts, no placeholders)
     const total = myListings.length;
@@ -19700,9 +20133,13 @@ available in the Post-Lease Hub and this chat thread.`
     // Awaiting-confirmation payments
     const escrowTxns = (appState.transactions || []).filter(t => t.meta && t.meta.companyId === companyId && t.meta.needsCompanyConfirmation && !t.meta.confirmed);
     const attn = document.getElementById('ent-ov-attention');
-    attn.innerHTML = escrowTxns.length
+    const deedRows = ceoOpenDeedRequests();
+    const deedStrip = deedRows.length
+      ? `<button type="button" class="ent-attention" data-ent-open="legal"><span class="ent-attention-dot"></span><span><strong>${deedRows.length} deed request${deedRows.length === 1 ? '' : 's'}</strong> — ${deedRows.slice(0, 2).map(x => x.r.buyerName).join(', ')}${deedRows.length > 2 ? ' +' + (deedRows.length - 2) : ''} paid in full. Legal is preparing the Deed for your review.</span><i data-lucide="chevron-right" class="chev"></i></button>`
+      : '';
+    attn.innerHTML = deedStrip + (escrowTxns.length
       ? `<button type="button" class="ent-attention" data-ent-open="ledger"><span class="ent-attention-dot"></span><span><strong>${escrowTxns.length} payment${escrowTxns.length === 1 ? '' : 's'}</strong> settled to your wallet and waiting for your confirmation</span><i data-lucide="chevron-right" class="chev"></i></button>`
-      : `<div class="ent-attention ok"><i data-lucide="check-circle-2"></i><span>All payments are confirmed</span></div>`;
+      : `<div class="ent-attention ok"><i data-lucide="check-circle-2"></i><span>All payments are confirmed</span></div>`);
     const escrowWrap = document.getElementById('ent-ov-escrow-wrap');
     escrowWrap.style.display = escrowTxns.length ? 'block' : 'none';
     document.getElementById('ent-ov-escrow-list').innerHTML = escrowTxns.map(t => `
@@ -19720,7 +20157,7 @@ available in the Post-Lease Hub and this chat thread.`
     const cards = [
       { key: 'inventory', icon: 'building-2', title: 'Inventory', num: liveN, unit: 'live', sub: `${total} ${plural(total, 'listing', 'listings')} in inventory` },
       { key: 'team', icon: 'users', title: 'Team & access', num: team.length, unit: plural(team.length, 'member', 'members'), sub: invites ? `${invites} ${plural(invites, 'invite', 'invites')} pending` : 'Roles and permissions' },
-      { key: 'legal', icon: 'scale', title: 'Legal review', num: reviewN, unit: 'in review', sub: 'Titles and tenancy documents', warn: reviewN > 0 },
+      { key: 'legal', icon: 'scale', title: 'Legal review', num: legalQueue.total, unit: 'in review', sub: legalQueue.total ? [legalQueue.titles ? `${legalQueue.titles} ${plural(legalQueue.titles, 'title', 'titles')}` : '', legalQueue.agreements ? `${legalQueue.agreements} to countersign` : '', legalQueue.docs ? `${legalQueue.docs} ${plural(legalQueue.docs, 'document', 'documents')}` : '', legalQueue.deeds ? `${legalQueue.deeds} ${plural(legalQueue.deeds, 'deed request', 'deed requests')}` : ''].filter(Boolean).join(' · ') : 'Titles, agreements and deeds', warn: legalQueue.total > 0 },
       { key: 'ledger', icon: 'receipt', title: 'Ledger', num: txns.length, unit: plural(txns.length, 'transaction', 'transactions'), sub: escrowTxns.length ? `${escrowTxns.length} to confirm` : 'Receipts and CSV export', warn: escrowTxns.length > 0 },
     ].filter(c => visible.includes(c.key));
     let html = cards.map(c => `
@@ -20111,6 +20548,19 @@ available in the Post-Lease Hub and this chat thread.`
   function renderCeoLegalDocsList() {
     const list = document.getElementById('ent-ceo-legal-docs-list');
     if (!list) return;
+    appState = loadAppState();
+    const deedWrap = document.getElementById('ent-ceo-deed-requests-wrap');
+    const deedList = document.getElementById('ent-ceo-deed-requests-list');
+    const deedRows = ceoOpenDeedRequests();
+    deedWrap.style.display = deedRows.length ? '' : 'none';
+    deedList.innerHTML = deedRows.map(({ r, stage, doc }) => `
+      <div class="ent-list-item">
+        <div class="ent-list-icon"><i data-lucide="landmark" class="w-4 h-4"></i></div>
+        <div class="ent-list-text">
+          <p class="ent-list-title">Deed of Assignment — ${r.listingTitle}</p>
+          <p class="ent-list-sub">Requested for ${r.buyerName} · paid in full ${new Date(r.requestedAt).toLocaleDateString()} · ${doc ? (doc.status === 'RETURNED' ? 'Returned to Legal' : 'Legal is preparing it') : (DEED_STAGE_LABEL[stage] || '')}</p>
+        </div>
+      </div>`).join('');
     const rank = d => d.status === 'PENDING_COUNTERSIGN' ? 0 : d.status === 'SENT_TO_CEO' ? 1 : 2;
     const docs = companyLegalDocuments().filter(d => d.status !== 'DRAFT' && d.status !== 'RETURNED').sort((a, b) => rank(a) - rank(b) || (b.uploadedAt || 0) - (a.uploadedAt || 0));
     list.innerHTML = docs.length ? docs.map(d => `
@@ -20142,6 +20592,7 @@ available in the Post-Lease Hub and this chat thread.`
       row('Document', d.name) + row('Type', d.docType || 'Document') + row('Property', d.listingTitle || '—') +
       (d.buyerId
         ? row('Send to', buyer ? buyer.name : 'Buyer not on record', !buyer) + row('Contact', buyer ? (buyer.contact || '—') : '—') + row('Payment on record', buyer && buyer.at ? new Date(buyer.at).toLocaleDateString() : '—', !buyer)
+          + (d.docType === 'Deed of Assignment' ? (() => { const st = assetDeedStage((appState.assets || []).find(a => a.id === d.assetId)); return row('Deed checks', st === 'READY' ? 'Paid in full · Allocation done' + (((appState.assets || []).find(a => a.id === d.assetId) || {}).requiresConsent ? ' · Consent granted' : '') : (DEED_STAGE_LABEL[st] || 'Not eligible'), st !== 'READY'); })() : '')
         : row('Send to', 'No buyer (internal document)')) +
       row('Prepared by', uploader) + row('File', d.fileDataUrl ? 'Attached' : 'Missing', !d.fileDataUrl);
     document.getElementById('edr-confirm').checked = false;
@@ -20190,8 +20641,17 @@ available in the Post-Lease Hub and this chat thread.`
     // Final safety check: the buyer must still be on record for THIS property,
     // and the file must be attached — otherwise nothing is sent.
     const listing = enterpriseListings().find(l => String(l.id) === String(d.listingId));
-    const buyer = getListingBuyers(listing).find(b => b.id === d.buyerId);
+    const buyer = listing ? getListingBuyers(listing).find(b => b.id === d.buyerId) : null;
     if (!listing || !buyer) { showToast('This buyer is no longer on record for the property — nothing was sent'); return; }
+    let deedAsset = null;
+    if (d.docType === 'Deed of Assignment') {
+      appState = loadAppState();
+      deedAsset = (appState.assets || []).find(a => a.id === d.assetId);
+      if (!deedAsset || deedAsset.ownerId !== buyer.id || String(deedAsset.listingId) !== String(listing.id) || assetDeedStage(deedAsset) !== 'READY') {
+        showToast('This buyer is not cleared for a Deed yet (payment, allocation or consent pending) — nothing was sent');
+        return;
+      }
+    }
     if (!d.fileDataUrl) { showToast('The document file is missing — return it to Legal'); return; }
     const isLandDoc = listing.type === 'land';
     d.status = 'DELIVERED_TO_CLIENT';
@@ -20199,12 +20659,25 @@ available in the Post-Lease Hub and this chat thread.`
     d.deliveredBy = getCurrentUserId();
     d.deliveredToBuyerId = buyer.id;
     appState.tenantLeaseDocuments = appState.tenantLeaseDocuments || [];
-    appState.tenantLeaseDocuments.unshift({
+    const deliveredEntry = {
       id: Date.now(), listingTitle: d.listingTitle, fileName: d.name, docType: d.docType, fileDataUrl: d.fileDataUrl,
       listingType: isLandDoc ? 'land' : 'rent', buyerId: buyer.id, sourceDocId: d.id,
       deliveredAt: Date.now(), deliveredBy: getCurrentUserId()
-    });
+    };
+    appState.tenantLeaseDocuments.unshift(deliveredEntry);
+    // A delivered Deed also marks the buyer's asset as issued, so Asset Hub shows it as verified.
+    if (deedAsset) {
+      deedAsset.deedAvailable = true;
+      deedAsset.deedFileName = d.name;
+      deedAsset.deedIssuedAt = Date.now();
+      deedAsset.deedDocId = deliveredEntry.id;
+    }
     saveAppState(appState);
+    if (deedAsset) {
+      pushPlatformNotification('landlord', 'message', 'Send Physical Documents to Logistics',
+        `${deedAsset.title} is fully paid and the digital Deed of Assignment has been sent. Please send the original physical title documents to the MainTown Realty logistics team for secure delivery to the buyer.`,
+        { screen: 'screen-owner-assets' }, 'PHYSICAL_DOCS_TO_LOGISTICS', null, d.companyId);
+    }
     pushPlatformNotification('tenant', 'message', d.docType || 'Document Delivered',
       `Your ${(d.docType || 'document').toLowerCase()} for ${d.listingTitle} is ready — view it in ${isLandDoc ? 'My Assets' : 'My Lease'}.`,
       { screen: isLandDoc ? 'screen-asset-hub' : 'screen-my-lease' }, 'LEASE_DOC_DELIVERED', null, buyer.id);
@@ -20319,6 +20792,20 @@ available in the Post-Lease Hub and this chat thread.`
     if (dashScreen && !dashScreen.classList.contains('hidden') && typeof populateScreen4 === 'function') {
       populateScreen4();
     }
+    const salesScreen = document.getElementById('screen-ent-sales');
+    if (salesScreen && !salesScreen.classList.contains('hidden')) {
+      const ap = document.getElementById('ent-sales-allocation-panel');
+      if (ap && ap.style.display === 'block' && typeof renderSalesAllocations === 'function') renderSalesAllocations();
+      const sh = document.getElementById('ent-sales-home');
+      if (sh && sh.style.display !== 'none' && typeof renderSalesHome === 'function') renderSalesHome();
+    }
+    const ceoScreen = document.getElementById('screen-enterprise');
+    if (ceoScreen && !ceoScreen.classList.contains('hidden')) {
+      const ovPanel = document.getElementById('ent-tab-overview');
+      const lgPanel = document.getElementById('ent-tab-legal');
+      if (ovPanel && ovPanel.style.display === 'block' && typeof renderEntOverview === 'function') renderEntOverview();
+      if (lgPanel && lgPanel.style.display === 'block' && typeof renderCeoLegalDocsList === 'function') renderCeoLegalDocsList();
+    }
     const legalDashScreen = document.getElementById('screen-ent-legal-dash');
     const legalHomePanel = document.getElementById('ent-legal-home');
     if (legalDashScreen && !legalDashScreen.classList.contains('hidden') && legalHomePanel && legalHomePanel.style.display !== 'none' && typeof renderLegalHome === 'function') {
@@ -20395,6 +20882,25 @@ available in the Post-Lease Hub and this chat thread.`
 
   // ---- Initial icon render (Screen 1 role cards, OTP modal, etc.) ----
   if (window.lucide) lucide.createIcons();
+
+  // If the shared app state is changed from another tab (e.g. Legal sending a
+  // document while the CEO has the dashboard open), refresh the live counts.
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'maintown_app_state') window.dispatchEvent(new Event('maintown_state_updated'));
+  });
+
+  // Enterprise dashboards: measure the pinned header so the main card can pin right beneath it.
+  (function pinEnterpriseHeaders() {
+    ['screen-enterprise', 'screen-ent-sales', 'screen-ent-finance', 'screen-ent-legal-dash'].forEach(id => {
+      const scr = document.getElementById(id);
+      const hdr = scr && scr.querySelector('.ent-header');
+      if (!hdr) return;
+      const set = () => { if (hdr.offsetHeight) scr.style.setProperty('--ent-header-h', hdr.offsetHeight + 'px'); };
+      if (window.ResizeObserver) new ResizeObserver(set).observe(hdr);
+      window.addEventListener('resize', set);
+      set();
+    });
+  })();
 </script>
 
 </body>
