@@ -691,6 +691,7 @@
   body.light-theme .stage-sub { color: #334155; }
   body.light-theme .stage-item.stage-green.active-stage { background: var(--status-success-bg-light); border-color: #10b981; }
   body.light-theme .stage-item.stage-yellow.active-stage { background: var(--status-warning-bg-light); border-color: #f59e0b; }
+  body.light-theme .stage-item.stage-orange.active-stage { background: #ffedd5; border-color: #f97316; }
   body.light-theme .stage-item.stage-red.active-stage { background: var(--status-danger-bg-light); border-color: #ef4444; }
 
   /* Report an Issue: "Your Tickets" list — ticket-title (e.g. "Plumbing ·
@@ -1399,6 +1400,88 @@
      instead of stretching across the full width. */
   .dash-grid .dash-tile.dash-tile-wide { grid-column: 1 / -1; justify-self: center; width: calc(50% - 5px); }
   /* ---- Ask MainTown: quiet contextual help links + sheet content ---- */
+
+  /* ==================================================================
+     ---- Market Switcher (city pill, city sheet, coming-soon preview) ----
+     ================================================================== */
+  .mkt-bar { display:flex; align-items:center; gap:10px; margin: 0 0 14px; }
+  .mkt-pill {
+    display:inline-flex; align-items:center; gap:7px; padding:8px 12px 8px 10px; border-radius:999px;
+    background: rgba(147,51,234,0.14); border:1px solid rgba(147,51,234,0.38); color:#d8b4fe;
+    font-size:13px; font-weight:700; cursor:pointer; letter-spacing:-0.01em; font-family:inherit;
+  }
+  .mkt-pill svg { width:15px; height:15px; }
+  .mkt-pill .mkt-pill-soon { font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+    background: rgba(245,158,11,0.16); color:#fbbf24; padding:2px 6px; border-radius:999px; }
+  .mkt-bar-hint { font-size:11.5px; color:#64748b; }
+  body.light-theme .mkt-pill { color:#7c3aed; background: rgba(147,51,234,0.08); }
+  body.light-theme .mkt-bar-hint { color:#64748b; }
+  #s5-market-bar { margin: 2px 0 14px; }
+  #s5-market-bar .mkt-bar { margin:0; }
+
+  .mkt-sheet-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
+  .mkt-sheet-title { font-size:18px; font-weight:800; color:#fff; margin:0 0 2px; letter-spacing:-0.02em; }
+  .mkt-sheet-sub { font-size:12px; color:#64748b; margin:0; }
+  .mkt-group-label { font-size:10.5px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:#64748b; margin:18px 0 8px; display:flex; align-items:center; gap:8px; }
+  .mkt-group-label::after { content:''; flex:1; height:1px; background:#1e293b; }
+  .mkt-row {
+    display:flex; align-items:center; gap:12px; width:100%; text-align:left; cursor:pointer; font-family:inherit;
+    background:#0f172a; border:1px solid #1e293b; border-radius:16px; padding:10px; margin-bottom:8px; color:#fff;
+  }
+  .mkt-row.is-current { border-color: rgba(147,51,234,0.7); background: linear-gradient(135deg, rgba(147,51,234,0.16), #0f172a 70%); }
+  .mkt-thumb { width:54px; height:54px; border-radius:12px; overflow:hidden; flex-shrink:0; position:relative; }
+  .mkt-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .mkt-row-main { min-width:0; flex:1; }
+  .mkt-row-name { font-size:14.5px; font-weight:700; margin:0 0 2px; display:flex; align-items:center; gap:6px; }
+  .mkt-row-sub { font-size:11.5px; color:#94a3b8; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mkt-row-stats { display:flex; gap:10px; margin-top:5px; font-size:11px; color:#c4b5fd; font-weight:600; }
+  .mkt-tag { font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; padding:3px 7px; border-radius:999px; flex-shrink:0; }
+  .mkt-tag.live { background: rgba(16,185,129,0.14); color:#10b981; }
+  .mkt-tag.soon { background: rgba(245,158,11,0.14); color:#fbbf24; }
+  .mkt-row svg.mkt-chev { width:16px; height:16px; color:#475569; flex-shrink:0; }
+
+  .mkt-back { display:inline-flex; align-items:center; gap:6px; background:none; border:none; color:#c084fc; font-size:13px; font-weight:600; cursor:pointer; padding:0; margin-bottom:12px; font-family:inherit; }
+  .mkt-back svg { width:15px; height:15px; }
+
+  .mkt-hero { position:relative; border-radius:20px; overflow:hidden; height:220px; background:#0f172a; margin-bottom:12px; cursor:pointer; }
+  .mkt-hero-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .9s ease; }
+  .mkt-hero-img.active { opacity:1; animation: mktKen 7s ease-out forwards; }
+  .mkt-hero-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  @keyframes mktKen { from { transform:scale(1); } to { transform:scale(1.09); } }
+  @media (prefers-reduced-motion: reduce) { .mkt-hero-img.active { animation:none; } }
+  .mkt-hero::after { content:''; position:absolute; inset:0; background: linear-gradient(to top, rgba(6,9,16,0.88) 0%, rgba(6,9,16,0.15) 55%, rgba(6,9,16,0.35) 100%); pointer-events:none; }
+  .mkt-hero-top { position:absolute; top:12px; left:12px; right:12px; z-index:2; display:flex; justify-content:space-between; align-items:center; }
+  .mkt-hero-chip { background: rgba(11,15,25,0.72); backdrop-filter: blur(6px); color:#fff; font-size:10.5px; font-weight:700; padding:5px 9px; border-radius:999px; display:inline-flex; align-items:center; gap:5px; }
+  .mkt-hero-chip.amber { color:#fbbf24; letter-spacing:.05em; text-transform:uppercase; font-size:10px; font-weight:800; }
+  .mkt-hero-pause { width:30px; height:30px; border-radius:999px; border:none; background: rgba(11,15,25,0.72); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter: blur(6px); }
+  .mkt-hero-pause svg { width:13px; height:13px; }
+  .mkt-hero-bottom { position:absolute; left:14px; right:14px; bottom:12px; z-index:2; }
+  .mkt-hero-city { font-size:24px; font-weight:800; color:#fff; margin:0; letter-spacing:-0.02em; line-height:1.1; }
+  .mkt-hero-cap { font-size:12px; color:#e2e8f0; margin:3px 0 8px; display:flex; align-items:center; gap:6px; }
+  .mkt-hero-cap b { font-weight:700; }
+  .mkt-hero-dots { display:flex; gap:4px; }
+  .mkt-hero-dots span { height:3px; flex:1; border-radius:999px; background: rgba(255,255,255,0.28); transition: background .4s; }
+  .mkt-hero-dots span.active { background:#c084fc; }
+
+  .mkt-card { background:#0b0f19; border:1px solid #1e293b; border-radius:20px; padding:12px; margin-bottom:24px; }
+  .mkt-about { font-size:13px; color:#cbd5e1; line-height:1.5; margin: 4px 2px 12px; }
+  .mkt-areas { display:flex; gap:10px; overflow-x:auto; scrollbar-width:none; margin: 0 -12px 12px; padding: 0 12px; -webkit-overflow-scrolling:touch; }
+  .mkt-areas::-webkit-scrollbar { display:none; }
+  .mkt-area { flex:0 0 132px; }
+  .mkt-area-img { height:86px; border-radius:12px; overflow:hidden; position:relative; }
+  .mkt-area-img img { width:100%; height:100%; object-fit:cover; display:block; }
+  .mkt-area-img span { position:absolute; left:6px; bottom:6px; font-size:9px; font-weight:700; background:rgba(11,15,25,0.75); color:#e2e8f0; padding:2px 6px; border-radius:999px; }
+  .mkt-area-name { font-size:12.5px; font-weight:700; color:#fff; margin:6px 0 1px; }
+  .mkt-area-desc { font-size:11px; color:#94a3b8; margin:0; line-height:1.35; }
+  .mkt-chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .mkt-chip { font-size:11px; font-weight:600; color:#c4b5fd; background:rgba(147,51,234,0.12); border:1px solid rgba(147,51,234,0.25); padding:4px 9px; border-radius:999px; }
+  .mkt-note { display:flex; gap:8px; font-size:12px; color:#94a3b8; background:#0f172a; border:1px solid #1e293b; border-radius:12px; padding:10px 12px; margin-bottom:12px; line-height:1.45; }
+  .mkt-note svg { width:15px; height:15px; color:#c084fc; flex-shrink:0; margin-top:1px; }
+  .mkt-btn { width:100%; padding:13px; border-radius:14px; font-size:14px; font-weight:700; cursor:pointer; border:none; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:7px; }
+  .mkt-btn svg { width:16px; height:16px; }
+  .mkt-btn.primary { background: linear-gradient(135deg,#9333ea,#7c3aed); color:#fff; }
+  .mkt-btn.primary.done { background: rgba(16,185,129,0.14); color:#10b981; border:1px solid rgba(16,185,129,0.35); }
+  .mkt-btn.ghost { background:transparent; color:#c084fc; border:1px solid #334155; margin-top:8px; }
   .as-link {
     display: inline-flex; align-items: center; gap: 6px; background: none; border: none; padding: 0;
     color: #a78bfa; font-size: 12.5px; font-weight: 600; cursor: pointer; margin: 0 0 14px;
@@ -2189,6 +2272,16 @@
   .clause-block h4 { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin: 0 0 4px; }
   .clause-block p { margin: 0; font-size: 12px; color: #94a3b8; line-height: 1.55; }
 
+  /* Site Visit Safety Waiver (inspection booking) */
+  .ib-waiver-details { border: 1px solid #1e293b; background: rgba(15,23,42,0.9); border-radius: 14px; padding: 10px 14px; margin: 4px 0 6px; }
+  .ib-waiver-details summary { cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: #e9d5ff; list-style: none; }
+  .ib-waiver-details summary::-webkit-details-marker { display: none; }
+  .ib-waiver-body { max-height: 200px; overflow-y: auto; margin-top: 10px; font-size: 12px; color: #94a3b8; line-height: 1.65; }
+  .ib-waiver-body p { margin: 0 0 8px; }
+  body.light-theme .ib-waiver-details { background: #ffffff; border-color: #e2e8f0; }
+  body.light-theme .ib-waiver-details summary { color: #6b21a8; }
+  body.light-theme .ib-waiver-body { color: #334155; }
+
   .rent-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); color: #34d399; font-size: 12px; font-weight: 600; padding: 8px 12px; border-radius: 10px; margin: 0 0 16px; }
   .doc-action-btn {
     width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -2492,6 +2585,8 @@
   .stage-item.stage-green.active-stage .stage-dot { background: #10b981; }
   .stage-item.stage-yellow.active-stage { border-color: rgba(245,158,11,0.5); background: rgba(245,158,11,0.08); }
   .stage-item.stage-yellow.active-stage .stage-dot { background: #f59e0b; }
+  .stage-item.stage-orange.active-stage { border-color: rgba(249,115,22,0.5); background: rgba(249,115,22,0.08); }
+  .stage-item.stage-orange.active-stage .stage-dot { background: #f97316; }
   .stage-item.stage-red.active-stage { border-color: rgba(239,68,68,0.5); background: rgba(239,68,68,0.08); }
   .stage-item.stage-red.active-stage .stage-dot { background: #ef4444; }
   .stage-title { font-size: 13px; font-weight: 600; color: #fff; margin: 0 0 2px; }
@@ -3620,7 +3715,8 @@
   <div class="s5-role-header">
     <p class="s5-role-eyebrow" id="s5-role-eyebrow"><i data-lucide="building-2" class="w-3.5 h-3.5"></i><span>Tenant Search</span></p>
     <h1 class="s5-role-title" id="s5-role-title">Find your next home</h1>
-    <p class="s5-role-sub" id="s5-role-sub">Verified listings, local & diaspora-friendly.</p>
+    <p class="s5-role-sub" id="s5-role-sub">Document-screened listings, local & diaspora-friendly.</p>
+    <div id="s5-market-bar"></div>
   </div>
 
   <!-- ---- TENANT VIEW: Search & Book ---- -->
@@ -3763,6 +3859,11 @@
         <i data-lucide="calendar-x" class="w-5 h-5"></i>
         <p>Short-let stays don't use inspection scheduling — tenants pick their own check-in/check-out dates directly on the booking screen.</p>
       </div>
+
+      <label class="agree-row" style="margin: 4px 0 4px;">
+        <input type="checkbox" id="tv-listing-auth-toggle" class="agree-checkbox">
+        <span>I authorize MainTown Realty to run automated and preliminary verification on the title documents I submit. I understand this is not a title guarantee or legal opinion, that buyers and tenants must carry out their own due diligence, and that I remain responsible for the authenticity of every document and for disclosing known site hazards.</span>
+      </label>
 
       <label class="agree-row" style="margin: 4px 0 4px;">
         <input type="checkbox" id="tv-publish-toggle" class="agree-checkbox" checked>
@@ -3931,6 +4032,11 @@
           <i data-lucide="calendar-x" class="w-5 h-5"></i>
           <p>Short-let stays don't use inspection scheduling — tenants pick their own check-in/check-out dates directly on the booking screen.</p>
         </div>
+
+        <label class="agree-row" style="margin: 4px 0 10px;">
+          <input type="checkbox" id="s5-listing-auth-toggle" class="agree-checkbox">
+          <span>I confirm I hold the owner's written authority for this listing and authorize MainTown Realty to run automated and preliminary verification on the title documents submitted. I understand this is not a title guarantee or legal opinion, and that I remain responsible for the accuracy of the listing and for disclosing known site hazards.</span>
+        </label>
 
         <div class="s5-notice-box">
           <i data-lucide="shield-alert" class="w-5 h-5"></i>
@@ -4416,12 +4522,22 @@
       <div class="signoff-box" id="s6-signoff-box">
         <p>By proceeding with this transaction, you acknowledge and agree to the following binding terms:</p>
         <p><strong>Clause 1 — Pre-Checkout Inspection &amp; Satisfaction:</strong> Checkout requires prior completion of physical or virtual property inspection. By initiating payment, you confirm you (or your authorized representative) have inspected the land, verified its condition, and logged your status as Satisfied within the platform.</p>
-        <p><strong>Clause 2 — Title Verification &amp; Allocation Window:</strong> Independent survey checks and Land Registry verification (C of O, Gazette, or layout plans) are finalized prior to physical land allocation. Physical allocation is executed upon clean title confirmation and adherence to the agreed payment plan.</p>
+        <p><strong>Clause 2 — Title Verification, Due Diligence &amp; Allocation Window:</strong> MainTown Realty conducts automated and preliminary verification of the title documents supplied by the Seller (C of O, Deed of Assignment, Governor's Consent, Gazette or layout plans). That verification is not legal due diligence, a Land Registry search or a certificate of title. You acknowledge that final legal due diligence, the physical search at the Land Registry, independent survey checks and title verification are your own responsibility and must be completed before you execute this Contract. Physical allocation is executed upon the Seller's title warranties being satisfied and adherence to the agreed payment plan.</p>
         <p><strong>Clause 3 — Automated Non-Custodial Split Payments:</strong> All payments (outright or installment) are processed instantly via automated payment split logic directly to the designated accounts of the Seller/Developer and MainTown Realty. MainTown Realty operates as a non-custodial facilitator and does not hold or escrow transaction funds.</p>
-        <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule. A mandatory 30-day grace period applies to overdue payments. Payments remaining in default beyond 60 days trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
+        <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule and are scheduled part-payments of the agreed purchase price; no interest or finance charge is added. A mandatory 30-day grace period applies to overdue payments, after which a written notice of default is issued with a 14-day cure period. Payments remaining in default beyond 60 days without cure trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
         <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to you via the MainTown Realty logistics network.</p>
+        <p><strong>Clause 6 — Territorial Scope &amp; Interest-Free Instalments:</strong> MainTown's structured payment plans of up to 12 months are available only for land and property located within the Federal Republic of Nigeria. Buyers who live abroad may purchase Nigerian property subject to identity verification. Each instalment is a scheduled part-payment of the agreed purchase price, and no interest or finance charge is added.</p>
+        <p><strong>Clause 7 — Dispute Resolution (Mediation, then LCA Arbitration):</strong> Any dispute arising from or connected with these terms, a tenancy or a purchase made through MainTown Realty is governed by the laws of the Federal Republic of Nigeria and Lagos State and is resolved in three steps. (1) Notice: the claimant gives written notice of the dispute through the in-app Dispute Centre or by email. (2) Mandatory mediation: for 14 days from receipt of that notice the parties must try in good faith to settle the dispute by informal mediation, facilitated by a MainTown Realty dispute officer or another neutral mediator the parties agree, and no arbitration may be started until those 14 days have ended. (3) Arbitration: if the dispute is not settled within the 14 days, it is finally resolved by a sole arbitrator under the Rules of the Lagos Court of Arbitration (LCA) in force when the dispute is referred. The seat and venue of arbitration is Lagos, the language is English, and the award is final and binding. Nothing in this clause stops a party from seeking urgent interim relief from a court, from bringing proceedings for recovery of possession that require a court order under the Recovery of Premises Law of Lagos State, from reporting suspected fraud to law enforcement, or from complaining to a competent regulator. Each party bears its own costs unless the tribunal directs otherwise, and the arbitration and any award are confidential except where disclosure is needed to enforce the award or comply with law.</p>
         <p>Scroll to the bottom of this box to unlock the signature field below.</p>
       </div>
+      <label class="agree-row" id="s6-title-ack-row" style="margin: 4px 0 8px; display:none;">
+        <input type="checkbox" id="s6-title-ack" class="agree-checkbox">
+        <span>I acknowledge the Title Verification &amp; Due Diligence notice (Clause 2): MainTown's checks are preliminary only, and I am responsible for my own legal due diligence and Land Registry search before I sign.</span>
+      </label>
+      <label class="agree-row" id="s6-adr-ack-row" style="margin: 4px 0 10px; display:none;">
+        <input type="checkbox" id="s6-adr-ack" class="agree-checkbox">
+        <span>I have read and agree to the Dispute Resolution clause: 14-day mediation first, then arbitration under the Lagos Court of Arbitration Rules in Lagos.</span>
+      </label>
       <div class="field">
         <label class="field-label" id="s6-landsign-label">Type to sign: "I agree to the Land Allocation &amp; Payment Terms"</label>
         <input class="field-input signature-input" id="s6-landsign-input" type="text" placeholder="Type the exact phrase above" disabled>
@@ -4607,7 +4723,7 @@
     <div class="s5-list-text">
       <p class="s5-list-title">Survey Plan &amp; Land Boundary Details</p>
       <p class="s5-list-sub" id="s6h-survey-ref">—</p>
-      <p class="s5-list-sub"><span class="s5-status-badge insp-status-confirmed" style="margin-top: 4px;">Verified</span></p>
+      <p class="s5-list-sub"><span class="s5-status-badge insp-status-confirmed" style="margin-top: 4px;">Preliminary Check</span></p>
     </div>
   </div>
 
@@ -4891,21 +5007,28 @@
       <div class="stage-dot"></div>
       <div>
         <p class="stage-title">Stage 1 — Grace Period (Days 1–3)</p>
-        <p class="stage-sub">Payment is late but within the standard grace window. No penalties applied yet.</p>
+        <p class="stage-sub">Payment is late but within the grace window. Reminders only — no charge is applied.</p>
       </div>
     </div>
     <div class="stage-item stage-yellow" id="s7-stage-1">
       <div class="stage-dot"></div>
       <div>
         <p class="stage-title">Stage 2 — Late Notice (Days 4–7)</p>
-        <p class="stage-sub">A 5% daily late penalty is now accruing on the outstanding rent balance.</p>
+        <p class="stage-sub">A formal late notice is issued. A single fixed Late Administration Fee, disclosed in your Payment Schedule, may apply. No interest or daily percentage penalty accrues.</p>
       </div>
     </div>
-    <div class="stage-item stage-red" id="s7-stage-2">
+    <div class="stage-item stage-orange" id="s7-stage-2">
       <div class="stage-dot"></div>
       <div>
-        <p class="stage-title">Stage 3 — Legal Eviction Trigger (Day 8+)</p>
-        <p class="stage-sub">A Section 8 Notice has been dispatched. Legal eviction proceedings are now triggered.</p>
+        <p class="stage-title">Stage 3 — Formal Demand (Days 8–14)</p>
+        <p class="stage-sub">A written Demand for Payment is issued and a default flag is recorded. New bookings are paused and the 14-day mediation period opens.</p>
+      </div>
+    </div>
+    <div class="stage-item stage-red" id="s7-stage-3">
+      <div class="stage-dot"></div>
+      <div>
+        <p class="stage-title">Stage 4 — Statutory Recovery (Day 15+)</p>
+        <p class="stage-sub">If arrears remain unpaid, the Landlord may serve the statutory notices and apply to court under the Recovery of Premises Law of Lagos State. No eviction takes place without due process.</p>
       </div>
     </div>
   </div>
@@ -5063,7 +5186,7 @@
     <p class="dash-card-label" id="ml-property-title">—</p>
     <p class="ml-property-address" id="ml-property-address">—</p>
     <p class="dash-card-sub" id="ml-property-dates">—</p>
-    <span class="s5-verified-badge" style="margin-top: 10px;"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Title Verified via Cadastral Beacon</span>
+    <span class="s5-verified-badge" style="margin-top: 10px;"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Title Documents Screened (Preliminary)</span>
   </div>
 
   <!-- Assigned Agent & Landlord -->
@@ -5314,6 +5437,14 @@
      toast/redirect). Shows the full event with a type-specific breakdown —
      financial ledger for payouts, escrow context for funds-received, and lease
      details + a direct chat CTA for move-in confirmations. -->
+<!-- Market Switcher sheet: list of cities + coming-soon city preview (built by JS) -->
+<div id="market-sheet" class="sheet-overlay">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div id="mkt-pane"></div>
+  </div>
+</div>
+
 <div id="notification-detail-modal" class="sheet-overlay">
   <div class="sheet-card">
     <div class="sheet-handle"></div>
@@ -5880,7 +6011,7 @@
 
     <label class="agree-row" style="margin: 10px 0 4px;">
       <input type="checkbox" id="lv-authorize-toggle" class="agree-checkbox">
-      <span>I confirm my payout details above and authorize this listing to proceed to MainTown's legal review queue.</span>
+      <span>I confirm my payout details above and authorize this listing to proceed to MainTown's legal review queue. I authorize MainTown Realty to run automated and preliminary verification on the title documents, understand this is not a title guarantee or legal opinion, and remain responsible for the authenticity of every document.</span>
     </label>
 
     <button type="button" id="lv-submit-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Approve &amp; Submit for Legal Review</button>
@@ -6130,7 +6261,7 @@
         <div class="pay-option-icon-wrap bg-emerald-500/10"><i data-lucide="calendar-range" class="w-5 h-5 text-emerald-400"></i></div>
         <div class="pay-option-text">
           <p class="pay-option-label">C · Flexible Payment Plan</p>
-          <p class="pay-option-detail">12-month installment plan with monthly auto-debit</p>
+          <p class="pay-option-detail">Interest-free 12-month installment plan with monthly auto-debit · Nigeria properties only</p>
         </div>
         <div class="pay-option-check" style="display:flex;"><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></div>
       </button>
@@ -6181,6 +6312,10 @@
         <i data-lucide="info" class="w-5 h-5"></i>
         <p id="lp-installment-explainer">Fixed 12-month plan: pay Month 1 + 10% Commission + 5% Legal Fee now. The remaining 11 installments auto-debit monthly, 30 days apart, starting from your possession date.</p>
       </div>
+      <div class="s5-notice-box">
+        <i data-lucide="info" class="w-5 h-5"></i>
+        <p>Each installment is a scheduled part-payment of the agreed price — no interest or finance charge is added. 12-month plans apply only to land and property located within Nigeria. Complete your own legal due diligence and Land Registry search before you sign.</p>
+      </div>
       <div class="s5-hold-preview">
         <div class="s5-hold-row"><span id="lp-monthly-label">Monthly Installment</span><strong id="lp-monthly">—</strong></div>
         <div class="s5-hold-row"><span>Agency Commission — Your 5% (of 10% total)</span><strong id="lp-commission">—</strong></div>
@@ -6221,7 +6356,7 @@
       <div class="s5-hold-divider"></div>
       <div class="s5-hold-row"><span>Transaction ID</span><strong id="s6h-modal-txn">—</strong></div>
       <div class="s5-hold-row"><span>Date</span><strong id="s6h-modal-date">—</strong></div>
-      <div class="s5-hold-row"><span>Deed of Assignment</span><strong style="color:#34d399;">Verified</strong></div>
+      <div class="s5-hold-row"><span>Deed of Assignment</span><strong style="color:#34d399;">Issued</strong></div>
     </div>
 
     <button type="button" id="s6h-modal-close-btn" class="btn-secondary" style="margin-top: 12px;">Close</button>
@@ -6303,6 +6438,17 @@
     <div class="s5-notice-box">
       <i data-lucide="lock" class="w-5 h-5"></i>
       <p id="ib-notice-text">Held by <span class="js-provider">Flutterwave</span>, not MainTown. Agent listings: 100% released on satisfaction, or split 50/50 on cancellation.</p>
+    </div>
+
+    <div class="ib-waiver">
+      <details class="ib-waiver-details">
+        <summary><i data-lucide="shield-alert" class="w-4 h-4"></i>Site Visit Safety Waiver &amp; Indemnity</summary>
+        <div class="ib-waiver-body" id="ib-waiver-body"></div>
+      </details>
+      <label class="agree-row" style="margin: 8px 0 14px;">
+        <input type="checkbox" id="ib-waiver-checkbox" class="agree-checkbox">
+        <span>I have read and accept the Site Visit Safety Waiver &amp; Indemnity for myself and anyone who accompanies me.</span>
+      </label>
     </div>
 
     <button type="button" id="ib-confirm-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;" disabled>Confirm &amp; Lock Inspection Deposit</button>
@@ -6410,7 +6556,7 @@
           <div class="ai-cap-icon"><i data-lucide="scroll-text"></i></div>
           <div class="ai-cap-text">
             <p class="ai-cap-title">Land Title Parsing</p>
-            <p class="ai-cap-desc">Reads and cross-checks Certificate of Occupancy / Gazette documents against the Land Registry.</p>
+            <p class="ai-cap-desc">Screens Certificate of Occupancy / Gazette documents for completeness and consistency. Preliminary only — not a Land Registry search or legal opinion.</p>
           </div>
         </div>
         <div class="ai-cap-item">
@@ -7640,44 +7786,75 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // ---- Shared legal clause text (single source of truth) ----
+  // Reused by the role-based Terms of Service, the Tenancy & Policy Agreement,
+  // the Contract of Sale, the Inspection Booking waiver and the listing
+  // authorization gates so the wording can never drift between screens.
+  const ADR_CLAUSE_TEXT = "Any dispute arising from or connected with these terms, a tenancy or a purchase made through MainTown Realty is governed by the laws of the Federal Republic of Nigeria and Lagos State and is resolved in three steps. (1) Notice: the claimant gives written notice of the dispute through the in-app Dispute Centre or by email. (2) Mandatory mediation: for 14 days from receipt of that notice the parties must try in good faith to settle the dispute by informal mediation, facilitated by a MainTown Realty dispute officer or another neutral mediator the parties agree, and no arbitration may be started until those 14 days have ended. (3) Arbitration: if the dispute is not settled within the 14 days, it is finally resolved by a sole arbitrator under the Rules of the Lagos Court of Arbitration (LCA) in force when the dispute is referred. The seat and venue of arbitration is Lagos, the language is English, and the award is final and binding. Nothing in this clause stops a party from seeking urgent interim relief from a court, from bringing proceedings for recovery of possession that require a court order under the Recovery of Premises Law of Lagos State, from reporting suspected fraud to law enforcement, or from complaining to a competent regulator. Each party bears its own costs unless the tribunal directs otherwise, and the arbitration and any award are confidential except where disclosure is needed to enforce the award or comply with law.";
+
+  const SITE_WAIVER_CLAUSES = [
+    "(a) Voluntary visit and inherent risks: A physical inspection or walk-through of a property (including land, construction sites, vacant buildings and occupied premises) is voluntary. Properties can present hazards such as uneven ground, incomplete structures, open excavations, standing water, insects and animals, exposed wiring, and traffic or security risks. You, and everyone who accompanies you, attend at your own risk.",
+    "(b) Waiver and release: To the fullest extent permitted by law, you release and waive all claims against MainTown Realty Limited, the property owner or developer, the listing agent, and their respective directors, officers, employees and authorized representatives (together, the Released Parties) for accidental personal injury, illness, damage to property, or loss of belongings suffered during the visit.",
+    "(c) Indemnity: You indemnify the Released Parties against claims, losses, costs and reasonable legal fees arising from injury, damage or loss caused by you or anyone accompanying you, and from any claim brought against a Released Party by a person you brought to the visit.",
+    "(d) What is not waived: This waiver does not exclude liability for death or personal injury caused by a Released Party's gross negligence or wilful misconduct, for fraud, or for anything that cannot lawfully be excluded.",
+    "(e) Your duties: Follow safety instructions on site, stay out of areas marked unsafe, keep any minors under supervision, and visit in daylight unless otherwise agreed. You confirm you have told your companions about this waiver and you take responsibility for any minor you bring.",
+    "(f) Insurance and alternatives: MainTown Realty does not provide personal accident insurance for visitors, so you are advised to hold your own cover. Where a listing offers a virtual walkthrough, you may use it as an alternative to a physical visit."
+  ];
+  const SITE_WAIVER_TEXT = SITE_WAIVER_CLAUSES.join(' ');
+
+  const TITLE_DISCLAIMER_TEXT = "MainTown Realty runs automated and preliminary verification checks on the title documents supplied for a listing, such as a Certificate of Occupancy (C of O), Deed of Assignment, Gazette or excision evidence, survey plan and Governor's Consent. These checks confirm that documents were supplied, appear complete on their face and are internally consistent. They are not a legal opinion, a Land Registry search or a certificate of title, and MainTown does not guarantee the validity, registrability, encumbrance-free status or transferability of any title. Before signing any long-term lease or purchase contract, the Buyer or Tenant is responsible for, and is strongly advised to: instruct an independent Nigerian legal practitioner; carry out an official physical search at the relevant Land Registry; commission an independent survey; verify the Seller's identity and authority to sell; confirm whether Governor's Consent is required and has been obtained; and check for acquisition, government or third-party claims. Final legal due diligence, the Land Registry search and title verification rest with the Buyer or Tenant. The Seller's or Landlord's own title warranties remain the primary assurance of title and are not diluted by MainTown's preliminary checks.";
+
+  const TITLE_LISTING_AUTH_TEXT = "You authorize MainTown Realty to run automated and preliminary verification on the title documents you submit and to show the result on the listing as a Preliminary Verification. You acknowledge that this is not a guarantee or legal opinion on title, that buyers and tenants are told to carry out their own legal due diligence and Land Registry search, and that you remain fully responsible for the authenticity and legal effect of every document and for any misstatement about title.";
+
+  const SITE_SAFETY_WARRANTY_TEXT = "You warrant that you will disclose known hazards at the property and keep it reasonably safe for scheduled visits, and you acknowledge that the Site Visit Safety Waiver & Indemnity accepted by visitors names you and your agent as Released Parties.";
+
+  const INTEREST_FREE_RENT_TEXT = "Rent instalments are scheduled lease payments due under your tenancy. They are not a loan or credit facility: no interest, finance charge or credit fee is charged on any instalment, and the total rent payable never exceeds the rent stated in your Tenancy Agreement.";
+
+  const TERRITORIAL_SCOPE_TEXT = "MainTown's structured payment plans of up to 12 months are available only for land and property located within the Federal Republic of Nigeria. Buyers who live abroad may purchase Nigerian property subject to identity verification. Each instalment is a scheduled part-payment of the agreed purchase price, and no interest or finance charge is added.";
+
+  const RENT_DEFAULT_SCHEDULE_TEXT = "Missed monthly rent instalments follow a four-stage schedule. Stage 1, Grace (Days 1-3 after the due date): reminders only, no charge. Stage 2, Late Notice (Days 4-7): a formal late notice is issued and a single fixed Late Administration Fee, disclosed in your Payment Schedule, may apply; no interest and no daily percentage penalty accrues. Stage 3, Formal Demand (Days 8-14): a written Demand for Payment is issued, a default flag is recorded on the platform ledger, new bookings are paused, and the 14-day mediation period under the Dispute Resolution clause opens. Stage 4, Statutory Recovery (from Day 15 if arrears remain unpaid): the Landlord may serve the notices required by the Tenancy Law of Lagos State and apply to court under the Recovery of Premises Law of Lagos State. No eviction takes place without due process.";
+
   // ---- Legal terms content per role ----
   const legalContent = {
     tenant: {
       label: 'Tenant / Rent/Own',
       roleIcon: 'building-2',
       sections: [
-        { title: 'Section 1: Rental & Auto-Debit Terms', body: 'Full agreement on holding deposit schedules, flex-rent recurring auto-debit card authorization, tokenized payment security, and cross-border currency conversion rules.' },
-        { title: 'Section 2: Digital Handover & Inspection', body: 'Mandatory 24-hour post-inspection sign-off rules.' },
+        { title: 'Section 1: Rental & Auto-Debit Terms', body: 'Full agreement on holding deposit schedules, flex-rent recurring auto-debit card authorization, tokenized payment security, and cross-border currency conversion rules. ' + INTEREST_FREE_RENT_TEXT },
+        { title: 'Section 2: Digital Handover & Inspection', body: 'Mandatory 24-hour post-inspection sign-off rules. Physical site visits are subject to the Site Visit Safety Waiver & Indemnity in Section 10, which you accept each time you book an inspection.' },
         { title: 'Section 3: Property Maintenance & Tenant Obligations', body: 'Duty to report structural damage via in-app tickets.' },
         { title: 'Section 4: Data & Identity Privacy', body: 'Agreement to biometric and NIN/Passport identity verification.' },
         { title: 'Section 5: Subletting & Unauthorized Occupants', body: 'Strict ban on unauthorized third-party subletting.' },
-        { title: 'Section 6: Dispute Resolution & Arbitration', body: 'Platform mediation protocols prior to legal claims.' },
+        { title: 'Section 6: Dispute Resolution — Mediation & Arbitration', body: ADR_CLAUSE_TEXT },
         { title: 'Section 7: In-App Communication Compliance', body: 'Obligation to keep all lease interactions inside the app.' },
-        { title: 'Section 8: Payment Default, Eviction & Mandatory Revocation', body: 'Any un-remedied payment default leading to legal eviction results in immediate profile conversion to DEFAULTED / EVICTED state. Upon conversion: (a) all active chat, voice, and video lines with landlords/agents are instantly locked; (b) digital property access keys/tokens are automatically revoked; (c) profile access to property search, viewing, and rental bookings is permanently terminated; (d) record of default is stored on the platform ledger.', critical: true },
-        { title: 'Section 9: Fee Transparency', body: 'The Legal Fee for drafting your tenancy agreement is collected by MainTown directly, not your Landlord or Agent, for full transparency. Any Caution Deposit and Service Charge shown on a rental or shortlet listing are set by the Landlord/Agent and paid directly to them alongside your rent or shortlet payments. Shortlet stays carry a MainTown Platform Fee (5% of the nightly rate) in place of a Legal Fee.' }
+        { title: 'Section 8: Payment Default, Statutory Recovery & Access Suspension', body: RENT_DEFAULT_SCHEDULE_TEXT + ' Where a court orders recovery of possession, or the tenancy is lawfully terminated for default, your profile converts to DEFAULTED / EVICTED. Upon conversion: (a) all active chat, voice, and video lines with the landlord/agent for that tenancy are locked; (b) digital property access keys/tokens are revoked; (c) profile access to property search, viewing, and rental bookings is suspended and may be reinstated on review once arrears are cleared; (d) a record of the default is stored on the platform ledger. You may dispute the record through the Dispute Centre and request correction of inaccurate personal data.', critical: true },
+        { title: 'Section 9: Fee Transparency', body: 'The Legal Fee for drafting your tenancy agreement is collected by MainTown directly, not your Landlord or Agent, for full transparency. Any Caution Deposit and Service Charge shown on a rental or shortlet listing are set by the Landlord/Agent and paid directly to them alongside your rent or shortlet payments. Shortlet stays carry a MainTown Platform Fee (5% of the nightly rate) in place of a Legal Fee.' },
+        { title: 'Section 10: Site Visit Safety Waiver & Indemnity', body: SITE_WAIVER_TEXT },
+        { title: 'Section 11: Title Verification & Due Diligence Notice', body: TITLE_DISCLAIMER_TEXT }
       ]
     },
     landlord: {
       label: 'Landlord, Developer & Owner',
       roleIcon: 'key-round',
       sections: [
-        { title: 'Section 1: Title, Ownership & Documentation Warranties', body: "Declaration that property titles (C of O, Gazette, Governor's Consent, Excision) or rental authorization rights are authentic, unencumbered, and free of legal dispute. For Land &amp; Property listings, you warrant that all uploaded survey plans, Certificates of Occupancy, or Gazettes are authentic and unencumbered, and you consent to automated digital verification via MainTown's AI inspection engine prior to listing approval." },
+        { title: 'Section 1: Title, Ownership & Documentation Warranties', body: "Declaration that property titles (C of O, Gazette, Governor's Consent, Excision) or rental authorization rights are authentic, unencumbered, and free of legal dispute. For Land &amp; Property listings, you warrant that all uploaded survey plans, Certificates of Occupancy, or Gazettes are authentic and unencumbered, and you consent to automated digital verification via MainTown's AI inspection engine prior to listing approval. " + TITLE_LISTING_AUTH_TEXT },
         { title: 'Section 2: Automated Non-Custodial Payment Disbursement', body: 'Monthly Rentals &amp; Shortlets — each payment is split automatically at the point of charge, with the Landlord\'s share paid directly to their own account. Land &amp; Property Sales — each instalment (or outright payment) is split automatically at the point of charge, with the Seller/Developer\'s share paid directly to their own account. Payments are never held in escrow by MainTown; each charge is routed directly to your verified payout account, minus platform commissions and legal/deed processing fees. Physical allocation and Deed of Assignment execution follow the payment schedule set out in the listing.' },
         { title: 'Section 3: Contract Countersignature Timing (Land & Property)', body: "Upon a buyer's checkout on a Land &amp; Property sale, you agree to digitally countersign the generated Contract of Sale within 24 hours. Automated platform reminders will trigger every 5 hours until executed.", critical: true },
         { title: 'Section 4: Habitability Standards & Repair SLAs', body: 'Obligation to maintain functional power, water, structural integrity, and estate amenities. Landlords must address critical repairs within 48 hours. MainTown reserves the right to withhold monthly payout releases until critical repairs are resolved.', critical: true },
-        { title: 'Section 5: Default, Restructuring, Deed Execution & Physical Delivery', body: "Agreement to MainTown's 30-day grace period and 60-day default policy for installment buyers and monthly renters. Authorizes MainTown to restructure or re-list defaulted inventory. Upon 100% completion of buyer payments for a Land &amp; Property sale, you agree to upload the executed Deed of Assignment and surrender original physical title instruments exclusively to the MainTown Realty Logistics Team for secure buyer delivery. Off-platform physical document transfers are strictly prohibited.", critical: true },
+        { title: 'Section 5: Default, Restructuring, Deed Execution & Physical Delivery', body: "Agreement to MainTown's default policies: Land & Property installment buyers follow a 30-day grace period and a 60-day default threshold, preceded by written notice of default and a 14-day cure period; monthly renters follow the four-stage schedule in the Tenant terms (Grace, Late Notice, Formal Demand, Statutory Recovery). Statutory notices are issued by or on behalf of the Landlord, and possession is only recovered through the process required by the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State; MainTown provides notice templates and delivery records. Authorizes MainTown to restructure or re-list defaulted inventory. Upon 100% completion of buyer payments for a Land &amp; Property sale, you agree to upload the executed Deed of Assignment and surrender original physical title instruments exclusively to the MainTown Realty Logistics Team for secure buyer delivery. Off-platform physical document transfers are strictly prohibited.", critical: true },
         { title: 'Section 6: Shortlet Calendar Accuracy & Caution Deposit Rules', body: 'Requirement to maintain accurate shortlet availability. Double-booking results in owner-funded guest relocation fees. Damage claims against caution deposits must be submitted within 24 hours of checkout with photo/video proof.' },
         { title: 'Section 7: Fraud, Dual-Leasing & Zero Tolerance', body: 'Immediate account termination, forfeiture of pending payouts, listing removal, and referral to law enforcement for fake listings, fraudulent titles, or executing side-deals/double-leases.', critical: true },
-        { title: 'Section 8: Verification Walkthroughs & Inspection Access', body: "Agreement to allow scheduled virtual or physical walkthrough inspections by authorized MainTown verification agents prior to and during listing activation. This includes facilitating buyer inspections at checkout — for Land &amp; Property sales, buyer checkout remains locked until the buyer logs an in-app Satisfied status." },
+        { title: 'Section 8: Verification Walkthroughs & Inspection Access', body: "Agreement to allow scheduled virtual or physical walkthrough inspections by authorized MainTown verification agents prior to and during listing activation. This includes facilitating buyer inspections at checkout — for Land &amp; Property sales, buyer checkout remains locked until the buyer logs an in-app Satisfied status. " + SITE_SAFETY_WARRANTY_TEXT },
         { title: 'Section 9: Non-Circumvention & Direct Payment Ban', body: 'Strict prohibition against bypassing the platform\'s payment system to request cash, direct bank transfers, or off-platform renewals from MainTown users. Violations incur platform ban and legal recovery of lost fees.', critical: true },
-        { title: 'Section 10: Fee Transparency & Collection', body: 'MainTown collects the Legal Fee for drafting tenancy agreements directly, for transparency — it is never yours to set or collect. Any Caution Deposit and Service Charge you configure for a rental or shortlet listing (or leave as self-service, with no service charge) are paid directly to you alongside the tenant\'s rent/shortlet payments. For Land &amp; Property Sales, the Deed of Assignment legal/processing fee (5% or 10%, as you select at listing) is paid directly to you together with the buyer\'s first installment payment — MainTown does not collect it. A Land &amp; Property sale separately carries a 10% Agency Commission, made up of a Buyer-paid 5% (always to MainTown) and a Seller-paid 5% (to the Agent, if one listed the property on your behalf, or also to MainTown if you listed directly with no agent). Shortlet listings carry a MainTown Platform Fee (5% of the nightly rate) instead of a Legal Fee.' }
+        { title: 'Section 10: Fee Transparency & Collection', body: 'MainTown collects the Legal Fee for drafting tenancy agreements directly, for transparency — it is never yours to set or collect. Any Caution Deposit and Service Charge you configure for a rental or shortlet listing (or leave as self-service, with no service charge) are paid directly to you alongside the tenant\'s rent/shortlet payments. For Land &amp; Property Sales, the Deed of Assignment legal/processing fee (5% or 10%, as you select at listing) is paid directly to you together with the buyer\'s first installment payment — MainTown does not collect it. A Land &amp; Property sale separately carries a 10% Agency Commission, made up of a Buyer-paid 5% (always to MainTown) and a Seller-paid 5% (to the Agent, if one listed the property on your behalf, or also to MainTown if you listed directly with no agent). Shortlet listings carry a MainTown Platform Fee (5% of the nightly rate) instead of a Legal Fee.' },
+        { title: 'Section 11: Dispute Resolution — Mediation & Arbitration', body: ADR_CLAUSE_TEXT }
       ]
     },
     agent: {
       label: 'Real Estate Agent',
       roleIcon: 'briefcase',
       sections: [
-        { title: 'Section 1: Inspection & Title Integrity', body: "Mandatory requirement to perform verified physical or live video walkthroughs prior to listing submission. Agents warrant that all property details, title documentation (C of O, Gazette, Governor's Consent), and availability status uploaded are authentic and accurate." },
+        { title: 'Section 1: Inspection & Title Integrity', body: "Mandatory requirement to perform verified physical or live video walkthroughs prior to listing submission. Agents warrant that all property details, title documentation (C of O, Gazette, Governor's Consent), and availability status uploaded are authentic and accurate. " + TITLE_LISTING_AUTH_TEXT + " " + SITE_SAFETY_WARRANTY_TEXT },
         { title: 'Section 2: Direct Owner Mandate & Mapped Contact Information', body: 'Agents must hold direct authorization from the property owner/developer and provide valid Landlord contact details (Phone/Email) for every property uploaded. Listing unauthorized properties or acting through unverified sub-agent chains is strictly prohibited.' },
         { title: 'Section 3: Automated Landlord Onboarding & Payout Activation', body: 'Submitting a listing triggers an automated invitation to the mapped Landlord to verify ownership. Agent commissions and listing payouts will not be processed until the mapped Landlord joins the platform and validates property ownership.', critical: true },
         { title: 'Section 4: Commission Transparency & Automated Payouts', body: 'Agreement to adhere strictly to standardized platform commission caps. Agent commissions are disbursed automatically: Rentals &amp; Shortlets — you receive 60% of the 10% commission fee (MainTown keeps 40%), paid automatically at the point of charge alongside the Landlord\'s share. Land &amp; Property Sales — the 10% commission is a Buyer-paid 5% and a Seller-paid 5%; the Buyer\'s 5% always goes to MainTown, while the Seller\'s 5% comes to you when you list the property, released automatically alongside the Seller/Developer\'s share.' },
@@ -7685,7 +7862,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 6: Off-Platform Transaction Ban (Zero Tolerance)', body: 'Permanent account ban, commission forfeiture, and legal recovery action for soliciting direct off-platform cash transactions, cash deposits, or off-market renewals from MainTown users.', critical: true },
         { title: 'Section 7: Professional Credentials & Business Verification', body: 'Requirement to maintain active CAC registration, recognized realtor association membership (e.g., REDAN, NIESV, ERCAAN), or valid government-issued identification.' },
         { title: 'Section 8: Fraud, Double-Leasing & Liability', body: 'Immediate account termination, blacklisting, forfeiture of pending payouts, and law enforcement referral for listing fraudulent inventory, executing double-leases, or collecting illegal offline fees.', critical: true },
-        { title: 'Section 9: Fee Transparency', body: 'The Legal Fee on a tenancy agreement is collected by MainTown directly, for transparency — agents never collect or retain it. Any Caution Deposit and Service Charge entered on a rental or shortlet listing belong entirely to the Landlord/Owner and are paid to them alongside the tenant\'s payments. On Land &amp; Property Sales, the Landlord/Owner-selected Deed of Assignment fee (5% or 10%) is paid to them with the first installment, not to MainTown — this is separate from the 10% Agency Commission (see Section 4), which is split 5% Buyer-paid (to MainTown) and 5% Seller-paid (to you, the listing Agent). Shortlet listings carry a MainTown Platform Fee (5%) instead of a Legal Fee.' }
+        { title: 'Section 9: Fee Transparency', body: 'The Legal Fee on a tenancy agreement is collected by MainTown directly, for transparency — agents never collect or retain it. Any Caution Deposit and Service Charge entered on a rental or shortlet listing belong entirely to the Landlord/Owner and are paid to them alongside the tenant\'s payments. On Land &amp; Property Sales, the Landlord/Owner-selected Deed of Assignment fee (5% or 10%) is paid to them with the first installment, not to MainTown — this is separate from the 10% Agency Commission (see Section 4), which is split 5% Buyer-paid (to MainTown) and 5% Seller-paid (to you, the listing Agent). Shortlet listings carry a MainTown Platform Fee (5%) instead of a Legal Fee.' },
+        { title: 'Section 10: Dispute Resolution — Mediation & Arbitration', body: ADR_CLAUSE_TEXT }
       ]
     }
   };
@@ -7725,18 +7903,22 @@ document.addEventListener('DOMContentLoaded', () => {
           <h4><i data-lucide="key-round" class="w-3.5 h-3.5 text-purple-400"></i>Direct Landlord Listings</h4>
           <p>₦0 agent inspection fee. Only a flat ₦5,000 MainTown inspection fee applies.</p>
         </div>
+        <h3><i data-lucide="shield-alert" class="text-purple-400"></i>Site Visit Safety Waiver</h3>
+        <div class="clause-block">
+          <p>Physical site visits are at your own risk. Each time you book an inspection you accept a waiver and indemnity in favour of MainTown Realty, the property owner and the listing agent for accidental injury, damage or loss during the visit. It does not cover gross negligence, wilful misconduct or fraud. Full terms are in Section 10 above.</p>
+        </div>
         <h3><i data-lucide="shield-check" class="text-purple-400"></i>Screening Fee Policy</h3>
         <div class="clause-block">
           <p>A one-time ₦5,000 credit and background screening fee is paid once, before your first inspection request or purchase. It is not charged again at checkout or on later rentals.</p>
         </div>
         <h3><i data-lucide="landmark" class="text-purple-400"></i>Land &amp; Property Buyer Policy</h3>
         <div class="clause-block">
-          <h4>Clause A — Title Verification Window</h4>
-          <p>Independent survey and Land Registry (C of O / Gazette) title verification is completed before physical allocation. Instalment payments are split automatically at the point of charge — MainTown does not hold buyer funds during this process.</p>
+          <h4>Clause A — Title Verification &amp; Due Diligence</h4>
+          <p>MainTown runs automated and preliminary checks on title documents (C of O, Deed of Assignment, Governor's Consent). This is preliminary verification only, not legal advice or a certificate of title. Your own independent legal due diligence, Land Registry search and survey must be completed before you sign a purchase contract and before physical allocation (see Section 11 above). Instalment payments are split automatically at the point of charge — MainTown does not hold buyer funds during this process.</p>
         </div>
         <div class="clause-block">
           <h4>Clause B — Installment Schedule &amp; Default</h4>
-          <p>Installment payments carry a 30-day grace period. Defaults exceeding 60 days trigger automated contract restructuring or property forfeiture subject to administrative fees.</p>
+          <p>Installment payments carry a 30-day grace period, after which a written notice of default is issued with a 14-day cure period. Defaults exceeding 60 days that are not cured trigger automated contract restructuring or property forfeiture subject to administrative fees.</p>
         </div>
         <div class="clause-block">
           <h4>Clause C — Agency Commission Split (Transparency)</h4>
@@ -7745,6 +7927,10 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="clause-block">
           <h4>Clause D — Auto-Debit Payment Split</h4>
           <p>Each instalment (or outright payment) is split automatically at the point of charge between the Seller/Developer, MainTown, and the Agent (where one is involved). Physical allocation and Deed of Assignment execution follow the payment schedule set out for that listing.</p>
+        </div>
+        <div class="clause-block">
+          <h4>Clause E — Territorial Scope &amp; Interest-Free Instalments</h4>
+          <p>${TERRITORIAL_SCOPE_TEXT}</p>
         </div>
       `;
     }
@@ -8649,7 +8835,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         asCard("Seller / Developer's share", 'The purchase price, paid straight to the seller\'s own account at the point of charge.'),
         asCard('Deed of Assignment fee', 'Set by the owner at 5% or 10% of the price and paid directly to them with your first installment. MainTown does not collect it.'),
         asCard('Agency Commission (10%)', 'Split in two halves: your 5% goes to MainTown; the seller\'s 5% goes to the listing agent, or to MainTown if no agent was involved.'),
-        asCard('Title vetting & processing fee', '₦15,000 per land or property purchase. It covers title vetting and secure split-payment set-up, and is separate from the one-time ₦5,000 screening fee.')
+        asCard('Preliminary title screening & processing fee', '₦15,000 per land or property purchase. It covers preliminary title screening (not legal due diligence) and secure split-payment set-up, and is separate from the one-time ₦5,000 screening fee.')
       ];
     } else if (type === 'shortlet') {
       cards = [
@@ -8787,7 +8973,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const wrap = document.getElementById('dash-listings-wrap');
     if (!wrap) return;
     if (role !== 'tenant') { wrap.innerHTML = ''; return; }
-    const available = rentListings().filter(p => !isListingUnavailable(p));
+    const available = rentListings().filter(p => !isListingUnavailable(p) && inCurrentMarket(p));
     const rents = available.filter(p => p.type === 'rent').slice(0, 8);
     const shorts = available.filter(p => p.type === 'shortlet').slice(0, 8);
     const card = (p) => {
@@ -8797,7 +8983,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <div class="dl-card" data-listing-id="${p.id}">
         <div class="dl-img-wrap">
           <img src="${p.img}" alt="${liEsc(p.title)}" loading="lazy" onerror="handleImgError(this,'${isShortlet ? 'shortlet' : 'rent'}')">
-          ${isShortlet ? '<span class="dl-badge"><i data-lucide="calendar-days" class="w-3 h-3"></i>Shortlet</span>' : '<span class="dl-badge"><i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i>Verified</span>'}
+          ${isShortlet ? '<span class="dl-badge"><i data-lucide="calendar-days" class="w-3 h-3"></i>Shortlet</span>' : '<span class="dl-badge"><i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i>Preliminary Verification</span>'}
         </div>
         <p class="dl-price">${price}</p>
         <p class="dl-title-line">${liEsc(p.title)}</p>
@@ -8810,8 +8996,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <button type="button" class="dl-viewall">${linkText}<i data-lucide="arrow-right" class="w-4 h-4"></i></button>
         <div class="dl-row">${items.map(card).join('')}</div>
       </div>` : '';
-    wrap.innerHTML = '<button type="button" class="as-link" data-assist="todo"><i data-lucide="list-checks" class="w-3.5 h-3.5"></i>What do I need to complete?</button>'
-                   + section('Homes for rent', 'View all homes to rent', rents)
+    if (!marketIsLive()) {
+      wrap.innerHTML = marketBarHTML() + marketComingSoonHTML(currentMarket(), 'page');
+      if (window.lucide) lucide.createIcons();
+      startMarketHeroes();
+      return;
+    }
+    wrap.innerHTML = marketBarHTML() + '<button type="button" class="as-link" data-assist="todo"><i data-lucide="list-checks" class="w-3.5 h-3.5"></i>What do I need to complete?</button>'
+                   + section('Homes for rent in ' + currentMarket().name, 'View all homes to rent', rents)
                    + section('Shortlets, stay by the night', 'View all shortlets', shorts);
     if (window.lucide) lucide.createIcons();
     startDashListingSlides();
@@ -9014,7 +9206,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // ==================================================================
 
   const roleHeaderConfig = {
-    tenant: { icon: 'building-2', eyebrow: 'Tenant Search', title: 'Find your next home', sub: 'Verified listings, local & diaspora-friendly.' },
+    tenant: { icon: 'building-2', eyebrow: 'Tenant Search', title: 'Find your next home', sub: 'Document-screened listings, local & diaspora-friendly.' },
     landlord: { icon: 'key-round', eyebrow: 'Landlord Inventory', title: 'Manage your properties', sub: 'Track occupancy, settlement status, and new listings.' },
     agent: { icon: 'briefcase', eyebrow: 'Agent Portal', title: 'Upload & manage listings', sub: 'Every listing requires landlord verification before payout.' },
     enterprise_staff: { icon: 'briefcase', eyebrow: 'Company Listing Form', title: 'Add a company listing', sub: 'Submit for landlord verification, then MainTown legal review.' }
@@ -9448,6 +9640,271 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function rentListings() { return listings.filter(l => (l.type === 'rent' || l.type === 'shortlet') && l.status !== 'draft'); }
   function landListingsList() { return listings.filter(l => l.type === 'land' && l.status !== 'draft'); }
 
+  // ==================================================================
+  // ---- Market Switcher ----
+  // One city pill (dashboard + Screen 5) opens a sheet of markets. Lagos is
+  // live; every other city is "Coming soon" with a sample photo/video tour
+  // and a "Notify me" waitlist. To launch a city: set live:true and give
+  // its listings a matching `city` id (or a location that mentions it).
+  // To use a real video tour: put an .mp4 URL in that city's `video` field.
+  // To use real area photos: swap the `img` URLs in `areas`.
+  // ==================================================================
+  const MKT_IMG = {
+    skyline:  'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop&q=80',
+    city:     'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600&h=400&fit=crop&q=80',
+    street:   'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=600&h=400&fit=crop&q=80',
+    toronto:  'https://images.unsplash.com/photo-1517935706615-2717063c2225?w=600&h=400&fit=crop&q=80',
+    home1:    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&h=400&fit=crop&q=80',
+    home2:    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop&q=80',
+    home3:    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop&q=80',
+    flat1:    'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&h=400&fit=crop&q=80',
+    flat2:    'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop&q=80',
+    land:     'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&h=400&fit=crop&q=80',
+    green:    'https://images.unsplash.com/photo-1500534623283-312aade485b7?w=600&h=400&fit=crop&q=80'
+  };
+  const MARKETS = [
+    { id:'lagos', name:'Lagos', country:'Nigeria', live:true, tagline:'Lekki · Yaba · Ikeja · Ibeju-Lekki', photo: MKT_IMG.skyline, c1:'#4c1d95', c2:'#0f172a',
+      keys:['lagos','lekki','yaba','ikeja','ibeju','surulere','ajah'] },
+    { id:'abuja', name:'Abuja', country:'Nigeria', tagline:'Federal Capital Territory', photo: MKT_IMG.skyline, c1:'#0f766e', c2:'#0f172a',
+      about:'Nigeria\u2019s capital: planned districts, diplomatic zones and gated estates, with the country\u2019s most orderly rental market.',
+      chips:['Capital city','Gated estates','Diplomatic zones'],
+      areas:[ {n:'Maitama', d:'Quiet, leafy, premium', img:MKT_IMG.home1}, {n:'Wuse 2', d:'Central, walkable, lively', img:MKT_IMG.street}, {n:'Gwarinpa', d:'Family estates at scale', img:MKT_IMG.home2} ],
+      keys:['abuja','fct','maitama','wuse','gwarinpa','garki','jabi'] },
+    { id:'ogun', name:'Ogun State', country:'Nigeria', tagline:'Abeokuta · Sagamu · Ijebu', photo: MKT_IMG.green, c1:'#166534', c2:'#0f172a',
+      about:'Lagos\u2019s closest neighbour: affordable homes and land along the Lagos\u2013Ibadan corridor, popular with commuters and first-time buyers.',
+      chips:['Affordable land','Lagos commuters','Growing estates'],
+      areas:[ {n:'Abeokuta', d:'Historic, scenic, calm', img:MKT_IMG.green}, {n:'Sagamu', d:'Corridor access to Lagos', img:MKT_IMG.land}, {n:'Ijebu-Ode', d:'Value homes, roomy plots', img:MKT_IMG.home3} ],
+      keys:['ogun','abeokuta','sagamu','ijebu','mowe','ibafo'] },
+    { id:'ibadan', name:'Ibadan', country:'Nigeria', tagline:'Bodija · Jericho · Oluyole', photo: MKT_IMG.city, c1:'#9a3412', c2:'#0f172a',
+      about:'A university city with a big student and family rental market and some of the best value per square metre in the south-west.',
+      chips:['Student demand','Great value','Established estates'],
+      areas:[ {n:'Bodija', d:'Established, well connected', img:MKT_IMG.home2}, {n:'Jericho', d:'Upscale, quiet streets', img:MKT_IMG.home1}, {n:'Oluyole', d:'Modern estates, new builds', img:MKT_IMG.flat1} ],
+      keys:['ibadan','oyo','bodija','jericho','oluyole'] },
+    { id:'portharcourt', name:'Port Harcourt', country:'Nigeria', tagline:'Old GRA · Trans-Amadi · Peter Odili', photo: MKT_IMG.street, c1:'#1e40af', c2:'#0f172a',
+      about:'The energy capital: strong corporate and expatriate demand, with serviced apartments and secure estates.',
+      chips:['Corporate tenants','Serviced flats','Secure estates'],
+      areas:[ {n:'Old GRA', d:'Green, established, secure', img:MKT_IMG.home3}, {n:'Trans-Amadi', d:'Business and industrial hub', img:MKT_IMG.skyline}, {n:'Peter Odili Rd', d:'New estates, fast growth', img:MKT_IMG.flat2} ],
+      keys:['port harcourt','rivers','trans-amadi','rumuola','peter odili'] },
+    { id:'asaba', name:'Asaba', country:'Nigeria', tagline:'GRA · Okpanam Road · Cable Point', photo: MKT_IMG.city, c1:'#86198f', c2:'#0f172a',
+      about:'Delta\u2019s fast-growing capital on the Niger: calm, well planned, and popular with civil servants and returning families.',
+      chips:['Fast growing','Calm and planned','Family friendly'],
+      areas:[ {n:'Asaba GRA', d:'Government district, secure', img:MKT_IMG.home1}, {n:'Okpanam Road', d:'Busy and well served', img:MKT_IMG.street}, {n:'Cable Point', d:'Riverside, rising demand', img:MKT_IMG.flat1} ],
+      keys:['asaba','delta','okpanam','cable point'] },
+    { id:'toronto', name:'Toronto', country:'Canada', tagline:'Near UofT \u00b7 York \u00b7 TMU', photo: MKT_IMG.toronto, c1:'#b91c1c', c2:'#0f172a',
+      about:'Canada\u2019s largest city and the top landing spot for Nigerian students and families, with a large Nigerian community across the GTA.',
+      chips:['Study permits','Near campuses','Large Nigerian community'],
+      note:'Relocating? We\u2019re building verified housing you can secure from Lagos before you land.',
+      areas:[ {n:'Scarborough', d:'Affordable, near UTSC', img:MKT_IMG.home1}, {n:'North York', d:'Near York University, transit', img:MKT_IMG.skyline}, {n:'Etobicoke', d:'Family homes, quiet streets', img:MKT_IMG.home2} ],
+      keys:['toronto','ontario','scarborough','north york','etobicoke','brampton','mississauga'] },
+    { id:'calgary', name:'Calgary', country:'Canada', tagline:'Near UCalgary \u00b7 SAIT \u00b7 Beltline', photo: MKT_IMG.city, c1:'#0e7490', c2:'#0f172a',
+      about:'A rising choice for students and skilled families: strong job market, more space for the rent, and a growing Nigerian community.',
+      chips:['Great value','Strong job market','Growing community'],
+      note:'Relocating? We\u2019re building verified housing you can secure from Lagos before you land.',
+      areas:[ {n:'Beltline', d:'Downtown, walkable, lively', img:MKT_IMG.skyline}, {n:'Brentwood', d:'Next to UCalgary, C-Train', img:MKT_IMG.flat2}, {n:'Kensington', d:'Cafes, riverside, creative', img:MKT_IMG.street} ],
+      keys:['calgary','alberta','beltline','brentwood','kensington'] }
+  ];
+
+  let currentMarketId = 'lagos';
+  try { const m = localStorage.getItem('mtr_market'); if (MARKETS.some(x => x.id === m)) currentMarketId = m; } catch (e) {}
+  function currentMarket() { return MARKETS.find(m => m.id === currentMarketId) || MARKETS[0]; }
+  function marketIsLive() { return !!currentMarket().live; }
+  function listingMarketId(l) {
+    if (l && l.city && MARKETS.some(m => m.id === l.city)) return l.city;
+    const loc = String((l && (l.location || l.address)) || '').toLowerCase();
+    for (const m of MARKETS) { if (m.id !== 'lagos' && (m.keys || []).some(k => loc.includes(k))) return m.id; }
+    return 'lagos'; // every pre-existing listing is a Lagos listing
+  }
+  function inCurrentMarket(l) { return listingMarketId(l) === currentMarketId; }
+
+  let mktWaitlist = {};
+  try { mktWaitlist = JSON.parse(localStorage.getItem('mtr_market_waitlist')) || {}; } catch (e) {}
+  function saveMktWaitlist() { try { localStorage.setItem('mtr_market_waitlist', JSON.stringify(mktWaitlist)); } catch (e) {} }
+
+  const MKT_SVG = {
+    pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+    chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+    right: '<svg class="mkt-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
+    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+    close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    pause: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',
+    bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
+    video: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>'
+  };
+
+  function marketBarHTML() {
+    const m = currentMarket();
+    return `<div class="mkt-bar"><button type="button" class="mkt-pill" data-mkt-open aria-label="Switch city">${MKT_SVG.pin}<span>${m.name}</span>${m.live ? '' : '<span class="mkt-pill-soon">Soon</span>'}${MKT_SVG.chev}</button><span class="mkt-bar-hint">${MARKETS.length} markets \u00b7 Nigeria &amp; Canada</span></div>`;
+  }
+  function renderMarketBars() {
+    const slot = document.getElementById('s5-market-bar');
+    if (slot) slot.innerHTML = marketBarHTML();
+    const inp = document.getElementById('s5-search-input');
+    if (inp) inp.placeholder = 'Search in ' + currentMarket().name + '...';
+  }
+
+  // Live stats for the live market, computed from the real listings feed.
+  function marketLiveStats(id) {
+    const okRent = l => !isListingUnavailable(l) && listingMarketId(l) === id;
+    const rents = rentListings().filter(okRent);
+    const lands = landListingsList().filter(okRent);
+    const monthly = rents.filter(l => l.type === 'rent').map(l => parseInt(String(l.ngn || '').replace(/[^\d]/g, ''), 10)).filter(n => n > 0);
+    const avg = monthly.length ? Math.round(monthly.reduce((a, b) => a + b, 0) / monthly.length / 1000) : 0;
+    return { total: rents.length + lands.length, avg };
+  }
+
+  function marketRowHTML(m) {
+    const isCur = m.id === currentMarketId;
+    let stats = '';
+    if (m.live) { const st = marketLiveStats(m.id); stats = `<div class="mkt-row-stats"><span>${st.total} live listings</span>${st.avg ? `<span>avg \u20a6${st.avg}k/mo</span>` : ''}</div>`; }
+    return `<button type="button" class="mkt-row${isCur ? ' is-current' : ''}" data-mkt-row="${m.id}">
+      <span class="mkt-thumb" style="background:linear-gradient(135deg,${m.c1},${m.c2});"><img src="${m.photo}" alt="" loading="lazy" onerror="this.style.display='none'"></span>
+      <span class="mkt-row-main"><p class="mkt-row-name">${m.name}</p><p class="mkt-row-sub">${m.tagline}</p>${stats}</span>
+      <span class="mkt-tag ${m.live ? 'live' : 'soon'}">${m.live ? 'Live' : 'Soon'}</span>${MKT_SVG.right}
+    </button>`;
+  }
+
+  function renderMarketSheetList() {
+    const pane = document.getElementById('mkt-pane');
+    if (!pane) return;
+    const ng = MARKETS.filter(m => m.country === 'Nigeria');
+    const ca = MARKETS.filter(m => m.country === 'Canada');
+    pane.innerHTML = `
+      <div class="mkt-sheet-head">
+        <div><p class="mkt-sheet-title">Choose your market</p><p class="mkt-sheet-sub">${MARKETS.filter(m => m.live).length} live \u00b7 ${MARKETS.filter(m => !m.live).length} coming soon</p></div>
+        <button type="button" class="sheet-close-btn" data-mkt-close aria-label="Close">${MKT_SVG.close}</button>
+      </div>
+      <p class="mkt-group-label">Nigeria</p>
+      ${ng.map(marketRowHTML).join('')}
+      <p class="mkt-group-label">Canada \u00b7 for students &amp; families relocating</p>
+      ${ca.map(marketRowHTML).join('')}`;
+  }
+
+  // Coming-soon preview: auto-playing photo "tour" (or a real video if m.video is set)
+  function marketComingSoonHTML(m, mode) {
+    if (!m || m.live) return '';
+    const done = !!mktWaitlist[m.id];
+    const media = m.video
+      ? `<video class="mkt-hero-video" src="${m.video}" poster="${m.photo}" autoplay muted loop playsinline></video>`
+      : m.areas.map((a, i) => `<img class="mkt-hero-img${i === 0 ? ' active' : ''}" src="${a.img}" alt="${a.n}" loading="lazy" onerror="this.style.display='none'">`).join('');
+    const inner = `
+      <div class="mkt-hero" data-mkt-hero data-areas="${m.areas.map(a => a.n).join('|')}" style="background:linear-gradient(135deg,${m.c1},${m.c2});">
+        ${media}
+        <div class="mkt-hero-top">
+          <span class="mkt-hero-chip amber">Coming soon</span>
+          <button type="button" class="mkt-hero-pause" data-mkt-pause aria-label="Pause tour">${MKT_SVG.pause}</button>
+        </div>
+        <div class="mkt-hero-bottom">
+          <p class="mkt-hero-city">${m.name}</p>
+          <p class="mkt-hero-cap">${MKT_SVG.video}<span>Sample city tour \u00b7 <b class="mkt-hero-cap-name">${m.areas[0].n}</b></span></p>
+          <div class="mkt-hero-dots">${m.areas.map((a, i) => `<span class="${i === 0 ? 'active' : ''}"></span>`).join('')}</div>
+        </div>
+      </div>
+      <p class="mkt-about">${m.about}</p>
+      <div class="mkt-chips">${m.chips.map(c => `<span class="mkt-chip">${c}</span>`).join('')}</div>
+      <div class="mkt-areas">${m.areas.map(a => `
+        <div class="mkt-area">
+          <div class="mkt-area-img" style="background:linear-gradient(135deg,${m.c1},${m.c2});"><img src="${a.img}" alt="${a.n}" loading="lazy" onerror="this.style.display='none'"><span>Sample photo</span></div>
+          <p class="mkt-area-name">${a.n}</p><p class="mkt-area-desc">${a.d}</p>
+        </div>`).join('')}</div>
+      ${m.note ? `<div class="mkt-note">${MKT_SVG.info}<span>${m.note}</span></div>` : ''}
+      <button type="button" class="mkt-btn primary${done ? ' done' : ''}" data-mkt-notify="${m.id}">${done ? MKT_SVG.check + " You\u2019re on the list" : MKT_SVG.bell + ' Notify me when ' + m.name + ' opens'}</button>
+      ${mode === 'sheet'
+        ? `<button type="button" class="mkt-btn ghost" data-mkt-select="${m.id}">Preview ${m.name} on my dashboard</button>`
+        : `<button type="button" class="mkt-btn ghost" data-mkt-select="lagos">Back to Lagos listings</button>`}`;
+    return mode === 'sheet' ? inner : `<div class="mkt-card">${inner}</div>`;
+  }
+
+  function showMarketDetail(id) {
+    const m = MARKETS.find(x => x.id === id);
+    const pane = document.getElementById('mkt-pane');
+    if (!m || !pane) return;
+    pane.innerHTML = `
+      <div class="mkt-sheet-head" style="margin-bottom:6px;">
+        <button type="button" class="mkt-back" data-mkt-back>${MKT_SVG.back}All markets</button>
+        <button type="button" class="sheet-close-btn" data-mkt-close aria-label="Close">${MKT_SVG.close}</button>
+      </div>` + marketComingSoonHTML(m, 'sheet');
+    startMarketHeroes();
+  }
+
+  let mktHeroTimer = null;
+  function mktAdvance(h, step) {
+    const imgs = h.querySelectorAll('.mkt-hero-img');
+    if (imgs.length < 2) return;
+    const arr = Array.from(imgs);
+    let i = arr.findIndex(x => x.classList.contains('active'));
+    i = (i + step + arr.length) % arr.length;
+    arr.forEach((x, k) => x.classList.toggle('active', k === i));
+    h.querySelectorAll('.mkt-hero-dots span').forEach((d, k) => d.classList.toggle('active', k === i));
+    const nm = h.querySelector('.mkt-hero-cap-name');
+    if (nm) nm.textContent = (h.dataset.areas || '').split('|')[i] || '';
+  }
+  function startMarketHeroes() {
+    if (mktHeroTimer) clearInterval(mktHeroTimer);
+    mktHeroTimer = setInterval(() => {
+      const all = document.querySelectorAll('.mkt-hero');
+      if (!all.length) { clearInterval(mktHeroTimer); mktHeroTimer = null; return; }
+      all.forEach(h => { if (h.offsetParent !== null && h.dataset.paused !== '1' && !document.hidden) mktAdvance(h, 1); });
+    }, 3400);
+  }
+
+  function openMarketSheet() {
+    renderMarketSheetList();
+    document.getElementById('market-sheet').classList.add('open');
+  }
+  function closeMarketSheet() { document.getElementById('market-sheet').classList.remove('open'); }
+
+  function refreshMarketViews() {
+    renderMarketBars();
+    const role = currentUserRole || 'tenant';
+    try { renderDashListings(role); } catch (e) {}
+    if (role === 'tenant') {
+      try { if (currentListingType === 'land') renderLandFeed(); else renderTenantFeed(currentCurrency); } catch (e) {}
+    }
+  }
+  function setMarket(id) {
+    if (!MARKETS.some(m => m.id === id)) return;
+    currentMarketId = id;
+    try { localStorage.setItem('mtr_market', id); } catch (e) {}
+    closeMarketSheet();
+    refreshMarketViews();
+  }
+
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (t.closest('[data-mkt-open]')) { openMarketSheet(); return; }
+    if (t.id === 'market-sheet' || t.closest('[data-mkt-close]')) { closeMarketSheet(); return; }
+    if (t.closest('[data-mkt-back]')) { renderMarketSheetList(); return; }
+    const row = t.closest('[data-mkt-row]');
+    if (row) {
+      const m = MARKETS.find(x => x.id === row.dataset.mktRow);
+      if (m && m.live) setMarket(m.id); else if (m) showMarketDetail(m.id);
+      return;
+    }
+    const sel = t.closest('[data-mkt-select]');
+    if (sel) { setMarket(sel.dataset.mktSelect); return; }
+    const notify = t.closest('[data-mkt-notify]');
+    if (notify) {
+      const id = notify.dataset.mktNotify;
+      mktWaitlist[id] = !mktWaitlist[id];
+      saveMktWaitlist();
+      if (document.getElementById('market-sheet').classList.contains('open')) showMarketDetail(id); else refreshMarketViews();
+      return;
+    }
+    const pauseBtn = t.closest('[data-mkt-pause]');
+    if (pauseBtn) {
+      const h = pauseBtn.closest('.mkt-hero');
+      const paused = h.dataset.paused === '1';
+      h.dataset.paused = paused ? '0' : '1';
+      pauseBtn.innerHTML = paused ? MKT_SVG.pause : MKT_SVG.play;
+      return;
+    }
+    const hero = t.closest('.mkt-hero');
+    if (hero) mktAdvance(hero, 1);
+  });
+
   // ---- Automatic Property Status Switcher (AVAILABLE -> SOLD / RENTED) ----
   // listing.status doubles as both the publish-state flag ('draft' / 'live')
   // and — once a checkout completes — the post-sale availability flag
@@ -9637,7 +10094,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function renderTenantFeed(currency) {
     const feed = document.getElementById('s5-listing-feed');
     const cmpLink = document.getElementById('s5-compare-link'); if (cmpLink) cmpLink.style.display = 'inline-flex';
-    const data = rentListings().filter(l => !isListingUnavailable(l));
+    renderMarketBars();
+    if (!marketIsLive()) { feed.innerHTML = marketComingSoonHTML(currentMarket(), 'page'); if (window.lucide) lucide.createIcons(); startMarketHeroes(); return; }
+    const data = rentListings().filter(l => !isListingUnavailable(l) && inCurrentMarket(l));
     feed.innerHTML = data.map(p => {
       const isShortlet = p.type === 'shortlet';
       // BUGFIX: this used to hard-exclude shortlets from ever being treated
@@ -9651,7 +10110,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <div class="s5-card${unavailable ? ' is-unavailable' : ''}" data-listing-id="${p.id}">
         <div class="s5-card-img-wrap">
           <img src="${p.img}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'${isShortlet ? 'shortlet' : 'rent'}')">
-          <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Verified</span>
+          <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Preliminary Verification</span>
           ${isShortlet ? `<span class="s5-live-media-badge"><i data-lucide="calendar-days" class="w-3 h-3"></i>Shortlet</span>` : ''}
           ${p.hasVideo ? `<span class="s5-live-media-badge" style="${isShortlet ? 'top:38px;' : ''}"><i data-lucide="video" class="w-3 h-3"></i>Walkthrough Video</span>` : ''}
           ${unavailable ? `<div class="s5-status-banner-overlay"><span class="s5-status-banner-tag rented">RENTED</span></div>` : ''}
@@ -9681,7 +10140,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function renderLandFeed() {
     const feed = document.getElementById('s5-listing-feed');
     const cmpLink = document.getElementById('s5-compare-link'); if (cmpLink) cmpLink.style.display = 'none';
-    const data = landListingsList().filter(l => !isListingUnavailable(l));
+    renderMarketBars();
+    if (!marketIsLive()) { feed.innerHTML = marketComingSoonHTML(currentMarket(), 'page'); if (window.lucide) lucide.createIcons(); startMarketHeroes(); return; }
+    const data = landListingsList().filter(l => !isListingUnavailable(l) && inCurrentMarket(l));
     feed.innerHTML = data.map(p => {
       const photos = (p.photos && p.photos.length) ? p.photos : [p.img];
       const unavailable = isListingUnavailable(p);
@@ -9689,7 +10150,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <div class="s5-card${unavailable ? ' is-unavailable' : ''}" data-listing-id="${p.id}">
         <div class="s5-card-img-wrap" data-listing-id="${p.id}" data-slide-index="0">
           <img class="s5-slide-img" src="${photos[0]}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'land')">
-          <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Title Verified</span>
+          <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Preliminary Title Check</span>
           ${photos.length > 1 ? `
           <button type="button" class="s5-slide-nav prev" data-listing-id="${p.id}" data-dir="-1" aria-label="Previous photo"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
           <button type="button" class="s5-slide-nav next" data-listing-id="${p.id}" data-dir="1" aria-label="Next photo"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
@@ -9819,14 +10280,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const bits = [];
     if (p.type === 'land') {
       bits.push(`${p.title}.`);
-      bits.push(p.titleTypeLabel ? `The title is documented as ${p.titleTypeLabel}${p.requiresConsent ? ", and a Governor's Consent is required before transfer" : ''}.` : 'Title documents are checked before a listing reaches you.');
+      bits.push(p.titleTypeLabel ? `The title is documented as ${p.titleTypeLabel}${p.requiresConsent ? ", and a Governor's Consent is required before transfer" : ''}.` : 'Title documents are screened by MainTown before a listing reaches you. This is a preliminary check only, so complete your own legal due diligence and Land Registry search before you sign.');
       bits.push(p.hasVideo ? 'A site walkthrough video is available so you can see the boundary and access roads before you travel.' : 'Book an inspection to see the plot in person before you commit.');
     } else if (p.type === 'shortlet') {
       bits.push(`${p.title}, available as a short stay at ${p.ngn}.`);
       bits.push('Night one is paid when you book and the remaining nights are debited daily, so you never pay the full stay up front.');
     } else {
       bits.push(`${p.title}, offered at ${p.ngn}.`);
-      bits.push('Rent is paid monthly instead of a full year up front, and every fee is itemised before you commit.');
+      bits.push('Rent is paid monthly instead of a full year up front, with no interest or finance charge, and every fee is itemised before you commit.');
       if (dates) bits.push(`You can inspect it first: ${dates} viewing ${dates === 1 ? 'date is' : 'dates are'} open.`);
     }
     bits.push(`${liListedBy(p)}.`);
@@ -9895,7 +10356,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       priceUnit = (/night/i.test(p.ngn || '') ? 'per night' : 'per month') + (p.usd ? ` \u00B7 ${p.usd}` : '');
     }
 
-    const chips = [`<span class="li-chip ok"><i data-lucide="shield-check"></i>${isLand ? 'Title verified' : 'Verified listing'}</span>`];
+    const chips = [`<span class="li-chip ok"><i data-lucide="shield-check"></i>${isLand ? 'Preliminary title check' : 'Preliminary verification'}</span>`];
     if (p.hasVideo) chips.push('<span class="li-chip"><i data-lucide="video"></i>Walkthrough video</span>');
     if (photos.length > 1) chips.push(`<span class="li-chip"><i data-lucide="images"></i>${photos.length} photos</span>`);
     if (isShortlet) chips.push('<span class="li-chip"><i data-lucide="calendar-days"></i>Shortlet</span>');
@@ -10775,8 +11236,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // whitespace, ignore case) before comparing.
       const normalize = (s) => s.trim().replace(/\s+/g, ' ').toLowerCase();
       const signed = normalize(signInput.value) === normalize('I agree to the Land Allocation & Payment Terms');
-      landOk = scrolledToBottom && signed;
+      const titleAck = document.getElementById('s6-title-ack').checked;
+      const adrAck = document.getElementById('s6-adr-ack').checked;
+      landOk = scrolledToBottom && signed && titleAck && adrAck;
       if (!scrolledToBottom) landReason = 'Scroll the Land Allocation & Payment Sign-Off box to the bottom to unlock the signature field.';
+      else if (!titleAck) landReason = 'Tick the Title Verification & Due Diligence acknowledgement to continue.';
+      else if (!adrAck) landReason = 'Tick the Dispute Resolution acknowledgement to continue.';
       else if (!signed) landReason = 'Type the exact phrase to sign the Land Allocation & Payment Terms.';
     } else if (checkoutListing && checkoutListing.type === 'shortlet') {
       const box = document.getElementById('s6-signoff-box');
@@ -10785,8 +11250,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       signInput.disabled = !scrolledToBottom;
       const normalize = (s) => s.trim().replace(/\s+/g, ' ').toLowerCase();
       const signed = normalize(signInput.value) === normalize('I agree to the Short-Let Booking & Occupancy Terms');
-      landOk = scrolledToBottom && signed;
+      const adrAck = document.getElementById('s6-adr-ack').checked;
+      landOk = scrolledToBottom && signed && adrAck;
       if (!scrolledToBottom) landReason = 'Scroll the Short-Let Booking & Occupancy Terms box to the bottom to unlock the signature field.';
+      else if (!adrAck) landReason = 'Tick the Dispute Resolution acknowledgement to continue.';
       else if (!signed) landReason = 'Type the exact phrase to sign the Short-Let Booking & Occupancy Terms.';
     }
     const allOk = landOk && checkoutAgreementUploaded;
@@ -10888,6 +11355,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       signInput.value = '';
       signInput.disabled = true;
       signInput.placeholder = 'Type the exact phrase above';
+      document.getElementById('s6-title-ack-row').style.display = 'flex';
+      document.getElementById('s6-adr-ack-row').style.display = 'flex';
+      document.getElementById('s6-title-ack').checked = false;
+      document.getElementById('s6-adr-ack').checked = false;
       document.getElementById('s6-landsign-label').innerHTML = 'Type to sign: "I agree to the Land Allocation &amp; Payment Terms"';
       signoffBox.scrollTop = 0;
       document.getElementById('s6-row2').style.display = 'flex';
@@ -10899,10 +11370,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       signoffBox.innerHTML = `
         <p>By proceeding with this transaction, you acknowledge and agree to the following binding terms:</p>
         <p><strong>Clause 1 — Pre-Checkout Inspection &amp; Satisfaction:</strong> Checkout requires prior completion of physical or virtual property inspection. By initiating payment, you confirm you (or your authorized representative) have inspected the land, verified its condition, and logged your status as Satisfied within the platform.</p>
-        <p><strong>Clause 2 — Title Verification &amp; Allocation Window:</strong> Independent survey checks and Land Registry verification (C of O, Gazette, or layout plans) are finalized prior to physical land allocation. Physical allocation is executed upon clean title confirmation and adherence to the agreed payment plan.</p>
+        <p><strong>Clause 2 — Title Verification, Due Diligence &amp; Allocation Window:</strong> MainTown Realty conducts automated and preliminary verification of the title documents supplied by the Seller (C of O, Deed of Assignment, Governor's Consent, Gazette or layout plans). That verification is not legal due diligence, a Land Registry search or a certificate of title. You acknowledge that final legal due diligence, the physical search at the Land Registry, independent survey checks and title verification are your own responsibility and must be completed before you execute this Contract. Physical allocation is executed upon the Seller's title warranties being satisfied and adherence to the agreed payment plan.</p>
         <p><strong>Clause 3 — Automated Non-Custodial Split Payments:</strong> All payments (outright or installment) are processed instantly via automated payment split logic directly to the designated accounts of the Seller/Developer and MainTown Realty. MainTown Realty operates as a non-custodial facilitator and does not hold or escrow transaction funds.</p>
-        <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule. A mandatory 30-day grace period applies to overdue payments. Payments remaining in default beyond 60 days trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
+        <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule and are scheduled part-payments of the agreed purchase price; no interest or finance charge is added. A mandatory 30-day grace period applies to overdue payments, after which a written notice of default is issued with a 14-day cure period. Payments remaining in default beyond 60 days without cure trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
         <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to you via the MainTown Realty logistics network.</p>
+        <p><strong>Clause 6 — Territorial Scope &amp; Interest-Free Instalments:</strong> ${TERRITORIAL_SCOPE_TEXT}</p>
+        <p><strong>Clause 7 — Dispute Resolution (Mediation, then LCA Arbitration):</strong> ${ADR_CLAUSE_TEXT}</p>
         <p>Scroll to the bottom of this box to unlock the signature field below.</p>
       `;
 
@@ -10915,12 +11388,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (checkoutLandPayment.mode === 'outright') {
         document.getElementById('s6-row1-label').textContent = 'Total Price';
         document.getElementById('s6-row2-label').textContent = 'Deed of Assignment / Title Processing Fee (to Owner)';
-        document.getElementById('s6-row3-label').textContent = 'Repayment Plan';
+        document.getElementById('s6-row3-label').textContent = 'Installment Plan';
         document.getElementById('s6-rent-amount').textContent = formatMoney(checkoutLandPayment.totalPrice, 'ngn');
         document.getElementById('s6-deposit-amount').textContent = formatMoney(checkoutLandPayment.processingFee, 'ngn');
         document.getElementById('s6-fee-amount').textContent = 'Outright — N/A';
         checkoutAiFeeNgn = isAiFeePayer() ? 15000 : 0;
-        document.getElementById('s6-ai-fee-label').innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown AI Title Vetting &amp; Secure Split-Pay Fee';
+        document.getElementById('s6-ai-fee-label').innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown AI Preliminary Title Screening &amp; Secure Split-Pay Fee';
         document.getElementById('s6-ai-fee-row').style.display = '';
         document.getElementById('s6-ai-fee-amount').textContent = formatMoney(checkoutAiFeeNgn, 'ngn');
         document.getElementById('s6-total-amount').textContent = formatMoney(checkoutLandPayment.totalPrice + checkoutLandPayment.processingFee + checkoutAiFeeNgn, 'ngn');
@@ -10939,7 +11412,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         document.getElementById('s6-deposit-amount').textContent = formatMoney(checkoutLandPayment.buyerCommission, 'ngn');
         document.getElementById('s6-fee-amount').textContent = formatMoney(checkoutLandPayment.legal, 'ngn');
         checkoutAiFeeNgn = isAiFeePayer() ? 15000 : 0;
-        document.getElementById('s6-ai-fee-label').innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown AI Title Vetting &amp; Secure Split-Pay Fee';
+        document.getElementById('s6-ai-fee-label').innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown AI Preliminary Title Screening &amp; Secure Split-Pay Fee';
         document.getElementById('s6-ai-fee-row').style.display = '';
         document.getElementById('s6-ai-fee-amount').textContent = formatMoney(checkoutAiFeeNgn, 'ngn');
         document.getElementById('s6-total-amount').textContent = formatMoney(checkoutLandPayment.upfront + checkoutAiFeeNgn, 'ngn') + ' due now';
@@ -10957,6 +11430,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
       signInput.value = '';
       signInput.disabled = true;
       signoffBox.scrollTop = 0;
+      document.getElementById('s6-title-ack-row').style.display = 'none';
+      document.getElementById('s6-adr-ack-row').style.display = 'flex';
+      document.getElementById('s6-adr-ack').checked = false;
       signoffBox.innerHTML = `
         <p>By proceeding, you acknowledge and agree to the following binding Short-Let Booking &amp; Occupancy Terms:</p>
         <p><strong>Clause 1 — Premises Conduct &amp; House Rules:</strong> By proceeding, you agree to abide strictly by the occupancy limits, noise regulations, check-in/check-out times, and property-specific rules set by the Host/Landlord.</p>
@@ -10964,6 +11440,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <p><strong>Clause 3 — Direct Self-Service Caution Fee Refunds:</strong> The Caution Fee is paid directly to the Host/Landlord's designated sub-account. Upon check-out, you must initiate any Caution Fee refund request directly through your MainTown app. MainTown Realty does not hold, manage, or claim caution fees on behalf of tenants. All refund approvals, damage assessments, and payouts are handled directly between you and the Host/Landlord.</p>
         <p><strong>Clause 4 — Contract Countersignature SLA:</strong> Upon PIN authorization, this Agreement is dispatched to the Host/Landlord for digital countersignature. If the Host fails to execute or confirm the booking within the designated acceptance window, the payment split authorization is reversed automatically to your source account/wallet without penalty.</p>
         ${sl.remainingNights > 0 ? `<p><strong>Clause 5 — Multi-Night Auto-Debit Authorization:</strong> Night 1 (plus any Caution Fee &amp; Service Charge) is charged today. For stays longer than one night, you authorize MainTown to auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} from your chosen payment method for each remaining night (Nights 2–${sl.nights}) until the stay is fully paid or you end the stay early.</p>` : ''}
+        <p><strong>Clause ${sl.remainingNights > 0 ? 6 : 5} — Dispute Resolution (Mediation, then LCA Arbitration):</strong> ${ADR_CLAUSE_TEXT}</p>
         <p>Scroll to the bottom of this box to unlock the signature field below.</p>
       `;
       document.getElementById('s6-landsign-input').placeholder = 'Type the exact phrase above';
@@ -11071,6 +11548,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   document.getElementById('s6-signoff-box').addEventListener('scroll', updateAuthorizeState);
   document.getElementById('s6-landsign-input').addEventListener('input', updateAuthorizeState);
+  document.getElementById('s6-title-ack').addEventListener('change', updateAuthorizeState);
+  document.getElementById('s6-adr-ack').addEventListener('change', updateAuthorizeState);
 
   // ==================================================================
   // ---- Tenancy & Policy Agreement Viewer (scroll-to-unlock gate) ----
@@ -11195,12 +11674,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
       <h1>1. Term &amp; Rent</h1>
       <p>The Tenant agrees to occupy the Property for the agreed lease term at a monthly rent of <strong>${monthlyRent}</strong>, auto-debited from the Tenant and split automatically at the point of charge — the Landlord's share is paid directly to the Landlord's own account, with MainTown's platform fee deducted at the same time. MainTown does not hold Tenant funds at any point.</p>
+      <p>Rent is payable in monthly instalments under the Payment Schedule attached to this Agreement. Each instalment is a scheduled lease payment of rent. No interest, finance charge or credit fee is charged on any instalment, the total rent payable does not exceed the rent stated in this Agreement, and this Agreement is a lease — it is not a loan or credit facility.</p>
 
       <h1>2. Automated Payment &amp; Dispute Protection</h1>
       <ul>
         <li>Rent is split and disbursed automatically to the Landlord at the point of each auto-debit; MainTown does not hold Tenant funds at any stage.</li>
         <li>Cross-border payments (for diaspora Tenants) are converted at the rate shown at checkout and are non-reversible once disbursed.</li>
-        <li>If the Property does not match its listing, the Tenant may raise a dispute within the inspection window; refunds are processed by the Landlord in line with MainTown Realty's Dispute Resolution policy.</li>
+        <li>If the Property does not match its listing, the Tenant may raise a dispute within the inspection window; refunds are processed by the Landlord in line with MainTown Realty's Dispute Resolution policy and Clause 8 of this Agreement.</li>
       </ul>
 
       <h1>3. Tenant Obligations</h1>
@@ -11218,13 +11698,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
       </ul>
 
       <h1>5. Default &amp; Termination</h1>
-      <p>Missed payments beyond the grace period may result in a default flag on the Tenant's account and possible lease termination, in line with MainTown Realty's Post-Lease Management policy. Either party may terminate early per the notice period stated in the lease terms shared at booking.</p>
+      <p>${RENT_DEFAULT_SCHEDULE_TEXT}</p>
+      <p>Either party may terminate early per the notice period stated in the lease terms shared at booking.</p>
 
       <h1>6. Platform Role</h1>
       <p>MainTown Realty acts solely as the payments, auto-split settlement and communications facilitator between Landlord and Tenant, and is not a party to the underlying tenancy itself. MainTown does not hold, custody, or have access to Tenant or Landlord funds at any point in the transaction.</p>
 
-      <h1>7. Signature</h1>
-      <p>By signing below and confirming with the verification code sent to your phone, both parties acknowledge they have read, understood and agree to be bound by the terms of this Agreement.</p>
+      <h1>7. Property Title &amp; Site Visits</h1>
+      <p>${TITLE_DISCLAIMER_TEXT}</p>
+      <p>Any physical visit made before signing was subject to the Site Visit Safety Waiver &amp; Indemnity accepted when the inspection was booked.</p>
+
+      <h1>8. Dispute Resolution</h1>
+      <p>${ADR_CLAUSE_TEXT}</p>
+
+      <h1>9. Signature</h1>
+      <p>By signing below and confirming with the verification code sent to your phone, both parties acknowledge they have read, understood and agree to be bound by the terms of this Agreement, including the Dispute Resolution clause in Clause 8. Electronic signatures and the computer-generated records of this Agreement and its execution are intended to be admissible in evidence in line with Section 84 of the Evidence Act 2011.</p>
     `;
   }
 
@@ -11804,10 +12292,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <p>This Contract of Sale is made on <strong>${today}</strong> between <strong>${h.landlordName || 'the Seller'}</strong> (\"Seller/Developer\") and <strong>${buyer}</strong> (\"Buyer\"), for the land/property known as <strong>${h.propertyAddress || h.listingTitle}</strong>, at a total price of <strong>${h.priceLabel || '—'}</strong>, facilitated through MainTown Realty.</p>
       <h1>Binding Terms</h1>
       <p><strong>Clause 1 — Pre-Checkout Inspection &amp; Satisfaction:</strong> Checkout requires prior completion of physical or virtual property inspection. By initiating payment, the Buyer confirms they (or their authorized representative) have inspected the land, verified its condition, and logged their status as Satisfied within the platform.</p>
-      <p><strong>Clause 2 — Title Verification &amp; Allocation Window:</strong> Independent survey checks and Land Registry verification (C of O, Gazette, or layout plans) are finalized prior to physical land allocation. Physical allocation is executed upon clean title confirmation and adherence to the agreed payment plan.</p>
+      <p><strong>Clause 2 — Title Verification, Due Diligence &amp; Allocation Window:</strong> MainTown Realty conducts automated and preliminary verification of the title documents supplied by the Seller (C of O, Deed of Assignment, Governor's Consent, Gazette or layout plans). That verification is not legal due diligence, a Land Registry search or a certificate of title. The Buyer acknowledges that final legal due diligence, the physical search at the Land Registry, independent survey checks and title verification are the Buyer's own responsibility and must be completed before the Buyer executes this Contract. Physical allocation is executed upon the Seller's title warranties being satisfied and adherence to the agreed payment plan.</p>
       <p><strong>Clause 3 — Automated Non-Custodial Split Payments:</strong> All payments (outright or installment) are processed instantly via automated payment split logic directly to the designated accounts of the Seller/Developer and MainTown Realty. MainTown Realty operates as a non-custodial facilitator and does not hold or escrow transaction funds.</p>
-      <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule. A mandatory 30-day grace period applies to overdue payments. Payments remaining in default beyond 60 days trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
+      <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule and are scheduled part-payments of the agreed purchase price; no interest or finance charge is added. A mandatory 30-day grace period applies to overdue payments, after which a written notice of default is issued with a 14-day cure period. Payments remaining in default beyond 60 days without cure trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
       <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to the Buyer via the MainTown Realty logistics network.</p>
+      <p><strong>Clause 6 — Territorial Scope &amp; Interest-Free Instalments:</strong> ${TERRITORIAL_SCOPE_TEXT}</p>
+      <p><strong>Clause 7 — Dispute Resolution (Mediation, then LCA Arbitration):</strong> ${ADR_CLAUSE_TEXT}</p>
       <h1>Signature</h1>
       <p>By countersigning, the Seller acknowledges they have read, understood and agree to be bound by the terms of this Contract of Sale, already signed by the Buyer.</p>`;
   }
@@ -12319,7 +12809,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           amount: checkoutAiFeeNgn, status: 'SUCCESSFUL',
           meta: {
             sender: 'You', recipient: 'MainTown Realty', propertyName: propertyTitle,
-            feeType: isLandTxn ? 'Title Vetting & Secure Split-Pay' : 'Risk & Flex Scoring',
+            feeType: isLandTxn ? 'Preliminary Title Screening & Secure Split-Pay' : 'Risk & Flex Scoring',
             escrowStatus: 'Settled immediately'
           }
         });
@@ -12906,6 +13396,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     updateAnnualCalc('tv');
     updateTvTitleTypeVisibility();
     document.getElementById('tv-publish-toggle').checked = true;
+    document.getElementById('tv-listing-auth-toggle').checked = false;
     tvPendingAvailability = [];
     document.getElementById('tv-avail-date').value = '';
     document.getElementById('tv-avail-start').value = '';
@@ -13060,6 +13551,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     if (!title || !address || !annual) {
       showToast('Please fill in property title, address, and price');
+      return;
+    }
+    if (!document.getElementById('tv-listing-auth-toggle').checked) {
+      showToast('Please confirm the Listing Authorization & Title Disclaimer to continue');
       return;
     }
     const checkedDocBoxes = Array.from(document.querySelectorAll('.tv-doc-checkbox:checked'));
@@ -13283,7 +13778,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <div class="s5-card">
         <div class="s5-card-img-wrap">
           <img src="${listing.img}" alt="${listing.title}" onerror="handleImgError(this,'${listing.type}')">
-          <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Verified</span>
+          <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Preliminary Verification</span>
           ${listing.hasVideo ? `<span class="s5-live-media-badge"><i data-lucide="video" class="w-3 h-3"></i>Walkthrough Video</span>` : ''}
         </div>
         <div class="s5-card-body">
@@ -13641,6 +14136,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       showToast('Please fill in property title, address, and annual price');
       return;
     }
+    if (!document.getElementById('s5-listing-auth-toggle').checked) {
+      showToast('Please confirm the Listing Authorization & Title Disclaimer to continue');
+      return;
+    }
 
     // ---- Enterprise staff (Sales) list on behalf of the company — no
     // Landlord/Owner switcher, no landlord-verification queue. This goes
@@ -13953,12 +14452,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     saveListings();
     pushPlatformNotification(
-      'landlord', 'listing', 'Title Verified — Listing Is Live',
+      'landlord', 'listing', 'Preliminary Verification Complete — Listing Is Live',
       `"${stillPending.title}" passed legal review and is now live on the marketplace with active automated payout protection.`,
       null, 'listing_verification', null, stillPending.ownerId
     );
     pushPlatformNotification(
-      'agent', 'listing', 'Title Verified — Listing Is Live',
+      'agent', 'listing', 'Preliminary Verification Complete — Listing Is Live',
       `"${stillPending.title}" passed legal review and is now live on the marketplace.`,
       null, 'listing_verification', null, stillPending.agentId
     );
@@ -14769,7 +15268,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } else {
       summary.style.display = 'none';
     }
-    document.getElementById('ib-confirm-btn').disabled = !(ibSelectedDate && ibSelectedSlot);
+    document.getElementById('ib-confirm-btn').disabled = !(ibSelectedDate && ibSelectedSlot && document.getElementById('ib-waiver-checkbox').checked);
   }
 
   document.getElementById('ib-cal-grid').addEventListener('click', (e) => {
@@ -14829,6 +15328,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     ibCalendarViewDate = new Date();
     ibSelectedDate = null;
     ibSelectedSlot = null;
+    // Site Visit Safety Waiver: rendered from the shared clause text and must
+    // be accepted afresh for every booking (never carried over between visits).
+    document.getElementById('ib-waiver-body').innerHTML = SITE_WAIVER_CLAUSES.map(c => `<p>${c}</p>`).join('');
+    document.getElementById('ib-waiver-checkbox').checked = false;
+    document.querySelector('.ib-waiver-details').open = false;
     renderInspectionCalendar();
     renderInspectionSlotChips();
     updateInspectionSelectionSummary();
@@ -14860,6 +15364,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (window.lucide) lucide.createIcons();
   }
 
+  document.getElementById('ib-waiver-checkbox').addEventListener('change', updateInspectionSelectionSummary);
+
   document.getElementById('ib-cancel-btn').addEventListener('click', () => {
     inspectionBookingModal.classList.remove('open');
     ibSubmitting = false;
@@ -14887,6 +15393,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('ib-confirm-btn').addEventListener('click', () => {
     if (!inspectionListing || !ibSelectedDate || !ibSelectedSlot) return;
     if (ibSubmitting) return;
+    if (!document.getElementById('ib-waiver-checkbox').checked) {
+      showToast('Please accept the Site Visit Safety Waiver to continue');
+      return;
+    }
     if (hasPendingScheduleForListing(inspectionListing)) {
       showToast('You already have an active inspection request for this property');
       inspectionBookingModal.classList.remove('open');
@@ -14930,7 +15440,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       date, time,
       feeType: isAgent ? 'agent' : (salesStaffId ? 'enterprise' : 'landlord'),
       fee,
-      status: 'pending' // pending -> accepted -> completed
+      status: 'pending', // pending -> accepted -> completed
+      waiverAcceptedAt: new Date().toISOString(), waiverVersion: 'SVW-1.0'
     });
     saveInspections();
 
@@ -14960,6 +15471,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       landlord_id: isAgent ? null : (salesStaffId ? null : ownerId),
       agent_id: isAgent ? ownerId : null,
       sales_staff_id: salesStaffId,
+      // Site Visit Safety Waiver & Indemnity acceptance record (per booking).
+      site_visit_waiver: { accepted: true, version: 'SVW-1.0', accepted_at: new Date().toISOString() },
       chat_unlocked: false
     });
     saveSchedules();
@@ -16590,7 +17103,7 @@ available in the Post-Lease Hub and this chat thread.`
   // ---- SCREEN 7: Post-Lease Management & Default Enforcement Hub ----
   // ==================================================================
   let activeLease = null;
-  let defaultStage = 0; // 0 = green, 1 = yellow, 2 = red
+  let defaultStage = 0; // 0 = grace, 1 = late notice, 2 = formal demand, 3 = statutory recovery
   let tickets = [];
   try {
     const storedTickets = JSON.parse(localStorage.getItem('mtr_tickets'));
@@ -16598,21 +17111,23 @@ available in the Post-Lease Hub and this chat thread.`
   } catch (e) { tickets = []; }
 
   function renderStageTracker() {
-    ['s7-stage-0', 's7-stage-1', 's7-stage-2'].forEach((id, idx) => {
+    ['s7-stage-0', 's7-stage-1', 's7-stage-2', 's7-stage-3'].forEach((id, idx) => {
       document.getElementById(id).classList.toggle('active-stage', idx === defaultStage);
     });
     const statusEl = document.getElementById('s7-lease-status');
     if (defaultStage === 0) { statusEl.textContent = 'Active'; statusEl.style.color = '#34d399'; }
-    else if (defaultStage === 1) { statusEl.textContent = 'Late Notice — 5%/day penalty'; statusEl.style.color = '#fbbf24'; }
-    else { statusEl.textContent = 'Section 8 — Eviction Triggered'; statusEl.style.color = '#f87171'; }
+    else if (defaultStage === 1) { statusEl.textContent = 'Late Notice — Admin Fee May Apply'; statusEl.style.color = '#fbbf24'; }
+    else if (defaultStage === 2) { statusEl.textContent = 'Formal Demand — Mediation Open'; statusEl.style.color = '#fb923c'; }
+    else { statusEl.textContent = 'Statutory Recovery — Court Process'; statusEl.style.color = '#f87171'; }
   }
 
   document.getElementById('s7-simulate-default-btn').addEventListener('click', () => {
-    defaultStage = (defaultStage + 1) % 3;
+    defaultStage = (defaultStage + 1) % 4;
     renderStageTracker();
     if (defaultStage === 0) showToast('Payment recorded — grace period reset (Stage 1)');
-    else if (defaultStage === 1) showToast('Day 4 reached — 5% daily late penalty now accruing (Stage 2)');
-    else showToast('Day 8 reached — Section 8 Notice dispatched, eviction triggered (Stage 3)');
+    else if (defaultStage === 1) showToast('Day 4 reached — formal late notice issued (Stage 2)');
+    else if (defaultStage === 2) showToast('Day 8 reached — written Demand for Payment issued, 14-day mediation opens (Stage 3)');
+    else showToast('Day 15 reached — Landlord may begin statutory recovery through the courts (Stage 4)');
   });
 
   document.getElementById('s7-ticket-upload').addEventListener('click', () => document.getElementById('s7-ticket-file').click());
@@ -16986,7 +17501,7 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('ah-detail-date').textContent = new Date(asset.purchaseDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
     const deedBadge = document.getElementById('ah-deed-status');
-    deedBadge.textContent = asset.deedAvailable ? 'Verified' : 'Processing';
+    deedBadge.textContent = asset.deedAvailable ? 'Issued' : 'Processing';
     deedBadge.className = 's5-status-badge ' + (asset.deedAvailable ? 'insp-status-confirmed' : 'insp-status-pending');
     document.getElementById('ah-deed-download-btn').disabled = !asset.deedAvailable;
     document.getElementById('ah-deed-download-btn').style.opacity = asset.deedAvailable ? '1' : '0.5';
