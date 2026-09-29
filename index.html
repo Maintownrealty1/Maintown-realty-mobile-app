@@ -3060,23 +3060,21 @@
   body.light-theme #screen-ent-finance #ent-finance-home > .ent-stat-row { background: #ffffff; }
 </style>
 <style id="mtl-logo-anim">
-  .mtl-m, .mtl-roof, .mtl-w { transform-box: fill-box; }
-  .mtl-m    { transform-origin: 50% 100%; animation: mtlRise .9s cubic-bezier(.2,.8,.2,1) both; }
-  .mtl-roof { transform-origin: 50% 50%;
-              animation: mtlDrop 1s cubic-bezier(.3,1.4,.5,1) .35s both,
-                         mtlFloat 3.6s ease-in-out 1.6s infinite; }
-  .mtl-w    { transform-origin: 50% 50%; }
-  .mtl-w1 { animation: mtlPop .5s cubic-bezier(.3,1.6,.5,1) .90s both, mtlTwinkle 4s ease-in-out 2.4s infinite; }
-  .mtl-w2 { animation: mtlPop .5s cubic-bezier(.3,1.6,.5,1) 1.00s both, mtlTwinkle 4s ease-in-out 2.9s infinite; }
-  .mtl-w3 { animation: mtlPop .5s cubic-bezier(.3,1.6,.5,1) 1.10s both, mtlTwinkle 4s ease-in-out 3.4s infinite; }
-  .mtl-w4 { animation: mtlPop .5s cubic-bezier(.3,1.6,.5,1) 1.20s both, mtlTwinkle 4s ease-in-out 3.9s infinite; }
-  @keyframes mtlRise    { from { opacity: 0; transform: translateY(24px) scaleY(.85); } to { opacity: 1; transform: none; } }
-  @keyframes mtlDrop    { from { opacity: 0; transform: translateY(-36px); } to { opacity: 1; transform: none; } }
-  @keyframes mtlFloat   { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+  /* "M" and roof are written out stroke-by-stroke, then the windows pop in */
+  .mtl-pen { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .mtl-pen-m { animation: mtlWrite 1.3s cubic-bezier(.45,.05,.4,1) .25s forwards; }
+  .mtl-pen-r { animation: mtlWrite .65s cubic-bezier(.45,.05,.4,1) 1.55s forwards; }
+  .mtl-w { transform-box: fill-box; transform-origin: 50% 50%; opacity: 0; }
+  .mtl-w1 { animation: mtlPop .4s cubic-bezier(.3,1.6,.5,1) 2.25s forwards, mtlTwinkle 4s ease-in-out 3.4s infinite; }
+  .mtl-w2 { animation: mtlPop .4s cubic-bezier(.3,1.6,.5,1) 2.37s forwards, mtlTwinkle 4s ease-in-out 3.9s infinite; }
+  .mtl-w3 { animation: mtlPop .4s cubic-bezier(.3,1.6,.5,1) 2.49s forwards, mtlTwinkle 4s ease-in-out 4.4s infinite; }
+  .mtl-w4 { animation: mtlPop .4s cubic-bezier(.3,1.6,.5,1) 2.61s forwards, mtlTwinkle 4s ease-in-out 4.9s infinite; }
+  @keyframes mtlWrite   { to { stroke-dashoffset: 0; } }
   @keyframes mtlPop     { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
   @keyframes mtlTwinkle { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
   @media (prefers-reduced-motion: reduce) {
-    .mtl-m, .mtl-roof, .mtl-w { animation: none !important; }
+    .mtl-pen { stroke-dashoffset: 0; animation: none !important; }
+    .mtl-w { opacity: 1; animation: none !important; }
   }
 </style>
 </head>
@@ -3096,7 +3094,7 @@
   <div class="welcome-center">
     <div class="welcome-logo-wrap">
       <div class="welcome-logo-glow"></div>
-      <svg class="welcome-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainTown Realty"><rect width="512" height="512" rx="112" fill="#0b0b0f"/><polygon class="mtl-m" points="130,168 130,403 162,403 163,249 256,339 348,249 349,403 381,403 381,168 256,292" fill="#7a24ef"/><polygon class="mtl-roof" points="172,193 196,215 255,155 316,216 340,193 256,109" fill="#7a24ef"/><rect class="mtl-w mtl-w1" x="230" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w2" x="261" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w3" x="230" y="381" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w4" x="261" y="381" width="20" height="20" rx="2" fill="#fff"/></svg>
+      <svg class="welcome-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainTown Realty"><defs><mask id="mtlMaskM1" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-m" pathLength="1" d="M146 412 L146 190 L256 315 L365 190 L365 412" fill="none" stroke="#fff" stroke-width="72" stroke-linejoin="round"/></mask><mask id="mtlMaskR1" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-r" pathLength="1" d="M160 218 L256 126 L352 218" fill="none" stroke="#fff" stroke-width="64" stroke-linejoin="round"/></mask></defs><rect width="512" height="512" rx="112" fill="#0b0b0f"/><polygon points="130,168 130,403 162,403 163,249 256,339 348,249 349,403 381,403 381,168 256,292" fill="#7a24ef" mask="url(#mtlMaskM1)"/><polygon points="172,193 196,215 255,155 316,216 340,193 256,109" fill="#7a24ef" mask="url(#mtlMaskR1)"/><rect class="mtl-w mtl-w1" x="230" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w2" x="261" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w3" x="230" y="381" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w4" x="261" y="381" width="20" height="20" rx="2" fill="#fff"/></svg>
     </div>
     <h1 class="welcome-brand-name">MainTown Realty</h1>
     <p class="welcome-tagline">Own or rent, on your terms.</p>
@@ -3116,7 +3114,7 @@
 
   <!-- Brand Header -->
   <div class="brand-row">
-    <svg class="brand-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainTown Realty"><rect width="512" height="512" rx="112" fill="#0b0b0f"/><polygon class="mtl-m" points="130,168 130,403 162,403 163,249 256,339 348,249 349,403 381,403 381,168 256,292" fill="#7a24ef"/><polygon class="mtl-roof" points="172,193 196,215 255,155 316,216 340,193 256,109" fill="#7a24ef"/><rect class="mtl-w mtl-w1" x="230" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w2" x="261" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w3" x="230" y="381" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w4" x="261" y="381" width="20" height="20" rx="2" fill="#fff"/></svg>
+    <svg class="brand-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainTown Realty"><defs><mask id="mtlMaskM2" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-m" pathLength="1" d="M146 412 L146 190 L256 315 L365 190 L365 412" fill="none" stroke="#fff" stroke-width="72" stroke-linejoin="round"/></mask><mask id="mtlMaskR2" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-r" pathLength="1" d="M160 218 L256 126 L352 218" fill="none" stroke="#fff" stroke-width="64" stroke-linejoin="round"/></mask></defs><rect width="512" height="512" rx="112" fill="#0b0b0f"/><polygon points="130,168 130,403 162,403 163,249 256,339 348,249 349,403 381,403 381,168 256,292" fill="#7a24ef" mask="url(#mtlMaskM2)"/><polygon points="172,193 196,215 255,155 316,216 340,193 256,109" fill="#7a24ef" mask="url(#mtlMaskR2)"/><rect class="mtl-w mtl-w1" x="230" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w2" x="261" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w3" x="230" y="381" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w4" x="261" y="381" width="20" height="20" rx="2" fill="#fff"/></svg>
     <div>
       <p class="brand-name">MainTown Realty</p>
       <p class="brand-tag">Own or rent, on your terms.</p>
@@ -3238,7 +3236,7 @@
 <div id="screen-partnership" class="screen hidden-screen">
 
   <div class="brand-row">
-    <svg class="brand-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainTown Realty"><rect width="512" height="512" rx="112" fill="#0b0b0f"/><polygon class="mtl-m" points="130,168 130,403 162,403 163,249 256,339 348,249 349,403 381,403 381,168 256,292" fill="#7a24ef"/><polygon class="mtl-roof" points="172,193 196,215 255,155 316,216 340,193 256,109" fill="#7a24ef"/><rect class="mtl-w mtl-w1" x="230" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w2" x="261" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w3" x="230" y="381" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w4" x="261" y="381" width="20" height="20" rx="2" fill="#fff"/></svg>
+    <svg class="brand-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainTown Realty"><defs><mask id="mtlMaskM3" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-m" pathLength="1" d="M146 412 L146 190 L256 315 L365 190 L365 412" fill="none" stroke="#fff" stroke-width="72" stroke-linejoin="round"/></mask><mask id="mtlMaskR3" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-r" pathLength="1" d="M160 218 L256 126 L352 218" fill="none" stroke="#fff" stroke-width="64" stroke-linejoin="round"/></mask></defs><rect width="512" height="512" rx="112" fill="#0b0b0f"/><polygon points="130,168 130,403 162,403 163,249 256,339 348,249 349,403 381,403 381,168 256,292" fill="#7a24ef" mask="url(#mtlMaskM3)"/><polygon points="172,193 196,215 255,155 316,216 340,193 256,109" fill="#7a24ef" mask="url(#mtlMaskR3)"/><rect class="mtl-w mtl-w1" x="230" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w2" x="261" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w3" x="230" y="381" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w4" x="261" y="381" width="20" height="20" rx="2" fill="#fff"/></svg>
     <div>
       <p class="brand-name">MainTown Realty</p>
       <p class="brand-tag">Own or rent, on your terms.</p>
@@ -3282,7 +3280,7 @@
 <div id="screen-2" class="screen hidden-screen">
 
   <div class="brand-row">
-    <svg class="brand-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainTown Realty"><rect width="512" height="512" rx="112" fill="#0b0b0f"/><polygon class="mtl-m" points="130,168 130,403 162,403 163,249 256,339 348,249 349,403 381,403 381,168 256,292" fill="#7a24ef"/><polygon class="mtl-roof" points="172,193 196,215 255,155 316,216 340,193 256,109" fill="#7a24ef"/><rect class="mtl-w mtl-w1" x="230" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w2" x="261" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w3" x="230" y="381" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w4" x="261" y="381" width="20" height="20" rx="2" fill="#fff"/></svg>
+    <svg class="brand-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainTown Realty"><defs><mask id="mtlMaskM4" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-m" pathLength="1" d="M146 412 L146 190 L256 315 L365 190 L365 412" fill="none" stroke="#fff" stroke-width="72" stroke-linejoin="round"/></mask><mask id="mtlMaskR4" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-r" pathLength="1" d="M160 218 L256 126 L352 218" fill="none" stroke="#fff" stroke-width="64" stroke-linejoin="round"/></mask></defs><rect width="512" height="512" rx="112" fill="#0b0b0f"/><polygon points="130,168 130,403 162,403 163,249 256,339 348,249 349,403 381,403 381,168 256,292" fill="#7a24ef" mask="url(#mtlMaskM4)"/><polygon points="172,193 196,215 255,155 316,216 340,193 256,109" fill="#7a24ef" mask="url(#mtlMaskR4)"/><rect class="mtl-w mtl-w1" x="230" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w2" x="261" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w3" x="230" y="381" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w4" x="261" y="381" width="20" height="20" rx="2" fill="#fff"/></svg>
     <div>
       <p class="brand-name">MainTown Realty</p>
       <p class="brand-tag">Own or rent, on your terms.</p>
@@ -3347,7 +3345,7 @@
 <div id="screen-3" class="screen hidden-screen">
 
   <div class="brand-row">
-    <svg class="brand-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainTown Realty"><rect width="512" height="512" rx="112" fill="#0b0b0f"/><polygon class="mtl-m" points="130,168 130,403 162,403 163,249 256,339 348,249 349,403 381,403 381,168 256,292" fill="#7a24ef"/><polygon class="mtl-roof" points="172,193 196,215 255,155 316,216 340,193 256,109" fill="#7a24ef"/><rect class="mtl-w mtl-w1" x="230" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w2" x="261" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w3" x="230" y="381" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w4" x="261" y="381" width="20" height="20" rx="2" fill="#fff"/></svg>
+    <svg class="brand-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainTown Realty"><defs><mask id="mtlMaskM5" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-m" pathLength="1" d="M146 412 L146 190 L256 315 L365 190 L365 412" fill="none" stroke="#fff" stroke-width="72" stroke-linejoin="round"/></mask><mask id="mtlMaskR5" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-r" pathLength="1" d="M160 218 L256 126 L352 218" fill="none" stroke="#fff" stroke-width="64" stroke-linejoin="round"/></mask></defs><rect width="512" height="512" rx="112" fill="#0b0b0f"/><polygon points="130,168 130,403 162,403 163,249 256,339 348,249 349,403 381,403 381,168 256,292" fill="#7a24ef" mask="url(#mtlMaskM5)"/><polygon points="172,193 196,215 255,155 316,216 340,193 256,109" fill="#7a24ef" mask="url(#mtlMaskR5)"/><rect class="mtl-w mtl-w1" x="230" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w2" x="261" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w3" x="230" y="381" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w4" x="261" y="381" width="20" height="20" rx="2" fill="#fff"/></svg>
     <div>
       <p class="brand-name">MainTown Realty</p>
       <p class="brand-tag">Own or rent, on your terms.</p>
@@ -3395,7 +3393,7 @@
 <div id="screen-login" class="screen hidden-screen">
 
   <div class="brand-row">
-    <svg class="brand-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainTown Realty"><rect width="512" height="512" rx="112" fill="#0b0b0f"/><polygon class="mtl-m" points="130,168 130,403 162,403 163,249 256,339 348,249 349,403 381,403 381,168 256,292" fill="#7a24ef"/><polygon class="mtl-roof" points="172,193 196,215 255,155 316,216 340,193 256,109" fill="#7a24ef"/><rect class="mtl-w mtl-w1" x="230" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w2" x="261" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w3" x="230" y="381" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w4" x="261" y="381" width="20" height="20" rx="2" fill="#fff"/></svg>
+    <svg class="brand-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainTown Realty"><defs><mask id="mtlMaskM6" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-m" pathLength="1" d="M146 412 L146 190 L256 315 L365 190 L365 412" fill="none" stroke="#fff" stroke-width="72" stroke-linejoin="round"/></mask><mask id="mtlMaskR6" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-r" pathLength="1" d="M160 218 L256 126 L352 218" fill="none" stroke="#fff" stroke-width="64" stroke-linejoin="round"/></mask></defs><rect width="512" height="512" rx="112" fill="#0b0b0f"/><polygon points="130,168 130,403 162,403 163,249 256,339 348,249 349,403 381,403 381,168 256,292" fill="#7a24ef" mask="url(#mtlMaskM6)"/><polygon points="172,193 196,215 255,155 316,216 340,193 256,109" fill="#7a24ef" mask="url(#mtlMaskR6)"/><rect class="mtl-w mtl-w1" x="230" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w2" x="261" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w3" x="230" y="381" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w4" x="261" y="381" width="20" height="20" rx="2" fill="#fff"/></svg>
     <div>
       <p class="brand-name">MainTown Realty</p>
       <p class="brand-tag">Own or rent, on your terms.</p>
