@@ -9745,7 +9745,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     return a.toLowerCase().includes(base) ? a : (a ? a + ', ' + m.name : m.name);
   }
   function populateCitySelects() {
-    const opt = m => `<option value="${m.id}">${m.name}${m.live ? '' : ' (coming soon)'}</option>`;
+    const opt = m => `<option value="${m.id}">${m.name}</option>`;
     const html = '<option value="">Select city</option>'
       + '<optgroup label="Nigeria">' + MARKETS.filter(m => m.country === 'Nigeria').map(opt).join('') + '</optgroup>'
       + '<optgroup label="Canada">' + MARKETS.filter(m => m.country === 'Canada').map(opt).join('') + '</optgroup>';
@@ -9756,10 +9756,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!hint) return;
     const m = MARKETS.find(x => x.id === sel.value);
     if (!m) { hint.className = 'mkt-city-hint'; hint.textContent = ''; return; }
-    hint.className = 'mkt-city-hint show' + (m.live ? ' live' : '');
-    hint.textContent = m.live
-      ? 'Live now: tenants in ' + m.name + ' will see this listing once it\u2019s published.'
-      : m.name + ' isn\u2019t open to tenants yet. Your listing is saved and goes live the day we launch there.';
+    hint.className = 'mkt-city-hint show live';
+    hint.textContent = 'Tenants in ' + m.name + ' will see this listing once it\u2019s published.';
   }
   document.addEventListener('change', (e) => { if (e.target && e.target.matches && e.target.matches('select[data-city-select]')) updateCityHint(e.target); });
   document.addEventListener('reset', () => setTimeout(() => document.querySelectorAll('select[data-city-select]').forEach(updateCityHint), 0));
@@ -9771,7 +9769,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
   let currentMarketId = 'lagos';
   try { const m = localStorage.getItem('mtr_market'); if (MARKETS.some(x => x.id === m)) currentMarketId = m; } catch (e) {}
   function currentMarket() { return MARKETS.find(m => m.id === currentMarketId) || MARKETS[0]; }
-  function marketIsLive() { return !!currentMarket().live; }
+  // A city is live when flagged live (Lagos) OR as soon as it has at least one published
+  // listing. Publishing the first listing in a city automatically removes "Coming soon"
+  // for tenants: no manual switch needed.
+  function marketHasListings(id) {
+    return rentListings().concat(landListingsList()).some(l => listingMarketId(l) === id);
+  }
+  function mktIsLive(m) { return !!m && (!!m.live || marketHasListings(m.id)); }
+  function marketIsLive() { return mktIsLive(currentMarket()); }
   function listingMarketId(l) {
     if (l && l.city && MARKETS.some(m => m.id === l.city)) return l.city;
     const loc = String((l && (l.location || l.address)) || '').toLowerCase();
@@ -9800,7 +9805,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function marketBarHTML() {
     const m = currentMarket();
-    return `<div class="mkt-bar"><button type="button" class="mkt-pill" data-mkt-open aria-label="Switch city">${MKT_SVG.pin}<span>${m.name}</span>${m.live ? '' : '<span class="mkt-pill-soon">Soon</span>'}${MKT_SVG.chev}</button><span class="mkt-bar-hint">${MARKETS.length} markets \u00b7 Nigeria &amp; Canada</span></div>`;
+    return `<div class="mkt-bar"><button type="button" class="mkt-pill" data-mkt-open aria-label="Switch city">${MKT_SVG.pin}<span>${m.name}</span>${mktIsLive(m) ? '' : '<span class="mkt-pill-soon">Soon</span>'}${MKT_SVG.chev}</button><span class="mkt-bar-hint">${MARKETS.length} markets \u00b7 Nigeria &amp; Canada</span></div>`;
   }
   function renderMarketBars() {
     const slot = document.getElementById('s5-market-bar');
@@ -9822,11 +9827,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function marketRowHTML(m) {
     const isCur = m.id === currentMarketId;
     let stats = '';
-    if (m.live) { const st = marketLiveStats(m.id); stats = `<div class="mkt-row-stats"><span>${st.total} live listings</span>${st.avg ? `<span>avg \u20a6${st.avg}k/mo</span>` : ''}</div>`; }
+    if (mktIsLive(m)) { const st = marketLiveStats(m.id); stats = `<div class="mkt-row-stats"><span>${st.total} live listings</span>${st.avg ? `<span>avg \u20a6${st.avg}k/mo</span>` : ''}</div>`; }
     return `<button type="button" class="mkt-row${isCur ? ' is-current' : ''}" data-mkt-row="${m.id}">
       <span class="mkt-thumb" style="background:linear-gradient(135deg,${m.c1},${m.c2});"><img src="${m.photo}" alt="" loading="lazy" onerror="this.style.display='none'"></span>
       <span class="mkt-row-main"><p class="mkt-row-name">${m.name}</p><p class="mkt-row-sub">${m.tagline}</p>${stats}</span>
-      <span class="mkt-tag ${m.live ? 'live' : 'soon'}">${m.live ? 'Live' : 'Soon'}</span>${MKT_SVG.right}
+      <span class="mkt-tag ${mktIsLive(m) ? 'live' : 'soon'}">${mktIsLive(m) ? 'Live' : 'Soon'}</span>${MKT_SVG.right}
     </button>`;
   }
 
@@ -9837,7 +9842,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const ca = MARKETS.filter(m => m.country === 'Canada');
     pane.innerHTML = `
       <div class="mkt-sheet-head">
-        <div><p class="mkt-sheet-title">Choose your market</p><p class="mkt-sheet-sub">${MARKETS.filter(m => m.live).length} live \u00b7 ${MARKETS.filter(m => !m.live).length} coming soon</p></div>
+        <div><p class="mkt-sheet-title">Choose your market</p><p class="mkt-sheet-sub">${MARKETS.filter(mktIsLive).length} live \u00b7 ${MARKETS.filter(m => !mktIsLive(m)).length} coming soon</p></div>
         <button type="button" class="sheet-close-btn" data-mkt-close aria-label="Close">${MKT_SVG.close}</button>
       </div>
       <p class="mkt-group-label">Nigeria</p>
@@ -9848,7 +9853,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   // Coming-soon preview: auto-playing photo "tour" (or a real video if m.video is set)
   function marketComingSoonHTML(m, mode) {
-    if (!m || m.live) return '';
+    if (!m || mktIsLive(m)) return '';
     const done = !!mktWaitlist[m.id];
     const media = m.video
       ? `<video class="mkt-hero-video" src="${m.video}" poster="${m.photo}" autoplay muted loop playsinline></video>`
@@ -9944,7 +9949,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const row = t.closest('[data-mkt-row]');
     if (row) {
       const m = MARKETS.find(x => x.id === row.dataset.mktRow);
-      if (m && m.live) setMarket(m.id); else if (m) showMarketDetail(m.id);
+      if (m && mktIsLive(m)) setMarket(m.id); else if (m) showMarketDetail(m.id);
       return;
     }
     const sel = t.closest('[data-mkt-select]');
@@ -13245,7 +13250,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     };
     const list = document.getElementById('s5-landlord-list');
     const myProps = myProperties();
-    if (!myProps.length) {
+    const liveAgentListings = agentListings.filter(l => l.ownerId === getCurrentUserId() && l.workflowStatus === 'LIVE');
+    if (!myProps.length && !liveAgentListings.length) {
       list.innerHTML = `<p class="role-hint" style="text-align:left;">No properties or inspection requests yet.</p>`;
       if (window.lucide) lucide.createIcons();
       renderLandlordInspectionsManager();
@@ -13287,6 +13293,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
           </div>
         </div>`;
     }).join('');
+    // Agent-submitted listings that have passed legal review and are live.
+    list.insertAdjacentHTML('beforeend', liveAgentListings.map(l => `
+        <div class="s5-list-item">
+          <div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+          <div class="s5-list-text">
+            <p class="s5-list-title">${l.title}</p>
+            <p class="s5-list-sub">${l.address} \u00b7 Agent: ${l.agentName || 'MainTown Agent'}</p>
+            <button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="preview" data-listing-id="${l.listingId}"><i data-lucide="eye" class="w-3 h-3"></i>Preview</button>
+          </div>
+          <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
+            <button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>
+          </div>
+        </div>`).join(''));
     if (window.lucide) lucide.createIcons();
     renderLandlordInspectionsManager();
   }
@@ -14498,6 +14517,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     showToast("Approved — title documents submitted to MainTown's legal review queue");
 
     pushPlatformNotification(
+      'landlord', 'listing', 'Listing Submitted for Legal Review',
+      `You approved "${entry.title}" and submitted your title documents. MainTown is reviewing them now, and we'll notify you the moment it goes live. It will then appear under My Properties.`,
+      null, 'listing_verification', null, entry.ownerId
+    );
+    pushPlatformNotification(
       'agent', 'listing', 'Landlord Verified — In Legal Review',
       `${landlordUser.name} approved "${entry.title}" and uploaded title documents. It's now in MainTown's legal review queue.`,
       null, 'listing_verification', null, entry.agentId
@@ -14536,6 +14560,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
       `"${stillPending.title}" passed legal review and is now live on the marketplace.`,
       null, 'listing_verification', null, stillPending.agentId
     );
+    // If the landlord is looking at My Properties right now, show the newly live listing there.
+    const s5El = document.getElementById('screen-5'), llv = document.getElementById('landlord-view');
+    if (s5El && !s5El.classList.contains('hidden') && llv && !llv.classList.contains('hidden') && typeof renderLandlordList === 'function') renderLandlordList();
     window.dispatchEvent(new Event('maintown_state_updated'));
   }
 
@@ -14546,7 +14573,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const wrap = document.getElementById('s5-landlord-verify-queue');
     if (!wrap) return;
     const uid = getCurrentUserId();
-    const mine = agentListings.filter(l => l.ownerId === uid && l.workflowStatus);
+    // Only items that still need the landlord's action live here. Once confirmed, the
+    // listing leaves this section; progress is reported in the Notification Center and
+    // it reappears under My Properties when it goes live.
+    const mine = agentListings.filter(l => l.ownerId === uid && l.workflowStatus === 'PENDING_LANDLORD_VERIFICATION');
     if (!mine.length) { wrap.innerHTML = ''; return; }
     wrap.innerHTML = `<p class="s5-section-label"><i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i>Agent-Submitted Listings</p>` +
       mine.map(l => {
