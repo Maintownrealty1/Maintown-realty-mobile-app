@@ -5951,7 +5951,7 @@
 
 <!-- Enterprise Upgrade Modal: Step 1 payment, Step 2 company setup -->
 <div id="ent-upgrade-modal" class="modal-overlay">
-  <div class="modal-card" style="max-width:400px;">
+  <div class="modal-card" style="max-width:400px; max-height:92vh; overflow-y:auto;">
 
     <div id="ent-upgrade-step-pay">
       <div class="modal-icon-wrap"><i data-lucide="building-2" class="w-8 h-8 text-purple-400"></i></div>
@@ -5959,9 +5959,55 @@
       <p class="modal-sub">Unlock team roles, bulk CSV property uploads, and your own branded company listings.</p>
       <div class="ent-metric-card" style="margin-bottom:18px; text-align:center;">
         <p class="ent-metric-label">One-Time Upgrade Fee</p>
-        <p class="ent-metric-value" style="font-size:22px;">₦150,000</p>
+        <p class="ent-metric-value" style="font-size:22px;" id="ent-upgrade-fee-text">₦150,000</p>
       </div>
-      <button type="button" id="ent-upgrade-pay-btn" class="btn-primary"><i data-lucide="credit-card" class="w-4 h-4"></i> Pay with Flutterwave</button>
+
+      <!-- Payment source: deduct from funded wallet OR pay directly by card -->
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
+        <button type="button" class="pay-option selected" id="ent-upgrade-src-wallet" data-source="wallet">
+          <div class="pay-option-icon-wrap bg-purple-500/10"><i data-lucide="wallet" class="w-5 h-5 text-purple-400"></i></div>
+          <div class="pay-option-text">
+            <p class="pay-option-label">MainTown Wallet</p>
+            <p class="pay-option-detail">Available balance: <span id="ent-upgrade-wallet-balance">₦0</span></p>
+          </div>
+          <div class="pay-option-check"><i data-lucide="check" class="w-3 h-3"></i></div>
+        </button>
+        <button type="button" class="pay-option" id="ent-upgrade-src-card" data-source="card">
+          <div class="pay-option-icon-wrap bg-blue-500/10"><i data-lucide="credit-card" class="w-5 h-5 text-blue-400"></i></div>
+          <div class="pay-option-text">
+            <p class="pay-option-label">Pay with Card</p>
+            <p class="pay-option-detail">Debit/Credit card — charged directly</p>
+          </div>
+          <div class="pay-option-check"><i data-lucide="check" class="w-3 h-3"></i></div>
+        </button>
+      </div>
+
+      <!-- Wallet shortfall notice + Fund Wallet shortcut -->
+      <div id="ent-upgrade-wallet-low" style="display:none; margin-bottom:12px;">
+        <p class="modal-sub" style="color:#f87171; margin:0 0 8px;">Your wallet balance is below the upgrade fee. Fund your wallet, or switch to card payment.</p>
+        <button type="button" id="ent-upgrade-fund-btn" class="btn-secondary" style="margin-bottom:0;"><i data-lucide="arrow-down-circle" class="w-4 h-4" style="display:inline-block; vertical-align:-3px; margin-right:4px;"></i>Fund Wallet</button>
+      </div>
+
+      <!-- Direct card form (never stored — used once for this charge) -->
+      <div id="ent-upgrade-card-form" style="display:none; margin-bottom:12px;">
+        <div class="field">
+          <label class="field-label">Card Number</label>
+          <input class="field-input" id="ent-upgrade-card-number" type="text" inputmode="numeric" autocomplete="cc-number" maxlength="19" placeholder="0000 0000 0000 0000">
+        </div>
+        <div style="display:flex; gap:10px;">
+          <div class="field" style="flex:1;">
+            <label class="field-label">Expiry</label>
+            <input class="field-input" id="ent-upgrade-card-expiry" type="text" inputmode="numeric" autocomplete="cc-exp" maxlength="5" placeholder="MM/YY">
+          </div>
+          <div class="field" style="flex:1;">
+            <label class="field-label">CVV</label>
+            <input class="field-input" id="ent-upgrade-card-cvv" type="password" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="•••">
+          </div>
+        </div>
+        <p class="modal-sub" id="ent-upgrade-card-error" style="display:none; color:#f87171; margin:0;"></p>
+      </div>
+
+      <button type="button" id="ent-upgrade-pay-btn" class="btn-primary"><i data-lucide="credit-card" class="w-4 h-4"></i> Pay from Wallet</button>
       <button type="button" id="ent-upgrade-cancel-btn" class="btn-secondary">Cancel</button>
     </div>
 
@@ -20835,6 +20881,8 @@ available in the Post-Lease Hub and this chat thread.`
       document.getElementById('ent-upgrade-promo-card').addEventListener('click', () => {
         document.getElementById('ent-upgrade-step-pay').style.display = 'block';
         document.getElementById('ent-upgrade-step-setup').style.display = 'none';
+        entUpgradePaySource = 'wallet';
+        refreshEntUpgradeModal();
         document.getElementById('ent-upgrade-modal').classList.add('open');
       });
     }
@@ -20846,18 +20894,138 @@ available in the Post-Lease Hub and this chat thread.`
   document.getElementById('ent-upgrade-cancel-btn').addEventListener('click', () => {
     document.getElementById('ent-upgrade-modal').classList.remove('open');
   });
+  // ---- Pay step: MainTown Wallet (real deduction) OR direct card charge ----
+  // The fee lives in one constant so the pricing model can change in one place.
+  const ENT_UPGRADE_FEE_NGN = 150000;
+  let entUpgradePaySource = 'wallet'; // 'wallet' | 'card'
+
+  function entUpgradePayLabel() {
+    return entUpgradePaySource === 'card' ? 'Pay by Card' : 'Pay from Wallet';
+  }
+  function refreshEntUpgradeModal() {
+    const uid = getCurrentUserId();
+    const bal = uid ? getWalletBalance(uid) : 0;
+    const enough = bal >= ENT_UPGRADE_FEE_NGN;
+    const feeEl = document.getElementById('ent-upgrade-fee-text');
+    if (feeEl) feeEl.textContent = formatMoney(ENT_UPGRADE_FEE_NGN, 'ngn');
+    const balEl = document.getElementById('ent-upgrade-wallet-balance');
+    if (balEl) balEl.textContent = formatMoney(bal, 'ngn');
+    document.getElementById('ent-upgrade-src-wallet')?.classList.toggle('selected', entUpgradePaySource === 'wallet');
+    document.getElementById('ent-upgrade-src-card')?.classList.toggle('selected', entUpgradePaySource === 'card');
+    const low = document.getElementById('ent-upgrade-wallet-low');
+    if (low) low.style.display = (entUpgradePaySource === 'wallet' && !enough) ? 'block' : 'none';
+    const form = document.getElementById('ent-upgrade-card-form');
+    if (form) form.style.display = entUpgradePaySource === 'card' ? 'block' : 'none';
+    const btn = document.getElementById('ent-upgrade-pay-btn');
+    if (btn && !btn.disabled) btn.innerHTML = '<i data-lucide="credit-card" class="w-4 h-4"></i> ' + entUpgradePayLabel();
+    const err = document.getElementById('ent-upgrade-card-error');
+    if (err) err.style.display = 'none';
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('ent-upgrade-src-wallet').addEventListener('click', () => { entUpgradePaySource = 'wallet'; refreshEntUpgradeModal(); });
+  document.getElementById('ent-upgrade-src-card').addEventListener('click', () => { entUpgradePaySource = 'card'; refreshEntUpgradeModal(); });
+
+  // Fund Wallet shortcut — the Fund modal stacks above this one; the balance and
+  // shortfall notice refresh automatically once the top-up lands.
+  document.getElementById('ent-upgrade-fund-btn').addEventListener('click', () => {
+    const uid = getCurrentUserId();
+    const shortfall = Math.max(ENT_UPGRADE_FEE_NGN - (uid ? getWalletBalance(uid) : 0), 0);
+    openFundWalletModal();
+    if (shortfall > 0) document.getElementById('fw-amount').value = String(shortfall);
+  });
+  window.addEventListener('maintown_state_updated', () => {
+    const m = document.getElementById('ent-upgrade-modal');
+    if (m && m.classList.contains('open') && document.getElementById('ent-upgrade-step-pay').style.display !== 'none') refreshEntUpgradeModal();
+  });
+
+  // Card field formatting (digits only, grouped; MM/YY)
+  document.getElementById('ent-upgrade-card-number').addEventListener('input', (e) => {
+    const d = e.target.value.replace(/\D/g, '').slice(0, 16);
+    e.target.value = d.replace(/(.{4})/g, '$1 ').trim();
+  });
+  document.getElementById('ent-upgrade-card-expiry').addEventListener('input', (e) => {
+    const d = e.target.value.replace(/\D/g, '').slice(0, 4);
+    e.target.value = d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d;
+  });
+  document.getElementById('ent-upgrade-card-cvv').addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+  });
+  function validateEntUpgradeCard() {
+    const num = document.getElementById('ent-upgrade-card-number').value.replace(/\D/g, '');
+    const exp = document.getElementById('ent-upgrade-card-expiry').value;
+    const cvv = document.getElementById('ent-upgrade-card-cvv').value;
+    if (num.length < 16) return 'Enter a valid 16-digit card number.';
+    const m = /^(\d{2})\/(\d{2})$/.exec(exp);
+    if (!m) return 'Enter the expiry date as MM/YY.';
+    const mm = parseInt(m[1], 10), yy = 2000 + parseInt(m[2], 10);
+    if (mm < 1 || mm > 12) return 'Enter a valid expiry month.';
+    const now = new Date();
+    if (yy < now.getFullYear() || (yy === now.getFullYear() && mm < now.getMonth() + 1)) return 'This card has expired.';
+    if (cvv.length < 3) return 'Enter the 3-digit CVV on your card.';
+    return '';
+  }
+
   document.getElementById('ent-upgrade-pay-btn').addEventListener('click', (e) => {
     const btn = e.currentTarget;
+    if (btn.disabled) return;
+    const uid = getCurrentUserId();
+    if (!uid) { showToast('Please log in to continue'); return; }
+
+    if (entUpgradePaySource === 'wallet') {
+      if (getWalletBalance(uid) < ENT_UPGRADE_FEE_NGN) {
+        refreshEntUpgradeModal();
+        showToast('Insufficient wallet balance — fund your wallet or pay by card');
+        return;
+      }
+    } else {
+      const cardErr = validateEntUpgradeCard();
+      const errEl = document.getElementById('ent-upgrade-card-error');
+      if (cardErr) { errEl.textContent = cardErr; errEl.style.display = 'block'; return; }
+      errEl.style.display = 'none';
+    }
+
     btn.disabled = true;
     btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4"></i> Processing payment…';
     if (window.lucide) lucide.createIcons();
     setTimeout(() => {
+      if (entUpgradePaySource === 'wallet') {
+        // Real deduction — no overdraft.
+        if (!debitWallet(uid, ENT_UPGRADE_FEE_NGN)) {
+          btn.disabled = false;
+          refreshEntUpgradeModal();
+          showToast('Insufficient wallet balance — fund your wallet or pay by card');
+          return;
+        }
+        recordTransaction({
+          userId: uid, direction: 'debit', category: 'UPGRADE_FEE',
+          title: 'Scale to Developer — Upgrade Fee',
+          amount: ENT_UPGRADE_FEE_NGN, status: 'SUCCESSFUL',
+          meta: { sender: 'You (MainTown Wallet)', recipient: 'MainTown Realty', feeType: 'Developer Upgrade Fee', escrowStatus: 'Settled immediately' }
+        });
+      } else {
+        // Direct card charge (simulated). Ledger stays consistent with the wallet balance:
+        // logged as an instant card top-up plus the matching fee debit (net wallet change ₦0).
+        recordTransaction({
+          userId: uid, direction: 'credit', category: 'TOPUP',
+          title: 'Card Payment — Developer Upgrade',
+          amount: ENT_UPGRADE_FEE_NGN, status: 'SUCCESSFUL',
+          meta: { sender: 'Debit/Credit Card', recipient: 'MainTown Realty', feeType: 'Developer Upgrade Fee' }
+        });
+        recordTransaction({
+          userId: uid, direction: 'debit', category: 'UPGRADE_FEE',
+          title: 'Scale to Developer — Upgrade Fee',
+          amount: ENT_UPGRADE_FEE_NGN, status: 'SUCCESSFUL',
+          meta: { sender: 'You (Card)', recipient: 'MainTown Realty', feeType: 'Developer Upgrade Fee', escrowStatus: 'Settled immediately' }
+        });
+        ['ent-upgrade-card-number', 'ent-upgrade-card-expiry', 'ent-upgrade-card-cvv'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      }
       btn.disabled = false;
-      btn.innerHTML = '<i data-lucide="credit-card" class="w-4 h-4"></i> Pay with Flutterwave';
+      btn.innerHTML = '<i data-lucide="credit-card" class="w-4 h-4"></i> ' + entUpgradePayLabel();
       document.getElementById('ent-upgrade-step-pay').style.display = 'none';
       document.getElementById('ent-upgrade-step-setup').style.display = 'block';
+      showToast('Payment confirmed — set up your company');
       if (window.lucide) lucide.createIcons();
-    }, 1100);
+    }, 900);
   });
   document.getElementById('ent-setup-logo-upload').addEventListener('click', () => document.getElementById('ent-setup-logo-file').click());
   document.getElementById('ent-setup-logo-file').addEventListener('change', (e) => {
