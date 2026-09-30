@@ -3341,6 +3341,24 @@
   .s5-fav-btn.pop svg { animation: favPop .35s ease; }
   @keyframes favPop { 0% { transform: scale(1); } 45% { transform: scale(1.35); } 100% { transform: scale(1); } }
   #s5-listing-feed .s5-card-img-wrap:has(.s5-fav-btn) .s5-verified-badge { right: 44px; }
+  #mtl-saved { position: fixed; inset: 0; z-index: 100002; background: rgba(2,6,23,0.7); display: none; align-items: flex-end; justify-content: center; }
+  #mtl-saved.open { display: flex; }
+  #mtl-saved .sv-card { width: 100%; max-width: 430px; max-height: 78vh; display: flex; flex-direction: column; background: #0b1120; border: 1px solid #1e293b; border-bottom: none; border-radius: 22px 22px 0 0; padding: 14px 16px 20px; animation: svUp .28s cubic-bezier(.2,.9,.25,1); }
+  @keyframes svUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  #mtl-saved .sv-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  #mtl-saved .sv-head p { color: #fff; font-size: 16px; font-weight: 800; margin: 0; }
+  #mtl-saved .sv-close { background: none; border: none; color: #94a3b8; font-size: 26px; line-height: 1; cursor: pointer; padding: 0 4px; }
+  #mtl-saved .sv-list { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  #mtl-saved .sv-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 14px; background: rgba(15,23,42,0.85); border: 1px solid #1e293b; cursor: pointer; }
+  #mtl-saved .sv-item img { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
+  #mtl-saved .sv-txt { flex: 1; min-width: 0; }
+  #mtl-saved .sv-t { color: #fff; font-size: 13.5px; font-weight: 700; margin: 0 0 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #mtl-saved .sv-l { color: #94a3b8; font-size: 11.5px; margin: 0 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #mtl-saved .sv-chip { font-size: 10px; font-weight: 700; color: #c4b5fd; background: rgba(147,51,234,0.16); padding: 2px 8px; border-radius: 999px; }
+  #mtl-saved .sv-rm { background: none; border: none; color: #ff385c; font-size: 22px; cursor: pointer; padding: 6px 8px; }
+  #mtl-saved .sv-empty { color: #94a3b8; font-size: 13px; text-align: center; padding: 28px 12px; margin: 0; }
+  .sv-link { display: inline-flex; align-items: center; gap: 6px; margin: -8px 0 16px; padding: 7px 12px; border-radius: 999px; border: 1px solid #1e293b; background: rgba(15,23,42,0.8); color: #f9a8d4; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .sv-link svg { width: 14px; height: 14px; fill: #ff385c; stroke: #ff385c; }
   #mtl-dropup {
     position: fixed; left: 50%; bottom: 104px; z-index: 100001; width: calc(100% - 32px); max-width: 388px;
     transform: translate(-50%, 140%); opacity: 0; pointer-events: none;
@@ -9155,6 +9173,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (btn) { btn.disabled = assistCompareSel.length < 2; btn.textContent = `Compare selected (${assistCompareSel.length})`; }
   });
 
+  // ---- Heart helpers: rent listings go to the Inspection Cart; shortlets and land/property are saved to Favorites ----
+  function mtlSavedIds() { try { const a = JSON.parse(localStorage.getItem('maintown_saved')); return Array.isArray(a) ? a.map(String) : []; } catch (e) { return []; } }
+  function mtlSetSavedIds(a) { try { localStorage.setItem('maintown_saved', JSON.stringify(a)); } catch (e) {} }
+  function mtlFavOn(p) {
+    try {
+      return p.type === 'rent' ? cart.some(c => String(c.listingId) === String(p.id)) : mtlSavedIds().includes(String(p.id));
+    } catch (e) { return false; }
+  }
+  function mtlFavBtn(p) {
+    const on = mtlFavOn(p);
+    return `<button type="button" class="s5-fav-btn${on ? ' on' : ''}" data-listing-id="${p.id}" data-kind="${p.type === 'rent' ? 'cart' : 'saved'}" aria-label="${p.type === 'rent' ? 'Save to cart' : 'Save to favorites'}" aria-pressed="${on}"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-8.5-5.2-8.5-11.2C3.5 6.500 5.500 4.500 8 4.500c1.700 0 3.200.9 4 2.300.8-1.400 2.300-2.300 4-2.300 2.500 0 4.500 2 4.500 4.800 0 6-8.500 11.200-8.500 11.200z"/></svg></button>`;
+  }
+
   // ---- Tenant dashboard: "Homes for rent" + "Shortlets" horizontal rows ----
   // Reads the same live feed as Screen 5 (rentListings()), skips anything already
   // RENTED, and hides a row entirely when it has nothing to show. Tapping a card
@@ -9167,6 +9198,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const available = rentListings().filter(p => !isListingUnavailable(p) && inCurrentMarket(p) && p.title && (p.ngn || p.usd));
     const rents = available.filter(p => p.type === 'rent').slice(0, 8);
     const shorts = available.filter(p => p.type === 'shortlet').slice(0, 8);
+    const favOn = (id) => { try { return cart.some(c => String(c.listingId) === String(id)); } catch (e) { return false; } };
     const card = (p) => {
       const isShortlet = p.type === 'shortlet';
       const price = currentCurrency === 'usd' ? p.usd : p.ngn;
@@ -9175,6 +9207,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="dl-img-wrap">
           <img src="${p.img}" alt="${liEsc(p.title)}" loading="lazy" onerror="handleImgError(this,'${isShortlet ? 'shortlet' : 'rent'}')">
           ${isShortlet ? '<span class="dl-badge"><i data-lucide="calendar-days" class="w-3 h-3"></i>Shortlet</span>' : '<span class="dl-badge"><i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i>Preliminary Verification</span>'}
+          ${mtlFavBtn(p)}
         </div>
         <p class="dl-price">${price}</p>
         <p class="dl-title-line">${liEsc(p.title)}</p>
@@ -10651,7 +10684,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="s5-card-img-wrap">
           <img src="${p.img}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'${isShortlet ? 'shortlet' : 'rent'}')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Preliminary Verification</span>
-          ${(p.type === 'rent' && !unavailable) ? `<button type="button" class="s5-fav-btn${cart.some(c => String(c.listingId) === String(p.id)) ? ' on' : ''}" data-listing-id="${p.id}" aria-label="Save to cart" aria-pressed="${cart.some(c => String(c.listingId) === String(p.id))}"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-8.5-5.2-8.5-11.2C3.5 6.500 5.500 4.500 8 4.500c1.700 0 3.200.9 4 2.300.8-1.400 2.300-2.300 4-2.300 2.500 0 4.500 2 4.500 4.800 0 6-8.500 11.200-8.500 11.200z"/></svg></button>` : ''}
+          ${unavailable ? '' : mtlFavBtn(p)}
           ${isShortlet ? `<span class="s5-live-media-badge"><i data-lucide="calendar-days" class="w-3 h-3"></i>Shortlet</span>` : ''}
           ${p.hasVideo ? `<span class="s5-live-media-badge" style="${isShortlet ? 'top:38px;' : ''}"><i data-lucide="video" class="w-3 h-3"></i>Walkthrough Video</span>` : ''}
           ${unavailable ? `<div class="s5-status-banner-overlay"><span class="s5-status-banner-tag rented">RENTED</span></div>` : ''}
@@ -10696,6 +10729,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="s5-card-img-wrap" data-listing-id="${p.id}" data-slide-index="0">
           <img class="s5-slide-img" src="${photos[0]}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'land')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Preliminary Title Check</span>
+          ${unavailable ? '' : mtlFavBtn(p)}
           ${photos.length > 1 ? `
           <button type="button" class="s5-slide-nav prev" data-listing-id="${p.id}" data-dir="-1" aria-label="Previous photo"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
           <button type="button" class="s5-slide-nav next" data-listing-id="${p.id}" data-dir="1" aria-label="Next photo"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
@@ -11012,23 +11046,83 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.body.appendChild(du);
     const txt = du.querySelector('.du-txt'), act = du.querySelector('.du-act');
     let t = null;
-    function notice(msg, removed) {
+    let actKind = 'cart';
+    function notice(msg, removed, kind) {
       txt.textContent = msg;
+      actKind = kind || 'cart';
+      act.textContent = actKind === 'saved' ? 'View saved' : 'View cart';
       du.classList.toggle('off', !!removed);
       act.style.display = removed ? 'none' : '';
       du.classList.add('show');
       clearTimeout(t); t = setTimeout(() => du.classList.remove('show'), 3200);
     }
-    act.addEventListener('click', () => { du.classList.remove('show'); navigateTo('screen-cart'); });
+    act.addEventListener('click', () => { du.classList.remove('show'); if (actKind === 'saved') openSaved(); else navigateTo('screen-cart'); });
 
-    const feed = document.getElementById('s5-listing-feed');
-    feed.addEventListener('click', (e) => {
+    // ---- Saved favorites sheet (shortlets + land/property) ----
+    const sheet = document.createElement('div');
+    sheet.id = 'mtl-saved';
+    sheet.innerHTML = `<div class="sv-card" role="dialog" aria-modal="true" aria-label="Saved favorites">
+      <div class="sv-head"><p>Saved favorites</p><button type="button" class="sv-close" aria-label="Close">&times;</button></div>
+      <div class="sv-list"></div></div>`;
+    document.body.appendChild(sheet);
+    const svList = sheet.querySelector('.sv-list');
+    const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    function renderSaved() {
+      const items = mtlSavedIds().map(id => listings.find(l => String(l.id) === id)).filter(Boolean);
+      svList.innerHTML = items.length ? items.map(p => `
+        <div class="sv-item" data-id="${esc(p.id)}">
+          <img src="${esc(p.img)}" alt="" onerror="handleImgError(this,'${p.type === 'land' ? 'land' : 'shortlet'}')">
+          <div class="sv-txt"><p class="sv-t">${esc(p.title)}</p><p class="sv-l">${esc(p.location)}</p><span class="sv-chip">${p.type === 'land' ? 'Land / Property' : 'Shortlet'}</span></div>
+          <button type="button" class="sv-rm" data-id="${esc(p.id)}" aria-label="Remove from favorites">&#9829;</button>
+        </div>`).join('') : '<p class="sv-empty">Nothing saved yet. Tap the heart on a shortlet or land listing to save it here.</p>';
+    }
+    function openSaved() { renderSaved(); sheet.classList.add('open'); }
+    function closeSaved() { sheet.classList.remove('open'); }
+    window.mtlOpenSaved = openSaved;
+    sheet.addEventListener('click', (e) => {
+      if (e.target === sheet || e.target.closest('.sv-close')) { closeSaved(); return; }
+      const rm = e.target.closest('.sv-rm');
+      if (rm) { mtlSetSavedIds(mtlSavedIds().filter(x => x !== rm.dataset.id)); renderSaved(); syncHearts(); return; }
+      const it = e.target.closest('.sv-item');
+      if (it) { closeSaved(); openListingInfo(it.dataset.id); }
+    });
+    const cartScreen = document.getElementById('screen-cart');
+    if (cartScreen) {
+      const link = document.createElement('button');
+      link.type = 'button'; link.className = 'sv-link';
+      link.innerHTML = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-8.5-5.2-8.5-11.2C3.5 6.500 5.500 4.500 8 4.500c1.700 0 3.200.9 4 2.300.8-1.400 2.300-2.300 4-2.300 2.500 0 4.500 2 4.500 4.800 0 6-8.500 11.200-8.500 11.200z"/></svg><span>Saved shortlets &amp; land</span>';
+      const sub = cartScreen.querySelector('.s5-role-sub');
+      if (sub) sub.insertAdjacentElement('afterend', link);
+      link.addEventListener('click', openSaved);
+    }
+
+    function syncHearts() {
+      document.querySelectorAll('.s5-fav-btn').forEach((b) => {
+        const on = b.dataset.kind === 'saved'
+          ? mtlSavedIds().includes(String(b.dataset.listingId))
+          : cart.some(c => String(c.listingId) === String(b.dataset.listingId));
+        b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    }
+    window.mtlSyncHearts = syncHearts;
+    function onHeartClick(e) {
       const btn = e.target.closest('.s5-fav-btn');
       if (!btn) return;
       e.stopPropagation();
       if ((currentUserRole || 'tenant') !== 'tenant') return;
       const listing = listings.find(l => String(l.id) === btn.dataset.listingId);
       if (!listing) return;
+      if (btn.dataset.kind === 'saved') {
+        const ids = mtlSavedIds(), k = String(listing.id), pos = ids.indexOf(k);
+        if (pos > -1) { ids.splice(pos, 1); mtlSetSavedIds(ids); notice('Removed from your favorites', true); }
+        else {
+          ids.push(k); mtlSetSavedIds(ids);
+          btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
+          notice(`${listing.title} saved to your favorites`, false, 'saved');
+        }
+        syncHearts();
+        return;
+      }
       const at = cart.findIndex(c => String(c.listingId) === String(listing.id));
       if (at > -1) {
         cart.splice(at, 1);
@@ -11042,7 +11136,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       }
       saveCart();
       updateCartBadge();
-    }, true);
+      syncHearts();
+    }
+    ['s5-listing-feed', 'dash-listings-wrap'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('click', onHeartClick, true);
+    });
   })();
 
   // ==================================================================
@@ -16627,6 +16726,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!badge) return;
     badge.textContent = cart.length;
     badge.classList.toggle('show', cart.length > 0);
+    if (window.mtlSyncHearts) window.mtlSyncHearts();
   }
 
   function addToCart(listing) {
