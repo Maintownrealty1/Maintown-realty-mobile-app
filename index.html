@@ -3228,6 +3228,18 @@
   }
   #screen-ent-finance #ent-finance-home > .ent-stat-row { background: #0B0F19; padding-bottom: 10px; margin-bottom: 10px; }
   body.light-theme #screen-ent-finance #ent-finance-home > .ent-stat-row { background: #ffffff; }
+
+  /* ---- Click-down drawers (listing sheet + profile) ---- */
+  .li-drawer > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+  .li-drawer > summary::-webkit-details-marker { display: none; }
+  .li-drawer > summary::after { content: ''; width: 8px; height: 8px; border-right: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; transform: rotate(45deg); transition: transform .2s; margin-right: 4px; }
+  .li-drawer[open] > summary::after { transform: rotate(-135deg); }
+
+  .pf-drawer > summary { list-style: none; cursor: pointer; justify-content: space-between; }
+  .pf-drawer > summary::-webkit-details-marker { display: none; }
+  .pf-drawer > summary::after { content: ''; width: 8px; height: 8px; border-right: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; transform: rotate(45deg); transition: transform .2s; margin-right: 4px; margin-left: auto; }
+  .pf-drawer[open] > summary::after { transform: rotate(-135deg); }
+  .pf-drawer > summary > i { flex-shrink: 0; }
 </style>
 <style id="mtl-logo-anim">
   /* "M" and roof are written out stroke-by-stroke, then the windows pop in */
@@ -5917,8 +5929,8 @@
     <div class="pf-offline" id="profile-offline-numbers"></div>
   </section>
 
-  <!-- Account details -->
-  <p class="s5-section-label"><i data-lucide="id-card" class="w-4 h-4 text-purple-400"></i>Account details</p>
+  <details class="pf-drawer">
+    <summary class="s5-section-label"><i data-lucide="id-card" class="w-4 h-4 text-purple-400"></i>Account details</summary>
   <div class="pf-group pf-fields">
     <div class="pf-field">
       <label class="field-label" for="profile-email-input">Email address</label>
@@ -5931,9 +5943,10 @@
       <p class="profile-field-status" id="profile-phone-status"></p>
     </div>
   </div>
+  </details>
 
-  <!-- Preferences -->
-  <p class="s5-section-label"><i data-lucide="settings" class="w-4 h-4 text-purple-400"></i>Preferences</p>
+  <details class="pf-drawer">
+    <summary class="s5-section-label"><i data-lucide="settings" class="w-4 h-4 text-purple-400"></i>Preferences</summary>
   <div class="pr-toggle-row">
     <div class="pr-toggle-icon"><i data-lucide="moon" class="w-4 h-4" id="settings-theme-icon"></i></div>
     <div class="pr-toggle-text">
@@ -5945,13 +5958,17 @@
       <span class="pr-switch-track"><span class="pr-switch-thumb"></span></span>
     </label>
   </div>
+  </details>
 
-  <!-- Help -->
-  <p class="s5-section-label"><i data-lucide="circle-help" class="w-4 h-4 text-purple-400"></i>Frequently asked questions</p>
-  <div class="pf-group" id="profile-faq-list"></div>
+  <details class="pf-drawer">
+    <summary class="s5-section-label"><i data-lucide="circle-help" class="w-4 h-4 text-purple-400"></i>Frequently asked questions</summary>
+    <div class="pf-group" id="profile-faq-list"></div>
+  </details>
 
-  <p class="s5-section-label"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i>Policies</p>
-  <div class="pf-group" id="profile-policy-list"></div>
+  <details class="pf-drawer">
+    <summary class="s5-section-label"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i>Policies</summary>
+    <div class="pf-group" id="profile-policy-list"></div>
+  </details>
 
   <button type="button" id="profile-logout-btn" class="pf-logout">
     <i data-lucide="log-out" class="w-4 h-4"></i>Log Out
@@ -11140,7 +11157,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (window.lucide) lucide.createIcons();
   }
 
-  document.getElementById('s5-listing-feed').addEventListener('click', (e) => {
+  document.getElementById('s5-listing-feed').addEventListener('click', (e) => s5FeedHandle(e.target));
+  function s5FeedHandle(target) {
+    const e = { target };
     const wtBtn = e.target.closest('.wt-btn');
     const landBtn = e.target.closest('.land-pay-btn');
     const paymentOptionsBtn = e.target.closest('.payment-options-btn');
@@ -11198,7 +11217,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // enforced for the Schedule Inspection sub-option, same as before.
       if (listing && !isListingUnavailable(listing)) openPaymentOptionsModal(listing);
     }
-  });
+  }
 
   // ---- Listing information sheet (tap "Details" on any listing card) ----
   // Mirrors the Property Details panel on maintownrealty.com: location, type,
@@ -11246,9 +11265,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
     return bits.join(' ');
   }
   function liProxyClick(listingId, selector) {
-    const card = document.querySelector(`#s5-listing-feed .s5-card[data-listing-id="${listingId}"]`);
-    const btn = card && card.querySelector(selector);
-    if (btn && !btn.disabled) btn.click();
+    // Don't rely on the feed DOM: the card only exists once the feed has been
+    // rendered, which made the first tap do nothing. Build a detached button
+    // carrying the same data attributes and run it through the feed handler.
+    const p = listings.find(l => String(l.id) === String(listingId));
+    if (!p) return;
+    const wrap = document.createElement('div');
+    const btn = document.createElement('button');
+    btn.className = selector.replace(/^\./, '');
+    btn.dataset.listingId = String(p.id);
+    btn.dataset.title = p.title || '';
+    wrap.appendChild(btn);
+    s5FeedHandle(btn);
   }
   // Owner-preview state (Landlord / Agent tapping "Preview" on their own card).
   let liPreviewListing = null;   // listing shown in preview mode, else null
@@ -11346,9 +11374,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
     const amen = liAmenities(p);
     const amenHtml = amen.length ? `
-      <div class="li-section"><p class="li-h">Other details</p>
+      <details class="li-section li-drawer"><summary class="li-h">Other details</summary>
         <div class="li-chips" style="margin:0;">${amen.map(a => `<span class="li-chip">${liEsc(a)}</span>`).join('')}</div>
-      </div>` : '';
+      </details>` : '';
 
     document.getElementById('li-body').innerHTML = `
       <h2 class="li-title">${liEsc(p.title)}</h2>
@@ -11356,10 +11384,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <p class="li-price">${liEsc(priceMain)}<small>${liEsc(priceUnit)}</small></p>
       <div class="li-chips">${chips.join('')}</div>
       ${preview ? `<p class="li-preview-note"><i data-lucide="eye"></i><span>${liEsc(opts.statusLabel || 'Preview')}. This is exactly how tenants see your listing; the buttons below are inactive in preview.</span></p>` : ''}
-      <div class="li-section"><p class="li-h">About this listing</p><p class="li-story">${liEsc(liStory(p))}</p></div>
-      <div class="li-section"><p class="li-h">Property details</p><div class="li-rows">${details.join('')}</div></div>
-      <div class="li-section"><p class="li-h">Agent, legal and other fees</p><div class="li-rows">${fees.join('')}</div>
-        <p class="li-note">Final amounts are confirmed and itemised before any payment.</p></div>
+      <details class="li-section li-drawer" open><summary class="li-h">About this listing</summary><p class="li-story">${liEsc(liStory(p))}</p></details>
+      <details class="li-section li-drawer" open><summary class="li-h">Property details</summary><div class="li-rows">${details.join('')}</div></details>
+      <details class="li-section li-drawer"><summary class="li-h">Agent, legal and other fees</summary><div class="li-rows">${fees.join('')}</div>
+        <p class="li-note">Final amounts are confirmed and itemised before any payment.</p></details>
       ${amenHtml}
       ${unavailable ? `<p class="li-note" style="margin-bottom:12px;">This property is no longer available.</p>` : ''}`;
 
