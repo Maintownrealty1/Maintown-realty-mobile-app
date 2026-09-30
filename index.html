@@ -3532,6 +3532,12 @@
     </div>
 
     <div class="field">
+      <label class="field-label">BVN (Bank Verification Number)</label>
+      <input class="field-input" id="reg-bvn" type="text" inputmode="numeric" maxlength="11" required placeholder="11-digit BVN" autocomplete="off">
+      <p style="font-size:11px; color:#64748b; margin:6px 2px 0;">Required to create your secure MainTown wallet and payout account. Dial *565*0# on your registered phone to get your BVN.</p>
+    </div>
+
+    <div class="field">
       <label class="field-label">Password</label>
       <div class="password-wrap">
         <input class="field-input" id="password-input" type="password" required placeholder="Create a password">
@@ -4222,7 +4228,7 @@
 
             <div class="s5-notice-box" style="margin-top:10px;">
               <i data-lucide="shield-check" class="w-5 h-5"></i>
-              <p>The landlord sets up their own payout bank account and BVN/NIN when they claim their account — you won't need to enter those on their behalf.</p>
+              <p>The landlord sets up their own payout bank account and BVN when they claim their account — you won't need to enter those on their behalf.</p>
             </div>
           </div>
         </div>
@@ -4404,6 +4410,10 @@
       <div class="field">
         <label class="field-label">Account Number</label>
         <input class="field-input" id="ent-wallet-bank-account" type="text" inputmode="numeric" maxlength="10" placeholder="10-digit NUBAN">
+      </div>
+      <div class="field">
+        <label class="field-label">BVN</label>
+        <input class="field-input" id="ent-wallet-bvn" type="text" inputmode="numeric" maxlength="11" placeholder="11-digit BVN" autocomplete="off">
       </div>
       <button type="button" id="ent-wallet-save-bank-btn" class="btn-secondary" style="margin-bottom:14px;">Save Settlement Account</button>
       <button type="button" id="ent-wallet-withdraw-btn" class="btn-primary">Withdraw Funds</button>
@@ -6221,8 +6231,8 @@
       <input class="field-input" id="va-bank-account" type="text" placeholder="10-digit NUBAN account number" inputmode="numeric" maxlength="10">
     </div>
     <div class="field">
-      <label class="field-label">BVN or NIN</label>
-      <input class="field-input" id="va-bvn-nin" type="text" placeholder="11-digit BVN or NIN" inputmode="numeric" maxlength="11">
+      <label class="field-label">BVN</label>
+      <input class="field-input" id="va-bvn-nin" type="text" placeholder="11-digit BVN" inputmode="numeric" maxlength="11" autocomplete="off">
     </div>
     <button type="button" id="va-resolve-nuban-btn" class="btn-secondary" style="margin-bottom:10px;">
       <i data-lucide="search-check" class="w-3.5 h-3.5"></i> Resolve Account Name
@@ -6270,13 +6280,24 @@
     <p class="modal-sub" id="lv-listing-summary">—</p>
 
     <p class="s5-section-label" style="margin-top:4px;"><i data-lucide="banknote" class="w-4 h-4 text-purple-400"></i>Confirm Payout Bank Account</p>
-    <div class="field">
-      <label class="field-label">Settlement Bank Account Number</label>
-      <input class="field-input" id="lv-bank-account" type="text" inputmode="numeric" maxlength="10" placeholder="10-digit NUBAN account number">
+    <!-- Shown instead of the inputs when the landlord already gave their payout
+         account and BVN at the Vendor Activation gate — never asked twice. -->
+    <div class="rent-badge" id="lv-bank-onfile" style="display:none; align-items:center; gap:6px; margin-bottom:14px;">
+      <i data-lucide="badge-check" class="w-3.5 h-3.5"></i><span>—</span>
     </div>
-    <div class="field">
-      <label class="field-label">Settlement Bank Name</label>
-      <input class="field-input" id="lv-bank-name" type="text" placeholder="e.g. GTBank, Access Bank">
+    <div id="lv-bank-inputs">
+      <div class="field">
+        <label class="field-label">Settlement Bank Account Number</label>
+        <input class="field-input" id="lv-bank-account" type="text" inputmode="numeric" maxlength="10" placeholder="10-digit NUBAN account number">
+      </div>
+      <div class="field">
+        <label class="field-label">Settlement Bank Name</label>
+        <input class="field-input" id="lv-bank-name" type="text" placeholder="e.g. GTBank, Access Bank">
+      </div>
+    </div>
+    <div class="field" id="lv-bvn-field" style="display:none;">
+      <label class="field-label">BVN</label>
+      <input class="field-input" id="lv-bvn" type="text" inputmode="numeric" maxlength="11" placeholder="11-digit BVN" autocomplete="off">
     </div>
 
     <p class="s5-section-label"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i>Title Verification Documents</p>
@@ -7468,9 +7489,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const otpModal = document.getElementById('otp-modal');
   const closeModal = document.getElementById('close-modal');
 
+  const regBvnInput = document.getElementById('reg-bvn');
+  regBvnInput.addEventListener('input', () => { regBvnInput.value = regBvnInput.value.replace(/\D/g, '').slice(0, 11); });
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     if (!currentUserRole) return;
+    // Flutterwave sub-account creation requires a BVN for every user.
+    if (!/^\d{11}$/.test(regBvnInput.value.trim())) {
+      showToast('Enter your 11-digit BVN to continue');
+      regBvnInput.focus();
+      return;
+    }
     otpModal.classList.add('open');
     document.querySelector('#otp-modal .otp-input').focus();
   });
@@ -14581,13 +14611,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
     // Step 1a: KYC — National ID/NIN + live selfie must both be uploaded.
     if (!vaKycComplete()) {
-      errText.textContent = 'Please upload your National ID/NIN and take a live selfie photo first.';
+      errText.textContent = 'Please upload your BVN slip/photo and take a live selfie first.';
       errEl.classList.add('show');
       return;
     }
     // Step 1b: Payout Account Details must be filled and valid.
     if (!bankName || !bankAccount || !bvnNin) {
-      errText.textContent = 'Please complete Step 1 — payout bank account and BVN/NIN — first.';
+      errText.textContent = 'Please complete Step 1 — payout bank account and BVN — first.';
       errEl.classList.add('show');
       return;
     }
@@ -14596,8 +14626,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       errEl.classList.add('show');
       return;
     }
-    if (!/^\d{10,11}$/.test(bvnNin)) {
-      errText.textContent = 'BVN/NIN must be a 10 or 11-digit number.';
+    if (!/^\d{11}$/.test(bvnNin)) {
+      errText.textContent = 'BVN must be exactly 11 digits.';
       errEl.classList.add('show');
       return;
     }
@@ -14609,7 +14639,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
 
     const userId = getCurrentUserId();
-    setVendorActivated(userId, { bankName, bankAccount, bvnNin });
+    setVendorActivated(userId, { bankName, bankAccount, bvn: bvnNin });
     document.getElementById('vendor-activation-modal').classList.remove('open');
     showToast('Vendor account activated — dashboard unlocked');
     const cb = vendorActivationPendingCallback;
@@ -15211,13 +15241,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     landlordUser.welcomeAlerts = landlordUser.welcomeAlerts || [];
     landlordUser.welcomeAlerts.push({
       channel: 'WhatsApp/SMS/Email',
-      message: `${agentName} submitted "${listingTitle}" on MainTown Realty. Tap your invitation link (code ${inviteCode}) to confirm your payout account, approve the listing, and upload your title documents.`,
+      message: `${agentName} submitted "${listingTitle}" on MainTown Realty. Tap your invitation link (code ${inviteCode}) to approve the listing and upload your title documents.`,
       sentAt: Date.now()
     });
     saveAppState(appState);
     pushPlatformNotification(
       'landlord', 'listing', 'Listing Awaiting Your Verification',
-      `${agentName} submitted "${listingTitle}" for your review — confirm payout details & upload title documents to activate automated split-pay.`,
+      `${agentName} submitted "${listingTitle}" for your review — approve it & upload title documents to activate automated split-pay.`,
       null, 'listing_verification', null, landlordUser.id
     );
     window.dispatchEvent(new Event('maintown_state_updated'));
@@ -15446,8 +15476,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
     lvCurrentAgentListingId = agentListingId;
     lvSelectedDocs = {};
     document.getElementById('lv-listing-summary').textContent = `${entry.title} — ${entry.address}`;
-    document.getElementById('lv-bank-account').value = entry.landlordBankAccount || '';
-    document.getElementById('lv-bank-name').value = entry.landlordBankName || '';
+    const lvOwner = appState.users[entry.ownerId];
+    const lvBank = getPayoutOnFile(entry.ownerId);
+    const lvBadge = document.getElementById('lv-bank-onfile');
+    if (lvBank) {
+      lvBadge.style.display = 'flex';
+      lvBadge.querySelector('span').textContent = `Payout account confirmed: ${lvBank.bankName} •••• ${String(lvBank.accountNumber).slice(-4)}`;
+      document.getElementById('lv-bank-inputs').style.display = 'none';
+    } else {
+      lvBadge.style.display = 'none';
+      document.getElementById('lv-bank-inputs').style.display = 'block';
+      document.getElementById('lv-bank-account').value = entry.landlordBankAccount || '';
+      document.getElementById('lv-bank-name').value = entry.landlordBankName || '';
+    }
+    const lvHasBvn = !!getUserBvn(lvOwner);
+    document.getElementById('lv-bvn-field').style.display = lvHasBvn ? 'none' : 'block';
+    document.getElementById('lv-bvn').value = '';
     document.getElementById('lv-authorize-toggle').checked = false;
     renderLvDocOptions();
     document.getElementById('landlord-verify-modal').classList.add('open');
@@ -15483,13 +15527,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('lv-submit-btn').addEventListener('click', () => {
     const entry = agentListings.find(l => l.id === lvCurrentAgentListingId);
     if (!entry) { document.getElementById('landlord-verify-modal').classList.remove('open'); return; }
-    const bankAccount = document.getElementById('lv-bank-account').value.trim();
-    const bankName = document.getElementById('lv-bank-name').value.trim();
+    const onFile = getPayoutOnFile(entry.ownerId);
+    const bankAccount = onFile ? String(onFile.accountNumber) : document.getElementById('lv-bank-account').value.trim();
+    const bankName = onFile ? onFile.bankName : document.getElementById('lv-bank-name').value.trim();
+    const bvnOnFile = getUserBvn(appState.users[entry.ownerId]);
+    const bvnTyped = document.getElementById('lv-bvn').value.trim();
     const authorized = document.getElementById('lv-authorize-toggle').checked;
     const checkedBoxes = Array.from(document.querySelectorAll('.lv-doc-checkbox:checked'));
 
     if (!/^\d{10}$/.test(bankAccount) || !bankName) {
       showToast('Enter a valid 10-digit NUBAN account number and bank name');
+      return;
+    }
+    if (!bvnOnFile && !/^\d{11}$/.test(bvnTyped)) {
+      showToast('Enter your 11-digit BVN');
       return;
     }
     if (!checkedBoxes.length) {
@@ -15508,6 +15559,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Confirm the Landlord's payout details on their own account record.
     const landlordUser = ensureWalletRecord(entry.ownerId);
     landlordUser.settlementBank = { accountNumber: bankAccount, bankName: bankName };
+    if (!bvnOnFile) landlordUser.bvn = bvnTyped;
     saveAppState(appState);
 
     const titleDocuments = checkedBoxes.map(cb => {
@@ -15631,7 +15683,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const sessionUser = { id: uid, name: newAccount.fullName || ({ agent: 'Agent', landlord: 'Landlord', tenant: 'Tenant' }[role]), email: newAccount.email, role };
       appState = loadAppState();
       appState.users = appState.users || {};
-      if (!appState.users[uid]) appState.users[uid] = Object.assign({ status: 'ACTIVE' }, sessionUser);
+      if (!appState.users[uid]) appState.users[uid] = Object.assign({ status: 'ACTIVE' }, sessionUser, newAccount.bvn ? { bvn: newAccount.bvn } : {});
+      else if (newAccount.bvn && !appState.users[uid].bvn) appState.users[uid].bvn = newAccount.bvn;
       saveAppState(appState);
       saveCurrentUser(sessionUser);
     }
@@ -19427,6 +19480,7 @@ available in the Post-Lease Hub and this chat thread.`
       occupation: (document.getElementById('reg-occupation')?.value || '').trim(),
       email: (document.getElementById('reg-email')?.value || '').trim(),
       phone: (document.getElementById('reg-phone')?.value || '').trim(),
+      bvn: (document.getElementById('reg-bvn')?.value || '').trim(),
       countryCode: document.getElementById('country-code')?.value || '+234',
       photo: currentUserSelfieDataUrl || null
     };
@@ -19441,6 +19495,7 @@ available in the Post-Lease Hub and this chat thread.`
     const occEl = document.getElementById('reg-occupation'); if (occEl) occEl.value = account.occupation || '';
     const emailEl = document.getElementById('reg-email'); if (emailEl) emailEl.value = account.email || '';
     const phoneEl = document.getElementById('reg-phone'); if (phoneEl) phoneEl.value = account.phone || '';
+    const bvnEl = document.getElementById('reg-bvn'); if (bvnEl) bvnEl.value = account.bvn || '';
     const countryEl = document.getElementById('country-code'); if (countryEl && account.countryCode) countryEl.value = account.countryCode;
   }
 
@@ -19869,6 +19924,20 @@ available in the Post-Lease Hub and this chat thread.`
     if (v.kycCompleted) return true;
     return !(typeof DEMO_USERS !== 'undefined' && DEMO_USERS[userId]) ? false : true;
   }
+  // Single accessor for a user's BVN (11 digits). Falls back to the legacy
+  // `bvnNin` field only when it actually holds an 11-digit BVN-shaped value.
+  function getUserBvn(rec) {
+    if (!rec) return '';
+    if (/^\d{11}$/.test(rec.bvn || '')) return rec.bvn;
+    if (/^\d{11}$/.test(rec.bvnNin || '')) return rec.bvnNin;
+    return '';
+  }
+  // Payout account already captured (at the Vendor Activation gate or signup)?
+  function getPayoutOnFile(userId) {
+    const rec = userId ? appState.users[userId] : null;
+    const b = rec && rec.settlementBank;
+    return (b && /^\d{10}$/.test(String(b.accountNumber || '')) && b.bankName) ? b : null;
+  }
   function setVendorActivated(userId, accountDetails) {
     if (!appState.vendorActivation) appState.vendorActivation = {};
     appState.vendorActivation[userId] = {
@@ -19883,7 +19952,8 @@ available in the Post-Lease Hub and this chat thread.`
       const rec = appState.users[userId];
       if (rec) {
         rec.settlementBank = { bankName: accountDetails.bankName, accountNumber: accountDetails.bankAccount };
-        rec.bvnNin = accountDetails.bvnNin;
+        rec.bvn = accountDetails.bvn;
+        delete rec.bvnNin;
       }
     }
     saveAppState(appState);
@@ -19922,7 +19992,7 @@ available in the Post-Lease Hub and this chat thread.`
     const bank = (rec && rec.settlementBank) || {};
     document.getElementById('va-bank-name').value = bank.bankName || '';
     document.getElementById('va-bank-account').value = bank.accountNumber || '';
-    document.getElementById('va-bvn-nin').value = (rec && rec.bvnNin) || '';
+    document.getElementById('va-bvn-nin').value = getUserBvn(rec);
     document.getElementById('va-nuban-resolved').style.display = 'none';
     document.getElementById('va-policy-checkbox').checked = false;
     document.getElementById('va-error-msg').classList.remove('show');
@@ -19936,7 +20006,7 @@ available in the Post-Lease Hub and this chat thread.`
   // counter, its own upload-animation helper) so it never touches Screen 2's
   // own kycUploadedCount/updateKycContinueState state.
   const VA_KYC_ITEMS = [
-    { key: 'id', text: 'National ID / NIN', icon: 'id-card' },
+    { key: 'id', text: 'BVN Slip / Photo', icon: 'id-card' },
     { key: 'selfie', text: 'Live Photo (Selfie)', icon: 'camera', selfie: true }
   ];
   let vaKycUploadedCount = 0;
@@ -22570,14 +22640,18 @@ available in the Post-Lease Hub and this chat thread.`
     const bank = (appState.users[companyId] && appState.users[companyId].settlementBank) || {};
     document.getElementById('ent-wallet-bank-name').value = bank.bankName || '';
     document.getElementById('ent-wallet-bank-account').value = bank.accountNumber || '';
+    document.getElementById('ent-wallet-bvn').value = getUserBvn(appState.users[companyId]);
   }
   document.getElementById('ent-wallet-save-bank-btn').addEventListener('click', () => {
     const companyId = getEnterpriseCompanyId();
     if (getEnterpriseStaffRole() !== 'ceo' || !appState.users[companyId]) return;
+    const entBvn = document.getElementById('ent-wallet-bvn').value.trim();
+    if (!/^\d{11}$/.test(entBvn)) { showToast('Enter a valid 11-digit BVN to save your settlement account'); return; }
     appState.users[companyId].settlementBank = {
       bankName: document.getElementById('ent-wallet-bank-name').value.trim(),
       accountNumber: document.getElementById('ent-wallet-bank-account').value.trim(),
     };
+    appState.users[companyId].bvn = entBvn;
     saveAppState(appState);
     showToast('Settlement account updated');
   });
