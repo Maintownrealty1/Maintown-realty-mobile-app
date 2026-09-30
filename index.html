@@ -3990,6 +3990,12 @@
         </div>
       </div>
 
+      <!-- Land & Property size: entered manually by the Landlord/Owner. Never auto-calculated. -->
+      <div class="field" id="tv-sqm-field" style="display:none;">
+        <label class="field-label">Land / Property Size (sqm) — optional</label>
+        <input class="field-input" id="tv-sqm" type="number" min="1" step="any" inputmode="decimal" placeholder="e.g. 450">
+      </div>
+
       <!-- Caution Fee & Service Charge — Rent & Shortlet listings only. Paid
            straight to you alongside rent/shortlet payments; MainTown never
            collects either. -->
@@ -4135,6 +4141,12 @@
             <button type="button" class="toggle-pill active" id="s5-legal-pct-5" data-pct="5">5%</button>
             <button type="button" class="toggle-pill" id="s5-legal-pct-10" data-pct="10">10%</button>
           </div>
+        </div>
+
+        <!-- Land & Property size: entered manually by the Agent / Sales staff. Never auto-calculated. -->
+        <div class="field" id="s5-sqm-field" style="display:none;">
+          <label class="field-label">Land / Property Size (sqm) — optional</label>
+          <input class="field-input" id="s5-sqm" type="number" min="1" step="any" inputmode="decimal" placeholder="e.g. 450">
         </div>
 
         <!-- Caution Fee & Service Charge — Rent & Shortlet listings only.
@@ -10947,6 +10959,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <div class="s5-card-titlerow"><p class="s5-card-title">${p.title}</p><button type="button" class="s5-info-btn" data-listing-id="${p.id}" aria-label="View listing details"><i data-lucide="info" class="w-3.5 h-3.5"></i>Details</button></div>
           <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
           <p class="s5-card-price">${formatMoney(p.totalPrice, 'ngn')} <span>total price</span></p>
+          ${p.sqm ? `<p class="s5-card-location" style="margin:-4px 0 8px;"><i data-lucide="ruler" class="w-3.5 h-3.5"></i>${formatSqm(p.sqm)}</p>` : ''}
           ${p.titleTypeLabel ? `
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin: 2px 0 10px;">
             <span class="s5-status-badge insp-status-conducted" style="white-space:nowrap;"><i data-lucide="scroll-text" class="w-3 h-3"></i>${p.titleTypeLabel}</span>
@@ -11153,6 +11166,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     ];
     if (beds) details.push(row('Bedrooms', liEsc(beds)));
     if (p.bathrooms) details.push(row('Bathrooms', liEsc(p.bathrooms)));
+    if (isLand && p.sqm) details.push(row('Size', liEsc(formatSqm(p.sqm))));
     if (isLand && p.titleTypeLabel) details.push(row('Title document', liEsc(p.titleTypeLabel)));
     details.push(row('Listed by', liEsc(liListedBy(p))));
     if (dates) details.push(row('Inspection dates', `${dates} open`));
@@ -14439,6 +14453,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('tv-city-hint').className = 'mkt-city-hint';
     document.getElementById('tv-listing-type').value = 'rent';
     document.getElementById('tv-annual').value = '';
+    const tvSqmEl = document.getElementById('tv-sqm'); if (tvSqmEl) tvSqmEl.value = '';
     document.getElementById('tv-monthly-badge').style.display = 'none';
     document.getElementById('tv-fee-commission').textContent = '₦0';
     document.getElementById('tv-fee-legal').textContent = '₦0';
@@ -14678,7 +14693,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       listingsFeed.unshift({ ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: listingCoverImg(baseFields, 'shortlet') });
     } else {
       listingsFeed.unshift({
-        ...baseFields, type: 'land', totalPrice: annual, img: listingCoverImg(baseFields, 'land'),
+        ...baseFields, type: 'land', totalPrice: annual, ...(getLandSqm('tv') > 0 ? { sqm: getLandSqm('tv') } : {}), img: listingCoverImg(baseFields, 'land'),
         // Deed of Assignment legal/processing fee % (5 or 10, Owner-selected
         // at listing time) — paid to the Owner with the buyer's first
         // installment, never to MainTown.
@@ -15042,6 +15057,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const cautionServiceFields = document.getElementById(`${prefix}-caution-service-fields`);
     const feeLegalLabel = document.getElementById(`${prefix}-fee-legal-label`);
     if (legalPctField) legalPctField.style.display = type === 'land' ? 'block' : 'none';
+    const sqmField = document.getElementById(`${prefix}-sqm-field`);
+    if (sqmField) sqmField.style.display = type === 'land' ? 'block' : 'none';
     if (cautionServiceFields) cautionServiceFields.style.display = (type === 'rent' || type === 'shortlet') ? 'block' : 'none';
 
     // Inspection Availability is a Land/Rent-only concept — Short-Let tenants
@@ -15083,6 +15100,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       legalFeePct: (legalPct10Btn && legalPct10Btn.classList.contains('active')) ? 10 : 5
     };
   }
+  // Land/Property size in sqm — typed in manually by the Landlord, Agent or Sales staff.
+  function getLandSqm(prefix) {
+    const el = document.getElementById(`${prefix}-sqm`);
+    return el ? (parseFloat(el.value) || 0) : 0;
+  }
+  function formatSqm(n) { return `${Number(n).toLocaleString('en-NG', { maximumFractionDigits: 2 })} sqm`; }
   function setLegalPct(prefix, pct) {
     document.getElementById(`${prefix}-legal-pct-5`).classList.toggle('active', pct === 5);
     document.getElementById(`${prefix}-legal-pct-10`).classList.toggle('active', pct === 10);
@@ -15245,7 +15268,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         // Deed of Assignment legal/processing fee % (5 or 10, Owner-selected
         // at listing time) — paid to the Owner with the buyer's first
         // installment, never to MainTown.
-        listingData = { ...baseFields, type: 'land', totalPrice: annual, legalFeePct: feeFields.legalFeePct, img: listingCoverImg(baseFields, 'land') };
+        listingData = { ...baseFields, type: 'land', totalPrice: annual, ...(getLandSqm('s5') > 0 ? { sqm: getLandSqm('s5') } : {}), legalFeePct: feeFields.legalFeePct, img: listingCoverImg(baseFields, 'land') };
       }
       listingsFeed.unshift(listingData);
       saveListings();
@@ -15349,7 +15372,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // Deed of Assignment legal/processing fee % (5 or 10, Owner-selected at
       // listing time) — paid to the Owner with the buyer's first
       // installment, never to MainTown.
-      listingData = { ...baseFields, type: 'land', totalPrice: annual, legalFeePct: feeFields.legalFeePct, img: listingCoverImg(baseFields, 'land') };
+      listingData = { ...baseFields, type: 'land', totalPrice: annual, ...(getLandSqm('s5') > 0 ? { sqm: getLandSqm('s5') } : {}), legalFeePct: feeFields.legalFeePct, img: listingCoverImg(baseFields, 'land') };
     }
 
     agentListings.unshift({
