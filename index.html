@@ -9781,7 +9781,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   const AREA_TYPE_LABEL = { urban:'Urban areas', community:'Local communities' };
   const AREA_DATA = {
     lagos: [['Victoria Island','urban'],['Ikoyi','urban'],['Oniru','urban'],['Lekki Phase 1','urban'],['Ajah','urban'],['Yaba','urban'],['Surulere','urban'],['Ikeja GRA','urban'],['Maryland','urban'],['Gbagada','urban'],['Magodo','urban'],
-            ['Sangotedo','community'],['Awoyaya','community'],['Abijo','community'],['Lakowe','community'],['Ibeju-Lekki','community'],['Epe','community'],['Ikorodu','community'],['Badagry','community']],
+            ['Sangotedo','community'],['Awoyaya','community'],['Abijo','community'],['Lakowe','community'],['Ibeju-Lekki','community'],['Epe','community'],['Ikorodu','community'],['Badagry','community'],['Alimosho','community']],
     abuja: [['Maitama','urban'],['Asokoro','urban'],['Wuse 2','urban'],['Jabi','urban'],['Garki','urban'],['Gwarinpa','urban'],['Lugbe','community'],['Kubwa','community'],['Kuje','community'],['Gwagwalada','community']],
     ogun: [['Abeokuta','urban'],['Ijebu-Ode','urban'],['Sagamu','community'],['Sango Ota','community'],['Ifo','community'],['Mowe','community']],
     ibadan: [['Bodija','urban'],['Jericho','urban'],['Oluyole','urban'],['Akobo','community'],['Apata','community']],
@@ -9820,6 +9820,64 @@ This voucher is auto-generated and serves as proof of settlement.`;
       + (opts('community') ? `<optgroup label="${AREA_TYPE_LABEL.community}">${opts('community')}</optgroup>` : '');
     as.disabled = !cs.value || !list.length;
     as.value = '';
+  }
+
+  // ---- Listing filters: search + area + price + type (runs on the DATA, not the DOM) ----
+  // The upcoming filter drawer only has to call setS5Filters({...}); every feed
+  // render already goes through applyS5Filters(), so paging can slot in after it.
+  const S5_FILTER_DEFAULTS = { q: '', areas: [], areaType: '', minPrice: 0, maxPrice: 0, rentType: 'all', hasVideo: false, sort: 'default' };
+  let s5Filters = Object.assign({}, S5_FILTER_DEFAULTS, { areas: [] });
+  let s5SearchTimer = null;
+  function listingPriceNgn(l) {
+    if (!l) return 0;
+    if (typeof l.totalPrice === 'number') return l.totalPrice;
+    const raw = l.totalPrice != null ? l.totalPrice : l.ngn;
+    return parseInt(String(raw == null ? '' : raw).replace(/[^\d]/g, ''), 10) || 0;
+  }
+  function listingAreaObj(l) {
+    const id = listingAreaId(l);
+    return id ? (marketAreaList(listingMarketId(l)).find(a => a.id === id) || null) : null;
+  }
+  function applyS5Filters(list, kind) {
+    const f = s5Filters, q = String(f.q || '').trim().toLowerCase();
+    const validAreas = new Set(marketAreaList(currentMarketId).map(a => a.id));
+    const areaIds = f.areas.filter(id => validAreas.has(id));
+    const out = list.filter(l => {
+      const ar = listingAreaObj(l);
+      if (q && ![l.title, l.location, ar && ar.n].join(' ').toLowerCase().includes(q)) return false;
+      if (areaIds.length && !(ar && areaIds.includes(ar.id))) return false;
+      if (f.areaType && !(ar && ar.type === f.areaType)) return false;
+      const price = listingPriceNgn(l);
+      if (f.minPrice && price < f.minPrice) return false;
+      if (f.maxPrice && price > f.maxPrice) return false;
+      if (kind === 'rent' && f.rentType !== 'all' && l.type !== f.rentType) return false;
+      if (f.hasVideo && !l.hasVideo) return false;
+      return true;
+    });
+    if (f.sort === 'price-asc') out.sort((a, b) => listingPriceNgn(a) - listingPriceNgn(b));
+    else if (f.sort === 'price-desc') out.sort((a, b) => listingPriceNgn(b) - listingPriceNgn(a));
+    return out;
+  }
+  // Number for the filter-button badge (search text is not counted).
+  function s5ActiveFilterCount() {
+    const f = s5Filters;
+    return (f.areas.length ? 1 : 0) + (f.areaType ? 1 : 0) + ((f.minPrice || f.maxPrice) ? 1 : 0)
+      + (f.rentType !== 'all' ? 1 : 0) + (f.hasVideo ? 1 : 0) + (f.sort !== 'default' ? 1 : 0);
+  }
+  function rerenderS5Feed() {
+    if ((currentUserRole || 'tenant') !== 'tenant') return;
+    if (currentListingType === 'rent') renderTenantFeed(currentCurrency); else renderLandFeed();
+  }
+  function setS5Filters(patch) { Object.assign(s5Filters, patch); rerenderS5Feed(); }
+  function clearS5Filters(keepQuery) {
+    const q = keepQuery ? s5Filters.q : '';
+    s5Filters = Object.assign({}, S5_FILTER_DEFAULTS, { areas: [], q });
+  }
+  function s5NoMatchHTML() {
+    return '<div style="text-align:center;padding:36px 16px;color:#94a3b8;">'
+      + '<p style="font-weight:700;color:#e2e8f0;margin-bottom:6px;">No listings match</p>'
+      + '<p style="font-size:13px;margin-bottom:14px;">Try a different search or clear your filters.</p>'
+      + '<button type="button" class="mkt-btn ghost" data-s5-clear-filters>Clear filters</button></div>';
   }
 
   // ---- City field on listing forms (landlord / agent / sales) ----
@@ -10031,6 +10089,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!MARKETS.some(m => m.id === id)) return;
     currentMarketId = id;
     try { localStorage.setItem('mtr_market', id); } catch (e) {}
+    s5Filters.areas = []; s5Filters.areaType = '';
     closeMarketSheet();
     refreshMarketViews();
   }
@@ -10207,6 +10266,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // exclusively by navigateTo() — populateScreen5() only fills in content.
 
     document.getElementById('s5-search-input').value = '';
+    s5Filters.q = '';
 
     if (role === 'tenant') {
       document.getElementById('s5-currency-toggle-wrap').style.display = currentListingType === 'rent' ? 'flex' : 'none';
@@ -10233,6 +10293,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   // ---- Tenant view: For Rent / Buy Land toggle ----
   document.getElementById('s5-tab-rent').addEventListener('click', () => {
+    clearS5Filters(true);
     currentListingType = 'rent';
     document.getElementById('s5-tab-rent').classList.add('active');
     document.getElementById('s5-tab-land').classList.remove('active');
@@ -10241,6 +10302,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderTenantFeed(currentCurrency);
   });
   document.getElementById('s5-tab-land').addEventListener('click', () => {
+    clearS5Filters(true);
     currentListingType = 'land';
     document.getElementById('s5-tab-land').classList.add('active');
     document.getElementById('s5-tab-rent').classList.remove('active');
@@ -10264,7 +10326,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const cmpLink = document.getElementById('s5-compare-link'); if (cmpLink) cmpLink.style.display = 'inline-flex';
     renderMarketBars();
     if (!marketIsLive()) { feed.innerHTML = marketComingSoonHTML(currentMarket(), 'page'); if (window.lucide) lucide.createIcons(); startMarketHeroes(); return; }
-    const data = rentListings().filter(l => !isListingUnavailable(l) && inCurrentMarket(l));
+    const base = rentListings().filter(l => !isListingUnavailable(l) && inCurrentMarket(l));
+    const data = applyS5Filters(base, 'rent');
+    if (!data.length && base.length) { feed.innerHTML = s5NoMatchHTML(); return; }
     feed.innerHTML = data.map(p => {
       const isShortlet = p.type === 'shortlet';
       // BUGFIX: this used to hard-exclude shortlets from ever being treated
@@ -10310,7 +10374,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const cmpLink = document.getElementById('s5-compare-link'); if (cmpLink) cmpLink.style.display = 'none';
     renderMarketBars();
     if (!marketIsLive()) { feed.innerHTML = marketComingSoonHTML(currentMarket(), 'page'); if (window.lucide) lucide.createIcons(); startMarketHeroes(); return; }
-    const data = landListingsList().filter(l => !isListingUnavailable(l) && inCurrentMarket(l));
+    const base = landListingsList().filter(l => !isListingUnavailable(l) && inCurrentMarket(l));
+    const data = applyS5Filters(base, 'land');
+    if (!data.length && base.length) { feed.innerHTML = s5NoMatchHTML(); return; }
     feed.innerHTML = data.map(p => {
       const photos = (p.photos && p.photos.length) ? p.photos : [p.img];
       const unavailable = isListingUnavailable(p);
@@ -11001,13 +11067,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   document.getElementById('s5-search-input').addEventListener('input', (e) => {
     if ((currentUserRole || 'tenant') !== 'tenant') return;
-    const q = e.target.value.toLowerCase();
-    const source = currentListingType === 'rent' ? rentListings() : landListingsList();
-    document.querySelectorAll('#s5-listing-feed .s5-card').forEach(card => {
-      const p = source.find(x => String(x.id) === card.dataset.listingId);
-      const match = !p || !q || p.title.toLowerCase().includes(q) || p.location.toLowerCase().includes(q);
-      card.style.display = match ? '' : 'none';
-    });
+    s5Filters.q = e.target.value;
+    clearTimeout(s5SearchTimer);
+    s5SearchTimer = setTimeout(rerenderS5Feed, 150);
+  });
+  document.getElementById('s5-listing-feed').addEventListener('click', (e) => {
+    if (!e.target.closest('[data-s5-clear-filters]')) return;
+    clearS5Filters(false);
+    document.getElementById('s5-search-input').value = '';
+    rerenderS5Feed();
   });
 
   // ==================================================================
