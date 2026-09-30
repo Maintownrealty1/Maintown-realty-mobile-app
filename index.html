@@ -2427,8 +2427,14 @@
   .tp-locked { opacity: 0.35; pointer-events: none; filter: grayscale(0.4); transition: opacity 0.2s, filter 0.2s; }
 
   .bell-btn { position: relative; width: 38px; height: 38px; border-radius: 12px; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; display: flex; align-items: center; justify-content: center; color: #cbd5e1; cursor: pointer; flex-shrink: 0; }
-  .bell-dot { position: absolute; top: 6px; right: 7px; width: 8px; height: 8px; border-radius: 999px; background: #ef4444; display: none; }
+  /* Red unread-count badge (was a plain dot). Shows the exact number of unread
+     notifications; only drops when a notification is opened AND acted on. */
+  .bell-dot { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; background: #ef4444; color: #fff; font-size: 10.5px; font-weight: 700; line-height: 18px; text-align: center; box-shadow: 0 0 0 2px #0B0F19; display: none; }
   .bell-dot.show { display: block; }
+  .s5-status-sold { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.35); }
+  .s5-status-booked { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.35); }
+  .dash-tile { position: relative; }
+  .dash-tile-count { position: absolute; top: 6px; right: 8px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; background: #10b981; color: #fff; font-size: 10.5px; font-weight: 700; line-height: 18px; text-align: center; }
 
   .thread-item { display: flex; align-items: center; gap: 12px; padding: 13px 14px; background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 14px; margin-bottom: 10px; cursor: pointer; transition: border-color .15s ease; }
   .thread-item:hover { border-color: #334155; }
@@ -3240,6 +3246,13 @@
   .pf-drawer > summary::after { content: ''; width: 8px; height: 8px; border-right: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; transform: rotate(45deg); transition: transform .2s; margin-right: 4px; margin-left: auto; }
   .pf-drawer[open] > summary::after { transform: rotate(-135deg); }
   .pf-drawer > summary > i { flex-shrink: 0; }
+
+  .pf-sec-row { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .pf-sec-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 14px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.18); background: rgba(148,163,184,0.06); color: #e2e8f0; font-size: 13.5px; font-weight: 600; cursor: pointer; text-align: left; }
+  .pf-sec-btn i { color: #c084fc; flex-shrink: 0; }
+  .pf-sec-btn span { flex: 1; }
+  .pf-sec-btn .pf-sec-chev { color: #64748b; }
+  body.light-theme .pf-sec-btn { color: #0f172a; }
 </style>
 <style id="mtl-logo-anim">
   /* "M" and roof are written out stroke-by-stroke, then the windows pop in */
@@ -3978,6 +3991,8 @@
 
   <div id="dash-inspections-summary"><!-- populated dynamically --></div>
 
+  <div id="dash-action-summary"><!-- Land & Property action cards + physical allocation nudge, populated dynamically --></div>
+
   <div id="dash-listings-wrap"><!-- tenant-only: homes for rent + shortlets, populated dynamically --></div>
 
   <p class="dash-section-title">Quick Actions</p>
@@ -4583,6 +4598,22 @@
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
         </button>
+        <button type="button" class="ent-quick-card" id="ent-sales-clients-card">
+          <div class="ent-quick-card-icon"><i data-lucide="users" class="w-5 h-5"></i></div>
+          <div class="ent-quick-card-text">
+            <p class="ent-quick-card-title">Clients</p>
+            <p class="ent-quick-card-sub" id="ent-sales-clients-sub">Buyers and tenants who paid for your listings</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
+        </button>
+        <button type="button" class="ent-quick-card" id="ent-sales-guests-card">
+          <div class="ent-quick-card-icon"><i data-lucide="door-open" class="w-5 h-5"></i></div>
+          <div class="ent-quick-card-text">
+            <p class="ent-quick-card-title">Bookings</p>
+            <p class="ent-quick-card-sub" id="ent-sales-guests-sub">Shortlet stays at your listings</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
+        </button>
         <button type="button" class="ent-quick-card" id="ent-sales-inspections-card">
           <div class="ent-quick-card-icon"><i data-lucide="calendar-check" class="w-5 h-5"></i></div>
           <div class="ent-quick-card-text">
@@ -4606,6 +4637,20 @@
       <button type="button" id="ent-sales-allocation-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
       <p class="ent-panel-title">Physical Allocation</p>
       <div id="ent-sales-allocation-list"></div>
+    </div>
+
+    <!-- Clients panel -->
+    <div id="ent-sales-clients-panel" style="display:none;">
+      <button type="button" id="ent-sales-clients-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
+      <p class="ent-panel-title">Clients</p>
+      <div id="ent-sales-clients-list"></div>
+    </div>
+
+    <!-- Bookings panel (shortlet) -->
+    <div id="ent-sales-guests-panel" style="display:none;">
+      <button type="button" id="ent-sales-guests-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Back to Dashboard</button>
+      <p class="ent-panel-title">Bookings</p>
+      <div id="ent-sales-guests-list"></div>
     </div>
 
     <!-- Inspections panel (on behalf of the CEO, once the listing is LIVE) -->
@@ -5942,6 +5987,10 @@
       <input class="field-input" id="profile-phone-input" type="tel" placeholder="801 234 5678" autocomplete="tel">
       <p class="profile-field-status" id="profile-phone-status"></p>
     </div>
+    <div class="pf-field pf-sec-row">
+      <button type="button" class="pf-sec-btn" id="pf-open-pin"><i data-lucide="key-round" class="w-4 h-4"></i><span>Change wallet PIN</span><i data-lucide="chevron-right" class="w-4 h-4 pf-sec-chev"></i></button>
+      <button type="button" class="pf-sec-btn" id="pf-open-pass"><i data-lucide="lock" class="w-4 h-4"></i><span>Change login password</span><i data-lucide="chevron-right" class="w-4 h-4 pf-sec-chev"></i></button>
+    </div>
   </div>
   </details>
 
@@ -6006,6 +6055,32 @@
 </div>
 <!-- ===================== END LISTING INFORMATION SHEET ===================== -->
 
+
+<!-- Change Wallet PIN / Change Password modals (Profile > Account details) -->
+<div id="pf-pin-modal" class="modal-overlay">
+  <div class="modal-card">
+    <h2 class="modal-title">Change wallet PIN</h2>
+    <p class="modal-sub" style="margin-bottom:14px;">Your 6-digit PIN authorizes wallet payments.</p>
+    <div class="pf-field"><label class="field-label">Current PIN</label><input class="field-input" id="pf-pin-old" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Current 6-digit PIN"></div>
+    <div class="pf-field"><label class="field-label">New PIN</label><input class="field-input" id="pf-pin-new" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="New 6-digit PIN"></div>
+    <div class="pf-field"><label class="field-label">Confirm new PIN</label><input class="field-input" id="pf-pin-confirm" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Re-enter new PIN"></div>
+    <p class="login-error-msg" id="pf-pin-error"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span id="pf-pin-error-text"></span></p>
+    <button type="button" id="pf-pin-save" class="btn-primary">Update PIN</button>
+    <button type="button" id="pf-pin-cancel" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+<div id="pf-pass-modal" class="modal-overlay">
+  <div class="modal-card">
+    <h2 class="modal-title">Change login password</h2>
+    <p class="modal-sub" style="margin-bottom:14px;">Use at least 6 characters.</p>
+    <div class="pf-field"><label class="field-label">Current password</label><input class="field-input" id="pf-pass-old" type="password" autocomplete="current-password" placeholder="Current password"></div>
+    <div class="pf-field"><label class="field-label">New password</label><input class="field-input" id="pf-pass-new" type="password" autocomplete="new-password" placeholder="At least 6 characters"></div>
+    <div class="pf-field"><label class="field-label">Confirm new password</label><input class="field-input" id="pf-pass-confirm" type="password" autocomplete="new-password" placeholder="Re-enter new password"></div>
+    <p class="login-error-msg" id="pf-pass-error"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span id="pf-pass-error-text"></span></p>
+    <button type="button" id="pf-pass-save" class="btn-primary">Update password</button>
+    <button type="button" id="pf-pass-cancel" class="btn-secondary">Cancel</button>
+  </div>
+</div>
 
 <!-- OTP Modal -->
 <!-- Tenant Bio Modal — Landlord/Agent view of a Tenant who activated an inspection -->
@@ -8113,7 +8188,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (screenId === 'screen-4') {
-      if (typeof autoClearActivityFeed === 'function') autoClearActivityFeed();
       populateScreen4();
     }
 
@@ -8122,7 +8196,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (screenId === 'screen-notifications') {
-      if (typeof autoClearActivityFeed === 'function') autoClearActivityFeed();
       renderNotificationCenter();
     }
 
@@ -8461,6 +8534,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { icon: 'plus-circle', label: 'List Property', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
         { icon: 'wallet', label: 'Payouts', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'payoutHistory' },
         { icon: 'users', label: 'Tenants', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'tenants' },
+        { icon: 'door-open', label: 'Bookings', bg: 'bg-cyan-500/10', color: 'text-cyan-400', action: 'guests' },
         { icon: 'calendar-check', label: 'Inspections', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'browse' },
         { icon: 'credit-card', label: 'Wallet', bg: 'bg-fuchsia-500/10', color: 'text-fuchsia-400', action: 'wallet' },
         { icon: 'landmark', label: 'Assets', bg: 'bg-teal-500/10', color: 'text-teal-400', action: 'ownerAssets' }
@@ -8476,6 +8550,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { icon: 'plus-circle', label: 'Add Listing', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'browse' },
         { icon: 'calendar-check', label: 'Walkthroughs', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'browse' },
         { icon: 'users', label: 'Clients', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'clients' },
+        { icon: 'door-open', label: 'Bookings', bg: 'bg-cyan-500/10', color: 'text-cyan-400', action: 'guests' },
         { icon: 'bar-chart-3', label: 'Commission', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'payoutHistory' },
         { icon: 'credit-card', label: 'Wallet', bg: 'bg-fuchsia-500/10', color: 'text-fuchsia-400', action: 'wallet' }
       ],
@@ -9142,23 +9217,45 @@ document.addEventListener('DOMContentLoaded', () => {
       if (role === 'agent') return l.agentId === uid && l.listedByRole === 'AGENT';
       return l.ownerId === uid;
     });
-    return mine.map(l => ({
+    const rentDeals = mine.map(l => ({
       tenantName: l.tenantName || 'Tenant',
       propertyTitle: l.propertyTitle,
       moveInDateLabel: l.moveInDateLabel,
       escrowStatus: l.escrowStatus || 'Split at Payment',
       rentTerm: typeof l.remainingMonths === 'number' && l.remainingMonths > 0 ? `${l.remainingMonths + 1} months` : 'Outright / Full Payment'
     })).sort((a, b) => (b.moveInDateLabel || '').localeCompare(a.moveInDateLabel || ''));
+
+    // Land & Property buyers: appear the moment the client pays (the asset
+    // record is created at checkout), scoped to the seller who listed it or
+    // the agent assigned to the listing.
+    const landDeals = (Array.isArray(appState.assets) ? appState.assets : []).filter(a => {
+      const l = (typeof listings !== 'undefined') ? listings.find(x => String(x.id) === String(a.listingId)) : null;
+      if (role === 'agent') return !!l && l.agentId === uid && l.listedByRole === 'AGENT';
+      return a.sellerId === uid;
+    }).map(a => {
+      const paidInFull = (a.installmentsPaid || 0) >= (a.installmentsTotal || 1);
+      return {
+        kind: 'land',
+        tenantName: resolveUserName(a.ownerId),
+        propertyTitle: a.title,
+        dateLabel: new Date(a.purchaseDate || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        badge: paidInFull ? 'Paid in Full' : 'Installment Active',
+        escrowStatus: 'Split at Payment',
+        rentTerm: a.paymentMode === 'installment' ? `Installment (${a.installmentsPaid || 1}/${a.installmentsTotal || 1} paid)` : 'Outright / Full Payment',
+        sortKey: a.purchaseDate || 0
+      };
+    }).sort((x, y) => y.sortKey - x.sortKey);
+    return landDeals.concat(rentDeals);
   }
   function openClosedDealsModal(role) {
-    document.getElementById('cd-title').textContent = role === 'agent' ? 'Clients' : 'Tenants';
+    document.getElementById('cd-title').textContent = role === 'agent' ? 'Clients' : 'Tenants & Buyers';
     document.getElementById('cd-subtitle').textContent = role === 'agent'
       ? 'Closed deals on listings you uploaded or were assigned'
-      : 'Active, verified tenants with completed payment & activated move-in';
+      : 'Tenants with completed payment & move-in, and buyers who have paid for your land & property';
     const deals = getClosedDeals(role);
     const list = document.getElementById('cd-list');
     if (!deals.length) {
-      list.innerHTML = `<p class="role-hint" style="text-align:left;">No closed deals yet — this fills in once a tenant completes payment and confirms a move-in date.</p>`;
+      list.innerHTML = `<p class="role-hint" style="text-align:left;">No closed deals yet — this fills in once a client pays for one of your listings.</p>`;
     } else {
       list.innerHTML = deals.map(d => `
         <div class="txn-row">
@@ -9167,10 +9264,10 @@ document.addEventListener('DOMContentLoaded', () => {
               <p class="txn-title">${d.tenantName}</p>
               <p class="txn-date">${d.propertyTitle}</p>
             </div>
-            <span class="txn-status-badge settled">Move-in Confirmed</span>
+            <span class="txn-status-badge settled">${d.badge || 'Move-in Confirmed'}</span>
           </div>
           <div class="txn-breakdown">
-            <div class="txn-breakdown-row"><span>Move-in Date</span><span>${d.moveInDateLabel}</span></div>
+            <div class="txn-breakdown-row"><span>${d.kind === 'land' ? 'Purchase Date' : 'Move-in Date'}</span><span>${d.kind === 'land' ? d.dateLabel : d.moveInDateLabel}</span></div>
             <div class="txn-breakdown-row"><span>Settlement Status</span><span>${d.escrowStatus}</span></div>
             <div class="txn-breakdown-row net"><span>Rent Term</span><span>${d.rentTerm}</span></div>
           </div>
@@ -9179,6 +9276,124 @@ document.addEventListener('DOMContentLoaded', () => {
     closedDealsModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
   }
+  // ---- Shortlet Guests (Landlord / Agent / Sales staff) ----
+  // Every shortlet booking is tied back to the listing it was made on, so each
+  // host-side role sees only the guests staying at listings they own, were
+  // assigned to, or (Sales) personally posted for the CEO.
+  function shortletEsc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  function shortletDateLabel(v) {
+    if (!v) return '—';
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? String(v) : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  function getShortletGuests(role) {
+    const uid = getCurrentUserId();
+    if (!uid) return [];
+    const rows = [];
+    (Array.isArray(shortletBookings) ? shortletBookings : []).forEach(b => {
+      const l = listings.find(x => String(x.id) === String(b.listingId));
+      if (!l) return;
+      let mine = false;
+      if (role === 'agent') mine = l.agentId === uid && l.listedByRole === 'AGENT';
+      else if (role === 'sales') mine = isEnterpriseListing(l) && l.listedByStaffId === uid;
+      else mine = l.ownerId === uid || l.companyId === uid;
+      if (!mine) return;
+      rows.push({ b, l });
+    });
+    return rows.sort((x, y) => (y.b.startedAt || 0) - (x.b.startedAt || 0));
+  }
+  function shortletStatusLabel(st) {
+    return ({ ACTIVE: 'Staying', COMPLETED: 'Completed', TERMINATED: 'Ended Early', AWAITING_DECISION: 'Stay Ending' }[st]) || (st || 'Booked');
+  }
+  function shortletGuestsHTML(rows) {
+    return rows.map(({ b }) => `
+      <div class="txn-row">
+        <div class="txn-row-top">
+          <div>
+            <p class="txn-title">${shortletEsc(resolveUserName(b.tenantId))}</p>
+            <p class="txn-date">${shortletEsc(b.listingTitle)}</p>
+          </div>
+          <span class="txn-status-badge ${b.status === 'ACTIVE' ? 'pending' : 'settled'}">${shortletStatusLabel(b.status)}</span>
+        </div>
+        <div class="txn-breakdown">
+          <div class="txn-breakdown-row"><span>Check-in</span><span>${shortletDateLabel(b.checkIn)}</span></div>
+          <div class="txn-breakdown-row"><span>Check-out</span><span>${shortletDateLabel(b.checkOut)}</span></div>
+          <div class="txn-breakdown-row net"><span>Nights Paid</span><span>${b.nightsPaid || 0} of ${b.nights || 0}</span></div>
+        </div>
+      </div>`).join('');
+  }
+  function openGuestsModal(role) {
+    document.getElementById('cd-title').textContent = 'Bookings';
+    document.getElementById('cd-subtitle').textContent = 'Shortlet stays that guests have booked and paid for on your listings';
+    const rows = getShortletGuests(role);
+    document.getElementById('cd-list').innerHTML = rows.length
+      ? shortletGuestsHTML(rows)
+      : `<p class="role-hint" style="text-align:left;">No bookings yet — they appear here the moment a guest pays for one of your shortlets.</p>`;
+    closedDealsModal.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // ---- Sales staff Clients: everyone who has paid for one of the listings
+  //      this Sales staff member posted (land buyers + rental tenants). ----
+  function getSalesClients() {
+    appState = loadAppState();
+    const uid = getCurrentUserId();
+    const mineListing = (id) => {
+      const l = listings.find(x => String(x.id) === String(id));
+      return l && isEnterpriseListing(l) && l.listedByStaffId === uid ? l : null;
+    };
+    const out = [];
+    (appState.assets || []).forEach(a => {
+      if (!mineListing(a.listingId)) return;
+      const paidInFull = (a.installmentsPaid || 0) >= (a.installmentsTotal || 1);
+      const alloc = { PENDING_APPROVAL: 'Allocation requested', CONFIRMED: 'Allocation confirmed', ATTENDED: 'Allocation done' }[a.allocationRequestStatus] || 'Allocation not requested';
+      out.push({
+        name: resolveUserName(a.ownerId), property: a.title, kind: 'Buyer',
+        badge: paidInFull ? 'Paid in Full' : 'Installment Active',
+        rows: [
+          ['Purchase Date', shortletDateLabel(a.purchaseDate)],
+          ['Payment', a.paymentMode === 'installment' ? `Installment (${a.installmentsPaid || 1}/${a.installmentsTotal || 1} paid)` : 'Outright'],
+          ['Physical Allocation', alloc]
+        ], sort: a.purchaseDate || 0
+      });
+    });
+    (appState.leases || []).forEach(l => {
+      if (!mineListing(l.listingId)) return;
+      out.push({
+        name: l.tenantName || 'Tenant', property: l.propertyTitle, kind: 'Tenant', badge: 'Move-in Confirmed',
+        rows: [['Move-in Date', l.moveInDateLabel || '—'], ['Rent Term', typeof l.remainingMonths === 'number' && l.remainingMonths > 0 ? `${l.remainingMonths + 1} months` : 'Outright / Full Payment']],
+        sort: 0
+      });
+    });
+    return out.sort((x, y) => y.sort - x.sort);
+  }
+  function renderSalesClients() {
+    const list = document.getElementById('ent-sales-clients-list');
+    if (!list) return;
+    const rows = getSalesClients();
+    list.innerHTML = rows.length ? rows.map(c => `
+      <div class="txn-row">
+        <div class="txn-row-top">
+          <div>
+            <p class="txn-title">${shortletEsc(c.name)} <span style="font-size:11px; color:#64748b; font-weight:500;">\u00b7 ${c.kind}</span></p>
+            <p class="txn-date">${shortletEsc(c.property)}</p>
+          </div>
+          <span class="txn-status-badge settled">${c.badge}</span>
+        </div>
+        <div class="txn-breakdown">${c.rows.map(r => `<div class="txn-breakdown-row"><span>${r[0]}</span><span>${shortletEsc(r[1])}</span></div>`).join('')}</div>
+      </div>`).join('')
+      : `<div class="ent-empty"><i data-lucide="users"></i><p>No clients yet. A buyer or tenant shows up here once they pay for a listing you posted.</p></div>`;
+    if (window.lucide) lucide.createIcons();
+  }
+  function renderSalesGuests() {
+    const list = document.getElementById('ent-sales-guests-list');
+    if (!list) return;
+    const rows = getShortletGuests('sales');
+    list.innerHTML = rows.length ? shortletGuestsHTML(rows)
+      : `<div class="ent-empty"><i data-lucide="door-open"></i><p>No bookings yet. They appear here once a guest pays for a shortlet you posted.</p></div>`;
+    if (window.lucide) lucide.createIcons();
+  }
+
   document.getElementById('cd-close-btn').addEventListener('click', () => closedDealsModal.classList.remove('open'));
   closedDealsModal.addEventListener('click', (e) => {
     if (e.target === closedDealsModal) closedDealsModal.classList.remove('open');
@@ -9585,6 +9800,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="dash-tile-icon-wrap ${a.bg}"><i data-lucide="${a.icon}" class="w-6 h-6 ${a.color}"></i></div>
         <div class="dash-tile-label">${a.label}</div>
       </div>`).join('');
+    if (role === 'landlord' || role === 'agent') {
+      const dealCount = getClosedDeals(role).length;
+      const tileEl = grid.querySelector(`.dash-tile[data-action="${role === 'agent' ? 'clients' : 'tenants'}"]`);
+      if (tileEl && dealCount > 0) tileEl.insertAdjacentHTML('beforeend', `<span class="dash-tile-count">${dealCount}</span>`);
+      const guestCount = getShortletGuests(role).length;
+      const guestTile = grid.querySelector('.dash-tile[data-action="guests"]');
+      if (guestTile && guestCount > 0) guestTile.insertAdjacentHTML('beforeend', `<span class="dash-tile-count">${guestCount}</span>`);
+    }
     renderDashListings(role);
 
     // Recent Activity was removed from the dashboard home view — every event
@@ -9595,6 +9818,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
     renderCheckoutResumeSummaryCard();
     renderInspectionsSummaryCard();
+    renderActionSummaryCards();
     if (typeof renderEnterpriseEntryCard === 'function') renderEnterpriseEntryCard();
     if (window.lucide) lucide.createIcons();
   }
@@ -9668,6 +9892,92 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('dash-inspections-summary-card').addEventListener('click', () => navigateTo('screen-inspections'));
   }
 
+  // ---- Dashboard action cards (Land & Property + Physical Allocation) ----
+  // Land & Property notifications used to live ONLY inside the Notification
+  // Center. They now also surface here on Home, exactly like the inspection
+  // summary card: one tappable card per unread actionable notification that
+  // opens the same Notification Detail Modal. For buyers/clients, a nudge card
+  // also appears whenever they skipped a Physical Allocation step.
+  const DASH_ACTION_NOTIF_TYPES = /^(ALLOCATION_|DEED_|CONSENT_|PHYSICAL_|DOC_|COUNTERSIGN_|TENANT_SIGNED_AGREEMENT|AGREEMENT_EXECUTED|INSTALLMENT_)/;
+  const DASH_ACTION_NOTIF_SCREENS = ['screen-owner-assets', 'assetHub', 'screen-land-handover', 'handoverReview', 'salesAllocations', 'entLegalReview'];
+  let handoverOverrideListing = null;
+
+  function dashActionNotifications() {
+    const role = currentUserRole || 'tenant';
+    const uid = typeof currentDemoUserId === 'function' ? currentDemoUserId() : null;
+    return platformNotifications.filter(n => {
+      if (!n.unread) return false;
+      if (!(n.forUserId ? n.forUserId === uid : n.forRole === role)) return false;
+      if (n.category === 'inspection') return false; // already on the inspection summary card
+      if (n.type === 'RESUME_CHECKOUT') return false; // already on the Continue Payment card
+      return DASH_ACTION_NOTIF_TYPES.test(n.type || '') || !!(n.route && DASH_ACTION_NOTIF_SCREENS.includes(n.route.screen));
+    });
+  }
+
+  // Buyer's skipped-step detection: paid in full but never requested the
+  // allocation appointment, or owner confirmed it but buyer hasn't confirmed attending.
+  function buyerAllocationNudges() {
+    if ((currentUserRole || 'tenant') !== 'tenant') return [];
+    const out = [];
+    myAssets().forEach(a => {
+      const paidInFull = (a.installmentsPaid || 0) >= (a.installmentsTotal || 1);
+      if (!paidInFull) return;
+      if (!a.allocationRequestStatus) {
+        out.push({ asset: a, title: 'Continue: Request Physical Allocation', sub: `${a.title} is paid in full \u00b7 book your site allocation appointment` });
+      } else if (a.allocationRequestStatus === 'CONFIRMED') {
+        out.push({ asset: a, title: 'Confirm Your Physical Allocation', sub: `${a.title} \u00b7 appointment confirmed \u2014 tap once you have been on site` });
+      }
+    });
+    return out;
+  }
+
+  function renderActionSummaryCards() {
+    const wrap = document.getElementById('dash-action-summary');
+    if (!wrap) return;
+    const nudges = buyerAllocationNudges();
+    const notifs = dashActionNotifications();
+    const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const nudgeHtml = nudges.map(n => `
+      <div class="dash-summary-card dash-nudge-card" data-asset-id="${esc(n.asset.id)}">
+        <div class="dash-summary-icon"><i data-lucide="map-pin" class="w-4 h-4"></i></div>
+        <div class="dash-summary-text">
+          <p class="dash-summary-title">${esc(n.title)}</p>
+          <p class="dash-summary-sub">${esc(n.sub)}</p>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4" style="color:#64748b;"></i>
+      </div>`).join('');
+    const MAX_NOTIF_CARDS = 3;
+    const notifHtml = notifs.slice(0, MAX_NOTIF_CARDS).map(n => `
+      <div class="dash-summary-card dash-notif-card" data-notif-id="${esc(n.id)}">
+        <div class="dash-summary-icon"><i data-lucide="bell-ring" class="w-4 h-4"></i></div>
+        <div class="dash-summary-text">
+          <p class="dash-summary-title">${esc(n.title)}</p>
+          <p class="dash-summary-sub">${esc(n.body)}</p>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4" style="color:#64748b;"></i>
+      </div>`).join('');
+    const moreHtml = notifs.length > MAX_NOTIF_CARDS
+      ? `<p class="role-hint dash-notif-more" style="text-align:center; cursor:pointer; margin:4px 0 10px;">+${notifs.length - MAX_NOTIF_CARDS} more \u00b7 open Notification Center</p>` : '';
+    wrap.innerHTML = nudgeHtml + notifHtml + moreHtml;
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById('dash-action-summary').addEventListener('click', (e) => {
+    const nudge = e.target.closest('.dash-nudge-card');
+    if (nudge) {
+      const asset = myAssets().find(a => String(a.id) === nudge.dataset.assetId);
+      if (!asset) return;
+      const l = (typeof listings !== 'undefined') ? listings.find(x => String(x.id) === String(asset.listingId)) : null;
+      handoverOverrideListing = l || null;
+      activeAssetId = asset.id;
+      navigateTo('screen-land-handover');
+      return;
+    }
+    const card = e.target.closest('.dash-notif-card');
+    if (card) { openNotificationDetailModal(card.dataset.notifId); return; }
+    if (e.target.closest('.dash-notif-more')) navigateTo('screen-notifications');
+  });
+
   // ---- Dashboard tile routing: "browse" tiles open Screen 5, others show a coming-soon toast ----
   document.getElementById('dash-grid').addEventListener('click', (e) => {
     const tile = e.target.closest('.dash-tile');
@@ -9684,6 +9994,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       navigateTo('screen-my-lease');
     } else if (tile.dataset.action === 'tenants' || tile.dataset.action === 'clients') {
       openClosedDealsModal(tile.dataset.action === 'tenants' ? 'landlord' : 'agent');
+    } else if (tile.dataset.action === 'guests') {
+      openGuestsModal(currentUserRole === 'agent' ? 'agent' : 'landlord');
     } else if (tile.dataset.action === 'wallet') {
       openWalletDashboard();
     } else if (tile.dataset.action === 'ownerAssets') {
@@ -14096,8 +14408,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
       showToast('Enter the full 6-digit PIN');
       return;
     }
-    if (code !== '123456') {
-      showToast('Incorrect PIN — for this demo, use 123456');
+    const expectedPin = mtUserId() ? mtCurrentPin(mtUserId()) : '123456';
+    if (code !== expectedPin) {
+      showToast(expectedPin === '123456' ? 'Incorrect PIN — for this demo, use 123456' : 'Incorrect PIN');
       checkoutOtpInputs.forEach(i => (i.value = ''));
       checkoutOtpInputs[0].focus();
       return;
@@ -14409,6 +14722,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // owned by whoever is actually logged in (property.ownerId === currentUserId).
   // A newly claimed / auto-provisioned Landlord with zero listings yet sees a
   // clean empty state instead of falling back to Frank Hood's sample data.
+  // Sold / Rented / Booked status overlay for My Properties (Landlord + Agent).
+  // Reads the live listing status that markListingUnavailableAfterCheckout()
+  // flips the moment a client pays, so both feeds update instantly.
+  function soldStatusBadgeHtml(listing) {
+    if (!isListingUnavailable(listing)) return '';
+    if (listing.status === 'SOLD') return `<span class="s5-status-badge s5-status-sold">Sold</span>`;
+    if (listing.type === 'shortlet') return `<span class="s5-status-badge s5-status-booked">Booked</span>`;
+    return `<span class="s5-status-badge s5-status-occupied">Rented</span>`;
+  }
+
   function myProperties() {
     const uid = getCurrentUserId();
     return landlordProperties.filter(p => p.ownerId === uid);
@@ -14431,7 +14754,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     list.innerHTML = myProps.map(p => {
       let rightHtml;
-      if (p.status === 'escrow') {
+      const soldListing = listings.find(l => p.listingId ? l.id === p.listingId : l.title === p.title);
+      const soldBadge = soldStatusBadgeHtml(soldListing);
+      if (soldBadge) {
+        rightHtml = soldBadge;
+      } else if (p.status === 'escrow') {
         // Inventory Card: instead of a static "Escrow Pending" badge, surface an
         // actionable button that routes straight to the live/published listing (or,
         // if it's still a private draft, lets the landlord publish it in one tap).
@@ -14461,7 +14788,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           </div>
           <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
             ${rightHtml}
-            <button type="button" class="s5-list-action-btn s5-list-delete-btn" data-action="delete" data-title="${p.title}" title="Delete listing"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+            ${soldBadge ? '' : `<button type="button" class="s5-list-action-btn s5-list-delete-btn" data-action="delete" data-title="${p.title}" title="Delete listing"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>`}
           </div>
         </div>`;
     }).join('');
@@ -14475,7 +14802,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="preview" data-listing-id="${l.listingId}"><i data-lucide="eye" class="w-3 h-3"></i>Preview</button>
           </div>
           <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
-            <button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>
+            ${soldStatusBadgeHtml(listings.find(x => String(x.id) === String(l.listingId))) || `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`}
           </div>
         </div>`).join(''));
     if (window.lucide) lucide.createIcons();
@@ -14972,7 +15299,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       } else if (workflow === 'LEGAL_REVIEW') {
         actionHtml = `<span class="s5-status-badge insp-status-pending">In Legal Review</span>`;
       } else if (workflow === 'LIVE') {
-        actionHtml = `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`;
+        actionHtml = soldStatusBadgeHtml(listings.find(x => String(x.id) === String(l.listingId)))
+          || `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`;
       } else {
         actionHtml = `<button type="button" class="s5-list-action-btn s5-list-publish-btn" data-action="publish" data-title="${l.title}"><i data-lucide="upload-cloud" class="w-3 h-3"></i>Publish Listing</button>`;
       }
@@ -14989,7 +15317,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         </div>
         <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
           ${actionHtml}
-          <button type="button" class="s5-list-action-btn s5-list-delete-btn" data-action="delete" data-title="${l.title}" title="Delete listing"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          ${isListingUnavailable(listings.find(x => String(x.id) === String(l.listingId))) ? '' : `<button type="button" class="s5-list-action-btn s5-list-delete-btn" data-action="delete" data-title="${l.title}" title="Delete listing"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>`}
         </div>
       </div>`;
     }).join('');
@@ -15085,6 +15413,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
   let deleteListingRole = null;
 
   function openDeleteListingModal(title, role) {
+    // Once a client has paid (SOLD / RENTED / booked) only MainTown takes the
+    // listing off the feed; owners and agents can delete only while it's live.
+    const paidListing = listings.find(l => l.title === title);
+    if (isListingUnavailable(paidListing)) {
+      showToast('This listing has been paid for and can no longer be deleted');
+      return;
+    }
     deleteListingTitle = title;
     deleteListingRole = role;
     document.getElementById('del-listing-title').textContent = title;
@@ -16091,18 +16426,23 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Legal enterprise dashboard bells) in sync — every bell shares the
   // ".bell-dot" class, so a single call keeps them all correct regardless
   // of which dashboard is currently mounted.
-  function updateAllBellDots(show) {
-    document.querySelectorAll('.bell-dot').forEach(dot => dot.classList.toggle('show', !!show));
-  }
-  function updateBellDotForRole() {
+  // The bell now shows a real red COUNT of unread notifications (not a dot).
+  // The count is always derived from the notification store itself, so every
+  // legacy call site (updateAllBellDots(true)) just triggers a recount.
+  function unreadNotificationCount() {
     const role = currentUserRole || 'tenant';
     const uid = typeof currentDemoUserId === 'function' ? currentDemoUserId() : null;
-    const matchesMe = (n) => n.forUserId ? n.forUserId === uid : n.forRole === role;
-    const matchesMeInsp = (n) => n.forUserId ? n.forUserId === uid : n.forRole === role;
-    const hasUnread = platformNotifications.some(n => matchesMe(n) && n.unread) ||
-      inspectionNotifications.some(n => matchesMeInsp(n) && n.unread);
-    updateAllBellDots(hasUnread);
+    return platformNotifications.filter(n => (n.forUserId ? n.forUserId === uid : n.forRole === role) && n.unread).length;
   }
+  function updateAllBellDots() {
+    const count = unreadNotificationCount();
+    const label = count > 99 ? '99+' : String(count);
+    document.querySelectorAll('.bell-dot').forEach(dot => {
+      dot.textContent = label;
+      dot.classList.toggle('show', count > 0);
+    });
+  }
+  function updateBellDotForRole() { updateAllBellDots(); }
 
   function renderNotificationCenter() {
     const role = currentUserRole || 'tenant';
@@ -16247,11 +16587,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('mtai-pill').addEventListener('click', openMtaiFeedDrawer);
   document.getElementById('mtai-feed-close-btn').addEventListener('click', closeMtaiFeedDrawer);
   document.getElementById('mtai-feed-close-btn-top').addEventListener('click', closeMtaiFeedDrawer);
-  document.getElementById('mtai-feed-mark-all-btn').addEventListener('click', () => {
-    if (typeof autoClearActivityFeed === 'function') autoClearActivityFeed();
-    renderMtaiFeed();
-    showToast('All activity marked as read');
-  });
+  // "Mark All as Read" removed on purpose: notifications only clear once the
+  // user opens one and acts on it, so the bell count stays honest.
+  (function () { const b = document.getElementById('mtai-feed-mark-all-btn'); if (b) b.style.display = 'none'; })();
   // Feed items reuse the existing Notification Detail Modal (with its
   // role-appropriate CTA routing) rather than duplicating that logic here.
   document.getElementById('mtai-feed-list').addEventListener('click', (e) => {
@@ -16322,12 +16660,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function openNotificationDetailModal(notifId) {
     const notif = platformNotifications.find(n => String(n.id) === String(notifId));
     if (!notif) return;
-
-    if (notif.unread) {
-      notif.unread = false;
-      savePlatformNotifications();
-      renderNotificationCenter();
-    }
 
     document.getElementById('notif-detail-icon').setAttribute('data-lucide', categoryDetailIcon[notif.category] || 'bell');
     document.getElementById('notif-detail-title').textContent = notif.title;
@@ -16440,8 +16772,31 @@ This voucher is auto-generated and serves as proof of settlement.`;
       };
     }
 
+    // Read-state rule: a notification stays unread (and keeps counting on the
+    // bell) until the user ACTS on it. If it has an action button, tapping that
+    // button marks it read; purely informational ones (no button) are read once
+    // opened, since there is nothing further to act on.
+    if (ctaBtn.style.display === 'none') {
+      markNotificationRead(notif);
+    } else {
+      const originalCta = ctaBtn.onclick;
+      ctaBtn.onclick = (ev) => { markNotificationRead(notif); if (originalCta) originalCta(ev); };
+    }
+
     notificationDetailModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
+  }
+
+  function markNotificationRead(notif) {
+    if (!notif || !notif.unread) return;
+    notif.unread = false;
+    savePlatformNotifications();
+    updateAllBellDots();
+    if (typeof updateMtaiBadge === 'function') updateMtaiBadge();
+    const notifScreen = document.getElementById('screen-notifications');
+    if (notifScreen && !notifScreen.classList.contains('hidden')) renderNotificationCenter();
+    const dashScreen = document.getElementById('screen-4');
+    if (dashScreen && !dashScreen.classList.contains('hidden') && typeof populateScreen4 === 'function') populateScreen4();
   }
 
   document.getElementById('notif-detail-close-btn').addEventListener('click', () => {
@@ -18688,7 +19043,8 @@ available in the Post-Lease Hub and this chat thread.`
   }
 
   function populateScreenLandHandover() {
-    const listing = checkoutListing || landListingsList()[0] || null;
+    const listing = handoverOverrideListing || checkoutListing || landListingsList()[0] || null;
+    handoverOverrideListing = null;
     landHandoverListing = listing;
 
     document.getElementById('s6h-property-title').textContent = listing ? listing.title : 'Your Property';
@@ -19993,6 +20349,11 @@ available in the Post-Lease Hub and this chat thread.`
     const typed = document.getElementById('login-email').value;
     const demoUser = findDemoUserByCredential(typed);
     if (demoUser) {
+      const setPw = mtCurrentPassword(demoUser.id);
+      if (setPw && document.getElementById('login-password').value !== setPw) {
+        showLoginError('Incorrect password.');
+        return;
+      }
       hideLoginError();
       loginAsDemoUser(demoUser);
     } else {
@@ -20001,6 +20362,78 @@ available in the Post-Lease Hub and this chat thread.`
   });
   document.getElementById('login-email').addEventListener('input', () => hideLoginError());
   document.getElementById('login-signup-link').addEventListener('click', () => startFreshOnboarding());
+
+
+  // ==================================================================
+  // ---- Profile: Change wallet PIN / Change login password ----
+  // Demo mode (no auth backend): per-user credentials are kept in localStorage
+  // under 'maintown_creds'. Until changed, wallet PIN = claimed PIN (if any)
+  // else 123456; no password is enforced at login. Once a password is set
+  // here, typed login requires it.
+  // ==================================================================
+  const MT_DEFAULT_PIN = '123456';
+  function mtLoadCreds() { try { return JSON.parse(localStorage.getItem('maintown_creds') || '{}') || {}; } catch (e) { return {}; } }
+  function mtSaveCreds(c) { try { localStorage.setItem('maintown_creds', JSON.stringify(c)); } catch (e) {} }
+  function mtUserId() { const u = loadCurrentUser(); return u ? u.id : null; }
+  function mtCurrentPin(id) {
+    const c = mtLoadCreds()[id];
+    if (c && c.pin) return c.pin;
+    const rec = (typeof appState !== 'undefined' && appState && appState.users) ? appState.users[id] : null;
+    return (rec && rec.walletPin) ? rec.walletPin : MT_DEFAULT_PIN;
+  }
+  function mtCurrentPassword(id) { const c = mtLoadCreds()[id]; return c && c.password ? c.password : null; }
+
+  (function bindSecurityModals() {
+    const wire = (openId, modalId, cancelId, saveId, errId, errTxtId, fieldIds, onSave) => {
+      const modal = document.getElementById(modalId);
+      const err = document.getElementById(errId), errTxt = document.getElementById(errTxtId);
+      const showErr = (m) => { errTxt.textContent = m; err.classList.add('show'); };
+      const close = () => modal.classList.remove('open');
+      document.getElementById(openId).addEventListener('click', () => {
+        fieldIds.forEach(f => { document.getElementById(f).value = ''; });
+        err.classList.remove('show');
+        modal.classList.add('open');
+        if (window.lucide) lucide.createIcons();
+        setTimeout(() => document.getElementById(fieldIds[0]).focus(), 60);
+      });
+      document.getElementById(cancelId).addEventListener('click', close);
+      modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+      fieldIds.forEach(f => document.getElementById(f).addEventListener('input', () => err.classList.remove('show')));
+      document.getElementById(saveId).addEventListener('click', () => {
+        const id = mtUserId();
+        if (!id) { showErr('Please log in again.'); return; }
+        const vals = fieldIds.map(f => document.getElementById(f).value);
+        const msg = onSave(id, vals);
+        if (msg) { showErr(msg); return; }
+        close();
+      });
+    };
+
+    wire('pf-open-pin', 'pf-pin-modal', 'pf-pin-cancel', 'pf-pin-save', 'pf-pin-error', 'pf-pin-error-text',
+      ['pf-pin-old', 'pf-pin-new', 'pf-pin-confirm'], (id, [oldP, newP, conf]) => {
+        if (!/^\d{6}$/.test(oldP)) return 'Enter your current 6-digit PIN.';
+        if (oldP !== mtCurrentPin(id)) return 'Current PIN is incorrect.';
+        if (!/^\d{6}$/.test(newP)) return 'New PIN must be exactly 6 digits.';
+        if (newP === oldP) return 'New PIN must be different from your current PIN.';
+        if (newP !== conf) return 'New PINs do not match.';
+        const c = mtLoadCreds(); c[id] = Object.assign({}, c[id], { pin: newP }); mtSaveCreds(c);
+        showToast('Wallet PIN updated');
+        return null;
+      });
+
+    wire('pf-open-pass', 'pf-pass-modal', 'pf-pass-cancel', 'pf-pass-save', 'pf-pass-error', 'pf-pass-error-text',
+      ['pf-pass-old', 'pf-pass-new', 'pf-pass-confirm'], (id, [oldP, newP, conf]) => {
+        const existing = mtCurrentPassword(id);
+        if (existing && oldP !== existing) return 'Current password is incorrect.';
+        if (!existing && !oldP) return 'Enter your current password.';
+        if (!newP || newP.length < 6) return 'New password must be at least 6 characters.';
+        if (newP === oldP) return 'New password must be different from your current password.';
+        if (newP !== conf) return 'New passwords do not match.';
+        const c = mtLoadCreds(); c[id] = Object.assign({}, c[id], { password: newP }); mtSaveCreds(c);
+        showToast('Password updated');
+        return null;
+      });
+  })();
 
   // ---- Welcome / Splash screen: entry point ahead of onboarding & login ----
   const screenWelcome = document.getElementById('screen-welcome');
@@ -21776,6 +22209,12 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('ent-sales-allocation-sub').textContent = pendingAlloc
       ? `${pendingAlloc} request${pendingAlloc === 1 ? '' : 's'} waiting for your confirmation`
       : 'Confirm allocations for buyers of your listings';
+    const clientCount = getSalesClients().length;
+    const guestCount = getShortletGuests('sales').length;
+    document.getElementById('ent-sales-clients-sub').textContent = clientCount
+      ? `${clientCount} paid client${clientCount === 1 ? '' : 's'} across your listings` : 'Buyers and tenants who paid for your listings';
+    document.getElementById('ent-sales-guests-sub').textContent = guestCount
+      ? `${guestCount} shortlet booking${guestCount === 1 ? '' : 's'} at your listings` : 'Shortlet stays at your listings';
   }
   function renderSalesListings() {
     const mine = myEnterpriseListings();
@@ -21895,9 +22334,23 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('ent-sales-listings-panel').style.display = 'none';
     document.getElementById('ent-sales-inspections-panel').style.display = 'none';
     document.getElementById('ent-sales-allocation-panel').style.display = 'none';
+    document.getElementById('ent-sales-clients-panel').style.display = 'none';
+    document.getElementById('ent-sales-guests-panel').style.display = 'none';
     renderSalesHome();
     navigateTo('screen-ent-sales');
   }
+  [['clients', renderSalesClients], ['guests', renderSalesGuests]].forEach(([key, renderFn]) => {
+    document.getElementById(`ent-sales-${key}-card`).addEventListener('click', () => {
+      document.getElementById('ent-sales-home').style.display = 'none';
+      document.getElementById(`ent-sales-${key}-panel`).style.display = 'block';
+      renderFn();
+    });
+    document.getElementById(`ent-sales-${key}-back-btn`).addEventListener('click', () => {
+      document.getElementById(`ent-sales-${key}-panel`).style.display = 'none';
+      document.getElementById('ent-sales-home').style.display = 'block';
+      renderSalesHome();
+    });
+  });
   document.getElementById('ent-sales-view-listings-card').addEventListener('click', () => {
     document.getElementById('ent-sales-home').style.display = 'none';
     document.getElementById('ent-sales-listings-panel').style.display = 'block';
@@ -23109,10 +23562,20 @@ available in the Post-Lease Hub and this chat thread.`
     if (dashScreen && !dashScreen.classList.contains('hidden') && typeof populateScreen4 === 'function') {
       populateScreen4();
     }
+    const s5Screen = document.getElementById('screen-5');
+    if (s5Screen && !s5Screen.classList.contains('hidden')) {
+      const r = currentUserRole || 'tenant';
+      if (r === 'landlord' && typeof renderLandlordList === 'function') renderLandlordList();
+      if (r === 'agent' && typeof renderAgentListings === 'function') renderAgentListings();
+    }
     const salesScreen = document.getElementById('screen-ent-sales');
     if (salesScreen && !salesScreen.classList.contains('hidden')) {
       const ap = document.getElementById('ent-sales-allocation-panel');
       if (ap && ap.style.display === 'block' && typeof renderSalesAllocations === 'function') renderSalesAllocations();
+      const scp = document.getElementById('ent-sales-clients-panel');
+      if (scp && scp.style.display === 'block') renderSalesClients();
+      const sgp = document.getElementById('ent-sales-guests-panel');
+      if (sgp && sgp.style.display === 'block') renderSalesGuests();
       const sh = document.getElementById('ent-sales-home');
       if (sh && sh.style.display !== 'none' && typeof renderSalesHome === 'function') renderSalesHome();
     }
