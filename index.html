@@ -1492,6 +1492,40 @@
   .mkt-btn.primary { background: linear-gradient(135deg,#9333ea,#7c3aed); color:#fff; }
   .mkt-btn.primary.done { background: rgba(16,185,129,0.14); color:#10b981; border:1px solid rgba(16,185,129,0.35); }
   .mkt-btn.ghost { background:transparent; color:#c084fc; border:1px solid #334155; margin-top:8px; }
+
+  /* Filter drawer + active-filter chips */
+  .s5-filter-btn { position: relative; }
+  .flt-badge { position:absolute; top:-7px; right:-9px; min-width:16px; height:16px; padding:0 4px; border-radius:999px; background:#9333ea; color:#fff; font-size:10px; font-weight:800; display:none; align-items:center; justify-content:center; box-sizing:border-box; }
+  #filter-sheet .sheet-card { display:flex; flex-direction:column; overflow:hidden; }
+  .flt-pane { display:flex; flex-direction:column; min-height:0; flex:1; }
+  .flt-body { overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1; min-height:0; padding-bottom:6px; }
+  .flt-sec { margin-bottom:20px; }
+  .flt-h { font-size:12px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#94a3b8; margin:0 0 10px; }
+  .flt-sub { font-size:11.5px; font-weight:700; color:#64748b; margin:12px 0 8px; }
+  .flt-wrap { display:flex; flex-wrap:wrap; gap:8px; }
+  .flt-opt { font-family:inherit; font-size:13px; font-weight:600; color:#cbd5e1; background:#0f172a; border:1px solid #334155; border-radius:999px; padding:8px 13px; cursor:pointer; display:inline-flex; align-items:center; gap:7px; }
+  .flt-opt em { font-style:normal; font-size:11px; color:#64748b; font-weight:700; }
+  .flt-opt.on { background:rgba(147,51,234,0.18); border-color:#9333ea; color:#e9d5ff; }
+  .flt-opt.on em { color:#c4b5fd; }
+  .flt-opt.dim { opacity:0.4; cursor:not-allowed; }
+  .flt-row2, .flt-price { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .flt-search { margin:12px 0 2px; }
+  .flt-empty { font-size:13px; color:#64748b; margin:0; }
+  .flt-foot { display:flex; gap:10px; padding-top:14px; border-top:1px solid #1e293b; margin-top:8px; }
+  .flt-foot .mkt-btn { margin-top:0; }
+  .flt-foot .mkt-btn.ghost { width:auto; flex:0 0 auto; padding:13px 18px; }
+  .flt-foot .mkt-btn.primary { flex:1; }
+  .flt-chip-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 10px; }
+  .flt-chip { font-family:inherit; font-size:12px; font-weight:700; color:#e9d5ff; background:rgba(147,51,234,0.16); border:1px solid rgba(147,51,234,0.4); border-radius:999px; padding:5px 8px 5px 11px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+  .flt-chip svg { width:12px; height:12px; }
+  .flt-clear-link { background:none; border:none; color:#c084fc; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; padding:4px 2px; }
+  .flt-count { font-size:12px; color:#64748b; margin:0 0 10px; }
+  .flt-count:empty { display:none; }
+  body.light-theme .flt-opt { background:#f8fafc; color:#334155; border-color:#e2e8f0; }
+  body.light-theme .flt-opt.on { background:#f3e8ff; color:#7c3aed; border-color:#c084fc; }
+  body.light-theme .flt-chip { background:#f3e8ff; color:#7c3aed; border-color:#d8b4fe; }
+  body.light-theme .flt-pane .mkt-sheet-title { color:#0f172a; }
+  body.light-theme .flt-foot { border-top-color:#e2e8f0; }
   .mkt-city-hint { font-size:11.5px; color:#fbbf24; margin:6px 2px 0; line-height:1.4; display:none; }
   .mkt-city-hint.show { display:block; }
   .mkt-city-hint.live { color:#10b981; }
@@ -3744,8 +3778,9 @@
     <div class="s5-search-wrap">
       <i data-lucide="search" class="w-4 h-4"></i>
       <input type="text" id="s5-search-input" placeholder="Search location, unit, or listing...">
-      <button type="button" class="s5-filter-btn" id="s5-filter-btn">
+      <button type="button" class="s5-filter-btn" id="s5-filter-btn" aria-label="Filters">
         <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+        <span class="flt-badge" id="s5-filter-badge"></span>
       </button>
     </div>
     <button type="button" class="cart-fab" id="s5-cart-btn">
@@ -3776,6 +3811,7 @@
 
   <!-- ---- TENANT VIEW: Search & Book ---- -->
   <div id="tenant-view" class="role-view hidden">
+    <div id="s5-filter-chips"></div>
     <button type="button" class="as-link" id="s5-compare-link" data-assist="compare"><i data-lucide="columns-2" class="w-3.5 h-3.5"></i>Compare listings</button>
 
     <div class="s5-feed" id="s5-listing-feed">
@@ -5504,6 +5540,14 @@
   <div class="sheet-card">
     <div class="sheet-handle"></div>
     <div id="mkt-pane"></div>
+  </div>
+</div>
+
+<!-- Filter drawer (built by JS): location, area, price, type, sort -->
+<div id="filter-sheet" class="sheet-overlay">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div id="flt-pane" class="flt-pane"></div>
   </div>
 </div>
 
@@ -9838,9 +9882,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const id = listingAreaId(l);
     return id ? (marketAreaList(listingMarketId(l)).find(a => a.id === id) || null) : null;
   }
-  function applyS5Filters(list, kind) {
-    const f = s5Filters, q = String(f.q || '').trim().toLowerCase();
-    const validAreas = new Set(marketAreaList(currentMarketId).map(a => a.id));
+  function applyS5Filters(list, kind, fOverride, marketId) {
+    const f = fOverride || s5Filters, q = String(f.q || '').trim().toLowerCase();
+    const validAreas = new Set(marketAreaList(marketId || currentMarketId).map(a => a.id));
     const areaIds = f.areas.filter(id => validAreas.has(id));
     const out = list.filter(l => {
       const ar = listingAreaObj(l);
@@ -9879,6 +9923,185 @@ This voucher is auto-generated and serves as proof of settlement.`;
       + '<p style="font-size:13px;margin-bottom:14px;">Try a different search or clear your filters.</p>'
       + '<button type="button" class="mkt-btn ghost" data-s5-clear-filters>Clear filters</button></div>';
   }
+
+  // ---- Active-filter chips + badge (under the search bar) ----
+  function fltFmtMoney(n) {
+    if (n >= 1e6) return '₦' + (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return '₦' + Math.round(n / 1e3) + 'k';
+    return '₦' + n;
+  }
+  const FLT_SORTS = [['default', 'Default'], ['price-asc', 'Price: low to high'], ['price-desc', 'Price: high to low']];
+  function renderS5FilterChips() {
+    const badge = document.getElementById('s5-filter-badge');
+    const n = s5ActiveFilterCount();
+    if (badge) { badge.textContent = n; badge.style.display = n ? 'flex' : 'none'; }
+    const el = document.getElementById('s5-filter-chips');
+    if (!el) return;
+    const f = s5Filters, chips = [], list = marketAreaList(currentMarketId);
+    f.areas.forEach(id => { const a = list.find(x => x.id === id); if (a) chips.push(['area:' + id, a.n]); });
+    if (f.areaType) chips.push(['atype', f.areaType === 'urban' ? 'Urban areas' : 'Local communities']);
+    if (f.minPrice || f.maxPrice) chips.push(['price', f.minPrice && f.maxPrice ? fltFmtMoney(f.minPrice) + ' – ' + fltFmtMoney(f.maxPrice) : (f.minPrice ? 'From ' + fltFmtMoney(f.minPrice) : 'Up to ' + fltFmtMoney(f.maxPrice))]);
+    if (f.rentType !== 'all') chips.push(['rtype', f.rentType === 'shortlet' ? 'Shortlet' : 'Rent']);
+    if (f.hasVideo) chips.push(['video', 'Walkthrough video']);
+    if (f.sort !== 'default') chips.push(['sort', (FLT_SORTS.find(x => x[0] === f.sort) || [0, f.sort])[1]]);
+    const x = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+    el.innerHTML = (chips.length ? '<div class="flt-chip-row">' + chips.map(c => `<button type="button" class="flt-chip" data-flt-remove="${c[0]}">${c[1]}${x}</button>`).join('')
+      + (chips.length > 1 ? '<button type="button" class="flt-clear-link" data-flt-remove="all">Clear all</button>' : '') + '</div>' : '')
+      + '<p class="flt-count" id="s5-result-count"></p>';
+  }
+  function setS5ResultCount(shown, total) {
+    const el = document.getElementById('s5-result-count');
+    if (!el) return;
+    const active = s5ActiveFilterCount() > 0 || String(s5Filters.q || '').trim();
+    el.textContent = (active && total) ? 'Showing ' + shown + ' of ' + total + ' listing' + (total === 1 ? '' : 's') : '';
+  }
+  document.getElementById('s5-filter-chips').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-flt-remove]');
+    if (!b) return;
+    const k = b.getAttribute('data-flt-remove');
+    if (k === 'all') clearS5Filters(true);
+    else if (k.indexOf('area:') === 0) s5Filters.areas = s5Filters.areas.filter(id => id !== k.slice(5));
+    else if (k === 'atype') s5Filters.areaType = '';
+    else if (k === 'price') { s5Filters.minPrice = 0; s5Filters.maxPrice = 0; }
+    else if (k === 'rtype') s5Filters.rentType = 'all';
+    else if (k === 'video') s5Filters.hasVideo = false;
+    else if (k === 'sort') s5Filters.sort = 'default';
+    rerenderS5Feed();
+  });
+
+  // ---- Filter drawer: State -> City -> Area, price, type, sort ----
+  let fltDraft = null, fltAreaQuery = '';
+  function fltStates() { const out = []; MARKETS.forEach(m => { const st = STATE_OF[m.id]; if (st && !out.includes(st)) out.push(st); }); return out; }
+  function fltCitiesIn(state) { return MARKETS.filter(m => STATE_OF[m.id] === state); }
+  function fltBaseFor(cityId) {
+    const src = currentListingType === 'rent' ? rentListings() : landListingsList();
+    return src.filter(l => !isListingUnavailable(l) && listingMarketId(l) === cityId);
+  }
+  function fltResultCount() {
+    const d = fltDraft, kind = currentListingType === 'rent' ? 'rent' : 'land';
+    return applyS5Filters(fltBaseFor(d.city), kind, Object.assign({}, d, { q: s5Filters.q }), d.city).length;
+  }
+  function updateFltFooter() {
+    const btn = document.getElementById('flt-apply');
+    if (!btn || !fltDraft) return;
+    const m = MARKETS.find(x => x.id === fltDraft.city);
+    if (m && !mktIsLive(m)) { btn.textContent = 'Preview ' + m.name; return; }
+    const n = fltResultCount();
+    btn.textContent = 'Show ' + n + ' result' + (n === 1 ? '' : 's');
+  }
+  function openFilterSheet() {
+    if ((currentUserRole || 'tenant') !== 'tenant') { showToast('Filters apply to the tenant listings search'); return; }
+    const f = s5Filters;
+    fltDraft = { city: currentMarketId, areas: f.areas.slice(), areaType: f.areaType, minPrice: f.minPrice, maxPrice: f.maxPrice, rentType: f.rentType, hasVideo: f.hasVideo, sort: f.sort };
+    fltAreaQuery = '';
+    renderFilterSheet();
+    document.getElementById('filter-sheet').classList.add('open');
+  }
+  function closeFilterSheet() { document.getElementById('filter-sheet').classList.remove('open'); }
+  function renderFilterSheet() {
+    const pane = document.getElementById('flt-pane');
+    if (!pane || !fltDraft) return;
+    const d = fltDraft, isRent = currentListingType === 'rent';
+    const state = STATE_OF[d.city] || '';
+    const areas = marketAreaList(d.city), counts = {};
+    fltBaseFor(d.city).forEach(l => { const id = listingAreaId(l); if (id) counts[id] = (counts[id] || 0) + 1; });
+    const shown = areas.filter(a => !d.areaType || a.type === d.areaType);
+    const chip = a => { const n = counts[a.id] || 0, on = d.areas.includes(a.id), off = n === 0 && !on;
+      return `<button type="button" class="flt-opt${on ? ' on' : ''}${off ? ' dim' : ''}" data-flt-area="${a.id}" data-name="${a.n.toLowerCase()}"${off ? ' disabled' : ''}>${a.n}<em>${n}</em></button>`; };
+    const group = (t, label) => { const arr = shown.filter(a => a.type === t); return arr.length ? `<p class="flt-sub">${label}</p><div class="flt-wrap">${arr.map(chip).join('')}</div>` : ''; };
+    const opt = (attr, val, label, on) => `<button type="button" class="flt-opt${on ? ' on' : ''}" ${attr}="${val}">${label}</button>`;
+    pane.innerHTML = `
+      <div class="mkt-sheet-head">
+        <div><p class="mkt-sheet-title">Filters</p><p class="mkt-sheet-sub">${isRent ? 'For rent' : 'Buy land & properties'}</p></div>
+        <button type="button" class="sheet-close-btn" data-flt-close aria-label="Close">${MKT_SVG.close}</button>
+      </div>
+      <div class="flt-body">
+        <div class="flt-sec"><p class="flt-h">Location</p>
+          <div class="flt-row2">
+            <select class="field-input" id="flt-state">${fltStates().map(st => `<option value="${st}"${st === state ? ' selected' : ''}>${st}</option>`).join('')}</select>
+            <select class="field-input" id="flt-city">${fltCitiesIn(state).map(m => `<option value="${m.id}"${m.id === d.city ? ' selected' : ''}>${m.name}${mktIsLive(m) ? '' : ' (Soon)'}</option>`).join('')}</select>
+          </div>
+        </div>
+        <div class="flt-sec"><p class="flt-h">Area</p>
+          <div class="flt-wrap">${opt('data-flt-atype', '', 'All', !d.areaType)}${opt('data-flt-atype', 'urban', 'Urban areas', d.areaType === 'urban')}${opt('data-flt-atype', 'community', 'Local communities', d.areaType === 'community')}</div>
+          ${areas.length > 8 ? '<input class="field-input flt-search" id="flt-area-search" type="text" placeholder="Search areas...">' : ''}
+          ${areas.length ? group('urban', 'Urban areas') + group('community', 'Local communities') : '<p class="flt-empty">Areas for this city are coming soon.</p>'}
+        </div>
+        <div class="flt-sec"><p class="flt-h">Price (₦)</p>
+          <div class="flt-price">
+            <input class="field-input" id="flt-min" type="text" inputmode="numeric" placeholder="Min" value="${d.minPrice || ''}">
+            <input class="field-input" id="flt-max" type="text" inputmode="numeric" placeholder="Max" value="${d.maxPrice || ''}">
+          </div>
+        </div>
+        ${isRent ? `<div class="flt-sec"><p class="flt-h">Property type</p><div class="flt-wrap">${opt('data-flt-rtype', 'all', 'All', d.rentType === 'all')}${opt('data-flt-rtype', 'rent', 'Rent', d.rentType === 'rent')}${opt('data-flt-rtype', 'shortlet', 'Shortlet', d.rentType === 'shortlet')}</div></div>` : ''}
+        <div class="flt-sec"><p class="flt-h">Extras</p><div class="flt-wrap">${opt('data-flt-video', '1', 'Has walkthrough video', d.hasVideo)}</div></div>
+        <div class="flt-sec"><p class="flt-h">Sort by</p><div class="flt-wrap">${FLT_SORTS.map(x => opt('data-flt-sort', x[0], x[1], d.sort === x[0])).join('')}</div></div>
+      </div>
+      <div class="flt-foot">
+        <button type="button" class="mkt-btn ghost" data-flt-clear>Clear all</button>
+        <button type="button" class="mkt-btn primary" id="flt-apply" data-flt-apply>Show results</button>
+      </div>`;
+    const sq = document.getElementById('flt-area-search');
+    if (sq) { sq.value = fltAreaQuery; fltFilterAreaChips(); }
+    updateFltFooter();
+  }
+  function fltFilterAreaChips() {
+    const q = fltAreaQuery.trim().toLowerCase();
+    document.querySelectorAll('#flt-pane [data-flt-area]').forEach(b => { b.style.display = (!q || b.dataset.name.includes(q)) ? '' : 'none'; });
+  }
+  function applyFilterSheet() {
+    const d = fltDraft;
+    if (!d) return;
+    if (d.city !== currentMarketId) setMarket(d.city); // clears area picks, then we re-apply the draft
+    let lo = d.minPrice, hi = d.maxPrice;
+    if (lo && hi && lo > hi) { const t = lo; lo = hi; hi = t; }
+    Object.assign(s5Filters, { areas: d.areas.slice(), areaType: d.areaType, minPrice: lo, maxPrice: hi, rentType: d.rentType, hasVideo: d.hasVideo, sort: d.sort });
+    closeFilterSheet();
+    rerenderS5Feed();
+  }
+  (function wireFilterSheet() {
+    const sheet = document.getElementById('filter-sheet');
+    sheet.addEventListener('click', (e) => {
+      const t = e.target, d = fltDraft;
+      if (t.id === 'filter-sheet' || t.closest('[data-flt-close]')) { closeFilterSheet(); return; }
+      if (!d) return;
+      let b;
+      if ((b = t.closest('[data-flt-area]')) && !b.disabled) {
+        const id = b.dataset.fltArea;
+        d.areas = d.areas.includes(id) ? d.areas.filter(x => x !== id) : d.areas.concat(id);
+      } else if ((b = t.closest('[data-flt-atype]'))) {
+        d.areaType = b.dataset.fltAtype;
+        if (d.areaType) { const ok = new Set(marketAreaList(d.city).filter(a => a.type === d.areaType).map(a => a.id)); d.areas = d.areas.filter(id => ok.has(id)); }
+      } else if ((b = t.closest('[data-flt-rtype]'))) { d.rentType = b.dataset.fltRtype; }
+      else if (t.closest('[data-flt-video]')) { d.hasVideo = !d.hasVideo; }
+      else if ((b = t.closest('[data-flt-sort]'))) { d.sort = b.dataset.fltSort; }
+      else if (t.closest('[data-flt-clear]')) { Object.assign(d, { areas: [], areaType: '', minPrice: 0, maxPrice: 0, rentType: 'all', hasVideo: false, sort: 'default' }); }
+      else if (t.closest('[data-flt-apply]')) { applyFilterSheet(); return; }
+      else return;
+      renderFilterSheet();
+    });
+    sheet.addEventListener('change', (e) => {
+      const d = fltDraft;
+      if (!d) return;
+      if (e.target.id === 'flt-state') {
+        const cs = fltCitiesIn(e.target.value);
+        d.city = (cs.find(mktIsLive) || cs[0]).id; d.areas = []; d.areaType = '';
+        renderFilterSheet();
+      } else if (e.target.id === 'flt-city') {
+        d.city = e.target.value; d.areas = []; d.areaType = '';
+        renderFilterSheet();
+      }
+    });
+    sheet.addEventListener('input', (e) => {
+      const d = fltDraft, id = e.target.id;
+      if (!d) return;
+      if (id === 'flt-area-search') { fltAreaQuery = e.target.value; fltFilterAreaChips(); }
+      else if (id === 'flt-min' || id === 'flt-max') {
+        d[id === 'flt-min' ? 'minPrice' : 'maxPrice'] = parseInt(e.target.value.replace(/[^\d]/g, ''), 10) || 0;
+        updateFltFooter();
+      }
+    });
+  })();
 
   // ---- City field on listing forms (landlord / agent / sales) ----
   // Every new listing is stamped with a `city` id so it lands in the right
@@ -10244,9 +10467,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     navigateTo('screen-4');
   });
 
-  document.getElementById('s5-filter-btn').addEventListener('click', () => {
-    showToast('Filters — coming soon');
-  });
+  document.getElementById('s5-filter-btn').addEventListener('click', openFilterSheet);
 
   function populateScreen5() {
     updateBottomNavLabels();
@@ -10325,9 +10546,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const feed = document.getElementById('s5-listing-feed');
     const cmpLink = document.getElementById('s5-compare-link'); if (cmpLink) cmpLink.style.display = 'inline-flex';
     renderMarketBars();
+    renderS5FilterChips();
     if (!marketIsLive()) { feed.innerHTML = marketComingSoonHTML(currentMarket(), 'page'); if (window.lucide) lucide.createIcons(); startMarketHeroes(); return; }
     const base = rentListings().filter(l => !isListingUnavailable(l) && inCurrentMarket(l));
     const data = applyS5Filters(base, 'rent');
+    setS5ResultCount(data.length, base.length);
     if (!data.length && base.length) { feed.innerHTML = s5NoMatchHTML(); return; }
     feed.innerHTML = data.map(p => {
       const isShortlet = p.type === 'shortlet';
@@ -10373,9 +10596,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const feed = document.getElementById('s5-listing-feed');
     const cmpLink = document.getElementById('s5-compare-link'); if (cmpLink) cmpLink.style.display = 'none';
     renderMarketBars();
+    renderS5FilterChips();
     if (!marketIsLive()) { feed.innerHTML = marketComingSoonHTML(currentMarket(), 'page'); if (window.lucide) lucide.createIcons(); startMarketHeroes(); return; }
     const base = landListingsList().filter(l => !isListingUnavailable(l) && inCurrentMarket(l));
     const data = applyS5Filters(base, 'land');
+    setS5ResultCount(data.length, base.length);
     if (!data.length && base.length) { feed.innerHTML = s5NoMatchHTML(); return; }
     feed.innerHTML = data.map(p => {
       const photos = (p.photos && p.photos.length) ? p.photos : [p.img];
