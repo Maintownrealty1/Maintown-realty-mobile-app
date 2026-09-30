@@ -8644,7 +8644,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function myOwnerLandListings() {
     const uid = getCurrentUserId();
-    return listings.filter(l => l.type === 'land' && l.ownerId === uid);
+    // Ownership follows the true owner, not whoever uploaded the listing: a
+    // land/property an Agent (or Sales staff) listed on this Owner's behalf
+    // counts here exactly like one the Owner listed themselves. Matched by
+    // ownerId, or by the listing id recorded on the Agent's submission /
+    // the Owner's own property record, then de-duplicated.
+    const linkedIds = new Set();
+    (agentListings || []).forEach(a => { if (a.ownerId === uid && a.listingId != null) linkedIds.add(String(a.listingId)); });
+    (landlordProperties || []).forEach(p => { if (p.ownerId === uid && p.listingId != null) linkedIds.add(String(p.listingId)); });
+    return listings.filter(l => l.type === 'land' && (l.ownerId === uid || linkedIds.has(String(l.id))));
   }
 
   function soldOwnerAssets() {
