@@ -6573,11 +6573,57 @@
 
 <!-- Credit Screening Fee Modal (Phase 1: Application & Credit Screening) -->
 <div id="screening-modal" class="modal-overlay">
-  <div class="modal-card">
+  <div class="modal-card" style="max-height:92vh; overflow-y:auto;">
     <div class="modal-icon-wrap"><i data-lucide="shield-check" class="w-6 h-6"></i></div>
     <h2 class="modal-title">Credit &amp; Background Screening</h2>
     <p class="modal-sub">Complete your one-time ₦5,000 background and credit verification to unlock flexible payment options. You only pay this once — it is never charged again at checkout.</p>
     <div class="rent-badge" style="margin-bottom:16px;"><i data-lucide="wallet" class="w-3.5 h-3.5"></i><span>One-time Screening Fee: ₦5,000 · 100% to MainTown Realty</span></div>
+
+    <!-- Payment source: deduct from funded wallet OR pay directly by card -->
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
+      <button type="button" class="pay-option selected" id="screening-src-wallet" data-source="wallet">
+        <div class="pay-option-icon-wrap bg-purple-500/10"><i data-lucide="wallet" class="w-5 h-5 text-purple-400"></i></div>
+        <div class="pay-option-text">
+          <p class="pay-option-label">MainTown Wallet</p>
+          <p class="pay-option-detail">Available balance: <span id="screening-wallet-balance">₦0</span></p>
+        </div>
+        <div class="pay-option-check"><i data-lucide="check" class="w-3 h-3"></i></div>
+      </button>
+      <button type="button" class="pay-option" id="screening-src-card" data-source="card">
+        <div class="pay-option-icon-wrap bg-blue-500/10"><i data-lucide="credit-card" class="w-5 h-5 text-blue-400"></i></div>
+        <div class="pay-option-text">
+          <p class="pay-option-label">Pay with Card</p>
+          <p class="pay-option-detail">Debit/Credit card — charged directly</p>
+        </div>
+        <div class="pay-option-check"><i data-lucide="check" class="w-3 h-3"></i></div>
+      </button>
+    </div>
+
+    <!-- Wallet shortfall notice + Fund Wallet shortcut -->
+    <div id="screening-wallet-low" style="display:none; margin-bottom:12px;">
+      <p class="modal-sub" style="color:#f87171; margin:0 0 8px;">Your wallet balance is below ₦5,000. Fund your wallet, or switch to card payment.</p>
+      <button type="button" id="screening-fund-btn" class="btn-secondary" style="margin-bottom:0;"><i data-lucide="arrow-down-circle" class="w-4 h-4" style="display:inline-block; vertical-align:-3px; margin-right:4px;"></i>Fund Wallet</button>
+    </div>
+
+    <!-- Direct card form (never stored — used once for this charge) -->
+    <div id="screening-card-form" style="display:none; margin-bottom:12px;">
+      <div class="field">
+        <label class="field-label">Card Number</label>
+        <input class="field-input" id="screening-card-number" type="text" inputmode="numeric" autocomplete="cc-number" maxlength="19" placeholder="0000 0000 0000 0000">
+      </div>
+      <div style="display:flex; gap:10px;">
+        <div class="field" style="flex:1;">
+          <label class="field-label">Expiry</label>
+          <input class="field-input" id="screening-card-expiry" type="text" inputmode="numeric" autocomplete="cc-exp" maxlength="5" placeholder="MM/YY">
+        </div>
+        <div class="field" style="flex:1;">
+          <label class="field-label">CVV</label>
+          <input class="field-input" id="screening-card-cvv" type="password" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="•••">
+        </div>
+      </div>
+      <p class="modal-sub" id="screening-card-error" style="display:none; color:#f87171; margin:0;"></p>
+    </div>
+
     <button type="button" id="screening-pay-btn" class="btn-primary" style="margin-top:0; margin-bottom:10px;">Pay ₦5,000 &amp; Continue</button>
     <button type="button" id="screening-cancel-btn" class="btn-secondary">Not now</button>
   </div>
@@ -9604,12 +9650,83 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // by tenants/buyers. Landlords, agents and company staff are never charged.
   function isAiFeePayer() { return (currentUserRole || 'tenant') === 'tenant'; }
   let screeningPendingAction = null;
+  const SCREENING_FEE_NGN = 5000;
+  let screeningPaySource = 'wallet'; // 'wallet' | 'card'
+
+  // Redraws the source picker, wallet balance, shortfall notice and card form.
+  function refreshScreeningModal() {
+    const uid = getCurrentUserId();
+    const bal = uid ? getWalletBalance(uid) : 0;
+    const enough = bal >= SCREENING_FEE_NGN;
+    const balEl = document.getElementById('screening-wallet-balance');
+    if (balEl) balEl.textContent = formatMoney(bal, 'ngn');
+    document.getElementById('screening-src-wallet')?.classList.toggle('selected', screeningPaySource === 'wallet');
+    document.getElementById('screening-src-card')?.classList.toggle('selected', screeningPaySource === 'card');
+    const low = document.getElementById('screening-wallet-low');
+    if (low) low.style.display = (screeningPaySource === 'wallet' && !enough) ? 'block' : 'none';
+    const form = document.getElementById('screening-card-form');
+    if (form) form.style.display = screeningPaySource === 'card' ? 'block' : 'none';
+    const btn = document.getElementById('screening-pay-btn');
+    if (btn) btn.textContent = screeningPaySource === 'card'
+      ? 'Pay ₦5,000 by Card & Continue'
+      : 'Pay ₦5,000 from Wallet & Continue';
+    const err = document.getElementById('screening-card-error');
+    if (err) err.style.display = 'none';
+    if (window.lucide) lucide.createIcons();
+  }
 
   function requireScreening(action) {
     if (!isAiFeePayer()) { showToast('AI tools are free for landlords and agents — screening is only for tenants and buyers'); return; }
     if (isScreeningCompleted()) { action(); return; }
     screeningPendingAction = action;
+    // Wallet is the default source; if it can't cover the fee the shortfall notice
+    // offers Fund Wallet, and the person can switch to direct card payment.
+    screeningPaySource = 'wallet';
+    refreshScreeningModal();
     document.getElementById('screening-modal')?.classList.add('open');
+  }
+
+  document.getElementById('screening-src-wallet')?.addEventListener('click', () => { screeningPaySource = 'wallet'; refreshScreeningModal(); });
+  document.getElementById('screening-src-card')?.addEventListener('click', () => { screeningPaySource = 'card'; refreshScreeningModal(); });
+
+  // Fund Wallet shortcut — the Fund modal sits above this one (z-index 65), and the
+  // balance/notice refresh automatically once the top-up lands.
+  document.getElementById('screening-fund-btn')?.addEventListener('click', () => {
+    const uid = getCurrentUserId();
+    const shortfall = Math.max(SCREENING_FEE_NGN - (uid ? getWalletBalance(uid) : 0), 0);
+    openFundWalletModal();
+    if (shortfall > 0) document.getElementById('fw-amount').value = String(shortfall);
+  });
+  window.addEventListener('maintown_state_updated', () => {
+    if (document.getElementById('screening-modal')?.classList.contains('open')) refreshScreeningModal();
+  });
+
+  // Card field formatting (digits only, grouped; MM/YY)
+  document.getElementById('screening-card-number')?.addEventListener('input', (e) => {
+    const d = e.target.value.replace(/\D/g, '').slice(0, 16);
+    e.target.value = d.replace(/(.{4})/g, '$1 ').trim();
+  });
+  document.getElementById('screening-card-expiry')?.addEventListener('input', (e) => {
+    const d = e.target.value.replace(/\D/g, '').slice(0, 4);
+    e.target.value = d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d;
+  });
+  document.getElementById('screening-card-cvv')?.addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+  });
+
+  function validateScreeningCard() {
+    const num = document.getElementById('screening-card-number').value.replace(/\D/g, '');
+    const exp = document.getElementById('screening-card-expiry').value;
+    const cvv = document.getElementById('screening-card-cvv').value;
+    if (num.length < 16) return 'Enter a valid 16-digit card number.';
+    const m = /^(\d{2})\/(\d{2})$/.exec(exp);
+    if (!m) return 'Enter the expiry date as MM/YY.';
+    const mm = parseInt(m[1], 10), yy = 2000 + parseInt(m[2], 10);
+    if (mm < 1 || mm > 12) return 'Enter a valid expiry month.';
+    const now = new Date();
+    if (yy < now.getFullYear() || (yy === now.getFullYear() && mm < now.getMonth() + 1)) return 'This card has expired.';
+    if (cvv.length < 3) return 'Enter the 3-digit CVV on your card.';
+    return '';
   }
 
   document.getElementById('screening-cancel-btn')?.addEventListener('click', () => {
@@ -9623,6 +9740,45 @@ This voucher is auto-generated and serves as proof of settlement.`;
       screeningPendingAction = null;
       return;
     }
+    const uid = getCurrentUserId();
+    if (!uid) { showToast('Please log in to continue'); return; }
+
+    if (screeningPaySource === 'wallet') {
+      // Real deduction from the funded wallet — no overdraft.
+      if (!debitWallet(uid, SCREENING_FEE_NGN)) {
+        refreshScreeningModal();
+        showToast('Insufficient wallet balance — fund your wallet or pay by card');
+        return;
+      }
+      recordTransaction({
+        userId: uid, direction: 'debit', category: 'AI_FEE',
+        title: 'Credit & Background Screening Fee',
+        amount: SCREENING_FEE_NGN, status: 'SUCCESSFUL',
+        meta: { sender: 'You (MainTown Wallet)', recipient: 'MainTown Realty', feeType: 'One-time Screening Fee', escrowStatus: 'Settled immediately' }
+      });
+    } else {
+      // Direct card charge — validated, then charged once. Card details are never stored.
+      const cardErr = validateScreeningCard();
+      const errEl = document.getElementById('screening-card-error');
+      if (cardErr) { errEl.textContent = cardErr; errEl.style.display = 'block'; return; }
+      errEl.style.display = 'none';
+      // Ledger stays consistent with the wallet balance: the card payment is logged as an
+      // instant card top-up that is deducted for the fee in the same moment (net wallet change ₦0).
+      recordTransaction({
+        userId: uid, direction: 'credit', category: 'TOPUP',
+        title: 'Card Payment — Screening Fee',
+        amount: SCREENING_FEE_NGN, status: 'SUCCESSFUL',
+        meta: { sender: 'Debit/Credit Card', recipient: 'MainTown Realty', feeType: 'One-time Screening Fee' }
+      });
+      recordTransaction({
+        userId: uid, direction: 'debit', category: 'AI_FEE',
+        title: 'Credit & Background Screening Fee',
+        amount: SCREENING_FEE_NGN, status: 'SUCCESSFUL',
+        meta: { sender: 'You (Card)', recipient: 'MainTown Realty', feeType: 'One-time Screening Fee', escrowStatus: 'Settled immediately' }
+      });
+      ['screening-card-number', 'screening-card-expiry', 'screening-card-cvv'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    }
+
     markScreeningCompleted();
     logTransaction({
       dealStage: 'APPLICATION', escrowStatus: 'RELEASED', gross: 5000,
