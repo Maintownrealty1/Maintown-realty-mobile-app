@@ -2752,8 +2752,8 @@
      INSPECTION SCHEDULES VIEW
      =================================================================== */
   .insp-mgmt-card { position: relative; background: #131927; border: 1px solid #1e293b; border-radius: 20px; padding: 20px; margin-bottom: 16px; }
-  .insp-badge-corner { position: absolute; top: 18px; right: 18px; }
-  .insp-mgmt-top { display: flex; gap: 12px; margin-bottom: 10px; padding-right: 78px; }
+  .insp-badge-corner { position: static; display: inline-flex; margin-bottom: 12px; }
+  .insp-mgmt-top { display: flex; gap: 12px; margin-bottom: 10px; padding-right: 0; }
   .insp-mgmt-img { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; flex-shrink: 0; background: #1e293b; font-size: 0; color: transparent; text-indent: -9999px; }
   .insp-mgmt-text { flex: 1; min-width: 0; }
   .insp-mgmt-title { font-size: 14.5px; font-weight: 600; color: #fff; margin: 0 0 3px; }
@@ -3627,6 +3627,10 @@
       <label class="field-label">Full Name</label>
       <input class="field-input" id="reg-fullname" type="text" required placeholder="e.g. Onwochei Precious Ebuka">
     </div>
+    <div class="field">
+      <label class="field-label">Residential Address (as on your NIN / ID)</label>
+      <input class="field-input" id="reg-address" type="text" placeholder="House no., street, area, city (used on your agreements)">
+    </div>
 
     <div class="field" id="reg-occupation-field" style="display:none;">
       <label class="field-label">Occupation</label>
@@ -4099,6 +4103,20 @@
         </select>
       </div>
 
+      <div id="tv-commercial-wrap" style="display:none;">
+        <div class="field"><label class="field-label">Residential or Commercial</label>
+          <select class="field-input" id="tv-usage" data-commercial-ctl><option value="residential">Residential (flat, house)</option><option value="commercial">Commercial (shop, office, hall)</option></select></div>
+        <div id="tv-commercial-fields" style="display:none;">
+          <div class="field"><label class="field-label">Commercial type</label>
+            <select class="field-input" id="tv-commercial-type"><option>Shop</option><option>Office</option><option>Warehouse</option><option>Event Hall</option></select></div>
+          <div class="field"><label class="field-label">Size (sqm)</label><input class="field-input" id="tv-commercial-sqm" type="number" min="0" inputmode="decimal" placeholder="e.g. 45"></div>
+          <div class="field"><label class="field-label">Parking spaces</label><input class="field-input" id="tv-commercial-parking" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 5"></div>
+          <div class="field"><label class="field-label">Power supply</label>
+            <select class="field-input" id="tv-commercial-power"><option>Public grid</option><option>Grid + generator</option><option>Grid + inverter/solar</option><option>Generator only</option></select></div>
+          <div class="rent-badge" style="display:inline-flex;"><span>Commercial rentals are paid annually, in full upfront. No monthly flex-rent.</span></div>
+          <div class="rent-badge" style="display:inline-flex;"><span>Commercial leases use their own agreement, to be reviewed by a lawyer before use.</span></div>
+        </div>
+      </div>
       <div class="field">
         <label class="field-label" id="tv-annual-label">Annual Price (NGN)</label>
         <input class="field-input" id="tv-annual" type="number" placeholder="e.g. 2400000">
@@ -4206,6 +4224,15 @@
         </p>
       </div>
 
+      <div id="tv-sl-avail" style="display:none;">
+        <p class="s5-section-label"><i data-lucide="calendar-range" class="w-4 h-4 text-purple-400"></i>Booking Availability</p>
+        <p class="modal-sub" style="margin:0 0 10px;color:#94a3b8;">Guests can only book nights inside this window, like Airbnb.</p>
+        <div class="field"><label class="field-label">Open for booking from</label><input class="field-input" id="tv-sl-from" type="date"></div>
+        <div class="field"><label class="field-label">Open for booking until (last check-out)</label><input class="field-input" id="tv-sl-to" type="date"></div>
+        <div class="field"><label class="field-label">Blocked dates (optional)</label>
+          <div style="display:flex;gap:8px;"><input class="field-input" id="tv-sl-block-input" type="date" style="flex:1;"><button type="button" class="btn-secondary" id="tv-sl-block-add" style="width:auto;padding:0 18px;margin:0;">Block</button></div>
+          <div id="tv-sl-block-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div></div>
+      </div>
       <div id="tv-availability-section">
       <p class="s5-section-label"><i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>Inspection Availability</p>
       <div class="field">
@@ -4284,7 +4311,21 @@
           </select>
         </div>
 
-        <div class="field">
+        <div id="s5-commercial-wrap" style="display:none;">
+        <div class="field"><label class="field-label">Residential or Commercial</label>
+          <select class="field-input" id="s5-usage" data-commercial-ctl><option value="residential">Residential (flat, house)</option><option value="commercial">Commercial (shop, office, hall)</option></select></div>
+        <div id="s5-commercial-fields" style="display:none;">
+          <div class="field"><label class="field-label">Commercial type</label>
+            <select class="field-input" id="s5-commercial-type"><option>Shop</option><option>Office</option><option>Warehouse</option><option>Event Hall</option></select></div>
+          <div class="field"><label class="field-label">Size (sqm)</label><input class="field-input" id="s5-commercial-sqm" type="number" min="0" inputmode="decimal" placeholder="e.g. 45"></div>
+          <div class="field"><label class="field-label">Parking spaces</label><input class="field-input" id="s5-commercial-parking" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 5"></div>
+          <div class="field"><label class="field-label">Power supply</label>
+            <select class="field-input" id="s5-commercial-power"><option>Public grid</option><option>Grid + generator</option><option>Grid + inverter/solar</option><option>Generator only</option></select></div>
+          <div class="rent-badge" style="display:inline-flex;"><span>Commercial rentals are paid annually, in full upfront. No monthly flex-rent.</span></div>
+          <div class="rent-badge" style="display:inline-flex;"><span>Commercial leases use their own agreement, to be reviewed by a lawyer before use.</span></div>
+        </div>
+      </div>
+      <div class="field">
           <label class="field-label" id="s5-listing-annual-label">Annual Price (NGN)</label>
           <input class="field-input" id="s5-listing-annual" type="number" required placeholder="e.g. 2400000">
         </div>
@@ -4427,7 +4468,16 @@
           <p>Listed on behalf of your company — no Landlord/Owner needed. This goes straight to MainTown's legal review queue.</p>
         </div>
 
-        <div id="s5-availability-section">
+        <div id="s5-sl-avail" style="display:none;">
+        <p class="s5-section-label"><i data-lucide="calendar-range" class="w-4 h-4 text-purple-400"></i>Booking Availability</p>
+        <p class="modal-sub" style="margin:0 0 10px;color:#94a3b8;">Guests can only book nights inside this window, like Airbnb.</p>
+        <div class="field"><label class="field-label">Open for booking from</label><input class="field-input" id="s5-sl-from" type="date"></div>
+        <div class="field"><label class="field-label">Open for booking until (last check-out)</label><input class="field-input" id="s5-sl-to" type="date"></div>
+        <div class="field"><label class="field-label">Blocked dates (optional)</label>
+          <div style="display:flex;gap:8px;"><input class="field-input" id="s5-sl-block-input" type="date" style="flex:1;"><button type="button" class="btn-secondary" id="s5-sl-block-add" style="width:auto;padding:0 18px;margin:0;">Block</button></div>
+          <div id="s5-sl-block-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div></div>
+      </div>
+      <div id="s5-availability-section">
         <p class="s5-section-label"><i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>Inspection Availability</p>
         <div class="field">
           <label class="field-label">Available Date</label>
@@ -4964,7 +5014,7 @@
   <div id="s6-payment-section">
 
     <div id="s6-landsignoff-section" style="display:none;">
-      <p class="s5-section-label" style="margin-top: 0;"><i data-lucide="pen-tool" class="w-4 h-4 text-purple-400"></i>Land Allocation &amp; Payment Sign-Off</p>
+      <p class="s5-section-label" style="margin-top: 0;"><i data-lucide="pen-tool" class="w-4 h-4 text-purple-400"></i><span id="s6-signoff-heading">Land Allocation &amp; Payment Sign-Off</span></p>
       <div class="signoff-box" id="s6-signoff-box">
         <p>By proceeding with this transaction, you acknowledge and agree to the following binding terms:</p>
         <p><strong>Clause 1 — Pre-Checkout Inspection &amp; Satisfaction:</strong> Checkout requires prior completion of physical or virtual property inspection. By initiating payment, you confirm you (or your authorized representative) have inspected the land, verified its condition, and logged your status as Satisfied within the platform.</p>
@@ -4982,7 +5032,7 @@
       </label>
       <label class="agree-row" id="s6-adr-ack-row" style="margin: 4px 0 10px; display:none;">
         <input type="checkbox" id="s6-adr-ack" class="agree-checkbox">
-        <span>I have read and agree to the Dispute Resolution clause: 14-day mediation first, then arbitration under the Lagos Court of Arbitration Rules in Lagos.</span>
+        <span id="s6-adr-ack-text">I have read and agree to the Dispute Resolution clause: 14-day mediation first, then arbitration under the Lagos Court of Arbitration Rules in Lagos.</span>
       </label>
       <div class="field">
         <label class="field-label" id="s6-landsign-label">Type to sign: "I agree to the Land Allocation &amp; Payment Terms"</label>
@@ -6509,6 +6559,10 @@
     <p class="kyc-item-status" id="va-kyc-hint" style="margin: -8px 0 16px; color:#64748b;">Tap each item above to upload</p>
 
     <p class="s5-section-label" style="margin-top:0;"><i data-lucide="landmark" class="w-4 h-4 text-purple-400"></i>Step 1 · Payout Account Details</p>    <div class="field">
+      <label class="field-label">Home Address (as on your NIN / ID)</label>
+      <input class="field-input" id="va-address" type="text" placeholder="House no., street, area, city" autocomplete="street-address">
+    </div>
+    <div class="field">
       <label class="field-label">Settlement Bank Name</label>
       <input class="field-input" id="va-bank-name" type="text" placeholder="e.g. GTBank, Access Bank">
     </div>
@@ -6519,6 +6573,16 @@
     <div class="field">
       <label class="field-label">BVN</label>
       <input class="field-input" id="va-bvn-nin" type="text" placeholder="11-digit BVN" inputmode="numeric" maxlength="11" autocomplete="off">
+    </div>
+    <div class="field">
+      <label class="field-label">NIN (National Identification Number)</label>
+      <input class="field-input" id="va-nin" type="text" placeholder="11-digit NIN" inputmode="numeric" maxlength="11" autocomplete="off">
+    </div>
+    <button type="button" id="va-verify-kyc-btn" class="btn-secondary" style="margin-bottom:10px;">
+      <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Verify my identity
+    </button>
+    <div class="rent-badge" id="va-kyc-result" style="display:none; align-items:flex-start; gap:6px; margin-bottom:10px;">
+      <i data-lucide="info" class="w-3.5 h-3.5" style="margin-top:2px; flex-shrink:0;"></i><span>—</span>
     </div>
     <button type="button" id="va-resolve-nuban-btn" class="btn-secondary" style="margin-bottom:10px;">
       <i data-lucide="search-check" class="w-3.5 h-3.5"></i> Resolve Account Name
@@ -6615,6 +6679,7 @@
     </div>
     <h2 class="modal-title">Select Your Stay Dates</h2>
     <p class="modal-sub" id="sb-property-name">—</p>
+    <p class="modal-sub" id="sb-avail-note" style="display:none;color:#a78bfa;margin-top:-6px;"></p>
 
     <div class="field">
       <label class="field-label">Check-in Date</label>
@@ -6624,6 +6689,7 @@
       <label class="field-label">Check-out Date</label>
       <input class="field-input" id="sb-checkout-date" type="date">
     </div>
+    <p class="modal-sub" id="sb-avail-error" style="display:none;color:#f87171;margin:-4px 0 8px;"></p>
     <p class="modal-sub" id="sb-nights-summary" style="margin-top:-8px; margin-bottom: 6px; color:#94a3b8;">1 night selected</p>
 
     <div class="fee-preview-box">
@@ -9878,7 +9944,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (role !== 'tenant') { wrap.innerHTML = ''; return; }
     // Only complete listings get a card, so an incomplete record can never leave a stray label on Home.
     const available = rentListings().filter(p => !isListingUnavailable(p) && inCurrentMarket(p) && p.title && (p.ngn || p.usd));
-    const rents = available.filter(p => p.type === 'rent').slice(0, 8);
+    const rents = available.filter(p => p.type === 'rent' && p.usage !== 'commercial').slice(0, 8);
     const shorts = available.filter(p => p.type === 'shortlet').slice(0, 8);
     const favOn = (id) => { try { return cart.some(c => String(c.listingId) === String(id)); } catch (e) { return false; } };
     const card = (p) => {
@@ -10876,12 +10942,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // ---- Listing filters: search + area + price + type (runs on the DATA, not the DOM) ----
   // The upcoming filter drawer only has to call setS5Filters({...}); every feed
   // render already goes through applyS5Filters(), so paging can slot in after it.
-  const S5_FILTER_DEFAULTS = { q: '', areas: [], areaType: '', minPrice: 0, maxPrice: 0, rentType: 'all', propType: 'all', hasVideo: false, sort: 'default' };
+  const S5_FILTER_DEFAULTS = { q: '', areas: [], areaType: '', minPrice: 0, maxPrice: 0, rentType: 'all', usage: 'all', propType: 'all', hasVideo: false, sort: 'default' };
   let s5Filters = Object.assign({}, S5_FILTER_DEFAULTS, { areas: [] });
   let s5SearchTimer = null;
   function listingPriceNgn(l) {
     if (!l) return 0;
     if (typeof l.totalPrice === 'number') return l.totalPrice;
+    if (l.usage === 'commercial' && l.flexRent === false && l.annualPrice) return Math.round(l.annualPrice / 12);
     const raw = l.totalPrice != null ? l.totalPrice : l.ngn;
     return parseInt(String(raw == null ? '' : raw).replace(/[^\d]/g, ''), 10) || 0;
   }
@@ -10902,6 +10969,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (f.minPrice && price < f.minPrice) return false;
       if (f.maxPrice && price > f.maxPrice) return false;
       if (kind === 'rent' && f.rentType !== 'all' && l.type !== f.rentType) return false;
+      if (kind === 'rent' && f.usage && f.usage !== 'all' && (l.usage === 'commercial' ? 'commercial' : 'residential') !== f.usage) return false;
       if (kind !== 'rent' && f.propType && f.propType !== 'all') {
         const pk = listingPropKind(l);
         if (f.propType === 'land' && pk !== 'land') return false;
@@ -10919,7 +10987,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function s5ActiveFilterCount() {
     const f = s5Filters;
     return (f.areas.length ? 1 : 0) + (f.areaType ? 1 : 0) + ((f.minPrice || f.maxPrice) ? 1 : 0)
-      + (f.rentType !== 'all' ? 1 : 0) + ((f.propType && f.propType !== 'all') ? 1 : 0) + (f.hasVideo ? 1 : 0) + (f.sort !== 'default' ? 1 : 0);
+      + (f.rentType !== 'all' ? 1 : 0) + ((f.usage && f.usage !== 'all') ? 1 : 0) + ((f.propType && f.propType !== 'all') ? 1 : 0) + (f.hasVideo ? 1 : 0) + (f.sort !== 'default' ? 1 : 0);
   }
   function rerenderS5Feed() {
     if ((currentUserRole || 'tenant') !== 'tenant') return;
@@ -10955,6 +11023,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (f.areaType) chips.push(['atype', f.areaType === 'urban' ? 'Urban areas' : 'Local communities']);
     if (f.minPrice || f.maxPrice) chips.push(['price', f.minPrice && f.maxPrice ? fltFmtMoney(f.minPrice) + ' – ' + fltFmtMoney(f.maxPrice) : (f.minPrice ? 'From ' + fltFmtMoney(f.minPrice) : 'Up to ' + fltFmtMoney(f.maxPrice))]);
     if (f.rentType !== 'all') chips.push(['rtype', f.rentType === 'shortlet' ? 'Shortlet' : 'Rent']);
+    if (f.usage && f.usage !== 'all') chips.push(['usage', f.usage === 'commercial' ? 'Commercial' : 'Residential']);
     if (f.propType && f.propType !== 'all') chips.push(['ptype', f.propType === 'land' ? 'Land only' : (f.propType === 'house' ? 'Any house' : f.propType)]);
     if (f.hasVideo) chips.push(['video', 'Walkthrough video']);
     if (f.sort !== 'default') chips.push(['sort', (FLT_SORTS.find(x => x[0] === f.sort) || [0, f.sort])[1]]);
@@ -10978,6 +11047,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     else if (k === 'atype') s5Filters.areaType = '';
     else if (k === 'price') { s5Filters.minPrice = 0; s5Filters.maxPrice = 0; }
     else if (k === 'rtype') s5Filters.rentType = 'all';
+    else if (k === 'usage') s5Filters.usage = 'all';
     else if (k === 'ptype') s5Filters.propType = 'all';
     else if (k === 'video') s5Filters.hasVideo = false;
     else if (k === 'sort') s5Filters.sort = 'default';
@@ -11007,7 +11077,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function openFilterSheet() {
     if ((currentUserRole || 'tenant') !== 'tenant') { showToast('Filters apply to the tenant listings search'); return; }
     const f = s5Filters;
-    fltDraft = { city: currentMarketId, areas: f.areas.slice(), areaType: f.areaType, minPrice: f.minPrice, maxPrice: f.maxPrice, rentType: f.rentType, propType: f.propType || 'all', hasVideo: f.hasVideo, sort: f.sort };
+    fltDraft = { city: currentMarketId, areas: f.areas.slice(), areaType: f.areaType, minPrice: f.minPrice, maxPrice: f.maxPrice, rentType: f.rentType, usage: f.usage || 'all', propType: f.propType || 'all', hasVideo: f.hasVideo, sort: f.sort };
     fltAreaQuery = '';
     renderFilterSheet();
     document.getElementById('filter-sheet').classList.add('open');
@@ -11049,7 +11119,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           </div>
         </div>
         ${!isRent ? `<div class="flt-sec"><p class="flt-h">Property type</p><div class="flt-wrap">${[['all', 'All'], ['land', 'Land only'], ['house', 'Any house'], ['Bungalow', 'Bungalow'], ['Duplex', 'Duplex'], ['Detached Duplex', 'Detached Duplex'], ['Semi-Detached Duplex', 'Semi-Detached'], ['Terrace', 'Terrace'], ['Block of Flats', 'Block of Flats'], ['Mansion', 'Mansion'], ['Commercial Building', 'Commercial']].map(x => opt('data-flt-ptype', x[0], x[1], (d.propType || 'all') === x[0])).join('')}</div></div>` : ''}
-        ${isRent ? `<div class="flt-sec"><p class="flt-h">Property type</p><div class="flt-wrap">${opt('data-flt-rtype', 'all', 'All', d.rentType === 'all')}${opt('data-flt-rtype', 'rent', 'Rent', d.rentType === 'rent')}${opt('data-flt-rtype', 'shortlet', 'Shortlet', d.rentType === 'shortlet')}</div></div>` : ''}
+        ${isRent ? `<div class="flt-sec"><p class="flt-h">Residential or Commercial</p><div class="flt-wrap">${opt('data-flt-usage', 'all', 'All', (d.usage || 'all') === 'all')}${opt('data-flt-usage', 'residential', 'Residential', d.usage === 'residential')}${opt('data-flt-usage', 'commercial', 'Commercial', d.usage === 'commercial')}</div></div><div class="flt-sec"><p class="flt-h">Property type</p><div class="flt-wrap">${opt('data-flt-rtype', 'all', 'All', d.rentType === 'all')}${opt('data-flt-rtype', 'rent', 'Rent', d.rentType === 'rent')}${opt('data-flt-rtype', 'shortlet', 'Shortlet', d.rentType === 'shortlet')}</div></div>` : ''}
         <div class="flt-sec"><p class="flt-h">Extras</p><div class="flt-wrap">${opt('data-flt-video', '1', 'Has walkthrough video', d.hasVideo)}</div></div>
         <div class="flt-sec"><p class="flt-h">Sort by</p><div class="flt-wrap">${FLT_SORTS.map(x => opt('data-flt-sort', x[0], x[1], d.sort === x[0])).join('')}</div></div>
       </div>
@@ -11071,7 +11141,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (d.city !== currentMarketId) setMarket(d.city); // clears area picks, then we re-apply the draft
     let lo = d.minPrice, hi = d.maxPrice;
     if (lo && hi && lo > hi) { const t = lo; lo = hi; hi = t; }
-    Object.assign(s5Filters, { areas: d.areas.slice(), areaType: d.areaType, minPrice: lo, maxPrice: hi, rentType: d.rentType, propType: d.propType || 'all', hasVideo: d.hasVideo, sort: d.sort });
+    Object.assign(s5Filters, { areas: d.areas.slice(), areaType: d.areaType, minPrice: lo, maxPrice: hi, rentType: d.rentType, usage: d.usage || 'all', propType: d.propType || 'all', hasVideo: d.hasVideo, sort: d.sort });
     closeFilterSheet();
     rerenderS5Feed();
   }
@@ -11089,10 +11159,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
         d.areaType = b.dataset.fltAtype;
         if (d.areaType) { const ok = new Set(marketAreaList(d.city).filter(a => a.type === d.areaType).map(a => a.id)); d.areas = d.areas.filter(id => ok.has(id)); }
       } else if ((b = t.closest('[data-flt-rtype]'))) { d.rentType = b.dataset.fltRtype; }
+      else if ((b = t.closest('[data-flt-usage]'))) { d.usage = b.dataset.fltUsage; }
       else if ((b = t.closest('[data-flt-ptype]'))) { d.propType = b.dataset.fltPtype; }
       else if (t.closest('[data-flt-video]')) { d.hasVideo = !d.hasVideo; }
       else if ((b = t.closest('[data-flt-sort]'))) { d.sort = b.dataset.fltSort; }
-      else if (t.closest('[data-flt-clear]')) { Object.assign(d, { areas: [], areaType: '', minPrice: 0, maxPrice: 0, rentType: 'all', propType: 'all', hasVideo: false, sort: 'default' }); }
+      else if (t.closest('[data-flt-clear]')) { Object.assign(d, { areas: [], areaType: '', minPrice: 0, maxPrice: 0, rentType: 'all', usage: 'all', propType: 'all', hasVideo: false, sort: 'default' }); }
       else if (t.closest('[data-flt-apply]')) { applyFilterSheet(); return; }
       else return;
       renderFilterSheet();
@@ -11591,7 +11662,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="s5-card-body">
           <div class="s5-card-titlerow"><p class="s5-card-title">${p.title}</p><button type="button" class="s5-info-btn" data-listing-id="${p.id}" aria-label="View listing details"><i data-lucide="info" class="w-3.5 h-3.5"></i>Details</button></div>
           <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
-          <p class="s5-card-price">${currency === 'usd' ? p.usd : p.ngn} <span>${isShortlet ? 'shortlet' : 'rent'}</span></p>
+          <p class="s5-card-price">${currency === 'usd' ? p.usd : p.ngn} <span>${isShortlet ? 'shortlet' : (p.usage === 'commercial' ? String(p.commercialType || 'commercial').toLowerCase() : 'rent')}</span></p>
           <div class="s5-card-actions">
             <button type="button" class="s5-action-btn wt-btn" data-title="${p.title}"><i data-lucide="video" class="w-4 h-4"></i>Virtual Walkthrough</button>
           </div>
@@ -11863,6 +11934,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (isLand && listingPropKind(p) === 'land' && p.landUse) details.push(row('Land use', liEsc(p.landUse)));
     if (beds) details.push(row('Bedrooms', liEsc(beds)));
     if (p.bathrooms) details.push(row('Bathrooms', liEsc(p.bathrooms)));
+    if (p.usage === 'commercial') {
+      details.push(row('Use', liEsc('Commercial \u00b7 ' + (p.commercialType || 'Space'))));
+      if (p.sqm) details.push(row('Size', liEsc(formatSqm(p.sqm))));
+      if (p.parkingSpaces !== undefined) details.push(row('Parking', liEsc(p.parkingSpaces + ' space' + (p.parkingSpaces === 1 ? '' : 's'))));
+      if (p.powerSupply) details.push(row('Power', liEsc(p.powerSupply)));
+      details.push(row('Payment', 'Annual, paid upfront'));
+    }
     if (isLand && p.sqm) details.push(row(listingPropKind(p) === 'house' ? 'Plot size' : 'Size', liEsc(formatSqm(p.sqm))));
     if (isLand && p.titleTypeLabel) details.push(row('Title document', liEsc(p.titleTypeLabel)));
     details.push(row('Listed by', liEsc(liListedBy(p))));
@@ -12322,6 +12400,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       checkoutEl.value = nextDay.toISOString().slice(0, 10);
     }
     checkoutEl.min = checkinEl.value;
+    applyShortletAvailability();
     const breakdown = computeShortletBreakdown(sbListing, checkinEl.value, checkoutEl.value);
     document.getElementById('sb-nights-summary').textContent = `${breakdown.nights} night${breakdown.nights > 1 ? 's' : ''} selected`;
     document.getElementById('sb-nightly-rate').textContent = formatMoney(breakdown.nightlyRate, 'ngn');
@@ -12342,15 +12421,63 @@ This voucher is auto-generated and serves as proof of settlement.`;
     return breakdown;
   }
 
+  // ---- Shortlet booking availability (host sets open window + blocked days) ----
+  const slBlocked = { tv: [], s5: [] };
+  function slRenderChips(p) {
+    const box = document.getElementById(`${p}-sl-block-chips`); if (!box) return;
+    box.innerHTML = slBlocked[p].map(d => `<span class="s5-status-badge insp-status-declined" style="cursor:pointer;" data-sl-unblock="${d}" data-sl-prefix="${p}">${d} &times;</span>`).join('');
+  }
+  document.addEventListener('click', (e) => {
+    const add = e.target.closest && e.target.closest('[id$="-sl-block-add"]');
+    if (add) {
+      const p = add.id.split('-')[0], inp = document.getElementById(`${p}-sl-block-input`);
+      if (inp.value && !slBlocked[p].includes(inp.value)) { slBlocked[p].push(inp.value); slBlocked[p].sort(); slRenderChips(p); }
+      inp.value = ''; return;
+    }
+    const rm = e.target.closest && e.target.closest('[data-sl-unblock]');
+    if (rm) { const p = rm.dataset.slPrefix; slBlocked[p] = slBlocked[p].filter(d => d !== rm.dataset.slUnblock); slRenderChips(p); }
+  });
+  function shortletAvailError(p) {
+    const f = document.getElementById(`${p}-sl-from`).value, t = document.getElementById(`${p}-sl-to`).value;
+    if (!f || !t) return 'Set the dates your shortlet is open for booking';
+    if (t <= f) return 'The "open until" date must be after the "open from" date';
+    return null;
+  }
+  function shortletAvailFields(p) {
+    return { shortletOpenFrom: document.getElementById(`${p}-sl-from`).value, shortletOpenTo: document.getElementById(`${p}-sl-to`).value, shortletBlockedDates: slBlocked[p].slice() };
+  }
+  function shortletUnavailableReason(l, inIso, outIso) {
+    if (!l || !l.shortletOpenFrom) return '';
+    if (inIso < l.shortletOpenFrom || outIso > l.shortletOpenTo) return `Pick dates between ${l.shortletOpenFrom} and ${l.shortletOpenTo}.`;
+    const blocked = l.shortletBlockedDates || [];
+    for (let d = new Date(inIso + 'T00:00:00Z'); d.toISOString().slice(0, 10) < outIso; d.setUTCDate(d.getUTCDate() + 1)) {
+      const iso = d.toISOString().slice(0, 10);
+      if (blocked.includes(iso)) return `${iso} is not available. Choose other dates.`;
+    }
+    const clash = (Array.isArray(shortletBookings) ? shortletBookings : []).some(b => b.listingId === l.id && b.status === 'ACTIVE' && inIso < b.checkOut && outIso > b.checkIn);
+    return clash ? 'These dates are already booked. Choose other dates.' : '';
+  }
+  function applyShortletAvailability() {
+    const l = sbListing, note = document.getElementById('sb-avail-note'), err = document.getElementById('sb-avail-error');
+    const inEl = document.getElementById('sb-checkin-date'), outEl = document.getElementById('sb-checkout-date');
+    if (!l || !l.shortletOpenFrom) { note.style.display = 'none'; err.style.display = 'none'; return; }
+    note.style.display = 'block';
+    note.textContent = `Available ${l.shortletOpenFrom} to ${l.shortletOpenTo}` + ((l.shortletBlockedDates || []).length ? ` (except ${l.shortletBlockedDates.join(', ')})` : '');
+    const today = new Date().toISOString().slice(0, 10);
+    inEl.min = l.shortletOpenFrom > today ? l.shortletOpenFrom : today; inEl.max = l.shortletOpenTo; outEl.max = l.shortletOpenTo;
+    const r = (inEl.value && outEl.value) ? shortletUnavailableReason(l, inEl.value, outEl.value) : '';
+    err.textContent = r; err.style.display = r ? 'block' : 'none';
+    document.getElementById('sb-confirm-btn').disabled = !!r;
+  }
   function openShortletBookingModal(listing) {
     sbListing = listing;
     document.getElementById('sb-property-name').textContent = `${listing.title} — ${listing.location}`;
     const todayIso = new Date().toISOString().slice(0, 10);
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    document.getElementById('sb-checkin-date').value = todayIso;
+    document.getElementById('sb-checkin-date').value = (listing.shortletOpenFrom && listing.shortletOpenFrom > todayIso) ? listing.shortletOpenFrom : todayIso;
     document.getElementById('sb-checkin-date').min = todayIso;
-    document.getElementById('sb-checkout-date').value = tomorrow.toISOString().slice(0, 10);
+    { const ci = new Date(document.getElementById('sb-checkin-date').value + 'T00:00:00Z'); ci.setUTCDate(ci.getUTCDate() + 1); document.getElementById('sb-checkout-date').value = ci.toISOString().slice(0, 10); }
     recalcShortletBooking();
     shortletBookingModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
@@ -12450,6 +12577,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     shortletBookings.unshift(booking);
     saveShortletBookings();
     if (booking.status === 'ACTIVE') scheduleShortletAutoDebit(booking.id);
+    try { dispatchAgreementToChat(listing); } catch (e) {}
 
     showToast(sl.remainingNights > 0
       ? `Night 1 paid — Nights 2–${sl.nights} will auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} daily`
@@ -12579,6 +12707,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       showToast('Please select a valid check-in and check-out date');
       return;
     }
+    { const r = shortletUnavailableReason(sbListing, checkIn, checkOut); if (r) { showToast(r); return; } }
     checkoutShortlet = computeShortletBreakdown(sbListing, checkIn, checkOut);
     shortletBookingModal.classList.remove('open');
     openCheckout(sbListing);
@@ -12996,22 +13125,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const titleAck = document.getElementById('s6-title-ack').checked;
       const adrAck = document.getElementById('s6-adr-ack').checked;
       landOk = scrolledToBottom && signed && titleAck && adrAck;
-      if (!scrolledToBottom) landReason = 'Scroll the Land Allocation & Payment Sign-Off box to the bottom to unlock the signature field.';
+      if (!scrolledToBottom) landReason = 'Scroll the sign-off box to the bottom to unlock the signature field.';
       else if (!titleAck) landReason = 'Tick the Title Verification & Due Diligence acknowledgement to continue.';
       else if (!adrAck) landReason = 'Tick the Dispute Resolution acknowledgement to continue.';
       else if (!signed) landReason = 'Type the exact phrase to sign the Land Allocation & Payment Terms.';
     } else if (checkoutListing && checkoutListing.type === 'shortlet') {
-      const box = document.getElementById('s6-signoff-box');
-      const scrolledToBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 6;
-      const signInput = document.getElementById('s6-landsign-input');
-      signInput.disabled = !scrolledToBottom;
-      const normalize = (s) => s.trim().replace(/\s+/g, ' ').toLowerCase();
-      const signed = normalize(signInput.value) === normalize('I agree to the Short-Let Booking & Occupancy Terms');
-      const adrAck = document.getElementById('s6-adr-ack').checked;
-      landOk = scrolledToBottom && signed && adrAck;
-      if (!scrolledToBottom) landReason = 'Scroll the Short-Let Booking & Occupancy Terms box to the bottom to unlock the signature field.';
-      else if (!adrAck) landReason = 'Tick the Dispute Resolution acknowledgement to continue.';
-      else if (!signed) landReason = 'Type the exact phrase to sign the Short-Let Booking & Occupancy Terms.';
+      landOk = document.getElementById('s6-adr-ack').checked;
+      if (!landOk) landReason = 'Tick the box to agree to the house rules, cancellation policy and booking terms.';
     }
     const allOk = landOk && checkoutAgreementUploaded;
     btn.disabled = !allOk;
@@ -13097,9 +13217,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // the card, its filename, subtitle, and the co-signer label ("Seller" /
     // "Host/Landlord" / "Landlord") all follow the same branch, mirroring the
     // Purchase/Rent/Short-Let Breakdown label swap directly below.
-    document.getElementById('s6-agreement-title-text').textContent = isLand ? 'Accept Purchase & Installment Terms' : (isShortlet ? 'Sign Short-Let Booking & Occupancy Agreement' : 'Execute Tenancy Agreement');
-    document.getElementById('s6-agreement-doc-name').textContent = isLand ? 'Land_Purchase_Agreement.pdf' : (isShortlet ? 'ShortLet_Agreement.pdf' : 'Tenancy_Agreement.pdf');
-    document.getElementById('s6-agreement-doc-sub').textContent = isLand ? 'Standard MainTown Land Allocation & Title Transfer Terms' : (isShortlet ? 'Short-Let Booking & Occupancy Terms' : 'Standard MainTown Realty lease terms');
+    document.getElementById('s6-agreement-title-text').textContent = isLand ? 'Accept Purchase & Installment Terms' : (isShortlet ? 'Booking Terms & Confirmation' : (listing.usage === 'commercial' ? 'Execute Commercial Lease Agreement' : 'Execute Tenancy Agreement'));
+    document.getElementById('s6-agreement-doc-name').textContent = isLand ? 'Land_Purchase_Agreement.pdf' : (isShortlet ? 'Booking_Confirmation.pdf' : (listing.usage === 'commercial' ? 'Commercial_Lease_Agreement.pdf' : 'Tenancy_Agreement.pdf'));
+    document.getElementById('s6-agreement-doc-sub').textContent = isLand ? 'Standard MainTown Land Allocation & Title Transfer Terms' : (isShortlet ? 'Instant booking: no signature needed. Your confirmation is issued after payment.' : (listing.usage === 'commercial' ? 'Commercial lease terms (draft wording, pending legal review)' : 'Standard MainTown Realty lease terms'));
     document.getElementById('s6-agreement-cosign-label').textContent = isLand ? 'Seller Signature' : (isShortlet ? 'Host/Landlord Signature' : 'Landlord Signature');
     // Pre-attached status: same demo convention as before (the counter-party's
     // signature ships pre-attached on every listing) — driven off the
@@ -13107,6 +13227,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const cosignPreattached = listing.landlordSignature !== 'Pending';
     document.getElementById('s6-agreement-cosign-status').textContent = cosignPreattached ? '✓ Pre-attached' : 'Pending';
 
+    { const h = document.getElementById('s6-signoff-heading'); if (h) h.textContent = isLand ? 'Land Allocation & Payment Sign-Off' : (isShortlet ? 'Booking Terms' : (listing.usage === 'commercial' ? 'Commercial Lease & Payment Sign-Off' : 'Tenancy & Payment Sign-Off')); }
+    { // Shortlets: Airbnb-style click-to-accept, no signature, no host countersign.
+      const sf = signInput.closest('.field'); if (sf) sf.style.display = isShortlet ? 'none' : '';
+      const at = document.getElementById('s6-adr-ack-text');
+      if (at) at.textContent = isShortlet ? 'I agree to the house rules, cancellation policy and booking terms (including the 14-day mediation, then Lagos arbitration, dispute clause).' : 'I have read and agree to the Dispute Resolution clause: 14-day mediation first, then arbitration under the Lagos Court of Arbitration Rules in Lagos.';
+      const sr = document.getElementById('s6-agreement-cosign-label').closest('.agreement-sig-row'); if (sr) sr.style.display = isShortlet ? 'none' : '';
+      const sb = document.getElementById('s6-sign-agreement-btn'); if (sb) sb.style.display = isShortlet ? 'none' : '';
+      if (isShortlet) checkoutAgreementUploaded = true;
+    }
     if (isLand) {
       signoffSection.style.display = 'block';
       signInput.value = '';
@@ -13195,13 +13324,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <p><strong>Clause 1 — Premises Conduct &amp; House Rules:</strong> By proceeding, you agree to abide strictly by the occupancy limits, noise regulations, check-in/check-out times, and property-specific rules set by the Host/Landlord.</p>
         <p><strong>Clause 2 — Automated Non-Custodial Split Processing:</strong> You authorize MainTown to process the transaction using automated payment split logic at the point of charge. Funds are split instantly and routed directly to designated accounts for: (1) the Host/Landlord (Net Short-Let Rent), (2) the Service/Property Manager Sub-Account (Caution Fee &amp; Service Charges), and (3) MainTown Realty (Platform Facilitation Fee). MainTown operates solely as a non-custodial technology facilitator and does not hold or escrow transaction funds.</p>
         <p><strong>Clause 3 — Direct Self-Service Caution Fee Refunds:</strong> The Caution Fee is paid directly to the Host/Landlord's designated sub-account. Upon check-out, you must initiate any Caution Fee refund request directly through your MainTown app. MainTown Realty does not hold, manage, or claim caution fees on behalf of tenants. All refund approvals, damage assessments, and payouts are handled directly between you and the Host/Landlord.</p>
-        <p><strong>Clause 4 — Contract Countersignature SLA:</strong> Upon PIN authorization, this Agreement is dispatched to the Host/Landlord for digital countersignature. If the Host fails to execute or confirm the booking within the designated acceptance window, the payment split authorization is reversed automatically to your source account/wallet without penalty.</p>
+        <p><strong>Clause 4 — Instant Booking Confirmation:</strong> Your booking is confirmed as soon as payment is authorised. No signature or Host countersignature is required; ticking the agreement box below is your binding acceptance. The Host is notified immediately and your Booking Confirmation is sent to your chat.</p>
         ${sl.remainingNights > 0 ? `<p><strong>Clause 5 — Multi-Night Auto-Debit Authorization:</strong> Night 1 (plus any Caution Fee &amp; Service Charge) is charged today. For stays longer than one night, you authorize MainTown to auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} from your chosen payment method for each remaining night (Nights 2–${sl.nights}) until the stay is fully paid or you end the stay early.</p>` : ''}
         <p><strong>Clause ${sl.remainingNights > 0 ? 6 : 5} — Dispute Resolution (Mediation, then LCA Arbitration):</strong> ${ADR_CLAUSE_TEXT}</p>
-        <p>Scroll to the bottom of this box to unlock the signature field below.</p>
       `;
-      document.getElementById('s6-landsign-input').placeholder = 'Type the exact phrase above';
-      document.getElementById('s6-landsign-label').innerHTML = 'Type to sign: "I agree to the Short-Let Booking &amp; Occupancy Terms"';
 
       document.getElementById('s6-breakdown-label').innerHTML = '<i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Short-Let Stay Breakdown';
       document.getElementById('s6-row1-label').textContent = 'Net Rent (Night 1 — due now)';
@@ -13643,8 +13769,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       kind: listing.type || 'rent',
       fileName: msg.fileName, fileSize: msg.fileSize, dateSigned: msg.dateSigned,
       listingTitle: msg.listingTitle, tenantName: msg.tenantName, hostName: msg.hostName,
+      tenantAddress: msg.tenantAddress || ((document.getElementById('reg-address') || {}).value || '').trim() || ((appState.users || {})[tenantId] || {}).address || '',
+      hostAddress: msg.hostAddress || listing.ownerAddress || ((appState.users || {})[listing.ownerId] || {}).address || '',
       hostLabel: msg.hostLabel, rentLabel: msg.rentLabel,
       nights: msg.nights, dailyDebitLabel: msg.dailyDebitLabel,
+      propertyAddress: msg.propertyAddress, checkIn: msg.checkIn, checkOut: msg.checkOut,
       tenantId: tenantId || null,
       partyIds: Array.from(new Set(parties)),
       createdAt: Date.now()
@@ -13729,7 +13858,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     const tenantName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Tenant';
     const hostName = listing.listedBy === 'agent' ? (listing.agentName || 'Agent') : (listing.landlordName || 'Landlord');
-    const fileName = `Lease_Agreement_${listing.title.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '')}.pdf`;
+    const fileName = `${listing.type === 'shortlet' ? 'Booking_Confirmation' : 'Lease_Agreement'}_${listing.title.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '')}.pdf`;
     const rentLabel = checkoutRentBreakdown ? `${formatMoney(checkoutRentBreakdown.monthly, 'ngn')} / month` : (listing.ngn || 'See agreement for terms');
     conv.messages.push({
       from: 'system',
@@ -13743,6 +13872,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       hostLabel: listing.listedBy === 'agent' ? 'Agent' : 'Landlord',
       rentLabel,
       kind: listing.type || 'rent',
+      propertyAddress: listing.location, checkIn: (listing.type === 'shortlet' && checkoutShortlet) ? checkoutShortlet.checkIn : undefined, checkOut: (listing.type === 'shortlet' && checkoutShortlet) ? checkoutShortlet.checkOut : undefined,
       nights: (listing.type === 'shortlet' && checkoutShortlet) ? checkoutShortlet.nights : undefined,
       dailyDebitLabel: (listing.type === 'shortlet' && checkoutShortlet && checkoutShortlet.remainingNights > 0) ? formatMoney(checkoutShortlet.dailyDebitAmount, 'ngn') : undefined
     });
@@ -15257,7 +15387,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('tv-city').value = '';
     populateAreaSelect('tv-city', 'tv-area');
     document.getElementById('tv-city-hint').className = 'mkt-city-hint';
-    document.getElementById('tv-listing-type').value = 'rent';
+    document.getElementById('tv-listing-type').value = 'rent'; { const u = document.getElementById('tv-usage'); if (u) u.value = 'residential'; }
     document.getElementById('tv-annual').value = '';
     const tvSqmEl = document.getElementById('tv-sqm'); if (tvSqmEl) tvSqmEl.value = '';
     propKindState.tv = 'land'; ['tv-house-type', 'tv-bedrooms', 'tv-bathrooms'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
@@ -15376,6 +15506,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const bankName = document.getElementById('va-bank-name').value.trim();
     const bankAccount = document.getElementById('va-bank-account').value.trim();
     const bvnNin = document.getElementById('va-bvn-nin').value.trim();
+    const vaAddress = (document.getElementById('va-address').value || '').trim();
     const errEl = document.getElementById('va-error-msg');
     const errText = document.getElementById('va-error-text');
 
@@ -15409,7 +15540,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
 
     const userId = getCurrentUserId();
-    setVendorActivated(userId, { bankName, bankAccount, bvn: bvnNin });
+    if (!vaAddress) { errText.textContent = 'Please enter your home address as it appears on your NIN / ID.'; errEl.classList.add('show'); return; }
+    const kycErr = vaKycGateError();
+    if (kycErr) { errText.textContent = kycErr; errEl.classList.add('show'); return; }
+    setVendorActivated(userId, { bankName, bankAccount, bvn: bvnNin, address: vaAddress });
+    if (appState.users[userId] && vaKycState) { appState.users[userId].kyc = Object.assign({}, vaKycState); saveAppState(appState); }
     document.getElementById('vendor-activation-modal').classList.remove('open');
     showToast('Vendor account activated — dashboard unlocked');
     const cb = vendorActivationPendingCallback;
@@ -15427,6 +15562,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const cityId = document.getElementById('tv-city').value;
     const areaId = document.getElementById('tv-area').value;
     const type = document.getElementById('tv-listing-type').value;
+    if (type === 'shortlet' && shortletAvailError('tv')) { showToast(shortletAvailError('tv')); return; }
     const annual = parseFloat(document.getElementById('tv-annual').value) || 0;
     // Vendor Activation Gate: Land & Property listings require KYC + Vendor
     // Policy sign-off on file before this landlord/agent can list/sell one.
@@ -15497,9 +15633,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     };
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
-      listingsFeed.unshift({ ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent') });
+      listingsFeed.unshift({ ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent'), ...commercialRentPatch('tv', annual) });
     } else if (type === 'shortlet') {
-      listingsFeed.unshift({ ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: listingCoverImg(baseFields, 'shortlet') });
+      listingsFeed.unshift({ ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: listingCoverImg(baseFields, 'shortlet'), ...shortletAvailFields('tv') });
     } else {
       listingsFeed.unshift({
         ...baseFields, type: 'land', totalPrice: annual, ...(getLandSqm('tv') > 0 ? { sqm: getLandSqm('tv') } : {}), ...landPropertyFields('tv'), img: listingCoverImg(baseFields, 'land'),
@@ -15880,6 +16016,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (pkField) pkField.style.display = type === 'land' ? 'block' : 'none';
     applyPropKindUI(prefix);
     if (cautionServiceFields) cautionServiceFields.style.display = (type === 'rent' || type === 'shortlet') ? 'block' : 'none';
+    applyCommercialUI(prefix, type, annual);
+    { const sa = document.getElementById(`${prefix}-sl-avail`); if (sa) sa.style.display = type === 'shortlet' ? 'block' : 'none'; }
 
     // Inspection Availability is a Land/Rent-only concept — Short-Let tenants
     // pick their own check-in/check-out dates directly on the booking screen,
@@ -15946,6 +16084,33 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!ht || !ht.value) return 'Please select the house type (e.g. Bungalow, Duplex)';
     return null;
   }
+  // ---- Commercial rentals (shop / office / warehouse / event hall) ----
+  function commercialIsOn(prefix) { const u = document.getElementById(`${prefix}-usage`); const t = document.getElementById(`${prefix}-listing-type`); return !!u && u.value === 'commercial' && (!t || t.value === 'rent'); }
+  function applyCommercialUI(prefix, type, annual) {
+    const wrap = document.getElementById(`${prefix}-commercial-wrap`); if (!wrap) return;
+    wrap.style.display = type === 'rent' ? 'block' : 'none';
+    const on = type === 'rent' && document.getElementById(`${prefix}-usage`).value === 'commercial';
+    document.getElementById(`${prefix}-commercial-fields`).style.display = on ? 'block' : 'none';
+    if (on) {
+      const badge = document.getElementById(`${prefix}-monthly-badge`);
+      if (badge) badge.style.display = 'none';
+    }
+  }
+  function commercialRentPatch(prefix, annual) {
+    if (!commercialIsOn(prefix)) return { usage: 'residential' };
+    const v = (id) => document.getElementById(`${prefix}-commercial-${id}`);
+    const flex = false; // commercial = annual payment upfront only
+    const sqm = parseFloat(v('sqm').value) || 0, parking = parseInt(v('parking').value, 10);
+    const out = { usage: 'commercial', commercialType: v('type').value, powerSupply: v('power').value, flexRent: flex };
+    if (sqm > 0) out.sqm = sqm;
+    if (!isNaN(parking)) out.parkingSpaces = parking;
+    if (!flex) { out.ngn = `${formatMoney(annual, 'ngn')} / yr`; out.usd = `$${Math.round(annual / 1600)} / yr`; }
+    return out;
+  }
+  document.addEventListener('change', (e) => {
+    const el = e.target.closest && e.target.closest('[data-commercial-ctl]');
+    if (el) updateAnnualCalc(el.id.split('-')[0]);
+  });
   // Fields saved onto every Land & Property listing.
   function landPropertyFields(prefix) {
     const kind = propKindState[prefix] || 'land';
@@ -16099,6 +16264,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const cityId = document.getElementById('s5-listing-city').value;
     const areaId = document.getElementById('s5-listing-area').value;
     const type = document.getElementById('s5-listing-type').value;
+    if (type === 'shortlet' && shortletAvailError('s5')) { showToast(shortletAvailError('s5')); return; }
     const annual = parseFloat(document.getElementById('s5-listing-annual').value) || 0;
 
     if (!title || !address || !annual) {
@@ -16139,9 +16305,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
       let listingData;
       if (type === 'rent') {
         const monthly = Math.round(annual / 12);
-        listingData = { ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent') };
+        listingData = { ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent'), ...commercialRentPatch('s5', annual) };
       } else if (type === 'shortlet') {
-        listingData = { ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: listingCoverImg(baseFields, 'shortlet') };
+        listingData = { ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: listingCoverImg(baseFields, 'shortlet'), ...shortletAvailFields('s5') };
       } else {
         // Deed of Assignment legal/processing fee % (5 or 10, Owner-selected
         // at listing time) — paid to the Owner with the buyer's first
@@ -16243,9 +16409,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     let listingData;
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
-      listingData = { ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent') };
+      listingData = { ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent'), ...commercialRentPatch('s5', annual) };
     } else if (type === 'shortlet') {
-      listingData = { ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: listingCoverImg(baseFields, 'shortlet') };
+      listingData = { ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: listingCoverImg(baseFields, 'shortlet'), ...shortletAvailFields('s5') };
     } else {
       // Deed of Assignment legal/processing fee % (5 or 10, Owner-selected at
       // listing time) — paid to the Owner with the buyer's first
@@ -16520,11 +16686,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const existing = loadCurrentUser();
       const sameUser = existing && existing.role === role && existing.email === newAccount.email;
       const uid = sameUser ? existing.id : (role + '_' + Date.now().toString(36));
-      const sessionUser = { id: uid, name: newAccount.fullName || ({ agent: 'Agent', landlord: 'Landlord', tenant: 'Tenant' }[role]), email: newAccount.email, role };
+      const sessionUser = { id: uid, name: newAccount.fullName || ({ agent: 'Agent', landlord: 'Landlord', tenant: 'Tenant' }[role]), email: newAccount.email, role, address: newAccount.address || '' };
       appState = loadAppState();
       appState.users = appState.users || {};
       if (!appState.users[uid]) appState.users[uid] = Object.assign({ status: 'ACTIVE' }, sessionUser, newAccount.bvn ? { bvn: newAccount.bvn } : {});
       else if (newAccount.bvn && !appState.users[uid].bvn) appState.users[uid].bvn = newAccount.bvn;
+      if (newAccount.address && !appState.users[uid].address) appState.users[uid].address = newAccount.address;
       saveAppState(appState);
       saveCurrentUser(sessionUser);
     }
@@ -18844,7 +19011,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       { title: "Clause 1 — Premises Conduct & House Rules", body: "By proceeding, you agree to abide strictly by the occupancy limits, noise regulations, check-in/check-out times, and property-specific rules set by the Host/Landlord." },
       { title: "Clause 2 — Automated Non-Custodial Split Processing", body: "You authorize MainTown to process the transaction using automated payment split logic at the point of charge. Funds are split instantly and routed directly to designated accounts for: (1) the Host/Landlord (Net Short-Let Rent), (2) the Service/Property Manager Sub-Account (Caution Fee & Service Charges), and (3) MainTown Realty (Platform Facilitation Fee). MainTown operates solely as a non-custodial technology facilitator and does not hold or escrow transaction funds." },
       { title: "Clause 3 — Direct Self-Service Caution Fee Refunds", body: "The Caution Fee is paid directly to the Host/Landlord's designated sub-account. Upon check-out, you must initiate any Caution Fee refund request directly through your MainTown app. MainTown Realty does not hold, manage, or claim caution fees on behalf of tenants. All refund approvals, damage assessments, and payouts are handled directly between you and the Host/Landlord." },
-      { title: "Clause 4 — Contract Countersignature SLA", body: "Upon PIN authorization, this Agreement is dispatched to the Host/Landlord for digital countersignature. If the Host fails to execute or confirm the booking within the designated acceptance window, the payment split authorization is reversed automatically to your source account/wallet without penalty." }
+      { title: "Clause 4 — Instant Booking Confirmation", body: "Your booking is confirmed as soon as payment is authorised. No signature or Host countersignature is required; your agreement to these terms at checkout is binding. The Host is notified immediately. ", _old: "Upon PIN authorization, this Agreement is dispatched to the Host/Landlord for digital countersignature. If the Host fails to execute or confirm the booking within the designated acceptance window, the payment split authorization is reversed automatically to your source account/wallet without penalty." }
       ];
       let n = 5;
       if (m.nights > 1 && m.dailyDebitLabel) {
@@ -18859,11 +19026,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function agreementLabels(m) {
     const kind = agreementKind(m);
     if (kind === 'land') return { doc: 'EXECUTED CONTRACT OF SALE (LAND & PROPERTY PURCHASE)', tenant: 'Buyer', heading: 'Property & Price', header: 'Purchase Agreement', priceWord: 'Price' };
-    if (kind === 'shortlet') return { doc: 'EXECUTED SHORT-LET BOOKING AGREEMENT', tenant: 'Guest', heading: 'Property & Stay', header: 'Booking Agreement', priceWord: 'Booking' };
+    if (kind === 'shortlet') return { doc: 'BOOKING CONFIRMATION', tenant: 'Guest', heading: 'Property & Stay', header: 'Booking Confirmation', priceWord: 'Rate' };
     return { doc: 'EXECUTED TENANCY AGREEMENT', tenant: 'Tenant', heading: 'Property & Rent', header: 'Lease Agreement', priceWord: 'Rent' };
   }
 
+  function buildBookingConfirmationText(m) {
+    const clauses = agreementSections(m).map(s => `${s.title}\n${s.body}`).join('\n\n');
+    const stay = [m.checkIn ? `Check-in: ${m.checkIn}` : '', m.checkOut ? `Check-out: ${m.checkOut}` : '', m.nights ? `Nights: ${m.nights}` : ''].filter(Boolean).join('\n');
+    return `MAINTOWN REALTY - BOOKING CONFIRMATION\n=====================================\nStatus: Confirmed - payment received\nConfirmation date: ${m.dateSigned}\n\nProperty: ${m.listingTitle}\nProperty address: ${m.propertyAddress || 'See listing'}\nRate: ${m.rentLabel}\n${stay}\n\nGuest: ${m.tenantName}\n${m.hostLabel}: ${m.hostName}\n\n-------------------------------------\nHOUSE RULES & BOOKING TERMS\n-------------------------------------\n${clauses}\n\n=====================================\nThis is an instant booking. No signature is required: the guest accepted these terms at checkout. Permanently available in the Post-Lease Hub and this chat thread.`;
+  }
   function buildLeaseAgreementText(m) {
+    if (agreementKind(m) === 'shortlet') return buildBookingConfirmationText(m);
     const clauses = agreementSections(m)
       .map((s, i) => `${s.title}\n${s.body}`)
       .join('\n\n');
@@ -18877,12 +19050,26 @@ Date Signed: ${m.dateSigned}
 Status: Dual-Signed & Executed — Verified Legal Document
 
 ${lab.tenant}: ${m.tenantName}
+Address: ${m.tenantAddress || 'On file with MainTown Realty'}
+
 ${m.hostLabel}: ${m.hostName}
+Address: ${m.hostAddress || 'On file with MainTown Realty'}
 
 -------------------------------------
 TERMS & CONDITIONS
 -------------------------------------
 ${clauses}
+
+=====================================
+SIGNATURES
+
+~SIG~${m.tenantName}
+${lab.tenant} - digitally signed on ${m.dateSigned}
+Address: ${m.tenantAddress || 'On file with MainTown Realty'}
+
+~SIG~${m.hostName}
+${m.hostLabel} - countersigned on ${m.dateSigned}
+Address: ${m.hostAddress || 'On file with MainTown Realty'}
 
 =====================================
 This document is digitally signed by both parties and is permanently
@@ -18970,7 +19157,7 @@ available in the Post-Lease Hub and this chat thread.`
       if (!raw.trim()) { lines.push(''); return; }
       wrap(raw).forEach(l => lines.push(l));
     });
-    const perPage = Math.floor((H - 2 * M - 30) / LEAD);
+    const perPage = Math.floor((H - 2 * M - 30 - 50) / LEAD);
     const pages = [];
     for (let i = 0; i < lines.length; i += perPage) pages.push(lines.slice(i, i + perPage));
     if (!pages.length) pages.push(['']);
@@ -18979,12 +19166,15 @@ available in the Post-Lease Hub and this chat thread.`
     objs[1] = '<< /Type /Catalog /Pages 2 0 R >>';
     objs[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
     objs[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+    objs[5] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding >>';
     const kids = [];
     pages.forEach((pg, idx) => {
-      const pageNo = 5 + idx * 2, contentNo = pageNo + 1;
+      const pageNo = 6 + idx * 2, contentNo = pageNo + 1;
       kids.push(`${pageNo} 0 R`);
-      let c = 'BT\n';
-      let y = H - M;
+      // MainTown logo (purple tile with a white M) + wordmark on every page
+      let c = `0.576 0.2 0.918 rg ${M} ${H - M - 30} 34 34 re f\n1 1 1 RG 3 w 1 J 1 j ${M + 8} ${H - M - 22} m ${M + 8} ${H - M - 2} l ${M + 17} ${H - M - 14} l ${M + 26} ${H - M - 2} l ${M + 26} ${H - M - 22} l S\n`;
+      c += `BT /F2 16 Tf 0.1 0.1 0.2 rg 1 0 0 1 ${M + 44} ${H - M - 16} Tm (MainTown Realty) Tj ET\n0 0 0 rg\nBT\n`;
+      let y = H - M - 56;
       if (idx === 0) {
         // Long titles wrap onto extra bold lines instead of running off the page.
         const tl = []; let cur = '';
@@ -18996,10 +19186,13 @@ available in the Post-Lease Hub and this chat thread.`
         y -= 9;
       }
       c += `/F1 ${SIZE} Tf\n`;
-      pg.forEach(l => { c += `1 0 0 1 ${M} ${y} Tm (${esc(l)}) Tj\n`; y -= LEAD; });
+      pg.forEach(l => {
+        if (l.indexOf('~SIG~') === 0) { c += `/F3 18 Tf 1 0 0 1 ${M} ${y - 4} Tm (${esc(l.slice(5))}) Tj /F1 ${SIZE} Tf\n`; y -= LEAD + 8; }
+        else { c += `1 0 0 1 ${M} ${y} Tm (${esc(l)}) Tj\n`; y -= LEAD; }
+      });
       c += 'ET\n';
       c += `BT /F1 8 Tf 1 0 0 1 ${M} 28 Tm (MainTown Realty - Page ${idx + 1} of ${pages.length}) Tj ET\n`;
-      objs[pageNo] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentNo} 0 R >>`;
+      objs[pageNo] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents ${contentNo} 0 R >>`;
       objs[contentNo] = `<< /Length ${c.length} >>\nstream\n${c}endstream`;
     });
     objs[2] = `<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${pages.length} >>`;
@@ -19029,7 +19222,7 @@ available in the Post-Lease Hub and this chat thread.`
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    showToast('Lease agreement downloaded');
+    showToast(agreementKind(m) === 'shortlet' ? 'Booking confirmation downloaded' : 'Lease agreement downloaded');
   }
 
   // ==================================================================
@@ -20727,6 +20920,7 @@ available in the Post-Lease Hub and this chat thread.`
       role: currentUserRole || 'tenant',
       fullName: (document.getElementById('reg-fullname')?.value || '').trim(),
       occupation: (document.getElementById('reg-occupation')?.value || '').trim(),
+      address: (document.getElementById('reg-address')?.value || '').trim(),
       email: (document.getElementById('reg-email')?.value || '').trim(),
       phone: (document.getElementById('reg-phone')?.value || '').trim(),
       bvn: (document.getElementById('reg-bvn')?.value || '').trim(),
@@ -21292,6 +21486,94 @@ available in the Post-Lease Hub and this chat thread.`
     const b = rec && rec.settlementBank;
     return (b && /^\d{10}$/.test(String(b.accountNumber || '')) && b.bankName) ? b : null;
   }
+  // ======================================================================
+  // ---- Identity (BVN / NIN) verification client ----
+  // The browser NEVER holds provider keys (Dojah / Smile ID / etc.). It calls
+  // YOUR backend, which calls the provider with the secret key.
+  //   POST {baseUrl}{verifyPath}   body: { idType:'bvn'|'nin', idNumber, fullName }
+  //   200 -> { status:'verified'|'failed'|'pending', matchedName?:string,
+  //            nameMatch?:boolean, address?:string, reference:string, reason?:string }
+  // Configure before this script runs:
+  //   window.MAINTOWN_CONFIG = { kycBaseUrl:'https://api.yourapp.com', getAuthToken:() => token };
+  // With no kycBaseUrl the app runs in DEMO mode: nothing is verified for real
+  // and the UI says so. The server must also enforce rate limits and dedupe
+  // (one BVN/NIN per account); the client limits below are only courtesy.
+  // ======================================================================
+  const KYC_CFG = Object.assign({ kycBaseUrl: '', verifyPath: '/api/kyc/verify', timeoutMs: 15000 }, window.MAINTOWN_CONFIG || {});
+  const kycAttempts = [];
+  function kycMasked(n) { return n ? '*******' + String(n).slice(-4) : ''; }
+  function kycNorm(t) { return String(t || '').toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(w => w.length > 1); }
+  function kycNamesMatch(a, b) {
+    const x = kycNorm(a), y = kycNorm(b);
+    if (!x.length || !y.length) return false;
+    const [short, long] = x.length <= y.length ? [x, y] : [y, x];
+    const hits = short.filter(w => long.includes(w)).length;
+    return hits >= Math.min(2, short.length) && hits / short.length >= 0.66;
+  }
+  async function kycVerify(idType, idNumber, fullName) {
+    if (!/^\d{11}$/.test(idNumber)) return { status: 'failed', reason: `Enter a valid 11-digit ${idType.toUpperCase()}.` };
+    const now = Date.now();
+    while (kycAttempts.length && now - kycAttempts[0] > 600000) kycAttempts.shift();
+    if (kycAttempts.length >= 5) return { status: 'failed', reason: 'Too many attempts. Please wait a few minutes and try again.' };
+    kycAttempts.push(now);
+    if (!KYC_CFG.kycBaseUrl) {
+      await new Promise(r => setTimeout(r, 800));
+      return { status: 'demo', matchedName: fullName, nameMatch: true, address: '', reference: 'DEMO-' + now.toString(36).toUpperCase() };
+    }
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), KYC_CFG.timeoutMs);
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      const tok = typeof KYC_CFG.getAuthToken === 'function' ? KYC_CFG.getAuthToken() : null;
+      if (tok) headers.Authorization = 'Bearer ' + tok;
+      const res = await fetch(KYC_CFG.kycBaseUrl + KYC_CFG.verifyPath, { method: 'POST', headers, body: JSON.stringify({ idType, idNumber, fullName }), signal: ctl.signal });
+      if (res.status === 429) return { status: 'failed', reason: 'Too many attempts. Please try again later.' };
+      if (!res.ok) return { status: 'failed', reason: 'Verification service unavailable. Please try again.' };
+      const d = await res.json();
+      if (!d || !['verified', 'failed', 'pending'].includes(d.status) || !d.reference) return { status: 'failed', reason: 'Unexpected response from verification service.' };
+      if (d.status === 'verified') {
+        const match = typeof d.nameMatch === 'boolean' ? d.nameMatch : kycNamesMatch(fullName, d.matchedName);
+        if (!match) return { status: 'failed', reason: 'The name on your ID does not match your account name.', reference: d.reference };
+      }
+      return d;
+    } catch (e) {
+      return { status: 'failed', reason: e && e.name === 'AbortError' ? 'Verification timed out. Please try again.' : 'Could not reach the verification service.' };
+    } finally { clearTimeout(timer); }
+  }
+  let vaKycState = null; // { status, mode, reference, bvnLast4, ninLast4, address }
+  function vaShowKycResult(kind, text) {
+    const box = document.getElementById('va-kyc-result'); if (!box) return;
+    box.style.display = 'flex';
+    box.style.color = kind === 'ok' ? '#34d399' : (kind === 'demo' ? '#fbbf24' : '#f87171');
+    box.querySelector('span').textContent = text;
+  }
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest && e.target.closest('#va-verify-kyc-btn'); if (!btn || btn.disabled) return;
+    const bvn = document.getElementById('va-bvn-nin').value.trim(), nin = document.getElementById('va-nin').value.trim();
+    if (!bvn && !nin) { vaShowKycResult('err', 'Enter your BVN or NIN to verify.'); return; }
+    const fullName = resolveUserName(getCurrentUserId());
+    btn.disabled = true; const label = btn.innerHTML; btn.textContent = 'Verifying...';
+    try {
+      const results = [];
+      if (nin) results.push(['nin', nin, await kycVerify('nin', nin, fullName)]);
+      if (bvn) results.push(['bvn', bvn, await kycVerify('bvn', bvn, fullName)]);
+      const bad = results.find(r => r[2].status === 'failed'), pend = results.find(r => r[2].status === 'pending');
+      if (bad) { vaKycState = null; vaShowKycResult('err', bad[2].reason || 'Verification failed. Check the number and try again.'); return; }
+      if (pend) { vaKycState = { status: 'pending' }; vaShowKycResult('err', 'Verification is still pending. Try again shortly.'); return; }
+      const demo = results.some(r => r[2].status === 'demo');
+      const ninRes = (results.find(r => r[0] === 'nin') || [])[2];
+      const addr = ninRes && ninRes.address ? ninRes.address : '';
+      if (addr) { document.getElementById('va-address').value = addr; }
+      vaKycState = { status: demo ? 'demo' : 'verified', mode: demo ? 'demo' : 'live', reference: results.map(r => r[2].reference).join(','), bvnLast4: bvn ? bvn.slice(-4) : '', ninLast4: nin ? nin.slice(-4) : '', address: addr, verifiedAt: new Date().toISOString() };
+      if (nin) document.getElementById('va-nin').value = kycMasked(nin);
+      vaShowKycResult(demo ? 'demo' : 'ok', demo ? 'Demo mode: this is NOT a real verification. Connect your verification backend to go live.' : 'Identity verified' + (addr ? '. Address filled from your ID.' : '.'));
+    } finally { btn.disabled = false; btn.innerHTML = label; if (window.lucide) lucide.createIcons(); }
+  });
+  function vaKycGateError() {
+    if (!vaKycState || vaKycState.status === 'pending') return 'Please verify your identity (BVN or NIN) first.';
+    if (vaKycState.status === 'demo' && KYC_CFG.kycBaseUrl) return 'Please verify your identity (BVN or NIN) first.';
+    return null;
+  }
+
   function setVendorActivated(userId, accountDetails) {
     if (!appState.vendorActivation) appState.vendorActivation = {};
     appState.vendorActivation[userId] = {
@@ -21307,6 +21589,7 @@ available in the Post-Lease Hub and this chat thread.`
       if (rec) {
         rec.settlementBank = { bankName: accountDetails.bankName, accountNumber: accountDetails.bankAccount };
         rec.bvn = accountDetails.bvn;
+        if (accountDetails.address) rec.address = accountDetails.address;
         delete rec.bvnNin;
       }
     }
@@ -21344,6 +21627,9 @@ available in the Post-Lease Hub and this chat thread.`
     // settlement bank on file (e.g. re-opening the gate), otherwise blank.
     const rec = appState.users[userId];
     const bank = (rec && rec.settlementBank) || {};
+    { const ad = document.getElementById('va-address'); if (ad) ad.value = (rec && rec.address) || ''; }
+    vaKycState = (rec && rec.kyc && rec.kyc.status === 'verified') ? Object.assign({}, rec.kyc) : null;
+    { const n = document.getElementById('va-nin'); if (n) n.value = ''; const r = document.getElementById('va-kyc-result'); if (r) r.style.display = vaKycState ? 'flex' : 'none'; if (vaKycState) vaShowKycResult('ok', 'Identity already verified.'); }
     document.getElementById('va-bank-name').value = bank.bankName || '';
     document.getElementById('va-bank-account').value = bank.accountNumber || '';
     document.getElementById('va-bvn-nin').value = getUserBvn(rec);
@@ -23690,7 +23976,7 @@ available in the Post-Lease Hub and this chat thread.`
     const estateName = document.getElementById('ent-csv-estate-name').value.trim() || 'Imported Estate';
     const masterTitleLinked = document.getElementById('ent-csv-master-title-toggle').checked;
     const validRows = entCsvParsedRows.filter(r => r.valid);
-    const categoryMap = { land: 'land', rental: 'rent', shortlet: 'rent' };
+    const categoryMap = { land: 'land', rental: 'rent', shortlet: 'shortlet', commercial: 'rent' };
     let imported = 0;
     validRows.forEach((r, i) => {
       const type = categoryMap[(r.category || '').toLowerCase().trim()] || 'land';
@@ -23704,8 +23990,11 @@ available in the Post-Lease Hub and this chat thread.`
         description: r.description || '', amenities: r.amenities || '',
       };
       const price = parseFloat(r.price) || 0;
-      const listingData = type === 'rent'
-        ? { ...baseFields, type: 'rent', annualPrice: price, ngn: `${formatMoney(Math.round(price / 12), 'ngn')} / mo`, usd: `$${Math.round(price / 12 / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent') }
+      const isCommercialRow = (r.category || '').toLowerCase().trim() === 'commercial';
+      const listingData = type === 'shortlet'
+        ? { ...baseFields, type: 'shortlet', nightlyRate: price, ngn: `${formatMoney(price, 'ngn')} / night`, usd: `$${Math.round(price / 1600)} / night`, img: listingCoverImg(baseFields, 'shortlet') }
+        : type === 'rent'
+        ? { ...baseFields, type: 'rent', annualPrice: price, ngn: `${formatMoney(Math.round(price / 12), 'ngn')} / mo`, usd: `$${Math.round(price / 12 / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent'), ...(isCommercialRow ? { usage: 'commercial', commercialType: 'Shop', flexRent: false, ngn: `${formatMoney(price, 'ngn')} / yr`, usd: `$${Math.round(price / 1600)} / yr` } : { usage: 'residential' }) }
         : { ...baseFields, type: 'land', totalPrice: price, img: listingCoverImg(baseFields, 'land'),
             ...(r.propKind === 'house'
               ? { propertyKind: 'house', houseType: r.houseType, ...(r.bedrooms >= 0 ? { bedrooms: r.bedrooms } : {}), ...(r.bathrooms >= 0 ? { bathrooms: r.bathrooms } : {}) }
