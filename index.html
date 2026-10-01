@@ -3995,6 +3995,8 @@
 
   <div id="dash-inspections-summary"><!-- populated dynamically --></div>
 
+  <div id="dash-stays-summary"><!-- tenant-only: shortlet stays + cancel, populated dynamically --></div>
+
   <div id="dash-action-summary"><!-- Land & Property action cards + physical allocation nudge, populated dynamically --></div>
 
   <div id="dash-listings-wrap"><!-- tenant-only: homes for rent + shortlets, populated dynamically --></div>
@@ -5061,6 +5063,11 @@
     <div class="rent-badge" id="s6-shortlet-autodebit-notice" style="display:none; align-items:flex-start; gap:6px;">
       <i data-lucide="repeat" class="w-3.5 h-3.5" style="margin-top:2px; flex-shrink:0;"></i>
       <span id="s6-shortlet-autodebit-text"></span>
+    </div>
+
+    <div class="rent-badge" id="s6-shortlet-cancel-notice" style="display:none; align-items:flex-start; gap:6px;">
+      <i data-lucide="calendar-x" class="w-3.5 h-3.5" style="margin-top:2px; flex-shrink:0;"></i>
+      <span id="s6-shortlet-cancel-text">Free cancellation until 48 hours before check-in (2:00 PM). After that, Night 1 is not refunded; everything else is.</span>
     </div>
 
     <p class="s5-section-label"><i data-lucide="layers" class="w-4 h-4 text-purple-400"></i>Payment Disbursement Breakdown</p>
@@ -6268,6 +6275,24 @@
 
     <button type="button" id="insp-cancel-confirm-btn" class="btn-primary" style="background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: none; margin-top: 18px;">Yes, Cancel Inspection</button>
     <button type="button" id="insp-cancel-keep-btn" class="btn-secondary">Keep Inspection</button>
+  </div>
+</div>
+
+<!-- Shortlet Cancellation Modal: shows the exact refund under MainTown's single cancellation policy
+     before the guest (or host) confirms. -->
+<div id="stay-cancel-modal" class="modal-overlay" style="z-index:70;">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <i data-lucide="calendar-x" class="w-8 h-8 text-red-400"></i>
+    </div>
+    <h2 class="modal-title" id="sc-title">Cancel This Stay?</h2>
+    <p class="modal-sub" id="sc-property">—</p>
+    <p class="s5-list-title" id="sc-headline" style="margin:4px 0 2px; text-align:left;">—</p>
+    <p class="role-hint" id="sc-explain" style="text-align:left; margin:0 0 10px;"></p>
+    <div class="fee-preview-box" id="sc-breakdown"></div>
+    <p class="role-hint" id="sc-where" style="text-align:left; margin:-8px 0 4px;"></p>
+    <button type="button" id="sc-confirm-btn" class="btn-primary" style="background: #b91c1c; box-shadow: none; margin-top: 14px;">Yes, Cancel Stay</button>
+    <button type="button" id="sc-keep-btn" class="btn-secondary">Keep My Stay</button>
   </div>
 </div>
 
@@ -8563,7 +8588,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 3: Contract Countersignature Timing (Land & Property)', body: "Upon a buyer's checkout on a Land &amp; Property sale, you agree to digitally countersign the generated Contract of Sale within 24 hours. Automated platform reminders will trigger every 5 hours until executed.", critical: true },
         { title: 'Section 4: Habitability Standards & Repair SLAs', body: 'Obligation to maintain functional power, water, structural integrity, and estate amenities. Landlords must address critical repairs within 48 hours. MainTown reserves the right to withhold monthly payout releases until critical repairs are resolved.', critical: true },
         { title: 'Section 5: Default, Restructuring, Deed Execution & Physical Delivery', body: "Agreement to MainTown's default policies: Land & Property installment buyers follow a 30-day grace period and a 60-day default threshold, preceded by written notice of default and a 14-day cure period; monthly renters follow the four-stage schedule in the Tenant terms (Grace, Late Notice, Formal Demand, Statutory Recovery). Statutory notices are issued by or on behalf of the Landlord, and possession is only recovered through the process required by the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State; MainTown provides notice templates and delivery records. Authorizes MainTown to restructure or re-list defaulted inventory. Upon 100% completion of buyer payments for a Land &amp; Property sale, you agree to upload the executed Deed of Assignment and surrender original physical title instruments exclusively to SmartyHub Logistics, MainTown's delivery partner, for secure buyer delivery. Dispatch is free: request it in the app with pick-up and delivery locations and contact numbers, and pick-up happens within 24 to 48 hours. Off-platform physical document transfers are strictly prohibited.", critical: true },
-        { title: 'Section 6: Shortlet Calendar Accuracy & Caution Deposit Rules', body: 'Requirement to maintain accurate shortlet availability. Double-booking results in owner-funded guest relocation fees. Damage claims against caution deposits must be submitted within 24 hours of checkout with photo/video proof.' },
+        { title: 'Section 6: Shortlet Calendar Accuracy & Caution Deposit Rules', body: 'Requirement to maintain accurate shortlet availability. Double-booking results in owner-funded guest relocation fees. Damage claims against caution deposits must be submitted within 24 hours of checkout with photo/video proof. If you cancel a confirmed booking before check-in, the guest is refunded in full from the held payment (your payout is released only at check-in) and repeated host cancellations can lead to penalties or removal of your shortlet listings.' },
         { title: 'Section 7: Fraud, Dual-Leasing & Zero Tolerance', body: 'Immediate account termination, forfeiture of pending payouts, listing removal, and referral to law enforcement for fake listings, fraudulent titles, or executing side-deals/double-leases.', critical: true },
         { title: 'Section 8: Verification Walkthroughs & Inspection Access', body: "Agreement to allow scheduled virtual or physical walkthrough inspections by authorized MainTown verification agents prior to and during listing activation. This includes facilitating buyer inspections at checkout — for Land &amp; Property sales, buyer checkout remains locked until the buyer logs an in-app Satisfied status. " + SITE_SAFETY_WARRANTY_TEXT },
         { title: 'Section 9: Non-Circumvention & Direct Payment Ban', body: 'Strict prohibition against bypassing the platform\'s payment system to request cash, direct bank transfers, or off-platform renewals from MainTown users. Violations incur platform ban and legal recovery of lost fees.', critical: true },
@@ -9557,7 +9582,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return rows.sort((x, y) => (y.b.startedAt || 0) - (x.b.startedAt || 0));
   }
   function shortletStatusLabel(st) {
-    return ({ ACTIVE: 'Staying', COMPLETED: 'Completed', TERMINATED: 'Ended Early', AWAITING_DECISION: 'Stay Ending' }[st]) || (st || 'Booked');
+    return ({ ACTIVE: 'Staying', COMPLETED: 'Completed', TERMINATED: 'Ended Early', AWAITING_DECISION: 'Stay Ending', CANCELLED_BY_GUEST: 'Cancelled', CANCELLED_BY_HOST: 'Cancelled by Host' }[st]) || (st || 'Booked');
   }
   function shortletGuestsHTML(rows) {
     return rows.map(({ b }) => `
@@ -9567,13 +9592,16 @@ document.addEventListener('DOMContentLoaded', () => {
             <p class="txn-title">${shortletEsc(resolveUserName(b.tenantId))}</p>
             <p class="txn-date">${shortletEsc(b.listingTitle)}</p>
           </div>
-          <span class="txn-status-badge ${b.status === 'ACTIVE' ? 'pending' : 'settled'}">${shortletStatusLabel(b.status)}</span>
+          <span class="txn-status-badge ${shortletIsCancelled(b) ? 'refunded' : (b.status === 'ACTIVE' ? 'pending' : 'settled')}">${shortletStatusLabel(b.status)}</span>
         </div>
         <div class="txn-breakdown">
           <div class="txn-breakdown-row"><span>Check-in</span><span>${shortletDateLabel(b.checkIn)}</span></div>
           <div class="txn-breakdown-row"><span>Check-out</span><span>${shortletDateLabel(b.checkOut)}</span></div>
           <div class="txn-breakdown-row net"><span>Nights Paid</span><span>${b.nightsPaid || 0} of ${b.nights || 0}</span></div>
+          ${shortletIsCancelled(b) ? `<div class="txn-breakdown-row"><span>Refunded to guest</span><span>${formatMoney(b.refundTotal || 0, 'ngn')}</span></div>` : ''}
+          ${(b.heldPayout > 0 && !shortletIsCancelled(b)) ? `<div class="txn-breakdown-row"><span>Payout held until check-in</span><span>${formatMoney(b.heldPayout, 'ngn')}</span></div>` : ''}
         </div>
+        ${shortletHostCanCancel(b) ? `<button type="button" class="insp-cancel-btn" style="margin-top:10px;" data-stay-host-cancel="${b.id}"><i data-lucide="calendar-x" class="w-4 h-4"></i>Cancel Booking</button>` : ''}
       </div>`).join('');
   }
   function openGuestsModal(role) {
@@ -10072,6 +10100,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
     renderCheckoutResumeSummaryCard();
     renderInspectionsSummaryCard();
+    renderStaysSummaryCard();
     renderActionSummaryCards();
     if (typeof renderEnterpriseEntryCard === 'function') renderEnterpriseEntryCard();
     if (window.lucide) lucide.createIcons();
@@ -12454,7 +12483,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const iso = d.toISOString().slice(0, 10);
       if (blocked.includes(iso)) return `${iso} is not available. Choose other dates.`;
     }
-    const clash = (Array.isArray(shortletBookings) ? shortletBookings : []).some(b => b.listingId === l.id && b.status === 'ACTIVE' && inIso < b.checkOut && outIso > b.checkIn);
+    const clash = (Array.isArray(shortletBookings) ? shortletBookings : []).some(b => b.listingId === l.id && shortletHoldsDates(b) && inIso < b.checkOut && outIso > b.checkIn);
     return clash ? 'These dates are already booked. Choose other dates.' : '';
   }
   function applyShortletAvailability() {
@@ -12513,15 +12542,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       amount: totalDue, status: 'SUCCESSFUL',
       meta: { recipient: booking.listingTitle, propertyName: booking.listingTitle, feeType: 'Shortlet Booking' }
     });
-    if (listing && listing.ownerId) {
-      const hostAmount = rate + hostPassthrough;
-      creditWallet(listing.ownerId, hostAmount);
-      recordTransaction({
-        userId: listing.ownerId, direction: 'credit', category: 'SHORTLET_PAYOUT',
-        title: `Shortlet payout — Night ${nightNumber} of ${booking.nights} at ${booking.listingTitle}`,
-        amount: hostAmount, status: 'SUCCESSFUL', meta: { propertyName: booking.listingTitle }
-      });
-    }
+    payShortletHost(booking, listing, rate + hostPassthrough,
+      `Shortlet payout — Night ${nightNumber} of ${booking.nights} at ${booking.listingTitle}`);
     return true;
   }
 
@@ -12556,24 +12578,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
       }
     });
 
-    if (listing.ownerId) {
-      const hostAmount = sl.netRent + sl.cautionFee + sl.serviceChargeFee;
-      creditWallet(listing.ownerId, hostAmount);
-      recordTransaction({
-        userId: listing.ownerId, direction: 'credit', category: 'SHORTLET_PAYOUT',
-        title: `Shortlet payout — Night 1 of ${sl.nights} at ${listing.title}`,
-        amount: hostAmount, status: 'SUCCESSFUL', meta: { propertyName: listing.title }
-      });
-    }
-
     const booking = {
       id: Date.now(), listingId: listing.id, listingTitle: listing.title, location: listing.location,
       tenantId: uid, nights: sl.nights, nightsPaid: 1, nightlyRate: sl.nightlyRate,
       checkIn: sl.checkIn, checkOut: sl.checkOut, startedAt: Date.now(),
       status: sl.remainingNights > 0 ? 'ACTIVE' : 'COMPLETED',
       paymentMethod: checkoutSource === 'wallet' ? 'WALLET' : 'DEBIT_CARD',
+      cautionFee: sl.cautionFee || 0, serviceChargeFee: sl.serviceChargeFee || 0,
       agreementSignedTenant: true, agreementSignedTenantAt: Date.now()
     };
+    // The Host's share is held by the payment provider until check-in (see payShortletHost).
+    payShortletHost(booking, listing, sl.netRent + sl.cautionFee + sl.serviceChargeFee,
+      `Shortlet payout — Night 1 of ${sl.nights} at ${listing.title}`);
+
     shortletBookings.unshift(booking);
     saveShortletBookings();
     if (booking.status === 'ACTIVE') scheduleShortletAutoDebit(booking.id);
@@ -12634,6 +12651,432 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Resume auto-debit timers for any still-ACTIVE bookings after a page reload
   // (a fresh page load would otherwise lose the setInterval handles above).
   shortletBookings.filter(b => b.status === 'ACTIVE').forEach(b => scheduleShortletAutoDebit(b.id));
+
+
+  // ==================================================================
+  // ---- Shortlet Cancellation & Refund Policy (one policy, every shortlet) ----
+  //   Guest, more than 48h before check-in ........ everything paid is refunded
+  //   Guest, under 48h before check-in ............ Night 1 (rate + its 5% fee) is kept;
+  //                                                 all else paid is refunded
+  //   Guest, after check-in ....................... nights stayed are kept; nights paid in
+  //                                                 advance but not stayed are refunded;
+  //                                                 Caution Fee follows Clause 3
+  //   Host cancels (before check-in) .............. guest is refunded in full
+  // Check-in is 2:00 PM and check-out 12:00 PM Lagos time (WAT, UTC+1).
+  // MainTown is non-custodial and never pays a refund from its own funds. The
+  // payment provider holds the Host's share until check-in, so refunds before
+  // check-in come out of that held amount; after check-in they are taken from
+  // the Host's wallet, or netted off their next payout if the wallet is short.
+  // ==================================================================
+  const SHORTLET_FREE_CANCEL_HOURS = 48;
+  const SHORTLET_CANCEL_CLAUSE_TEXT = 'Free cancellation: if you cancel at least 48 hours before check-in (2:00 PM, Lagos time), everything you paid is refunded, including the nightly rate, the MainTown Platform Fee, the Caution Fee and the Service Charge. Late cancellation: if you cancel less than 48 hours before check-in, Night 1 (the nightly rate and its Platform Fee) is not refunded; anything else you paid is refunded and no further nights are debited. After check-in: nights you have already stayed are not refunded, no further nights are debited once you end the stay, and any nights paid in advance but not yet stayed are refunded; the Caution Fee is handled under Clause 3. Host cancellation: if the Host cancels, you receive a full refund and the Host is subject to the Partnership Terms. Refunds are automatic and go back to the wallet or card you paid with. Before check-in they are paid from the amount the payment provider is holding, so the Host is never asked to repay; after check-in, any refund due is deducted from the Host\u2019s wallet or next payout. MainTown never pays a refund from its own funds (Clause 2).';
+
+  function shortletInstant(dateIso, hour) {
+    return new Date(dateIso + 'T' + String(hour).padStart(2, '0') + ':00:00+01:00').getTime();
+  }
+  function shortletCheckInInstant(b) {
+    const d = b.checkIn || new Date(b.startedAt || Date.now()).toISOString().slice(0, 10);
+    return shortletInstant(d, 14);
+  }
+  function shortletCheckOutInstant(b) {
+    const d = b.checkOut || b.checkIn || new Date(b.startedAt || Date.now()).toISOString().slice(0, 10);
+    return shortletInstant(d, 12);
+  }
+  function shortletIsCancelled(b) {
+    return b.status === 'CANCELLED_BY_GUEST' || b.status === 'CANCELLED_BY_HOST';
+  }
+  // A booking holds its dates until check-out, unless it was cancelled or ended early.
+  function shortletHoldsDates(b) {
+    return !shortletIsCancelled(b) && b.status !== 'TERMINATED' && Date.now() < shortletCheckOutInstant(b);
+  }
+  function shortletCanCancel(b) {
+    return shortletHoldsDates(b) && ['ACTIVE', 'AWAITING_DECISION', 'COMPLETED'].includes(b.status);
+  }
+  function shortletHostCanCancel(b) {
+    return shortletCanCancel(b) && Date.now() < shortletCheckInInstant(b);
+  }
+
+
+  // ---- Held host payouts: the Host's share of a shortlet payment is held by the
+  //      payment provider until check-in (2:00 PM WAT). Until then it is shown to the
+  //      Host as PENDING and is not spendable. Refunds before check-in come out of it.
+  function shortletRecoveryOwed(ownerId) {
+    return (Array.isArray(shortletBookings) ? shortletBookings : []).reduce((sum, bk) => {
+      const l = listings.find(x => String(x.id) === String(bk.listingId));
+      return sum + ((l && l.ownerId === ownerId && bk.hostRecoveryDue > 0) ? bk.hostRecoveryDue : 0);
+    }, 0);
+  }
+  // Pays the Host now, first netting off any refund they still owe from an earlier cancellation.
+  function payHostNow(ownerId, amount, title, propertyName) {
+    let net = amount, recovered = 0;
+    let owed = shortletRecoveryOwed(ownerId);
+    if (owed > 0) {
+      recovered = Math.min(owed, amount);
+      net = amount - recovered;
+      let left = recovered;
+      (shortletBookings || []).forEach(bk => {
+        const l = listings.find(x => String(x.id) === String(bk.listingId));
+        if (left > 0 && l && l.ownerId === ownerId && bk.hostRecoveryDue > 0) {
+          const take = Math.min(left, bk.hostRecoveryDue);
+          bk.hostRecoveryDue -= take; left -= take;
+          if (bk.hostRecoveryDue <= 0) delete bk.hostRecoveryDue;
+        }
+      });
+    }
+    creditWallet(ownerId, net);
+    recordTransaction({ userId: ownerId, direction: 'credit', category: 'SHORTLET_PAYOUT', title, amount, status: 'SUCCESSFUL', meta: { propertyName } });
+    if (recovered > 0) {
+      recordTransaction({ userId: ownerId, direction: 'debit', category: 'SHORTLET_REFUND_REVERSAL',
+        title: `Refund recovered from payout \u2014 ${propertyName}`, amount: recovered, status: 'SUCCESSFUL', meta: { propertyName } });
+    }
+  }
+  // Called whenever the Host's share of a charge comes in. Before check-in it is held;
+  // from check-in onward it is paid straight away.
+  function payShortletHost(booking, listing, amount, title) {
+    if (!listing || !listing.ownerId || !(amount > 0)) return;
+    if (Date.now() < shortletCheckInInstant(booking)) {
+      booking.heldPayout = (booking.heldPayout || 0) + amount;
+      const t = recordTransaction({ userId: listing.ownerId, direction: 'credit', category: 'SHORTLET_PAYOUT',
+        title: title + ' \u2014 held until check-in', amount, status: 'PENDING_ESCROW',
+        meta: { propertyName: booking.listingTitle, held: true, bookingId: booking.id } });
+      if (t) { booking.heldTxnIds = booking.heldTxnIds || []; booking.heldTxnIds.push(t.id); }
+    } else {
+      payHostNow(listing.ownerId, amount, title, booking.listingTitle);
+    }
+  }
+  function setHeldTxnStatus(booking, status, titleNote) {
+    appState = loadAppState();
+    (appState.transactions || []).forEach(t => {
+      if ((booking.heldTxnIds || []).includes(t.id) && t.status === 'PENDING_ESCROW') {
+        t.status = status;
+        if (titleNote) t.title = t.title.replace(' \u2014 held until check-in', '') + titleNote;
+        else t.title = t.title.replace(' \u2014 held until check-in', '');
+        if (status === 'SUCCESSFUL') t.timestamp = Date.now();
+      }
+    });
+    saveAppState(appState);
+  }
+  // Check-in has arrived: the provider releases the held share to the Host.
+  function releaseDueShortletPayouts() {
+    let changed = false;
+    (Array.isArray(shortletBookings) ? shortletBookings : []).forEach(b => {
+      if (!(b.heldPayout > 0) || shortletIsCancelled(b)) return;
+      if (Date.now() < shortletCheckInInstant(b)) return;
+      const l = listings.find(x => String(x.id) === String(b.listingId));
+      const amount = b.heldPayout;
+      b.heldPayout = 0;
+      setHeldTxnStatus(b, 'SUCCESSFUL');
+      b.heldTxnIds = [];
+      if (l && l.ownerId) {
+        // the pending entries already show the credit; move the money, net of any refund owed
+        const owed = shortletRecoveryOwed(l.ownerId);
+        const recovered = Math.min(owed, amount);
+        if (recovered > 0) {
+          let left = recovered;
+          shortletBookings.forEach(bk => {
+            const bl = listings.find(x => String(x.id) === String(bk.listingId));
+            if (left > 0 && bl && bl.ownerId === l.ownerId && bk.hostRecoveryDue > 0) {
+              const take = Math.min(left, bk.hostRecoveryDue);
+              bk.hostRecoveryDue -= take; left -= take;
+              if (bk.hostRecoveryDue <= 0) delete bk.hostRecoveryDue;
+            }
+          });
+          recordTransaction({ userId: l.ownerId, direction: 'debit', category: 'SHORTLET_REFUND_REVERSAL',
+            title: `Refund recovered from payout \u2014 ${b.listingTitle}`, amount: recovered, status: 'SUCCESSFUL', meta: { propertyName: b.listingTitle } });
+        }
+        creditWallet(l.ownerId, amount - recovered);
+        pushPlatformNotification('landlord', 'payment', 'Shortlet Payout Released',
+          `Guest checked in at "${b.listingTitle}". ${formatMoney(amount, 'ngn')} has been released to your wallet.`,
+          null, 'shortlet', null, l.ownerId);
+      }
+      changed = true;
+    });
+    if (changed) { saveShortletBookings(); window.dispatchEvent(new Event('maintown_state_updated')); }
+  }
+
+  // Works out exactly what comes back, from what was actually charged.
+  function shortletRefundQuote(b, by) {
+    const listing = listings.find(l => String(l.id) === String(b.listingId)) || {};
+    const rate = b.nightlyRate || 0;
+    const fee = Math.round(rate * 0.05);
+    const night = rate + fee;
+    const caution = b.cautionFee != null ? b.cautionFee : (listing.cautionFee || 0);
+    const service = b.serviceChargeFee != null ? b.serviceChargeFee
+      : (listing.serviceChargeMode === 'charged' ? (listing.serviceChargeFee || 0) : 0);
+    const paidNights = Math.max(1, b.nightsPaid || 1);
+    const paidTotal = paidNights * night + caution + service;
+    const msToCheckIn = shortletCheckInInstant(b) - Date.now();
+    const hours = msToCheckIn / 3600000;
+
+    let tier, refundNights, refundCaution, refundService;
+    if (by === 'host') {
+      tier = 'host'; refundNights = paidNights; refundCaution = caution; refundService = service;
+    } else if (hours >= SHORTLET_FREE_CANCEL_HOURS) {
+      tier = 'free'; refundNights = paidNights; refundCaution = caution; refundService = service;
+    } else if (hours > 0) {
+      tier = 'late'; refundNights = paidNights - 1; refundCaution = caution; refundService = service;
+    } else {
+      tier = 'started';
+      const stayed = Math.min(b.nights || paidNights, Math.max(1, Math.floor(-msToCheckIn / 86400000) + 1));
+      refundNights = Math.max(0, paidNights - stayed);
+      refundCaution = 0; refundService = 0;
+    }
+    const rateRefund = refundNights * rate;
+    const feeRefund = refundNights * fee;
+    const refundTotal = rateRefund + feeRefund + refundCaution + refundService;
+    return {
+      tier, hours, rate, fee, night, caution, service, paidNights, paidTotal,
+      rateRefund, feeRefund, cautionRefund: refundCaution, serviceRefund: refundService,
+      refundTotal, kept: paidTotal - refundTotal,
+      // what has to come back out of the Host's share (the Platform Fee is MainTown's to refund)
+      hostReversal: rateRefund + refundCaution + refundService,
+      upfrontCharged: night + caution + service
+    };
+  }
+
+  // Executes the cancellation: stops auto-debit, frees the dates, refunds the
+  // guest, reverses the Host's share and tells the other side.
+  function cancelShortletBooking(bookingId, by) {
+    const b = shortletBookings.find(x => x.id === bookingId);
+    if (!b || !shortletCanCancel(b)) return false;
+    if (by === 'host' && !shortletHostCanCancel(b)) return false;
+    const q = shortletRefundQuote(b, by);
+    const listing = listings.find(l => String(l.id) === String(b.listingId)) || null;
+    const uid = b.tenantId;
+
+    if (shortletAutoDebitTimers[bookingId]) { clearInterval(shortletAutoDebitTimers[bookingId]); delete shortletAutoDebitTimers[bookingId]; }
+    b.status = by === 'host' ? 'CANCELLED_BY_HOST' : 'CANCELLED_BY_GUEST';
+    b.cancelledAt = Date.now();
+    b.cancelTier = q.tier;
+    b.refundTotal = q.refundTotal;
+    b.refundKept = q.kept;
+
+    if (q.refundTotal > 0) {
+      const toCard = b.paymentMethod === 'DEBIT_CARD'
+        ? Math.max(0, Math.min(q.refundTotal, q.upfrontCharged - q.kept)) : 0;
+      const toWallet = q.refundTotal - toCard;
+      const why = by === 'host' ? 'cancelled by host' : (q.tier === 'free' ? 'free cancellation' : q.tier === 'late' ? 'late cancellation' : 'ended during stay');
+      if (toWallet > 0) {
+        creditWallet(uid, toWallet);
+        recordTransaction({
+          userId: uid, direction: 'credit', category: 'SHORTLET_REFUND',
+          title: `Refund \u2014 ${b.listingTitle} (${why})`, amount: toWallet, status: 'REFUNDED',
+          meta: { propertyName: b.listingTitle, feeType: 'Shortlet Refund' }
+        });
+      }
+      if (toCard > 0) {
+        recordTransaction({
+          userId: uid, direction: 'credit', category: 'SHORTLET_REFUND',
+          title: `Refund to card \u2014 ${b.listingTitle} (${why})`, amount: toCard, status: 'REFUNDED',
+          meta: { propertyName: b.listingTitle, feeType: 'Shortlet Refund \u2014 Card' }
+        });
+      }
+    }
+    if (listing && listing.ownerId) {
+      // 1) Before check-in the Host's share is still with the payment provider: the refund comes
+      //    out of it, and whatever is kept (e.g. Night 1 on a late cancellation) is released now.
+      const held = b.heldPayout || 0;
+      const fromHeld = Math.min(q.hostReversal, held);
+      const releaseNow = held - fromHeld;
+      if (held > 0) {
+        if (fromHeld > 0 && releaseNow <= 0) {
+          setHeldTxnStatus(b, 'REFUNDED', ' — returned to guest');
+        } else if (releaseNow > 0) {
+          // keep the pending entries' history, but they settle as paid out; the returned part is logged separately
+          setHeldTxnStatus(b, 'SUCCESSFUL');
+          if (fromHeld > 0) {
+            recordTransaction({ userId: listing.ownerId, direction: 'debit', category: 'SHORTLET_REFUND_REVERSAL',
+              title: `Returned to guest from held payout — ${b.listingTitle}`, amount: fromHeld, status: 'REFUNDED', meta: { propertyName: b.listingTitle } });
+          }
+          const owed = shortletRecoveryOwed(listing.ownerId);
+          const recovered = Math.min(owed, releaseNow);
+          if (recovered > 0) {
+            let left = recovered;
+            shortletBookings.forEach(bk => {
+              const bl = listings.find(x => String(x.id) === String(bk.listingId));
+              if (left > 0 && bl && bl.ownerId === listing.ownerId && bk.hostRecoveryDue > 0) {
+                const take = Math.min(left, bk.hostRecoveryDue);
+                bk.hostRecoveryDue -= take; left -= take;
+                if (bk.hostRecoveryDue <= 0) delete bk.hostRecoveryDue;
+              }
+            });
+            recordTransaction({ userId: listing.ownerId, direction: 'debit', category: 'SHORTLET_REFUND_REVERSAL',
+              title: `Refund recovered from payout \u2014 ${b.listingTitle}`, amount: recovered, status: 'SUCCESSFUL', meta: { propertyName: b.listingTitle } });
+          }
+          creditWallet(listing.ownerId, releaseNow - recovered);
+        }
+        b.heldPayout = 0; b.heldTxnIds = [];
+      }
+      // 2) Anything still to return was already paid out to the Host (a stay in progress):
+      //    take it from their wallet, or from their next payout if the wallet is short.
+      const fromWallet = q.hostReversal - fromHeld;
+      if (fromWallet > 0) {
+        if (debitWallet(listing.ownerId, fromWallet)) {
+          recordTransaction({
+            userId: listing.ownerId, direction: 'debit', category: 'SHORTLET_REFUND_REVERSAL',
+            title: `Refund reversal — ${b.listingTitle}`, amount: fromWallet, status: 'SUCCESSFUL',
+            meta: { propertyName: b.listingTitle }
+          });
+        } else {
+          b.hostRecoveryDue = (b.hostRecoveryDue || 0) + fromWallet; // netted off their next payout
+        }
+      }
+    }
+
+    const money = n => formatMoney(n, 'ngn');
+    if (by === 'host') {
+      pushPlatformNotification('tenant', 'booking', 'Booking Cancelled by Host',
+        `The host cancelled your stay at "${b.listingTitle}". ${money(q.refundTotal)} has been refunded in full.`,
+        null, 'shortlet', null, uid);
+    } else {
+      if (listing && listing.ownerId) {
+        pushPlatformNotification('landlord', 'booking', 'Shortlet Booking Cancelled',
+          `A guest cancelled their stay at "${b.listingTitle}" (${shortletDateLabel(b.checkIn)} to ${shortletDateLabel(b.checkOut)}). Those dates are open again.`,
+          null, 'shortlet', null, listing.ownerId);
+      }
+      pushPlatformNotification('tenant', 'booking', 'Stay Cancelled',
+        q.refundTotal > 0 ? `Your stay at "${b.listingTitle}" is cancelled. ${money(q.refundTotal)} has been refunded.`
+                          : `Your stay at "${b.listingTitle}" is cancelled. No further nights will be charged.`,
+        null, 'shortlet', null, uid);
+    }
+    saveShortletBookings();
+    window.dispatchEvent(new Event('maintown_state_updated'));
+    return true;
+  }
+
+  // ---- Cancel confirmation modal (shows the exact refund before anything happens) ----
+  let stayCancelState = null; // { bookingId, by }
+  function openStayCancelModal(bookingId, by) {
+    const b = shortletBookings.find(x => x.id === bookingId);
+    if (!b || !shortletCanCancel(b)) { showToast('This stay can no longer be cancelled'); return; }
+    if (by === 'host' && !shortletHostCanCancel(b)) { showToast('A stay that has started can\u2019t be cancelled by the host'); return; }
+    const q = shortletRefundQuote(b, by);
+    const money = n => formatMoney(n, 'ngn');
+    const heads = {
+      free: ['Free cancellation', `You\u2019re cancelling more than ${SHORTLET_FREE_CANCEL_HOURS} hours before check-in, so everything you paid comes back.`],
+      late: ['Late cancellation', `Check-in is less than ${SHORTLET_FREE_CANCEL_HOURS} hours away, so Night 1 is not refunded. Everything else comes back.`],
+      started: ['Ending a stay in progress', 'Nights you have stayed are not refunded and no further nights will be charged. Nights paid in advance but not stayed are refunded.'],
+      host: ['Host cancellation', 'The guest is refunded in full. Repeated host cancellations can lead to penalties under the Partnership Terms.']
+    }[q.tier];
+    const row = (label, val, strong) => `<div class="row"><span>${label}</span>${strong ? `<strong>${val}</strong>` : `<span>${val}</span>`}</div>`;
+    let rows = '';
+    if (q.rateRefund > 0) rows += row('Nightly rate refunded', money(q.rateRefund));
+    if (q.feeRefund > 0) rows += row('Platform Fee refunded', money(q.feeRefund));
+    if (q.cautionRefund > 0) rows += row('Caution Fee refunded', money(q.cautionRefund));
+    if (q.serviceRefund > 0) rows += row('Service Charge refunded', money(q.serviceRefund));
+    if (q.kept > 0) rows += row(q.tier === 'late' ? 'Night 1 (not refunded)' : 'Not refunded', money(q.kept));
+    rows += row('You get back', money(q.refundTotal), true);
+    document.getElementById('sc-title').textContent = by === 'host' ? 'Cancel This Booking?' : 'Cancel This Stay?';
+    document.getElementById('sc-property').textContent = b.listingTitle + ' \u00b7 ' + shortletDateLabel(b.checkIn) + ' to ' + shortletDateLabel(b.checkOut);
+    document.getElementById('sc-headline').textContent = heads[0];
+    document.getElementById('sc-explain').textContent = heads[1];
+    document.getElementById('sc-breakdown').innerHTML = rows;
+    document.getElementById('sc-where').textContent = q.refundTotal > 0
+      ? (b.heldPayout > 0 && by !== 'host' ? 'Paid out of the money held until check-in, straight back to ' + (b.paymentMethod === 'DEBIT_CARD' ? 'your card and wallet.' : 'your MainTown wallet.') : b.paymentMethod === 'DEBIT_CARD' ? 'Refunded to the card you paid with; any nights debited from your wallet return to your wallet.' : 'Refunded to your MainTown wallet straight away.')
+      : 'Nothing is refundable for this cancellation.';
+    document.getElementById('sc-where').style.display = by === 'host' ? 'none' : '';
+    document.getElementById('sc-confirm-btn').textContent = by === 'host' ? 'Yes, Cancel Booking & Refund Guest' : 'Yes, Cancel Stay';
+    document.getElementById('sc-keep-btn').textContent = by === 'host' ? 'Keep Booking' : 'Keep My Stay';
+    stayCancelState = { bookingId, by };
+    document.getElementById('stay-cancel-modal').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('sc-keep-btn').addEventListener('click', () => {
+    document.getElementById('stay-cancel-modal').classList.remove('open');
+    stayCancelState = null;
+  });
+  document.getElementById('sc-confirm-btn').addEventListener('click', () => {
+    if (!stayCancelState) return;
+    const { bookingId, by } = stayCancelState;
+    const b = shortletBookings.find(x => x.id === bookingId);
+    const ok = cancelShortletBooking(bookingId, by);
+    document.getElementById('stay-cancel-modal').classList.remove('open');
+    stayCancelState = null;
+    if (!ok) { showToast('This stay can no longer be cancelled'); return; }
+    showToast(by === 'host' ? 'Booking cancelled \u2014 guest refunded in full'
+      : (b && b.refundTotal > 0 ? `Stay cancelled \u2014 ${formatMoney(b.refundTotal, 'ngn')} refunded` : 'Stay cancelled'));
+    if (by === 'host') {
+      const open = document.getElementById('closed-deals-modal');
+      if (open && open.classList.contains('open')) { openGuestsModal(currentUserRole || 'landlord'); }
+      try { renderSalesGuests(); } catch (e) {}
+    } else {
+      renderMyStaysSheet();
+    }
+    try { renderStaysSummaryCard(); } catch (e) {}
+  });
+
+  // ---- Tenant: "My Shortlet Stays" card on Home + sheet listing every stay ----
+  function myShortletStays() {
+    const uid = typeof currentDemoUserId === 'function' ? currentDemoUserId() : null;
+    return (Array.isArray(shortletBookings) ? shortletBookings : [])
+      .filter(b => b.tenantId === uid)
+      .sort((x, y) => (y.startedAt || 0) - (x.startedAt || 0));
+  }
+  function renderStaysSummaryCard() {
+    const wrap = document.getElementById('dash-stays-summary');
+    if (!wrap) return;
+    if ((currentUserRole || 'tenant') !== 'tenant') { wrap.innerHTML = ''; return; }
+    const stays = myShortletStays();
+    if (!stays.length) { wrap.innerHTML = ''; return; }
+    const live = stays.filter(shortletCanCancel);
+    wrap.innerHTML = `
+      <div class="dash-summary-card" id="dash-stays-summary-card">
+        <div class="dash-summary-icon"><i data-lucide="calendar-days" class="w-4 h-4"></i></div>
+        <div class="dash-summary-text">
+          <p class="dash-summary-title">My Shortlet Stays (${live.length} upcoming or current)</p>
+          <p class="dash-summary-sub">View a stay or cancel it \u00b7 tap to open</p>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4" style="color:#64748b;"></i>
+      </div>`;
+    if (window.lucide) lucide.createIcons();
+    document.getElementById('dash-stays-summary-card').addEventListener('click', openMyStaysSheet);
+  }
+  function renderMyStaysSheet() {
+    const stays = myShortletStays();
+    const html = stays.map(b => {
+      const can = shortletCanCancel(b);
+      const cancelled = shortletIsCancelled(b);
+      const q = can ? shortletRefundQuote(b, 'guest') : null;
+      const hint = can ? (q.tier === 'free' ? `Free cancellation until ${SHORTLET_FREE_CANCEL_HOURS} hours before check-in`
+                      : q.tier === 'late' ? 'Late cancellation: Night 1 is not refunded' : 'Stay in progress') : '';
+      return `
+      <div class="txn-row">
+        <div class="txn-row-top">
+          <div>
+            <p class="txn-title">${shortletEsc(b.listingTitle)}</p>
+            <p class="txn-date">${shortletEsc(b.location || '')}</p>
+          </div>
+          <span class="txn-status-badge ${cancelled ? 'refunded' : (b.status === 'ACTIVE' ? 'pending' : 'settled')}">${shortletStatusLabel(b.status)}</span>
+        </div>
+        <div class="txn-breakdown">
+          <div class="txn-breakdown-row"><span>Check-in</span><span>${shortletDateLabel(b.checkIn)}, 2:00 PM</span></div>
+          <div class="txn-breakdown-row"><span>Check-out</span><span>${shortletDateLabel(b.checkOut)}, 12:00 PM</span></div>
+          <div class="txn-breakdown-row net"><span>Nights Paid</span><span>${b.nightsPaid || 0} of ${b.nights || 0}</span></div>
+          ${cancelled ? `<div class="txn-breakdown-row"><span>Refunded</span><span>${formatMoney(b.refundTotal || 0, 'ngn')}</span></div>` : ''}
+        </div>
+        ${can ? `<p class="role-hint" style="text-align:left; margin:10px 0 8px;">${hint}</p>
+        <button type="button" class="insp-cancel-btn" data-stay-cancel="${b.id}"><i data-lucide="calendar-x" class="w-4 h-4"></i>Cancel Stay</button>` : ''}
+      </div>`;
+    }).join('');
+    document.getElementById('cd-list').innerHTML = html || '<p class="role-hint" style="text-align:left;">No shortlet stays yet.</p>';
+    if (window.lucide) lucide.createIcons();
+  }
+  function openMyStaysSheet() {
+    document.getElementById('cd-title').textContent = 'My Shortlet Stays';
+    document.getElementById('cd-subtitle').textContent = 'Your bookings, and what you get back if you cancel';
+    renderMyStaysSheet();
+    document.getElementById('closed-deals-modal').classList.add('open');
+  }
+  document.addEventListener('click', (e) => {
+    const g = e.target.closest('[data-stay-cancel]');
+    if (g) { openStayCancelModal(Number(g.dataset.stayCancel), 'guest'); return; }
+    const h = e.target.closest('[data-stay-host-cancel]');
+    if (h) { openStayCancelModal(Number(h.dataset.stayHostCancel), 'host'); }
+  });
+  window.addEventListener('maintown_state_updated', () => { try { renderStaysSummaryCard(); } catch (e) {} });
+
+  releaseDueShortletPayouts();
+  setInterval(releaseDueShortletPayouts, 30000);
 
   // ---- Shortlet Extension / Terminate Prompt ----
   const shortletExtensionModal = document.getElementById('shortlet-extension-modal');
@@ -13322,11 +13765,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       signoffBox.innerHTML = `
         <p>By proceeding, you acknowledge and agree to the following binding Short-Let Booking &amp; Occupancy Terms:</p>
         <p><strong>Clause 1 — Premises Conduct &amp; House Rules:</strong> By proceeding, you agree to abide strictly by the occupancy limits, noise regulations, check-in/check-out times, and property-specific rules set by the Host/Landlord.</p>
-        <p><strong>Clause 2 — Automated Non-Custodial Split Processing:</strong> You authorize MainTown to process the transaction using automated payment split logic at the point of charge. Funds are split instantly and routed directly to designated accounts for: (1) the Host/Landlord (Net Short-Let Rent), (2) the Service/Property Manager Sub-Account (Caution Fee &amp; Service Charges), and (3) MainTown Realty (Platform Facilitation Fee). MainTown operates solely as a non-custodial technology facilitator and does not hold or escrow transaction funds.</p>
-        <p><strong>Clause 3 — Direct Self-Service Caution Fee Refunds:</strong> The Caution Fee is paid directly to the Host/Landlord's designated sub-account. Upon check-out, you must initiate any Caution Fee refund request directly through your MainTown app. MainTown Realty does not hold, manage, or claim caution fees on behalf of tenants. All refund approvals, damage assessments, and payouts are handled directly between you and the Host/Landlord.</p>
+        <p><strong>Clause 2 — Automated Non-Custodial Split Processing:</strong> You authorize MainTown to process the transaction using automated payment split logic at the point of charge. Your payment is split by the payment provider into: (1) the Host/Landlord (Net Short-Let Rent), (2) the Service/Property Manager Sub-Account (Caution Fee &amp; Service Charges), and (3) MainTown Realty (Platform Facilitation Fee). The Host/Landlord’s share is held by the payment provider, not by MainTown, until check-in (2:00 PM, Lagos time) and is released to the Host/Landlord at check-in. If you cancel before check-in, the refund due to you is paid from that held amount. MainTown operates solely as a non-custodial technology facilitator and does not hold or escrow transaction funds.</p>
+        <p><strong>Clause 3 — Direct Self-Service Caution Fee Refunds:</strong> The Caution Fee is held with the Host/Landlord’s share until check-in and is then released to the Host/Landlord’s designated sub-account. Upon check-out, you must initiate any Caution Fee refund request directly through your MainTown app. MainTown Realty does not hold, manage, or claim caution fees on behalf of tenants. All refund approvals, damage assessments, and payouts are handled directly between you and the Host/Landlord.</p>
         <p><strong>Clause 4 — Instant Booking Confirmation:</strong> Your booking is confirmed as soon as payment is authorised. No signature or Host countersignature is required; ticking the agreement box below is your binding acceptance. The Host is notified immediately and your Booking Confirmation is sent to your chat.</p>
-        ${sl.remainingNights > 0 ? `<p><strong>Clause 5 — Multi-Night Auto-Debit Authorization:</strong> Night 1 (plus any Caution Fee &amp; Service Charge) is charged today. For stays longer than one night, you authorize MainTown to auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} from your chosen payment method for each remaining night (Nights 2–${sl.nights}) until the stay is fully paid or you end the stay early.</p>` : ''}
-        <p><strong>Clause ${sl.remainingNights > 0 ? 6 : 5} — Dispute Resolution (Mediation, then LCA Arbitration):</strong> ${ADR_CLAUSE_TEXT}</p>
+        <p><strong>Clause 5 — Cancellation &amp; Refund Policy:</strong> ${SHORTLET_CANCEL_CLAUSE_TEXT}</p>
+        ${sl.remainingNights > 0 ? `<p><strong>Clause 6 — Multi-Night Auto-Debit Authorization:</strong> Night 1 (plus any Caution Fee &amp; Service Charge) is charged today. For stays longer than one night, you authorize MainTown to auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} from your chosen payment method for each remaining night (Nights 2–${sl.nights}) until the stay is fully paid or you end the stay early.</p>` : ''}
+        <p><strong>Clause ${sl.remainingNights > 0 ? 7 : 6} — Dispute Resolution (Mediation, then LCA Arbitration):</strong> ${ADR_CLAUSE_TEXT}</p>
       `;
 
       document.getElementById('s6-breakdown-label').innerHTML = '<i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Short-Let Stay Breakdown';
@@ -13361,6 +13805,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       document.getElementById('s6-ai-fee-amount').textContent = formatMoney(sl.platformFee, 'ngn');
       document.getElementById('s6-total-amount').textContent = formatMoney(sl.dueNowAmount, 'ngn') + ' due now';
 
+      document.getElementById('s6-shortlet-cancel-notice').style.display = 'flex';
+      document.getElementById('s6-shortlet-cancel-text').textContent = `Your payment is held by ${PAYMENT_PROVIDER}, not MainTown, until check-in and only then released to the host. Free cancellation until 48 hours before check-in (2:00 PM). After that, Night 1 is not refunded; everything else is.`;
       const autodebitNotice = document.getElementById('s6-shortlet-autodebit-notice');
       if (sl.remainingNights > 0) {
         autodebitNotice.style.display = 'flex';
@@ -13374,6 +13820,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       document.getElementById('s6-row2').style.display = 'flex';
       document.getElementById('s6-row3').style.display = 'flex';
       document.getElementById('s6-shortlet-autodebit-notice').style.display = 'none';
+      document.getElementById('s6-shortlet-cancel-notice').style.display = 'none';
       document.getElementById('s6-breakdown-label').innerHTML = '<i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Rent Breakdown (Year 1)';
       document.getElementById('s6-row1-label').textContent = 'First Rent Installment';
       document.getElementById('s6-row2-label').textContent = 'Agency Commission (10%)';
@@ -19009,14 +19456,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (kind === 'shortlet') {
       const out = [
       { title: "Clause 1 — Premises Conduct & House Rules", body: "By proceeding, you agree to abide strictly by the occupancy limits, noise regulations, check-in/check-out times, and property-specific rules set by the Host/Landlord." },
-      { title: "Clause 2 — Automated Non-Custodial Split Processing", body: "You authorize MainTown to process the transaction using automated payment split logic at the point of charge. Funds are split instantly and routed directly to designated accounts for: (1) the Host/Landlord (Net Short-Let Rent), (2) the Service/Property Manager Sub-Account (Caution Fee & Service Charges), and (3) MainTown Realty (Platform Facilitation Fee). MainTown operates solely as a non-custodial technology facilitator and does not hold or escrow transaction funds." },
-      { title: "Clause 3 — Direct Self-Service Caution Fee Refunds", body: "The Caution Fee is paid directly to the Host/Landlord's designated sub-account. Upon check-out, you must initiate any Caution Fee refund request directly through your MainTown app. MainTown Realty does not hold, manage, or claim caution fees on behalf of tenants. All refund approvals, damage assessments, and payouts are handled directly between you and the Host/Landlord." },
+      { title: "Clause 2 — Automated Non-Custodial Split Processing", body: "You authorize MainTown to process the transaction using automated payment split logic at the point of charge. Your payment is split by the payment provider into: (1) the Host/Landlord (Net Short-Let Rent), (2) the Service/Property Manager Sub-Account (Caution Fee & Service Charges), and (3) MainTown Realty (Platform Facilitation Fee). The Host/Landlord’s share is held by the payment provider, not by MainTown, until check-in (2:00 PM, Lagos time) and is released to the Host/Landlord at check-in. If you cancel before check-in, the refund due to you is paid from that held amount. MainTown operates solely as a non-custodial technology facilitator and does not hold or escrow transaction funds." },
+      { title: "Clause 3 — Direct Self-Service Caution Fee Refunds", body: "The Caution Fee is held with the Host/Landlord’s share until check-in and is then released to the Host/Landlord’s designated sub-account. Upon check-out, you must initiate any Caution Fee refund request directly through your MainTown app. MainTown Realty does not hold, manage, or claim caution fees on behalf of tenants. All refund approvals, damage assessments, and payouts are handled directly between you and the Host/Landlord." },
       { title: "Clause 4 — Instant Booking Confirmation", body: "Your booking is confirmed as soon as payment is authorised. No signature or Host countersignature is required; your agreement to these terms at checkout is binding. The Host is notified immediately. ", _old: "Upon PIN authorization, this Agreement is dispatched to the Host/Landlord for digital countersignature. If the Host fails to execute or confirm the booking within the designated acceptance window, the payment split authorization is reversed automatically to your source account/wallet without penalty." }
       ];
-      let n = 5;
+      out.push({ title: 'Clause 5 \u2014 Cancellation & Refund Policy', body: SHORTLET_CANCEL_CLAUSE_TEXT });
+      let n = 6;
       if (m.nights > 1 && m.dailyDebitLabel) {
-        out.push({ title: 'Clause 5 \u2014 Multi-Night Auto-Debit Authorization', body: `Night 1 (plus any Caution Fee & Service Charge) is charged at booking. For stays longer than one night, you authorize MainTown to auto-debit ${m.dailyDebitLabel} from your chosen payment method for each remaining night (Nights 2\u2013${m.nights}) until the stay is fully paid or you end the stay early.` });
-        n = 6;
+        out.push({ title: 'Clause 6 \u2014 Multi-Night Auto-Debit Authorization', body: `Night 1 (plus any Caution Fee & Service Charge) is charged at booking. For stays longer than one night, you authorize MainTown to auto-debit ${m.dailyDebitLabel} from your chosen payment method for each remaining night (Nights 2\u2013${m.nights}) until the stay is fully paid or you end the stay early.` });
+        n = 7;
       }
       out.push({ title: `Clause ${n} \u2014 Dispute Resolution (Mediation, then LCA Arbitration)`, body: ADR_CLAUSE_TEXT });
       return out;
@@ -22294,7 +22742,7 @@ available in the Post-Lease Hub and this chat thread.`
   function computeWalletInflowOutflow(uid) {
     const txns = getUserTransactions(uid);
     let inflow = 0, outflow = 0;
-    txns.forEach(t => { if (t.direction === 'credit') inflow += t.amount; else outflow += t.amount; });
+    txns.forEach(t => { if (t.meta && t.meta.held && t.status !== 'SUCCESSFUL') return; if (t.direction === 'credit') inflow += t.amount; else outflow += t.amount; });
     return { inflow, outflow };
   }
 
@@ -22324,7 +22772,8 @@ available in the Post-Lease Hub and this chat thread.`
     if (status === 'REFUNDED') return 'refunded';
     return 'settled';
   }
-  function walletStatusLabel(status) {
+  function walletStatusLabel(status, t) {
+    if (status === 'PENDING_ESCROW' && t && t.meta && t.meta.held) return 'HELD UNTIL CHECK-IN';
     return status === 'PENDING_ESCROW' ? 'PENDING ESCROW' : (status || 'SUCCESSFUL');
   }
 
@@ -22356,7 +22805,7 @@ available in the Post-Lease Hub and this chat thread.`
           </div>
           <div class="wallet-txn-right">
             <p class="wallet-txn-amount ${isCredit ? 'credit' : 'debit'}">${isCredit ? '+' : '-'}${formatMoney(t.amount, 'ngn')}</p>
-            <span class="txn-status-badge ${walletStatusBadgeClass(t.status)}">${walletStatusLabel(t.status)}</span>
+            <span class="txn-status-badge ${walletStatusBadgeClass(t.status)}">${walletStatusLabel(t.status, t)}</span>
           </div>
         </div>`;
     });
@@ -22503,7 +22952,7 @@ available in the Post-Lease Hub and this chat thread.`
     if (!t) return;
     const isCredit = t.direction === 'credit';
     const badge = document.getElementById('receipt-status-badge');
-    badge.textContent = walletStatusLabel(t.status);
+    badge.textContent = walletStatusLabel(t.status, t);
     badge.className = 'txn-status-badge ' + walletStatusBadgeClass(t.status);
     const amountEl = document.getElementById('receipt-amount');
     amountEl.textContent = (isCredit ? '+' : '-') + formatMoney(t.amount, 'ngn');
@@ -23225,7 +23674,7 @@ available in the Post-Lease Hub and this chat thread.`
     list.innerHTML = txns.length ? txns.map(t => `
       <div class="ent-list-item">
         <div class="ent-list-icon" data-txn-id="${t.id}" style="cursor:pointer;"><i data-lucide="${t.direction === 'credit' ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i></div>
-        <div class="ent-list-text" data-txn-id="${t.id}" style="cursor:pointer;"><p class="ent-list-title">${t.title}</p><p class="ent-list-sub">${new Date(t.timestamp).toLocaleDateString()} · ${(t.meta && t.meta.needsCompanyConfirmation) ? (t.meta.confirmed ? 'Payment Confirmed' : 'Awaiting Confirmation') : walletStatusLabel(t.status)}</p></div>
+        <div class="ent-list-text" data-txn-id="${t.id}" style="cursor:pointer;"><p class="ent-list-title">${t.title}</p><p class="ent-list-sub">${new Date(t.timestamp).toLocaleDateString()} · ${(t.meta && t.meta.needsCompanyConfirmation) ? (t.meta.confirmed ? 'Payment Confirmed' : 'Awaiting Confirmation') : walletStatusLabel(t.status, t)}</p></div>
         <p style="font-size:12.5px; font-weight:700; color:${t.direction === 'credit' ? '#34d399' : '#f87171'};">${t.direction === 'credit' ? '+' : '-'}${formatMoney(t.amount, 'ngn')}</p>
         ${(t.meta && t.meta.needsCompanyConfirmation && !t.meta.confirmed) ? `<button type="button" class="ent-list-action-btn primary" data-confirm-payment="${t.id}" title="Confirm Payment"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i>Confirm</button>` : ''}
         <button type="button" class="ent-list-action-btn" data-flag-txn="${t.id}" title="Flag to CEO"><i data-lucide="flag" class="w-3.5 h-3.5"></i></button>
@@ -24280,7 +24729,7 @@ available in the Post-Lease Hub and this chat thread.`
     list.innerHTML = txns.length ? txns.map(t => `
       <div class="ent-list-item">
         <div class="ent-list-icon"><i data-lucide="${t.direction === 'credit' ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i></div>
-        <div class="ent-list-text"><p class="ent-list-title">${t.title}</p><p class="ent-list-sub">${new Date(t.timestamp).toLocaleDateString()} · ${(t.meta && t.meta.needsCompanyConfirmation) ? (t.meta.confirmed ? 'Payment Confirmed' : 'Awaiting Confirmation') : walletStatusLabel(t.status)}</p></div>
+        <div class="ent-list-text"><p class="ent-list-title">${t.title}</p><p class="ent-list-sub">${new Date(t.timestamp).toLocaleDateString()} · ${(t.meta && t.meta.needsCompanyConfirmation) ? (t.meta.confirmed ? 'Payment Confirmed' : 'Awaiting Confirmation') : walletStatusLabel(t.status, t)}</p></div>
         <p style="font-size:12.5px; font-weight:700; color:${t.direction === 'credit' ? '#34d399' : '#f87171'};">${t.direction === 'credit' ? '+' : '-'}${formatMoney(t.amount, 'ngn')}</p>
         ${(t.meta && t.meta.needsCompanyConfirmation && !t.meta.confirmed) ? `<button type="button" class="ent-list-action-btn primary" data-confirm-payment="${t.id}" title="Confirm Payment"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i>Confirm</button>` : ''}
       </div>`).join('')
