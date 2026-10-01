@@ -4118,9 +4118,41 @@
         </div>
       </div>
 
+
+      <!-- Land & Property: bare land vs house/building -->
+      <div id="tv-propkind-field" style="display:none;">
+        <div class="field">
+          <label class="field-label">What are you selling?</label>
+          <div class="toggle-pill-row">
+            <button type="button" class="toggle-pill active" data-propkind="land" data-prefix="tv">Land only</button>
+            <button type="button" class="toggle-pill" data-propkind="house" data-prefix="tv">House / Building</button>
+          </div>
+        </div>
+        <div class="field" id="tv-landuse-field">
+          <label class="field-label">Land use</label>
+          <select class="field-input" id="tv-land-use">
+            <option value="Residential">Residential</option><option value="Commercial">Commercial</option><option value="Agricultural">Agricultural</option><option value="Mixed use">Mixed use</option>
+          </select>
+        </div>
+        <div id="tv-house-fields" style="display:none;">
+          <div class="field">
+            <label class="field-label">House type</label>
+            <select class="field-input" id="tv-house-type"><option value="">Select house type</option><option value="Bungalow">Bungalow</option><option value="Duplex">Duplex</option><option value="Detached Duplex">Detached Duplex</option><option value="Semi-Detached Duplex">Semi-Detached Duplex</option><option value="Terrace">Terrace</option><option value="Block of Flats">Block of Flats</option><option value="Mansion">Mansion</option><option value="Commercial Building">Commercial Building</option></select>
+          </div>
+          <div class="field">
+            <label class="field-label">Bedrooms</label>
+            <input class="field-input" id="tv-bedrooms" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 4">
+          </div>
+          <div class="field">
+            <label class="field-label">Bathrooms</label>
+            <input class="field-input" id="tv-bathrooms" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 4">
+          </div>
+        </div>
+      </div>
+
       <!-- Land & Property size: entered manually by the Landlord/Owner. Never auto-calculated. -->
       <div class="field" id="tv-sqm-field" style="display:none;">
-        <label class="field-label">Land / Property Size (sqm) — optional</label>
+        <label class="field-label" data-sqm-label="tv">Land Size (sqm) — optional</label>
         <input class="field-input" id="tv-sqm" type="number" min="1" step="any" inputmode="decimal" placeholder="e.g. 450">
       </div>
 
@@ -4271,9 +4303,41 @@
           </div>
         </div>
 
+
+      <!-- Land & Property: bare land vs house/building -->
+      <div id="s5-propkind-field" style="display:none;">
+        <div class="field">
+          <label class="field-label">What are you selling?</label>
+          <div class="toggle-pill-row">
+            <button type="button" class="toggle-pill active" data-propkind="land" data-prefix="s5">Land only</button>
+            <button type="button" class="toggle-pill" data-propkind="house" data-prefix="s5">House / Building</button>
+          </div>
+        </div>
+        <div class="field" id="s5-landuse-field">
+          <label class="field-label">Land use</label>
+          <select class="field-input" id="s5-land-use">
+            <option value="Residential">Residential</option><option value="Commercial">Commercial</option><option value="Agricultural">Agricultural</option><option value="Mixed use">Mixed use</option>
+          </select>
+        </div>
+        <div id="s5-house-fields" style="display:none;">
+          <div class="field">
+            <label class="field-label">House type</label>
+            <select class="field-input" id="s5-house-type"><option value="">Select house type</option><option value="Bungalow">Bungalow</option><option value="Duplex">Duplex</option><option value="Detached Duplex">Detached Duplex</option><option value="Semi-Detached Duplex">Semi-Detached Duplex</option><option value="Terrace">Terrace</option><option value="Block of Flats">Block of Flats</option><option value="Mansion">Mansion</option><option value="Commercial Building">Commercial Building</option></select>
+          </div>
+          <div class="field">
+            <label class="field-label">Bedrooms</label>
+            <input class="field-input" id="s5-bedrooms" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 4">
+          </div>
+          <div class="field">
+            <label class="field-label">Bathrooms</label>
+            <input class="field-input" id="s5-bathrooms" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 4">
+          </div>
+        </div>
+      </div>
+
         <!-- Land & Property size: entered manually by the Agent / Sales staff. Never auto-calculated. -->
         <div class="field" id="s5-sqm-field" style="display:none;">
-          <label class="field-label">Land / Property Size (sqm) — optional</label>
+          <label class="field-label" data-sqm-label="s5">Land Size (sqm) — optional</label>
           <input class="field-input" id="s5-sqm" type="number" min="1" step="any" inputmode="decimal" placeholder="e.g. 450">
         </div>
 
@@ -4907,7 +4971,7 @@
         <p><strong>Clause 2 — Title Verification, Due Diligence &amp; Allocation Window:</strong> MainTown Realty conducts automated and preliminary verification of the title documents supplied by the Seller (C of O, Deed of Assignment, Governor's Consent, Gazette or layout plans). That verification is not legal due diligence, a Land Registry search or a certificate of title. You acknowledge that final legal due diligence, the physical search at the Land Registry, independent survey checks and title verification are your own responsibility and must be completed before you execute this Contract. Physical allocation is executed upon the Seller's title warranties being satisfied and adherence to the agreed payment plan.</p>
         <p><strong>Clause 3 — Automated Non-Custodial Split Payments:</strong> All payments (outright or installment) are processed instantly via automated payment split logic directly to the designated accounts of the Seller/Developer and MainTown Realty. MainTown Realty operates as a non-custodial facilitator and does not hold or escrow transaction funds.</p>
         <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule and are scheduled part-payments of the agreed purchase price; no interest or finance charge is added. A mandatory 30-day grace period applies to overdue payments, after which a written notice of default is issued with a 14-day cure period. Payments remaining in default beyond 60 days without cure trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
-        <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to you via the MainTown Realty logistics network.</p>
+        <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to you by SmartyHub Logistics, MainTown's delivery partner, at no cost to you, with pick-up within 24 to 48 hours of the Seller's dispatch request.</p>
         <p><strong>Clause 6 — Territorial Scope &amp; Interest-Free Instalments:</strong> MainTown's structured payment plans of up to 12 months are available only for land and property located within the Federal Republic of Nigeria. Buyers who live abroad may purchase Nigerian property subject to identity verification. Each instalment is a scheduled part-payment of the agreed purchase price, and no interest or finance charge is added.</p>
         <p><strong>Clause 7 — Dispute Resolution (Mediation, then LCA Arbitration):</strong> Any dispute arising from or connected with these terms, a tenancy or a purchase made through MainTown Realty is governed by the laws of the Federal Republic of Nigeria and Lagos State and is resolved in three steps. (1) Notice: the claimant gives written notice of the dispute through the in-app Dispute Centre or by email. (2) Mandatory mediation: for 14 days from receipt of that notice the parties must try in good faith to settle the dispute by informal mediation, facilitated by a MainTown Realty dispute officer or another neutral mediator the parties agree, and no arbitration may be started until those 14 days have ended. (3) Arbitration: if the dispute is not settled within the 14 days, it is finally resolved by a sole arbitrator under the Rules of the Lagos Court of Arbitration (LCA) in force when the dispute is referred. The seat and venue of arbitration is Lagos, the language is English, and the award is final and binding. Nothing in this clause stops a party from seeking urgent interim relief from a court, from bringing proceedings for recovery of possession that require a court order under the Recovery of Premises Law of Lagos State, from reporting suspected fraud to law enforcement, or from complaining to a competent regulator. Each party bears its own costs unless the tribunal directs otherwise, and the arbitration and any award are confidential except where disclosure is needed to enforce the award or comply with law.</p>
         <p>Scroll to the bottom of this box to unlock the signature field below.</p>
@@ -5267,6 +5331,11 @@
 
   <p class="role-hint" id="ah-empty-state" style="display:none; text-align:center; margin-top: 40px;">No assets acquired yet — completed Land &amp; Property purchases will appear here.</p>
 
+  <div id="ah-agreements-section" style="display:none; margin-top:22px;">
+    <p class="s5-section-label"><i data-lucide="file-check" class="w-4 h-4 text-emerald-400"></i>Signed Agreements</p>
+    <div id="ah-agreements-list"></div>
+  </div>
+
 </div>
 <!-- ===================== END SCREEN AH ===================== -->
 
@@ -5310,6 +5379,11 @@
   <div id="oa-available-list" style="margin-bottom: 10px;"><!-- populated dynamically --></div>
 
   <p class="role-hint" id="oa-empty-state" style="display:none; text-align:center; margin-top: 40px;">No land or property assets listed yet — list one from Quick Actions to see it here.</p>
+
+  <div id="oa-agreements-section" style="display:none; margin-top:22px;">
+    <p class="s5-section-label"><i data-lucide="file-check" class="w-4 h-4 text-emerald-400"></i>Signed Agreements</p>
+    <div id="oa-agreements-list"></div>
+  </div>
 
 </div>
 <!-- ===================== END SCREEN OA ===================== -->
@@ -6836,6 +6910,35 @@
 
     <button type="button" id="lp-continue-btn" class="btn-primary" style="margin-top:0; margin-bottom:12px;">Continue to Checkout</button>
     <button type="button" id="lp-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
+<!-- SmartyHub Logistics — free dispatch request for physical title documents -->
+<div id="dispatch-request-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap"><i data-lucide="truck" class="w-6 h-6 text-purple-400"></i></div>
+    <h2 class="modal-title">Request Free Dispatch</h2>
+    <p class="modal-sub" id="dispatch-modal-property" style="margin-bottom:6px;">—</p>
+    <p class="modal-sub" style="margin-bottom:16px;">SmartyHub Logistics collects the original physical title documents and delivers them to the buyer at no cost.</p>
+    <div class="field">
+      <label class="field-label">Pick-up Location (where the documents are)</label>
+      <input class="field-input" id="dispatch-pickup" type="text" placeholder="Street, area, city">
+    </div>
+    <div class="field">
+      <label class="field-label">Pick-up Contact Phone</label>
+      <input class="field-input" id="dispatch-pickup-phone" type="tel" inputmode="tel" placeholder="e.g. 0803 123 4567">
+    </div>
+    <div class="field">
+      <label class="field-label">Delivery Location (where they should go)</label>
+      <input class="field-input" id="dispatch-delivery" type="text" placeholder="Street, area, city">
+    </div>
+    <div class="field">
+      <label class="field-label">Delivery Contact Phone</label>
+      <input class="field-input" id="dispatch-delivery-phone" type="tel" inputmode="tel" placeholder="e.g. 0803 123 4567">
+    </div>
+    <p class="login-error-msg" id="dispatch-error"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span id="dispatch-error-text"></span></p>
+    <button type="button" id="dispatch-submit-btn" class="btn-primary" style="margin-top:8px;">Request Dispatch</button>
+    <button type="button" id="dispatch-cancel-btn" class="btn-secondary">Cancel</button>
   </div>
 </div>
 
@@ -8393,7 +8496,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 2: Automated Non-Custodial Payment Disbursement', body: 'Monthly Rentals &amp; Shortlets — each payment is split automatically at the point of charge, with the Landlord\'s share paid directly to their own account. Land &amp; Property Sales — each instalment (or outright payment) is split automatically at the point of charge, with the Seller/Developer\'s share paid directly to their own account. Payments are never held in escrow by MainTown; each charge is routed directly to your verified payout account, minus platform commissions and legal/deed processing fees. Physical allocation and Deed of Assignment execution follow the payment schedule set out in the listing.' },
         { title: 'Section 3: Contract Countersignature Timing (Land & Property)', body: "Upon a buyer's checkout on a Land &amp; Property sale, you agree to digitally countersign the generated Contract of Sale within 24 hours. Automated platform reminders will trigger every 5 hours until executed.", critical: true },
         { title: 'Section 4: Habitability Standards & Repair SLAs', body: 'Obligation to maintain functional power, water, structural integrity, and estate amenities. Landlords must address critical repairs within 48 hours. MainTown reserves the right to withhold monthly payout releases until critical repairs are resolved.', critical: true },
-        { title: 'Section 5: Default, Restructuring, Deed Execution & Physical Delivery', body: "Agreement to MainTown's default policies: Land & Property installment buyers follow a 30-day grace period and a 60-day default threshold, preceded by written notice of default and a 14-day cure period; monthly renters follow the four-stage schedule in the Tenant terms (Grace, Late Notice, Formal Demand, Statutory Recovery). Statutory notices are issued by or on behalf of the Landlord, and possession is only recovered through the process required by the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State; MainTown provides notice templates and delivery records. Authorizes MainTown to restructure or re-list defaulted inventory. Upon 100% completion of buyer payments for a Land &amp; Property sale, you agree to upload the executed Deed of Assignment and surrender original physical title instruments exclusively to the MainTown Realty Logistics Team for secure buyer delivery. Off-platform physical document transfers are strictly prohibited.", critical: true },
+        { title: 'Section 5: Default, Restructuring, Deed Execution & Physical Delivery', body: "Agreement to MainTown's default policies: Land & Property installment buyers follow a 30-day grace period and a 60-day default threshold, preceded by written notice of default and a 14-day cure period; monthly renters follow the four-stage schedule in the Tenant terms (Grace, Late Notice, Formal Demand, Statutory Recovery). Statutory notices are issued by or on behalf of the Landlord, and possession is only recovered through the process required by the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State; MainTown provides notice templates and delivery records. Authorizes MainTown to restructure or re-list defaulted inventory. Upon 100% completion of buyer payments for a Land &amp; Property sale, you agree to upload the executed Deed of Assignment and surrender original physical title instruments exclusively to SmartyHub Logistics, MainTown's delivery partner, for secure buyer delivery. Dispatch is free: request it in the app with pick-up and delivery locations and contact numbers, and pick-up happens within 24 to 48 hours. Off-platform physical document transfers are strictly prohibited.", critical: true },
         { title: 'Section 6: Shortlet Calendar Accuracy & Caution Deposit Rules', body: 'Requirement to maintain accurate shortlet availability. Double-booking results in owner-funded guest relocation fees. Damage claims against caution deposits must be submitted within 24 hours of checkout with photo/video proof.' },
         { title: 'Section 7: Fraud, Dual-Leasing & Zero Tolerance', body: 'Immediate account termination, forfeiture of pending payouts, listing removal, and referral to law enforcement for fake listings, fraudulent titles, or executing side-deals/double-leases.', critical: true },
         { title: 'Section 8: Verification Walkthroughs & Inspection Access', body: "Agreement to allow scheduled virtual or physical walkthrough inspections by authorized MainTown verification agents prior to and during listing activation. This includes facilitating buyer inspections at checkout — for Land &amp; Property sales, buyer checkout remains locked until the buyer logs an in-app Satisfied status. " + SITE_SAFETY_WARRANTY_TEXT },
@@ -8906,6 +9009,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function populateScreenOwnerAssets() {
+    renderSignedAgreements('oa-agreements-section', 'oa-agreements-list');
     appState = loadAppState();
     const sold = soldOwnerAssets();
     const available = availableOwnerAssets();
@@ -9001,6 +9105,26 @@ document.addEventListener('DOMContentLoaded', () => {
               <p class="s5-list-sub oa-status-label">${docsLabel}</p>
               ${docsAction}
             </div>`;
+
+          // SmartyHub Logistics: once the digital docs are out, the seller
+          // can request a FREE dispatch of the original physical documents.
+          if (buyerAsset.deedAvailable) {
+            const dsp = buyerAsset.dispatch;
+            if (dsp) {
+              statusRows += `
+                <div class="oa-status-row">
+                  <p class="s5-list-sub oa-status-label">Physical Documents &middot; SmartyHub ${shortletEsc(dsp.ref)}</p>
+                  <span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap; flex-shrink:0;"><i data-lucide="truck" class="w-3 h-3"></i>Pick-up in 24&ndash;48 hrs</span>
+                </div>
+                <p class="s5-list-sub" style="margin:2px 0 0;">From: ${shortletEsc(dsp.pickup)}${dsp.pickupPhone ? ' \u00b7 ' + shortletEsc(dsp.pickupPhone) : ''}<br>To: ${shortletEsc(dsp.delivery)}${dsp.deliveryPhone ? ' \u00b7 ' + shortletEsc(dsp.deliveryPhone) : ''}</p>`;
+            } else {
+              statusRows += `
+                <div class="oa-status-row">
+                  <p class="s5-list-sub oa-status-label">Physical Documents &middot; free dispatch</p>
+                  <button type="button" class="s5-back-btn oa-request-dispatch-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600; flex-shrink:0;"><i data-lucide="truck" class="w-3.5 h-3.5"></i>Request Dispatch</button>
+                </div>`;
+            }
+          }
         }
 
         return `
@@ -9068,6 +9192,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const dispatchBtn = e.target.closest('.oa-request-dispatch-btn');
+    if (dispatchBtn) { openDispatchModal(dispatchBtn.dataset.assetId); return; }
+
     const btn = e.target.closest('.oa-issue-deed-btn');
     if (btn) {
       oaPendingAssetId = btn.dataset.assetId;
@@ -9080,6 +9207,67 @@ document.addEventListener('DOMContentLoaded', () => {
       oaPendingConsentAssetId = consentBtn.dataset.assetId;
       document.getElementById('oa-consent-file').click();
     }
+  });
+
+  // ---- SmartyHub Logistics: free dispatch of the original physical docs ----
+  let dispatchAssetId = null;
+  function openDispatchModal(assetId) {
+    appState = loadAppState();
+    const asset = (appState.assets || []).find(a => a.id === assetId);
+    if (!asset) return;
+    dispatchAssetId = assetId;
+    document.getElementById('dispatch-modal-property').textContent = asset.title;
+    document.getElementById('dispatch-pickup').value = '';
+    document.getElementById('dispatch-delivery').value = '';
+    document.getElementById('dispatch-pickup-phone').value = '';
+    document.getElementById('dispatch-delivery-phone').value = '';
+    document.getElementById('dispatch-error').classList.remove('show');
+    document.getElementById('dispatch-request-modal').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('dispatch-cancel-btn').addEventListener('click', () => {
+    document.getElementById('dispatch-request-modal').classList.remove('open');
+  });
+  document.getElementById('dispatch-submit-btn').addEventListener('click', () => {
+    const pickup = document.getElementById('dispatch-pickup').value.trim();
+    const delivery = document.getElementById('dispatch-delivery').value.trim();
+    const pickupPhone = document.getElementById('dispatch-pickup-phone').value.trim();
+    const deliveryPhone = document.getElementById('dispatch-delivery-phone').value.trim();
+    const err = document.getElementById('dispatch-error');
+    const validPhone = (v) => v.replace(/\D/g, '').length >= 10;
+    if (pickup.length < 5 || delivery.length < 5) {
+      document.getElementById('dispatch-error-text').textContent = 'Enter both the pick-up and delivery locations.';
+      err.classList.add('show');
+      return;
+    }
+    if (!validPhone(pickupPhone) || !validPhone(deliveryPhone)) {
+      document.getElementById('dispatch-error-text').textContent = 'Enter a valid phone number for both pick-up and delivery.';
+      err.classList.add('show');
+      return;
+    }
+    appState = loadAppState();
+    const asset = (appState.assets || []).find(a => a.id === dispatchAssetId);
+    if (!asset || asset.dispatch) return;
+    asset.dispatch = {
+      ref: `SH-${Date.now().toString(36).toUpperCase().slice(-6)}`,
+      pickup, delivery, pickupPhone, deliveryPhone, status: 'REQUESTED',
+      requestedAt: Date.now(),
+      pickupWindow: '24\u201348 hours'
+    };
+    saveAppState(appState);
+    document.getElementById('dispatch-request-modal').classList.remove('open');
+
+    // Instant response to the seller + heads-up to the buyer.
+    pushPlatformNotification('landlord', 'message', 'Dispatch Request Received',
+      `SmartyHub Logistics has your free dispatch request (${asset.dispatch.ref}) for ${asset.title}. Pick-up will happen within 24\u201348 hours \u2014 please have the original documents ready.`,
+      { screen: 'screen-owner-assets' }, 'DISPATCH_REQUESTED', null, asset.sellerId);
+    pushPlatformNotification('tenant', 'message', 'Physical Documents On The Way',
+      `SmartyHub Logistics will collect the original title documents for ${asset.title} within 24\u201348 hours and deliver them to you.`,
+      { screen: 'assetHub' }, 'DISPATCH_REQUESTED', null, asset.ownerId);
+
+    showToast('Request received \u2014 SmartyHub pick-up within 24\u201348 hours');
+    populateScreenOwnerAssets();
+    window.dispatchEvent(new Event('maintown_state_updated'));
   });
 
   // Advancing Consent is proof-backed, not a bare toggle: picking a file IS
@@ -9144,8 +9332,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // BUGFIX: this used to target asset.ownerId, which is actually the
     // BUYER's id (the asset's new owner) — a 'landlord'-role notification
     // sent there never reached the actual Seller. Use asset.sellerId instead.
-    pushPlatformNotification('landlord', 'message', 'Send Physical Documents to Logistics',
-      `${asset.title} is fully paid and the digital Deed of Assignment is uploaded. Please send the original physical title documents to the MainTown Realty logistics team for secure delivery to the buyer.`,
+    pushPlatformNotification('landlord', 'message', 'Request Free Document Dispatch',
+      `${asset.title} is fully paid and the digital Deed of Assignment is uploaded. Tap to request a free SmartyHub Logistics dispatch of the original physical title documents to the buyer.`,
       { screen: 'screen-owner-assets' }, 'PHYSICAL_DOCS_TO_LOGISTICS', null, asset.sellerId);
 
     showToast(`${file.name} issued to ${resolveUserName(asset.ownerId)} — buyer notified`);
@@ -10392,8 +10580,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     { id: 1, type: 'rent', title: '2-Bed Flat, Lekki Phase 1', location: 'Lekki Phase 1, Lagos', ngn: '₦180,000 / mo', usd: '$220 / mo', img: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=240&fit=crop&q=80', listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', availability: sampleAvailability() },
     { id: 2, type: 'rent', title: 'Studio Apartment, Yaba', location: 'Yaba, Lagos', ngn: '₦95,000 / mo', usd: '$115 / mo', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=240&fit=crop&q=80', listedBy: 'landlord', listedByRole: 'LANDLORD', ownerId: 'frank', availability: sampleAvailability() },
     { id: 3, type: 'rent', title: '3-Bed Duplex, Ikeja GRA', location: 'Ikeja GRA, Lagos', ngn: '₦350,000 / mo', usd: '$430 / mo', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=240&fit=crop&q=80', listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', availability: sampleAvailability() },
-    { id: 4, type: 'land', title: '450sqm Land, Ibeju-Lekki', location: 'Ibeju-Lekki, Lagos', totalPrice: 8500000, img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=240&fit=crop&q=80', photos: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1500534623283-312aade485b7?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1501183638710-841dd1904471?w=400&h=240&fit=crop&q=80'], listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', availability: sampleAvailability(), hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
-    { id: 5, type: 'land', title: '3-Bed Bungalow, Epe (Outright/Installment)', location: 'Epe, Lagos', totalPrice: 22000000, img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=240&fit=crop&q=80', photos: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=240&fit=crop&q=80'], listedBy: 'landlord', listedByRole: 'LANDLORD', ownerId: 'frank', availability: sampleAvailability(), hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' }
+    { id: 4, type: 'land', propertyKind: 'land', landUse: 'Residential', title: '450sqm Land, Ibeju-Lekki', location: 'Ibeju-Lekki, Lagos', totalPrice: 8500000, img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=240&fit=crop&q=80', photos: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1500534623283-312aade485b7?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1501183638710-841dd1904471?w=400&h=240&fit=crop&q=80'], listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', availability: sampleAvailability(), hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
+    { id: 5, type: 'land', propertyKind: 'house', houseType: 'Bungalow', bedrooms: 3, title: '3-Bed Bungalow, Epe (Outright/Installment)', location: 'Epe, Lagos', totalPrice: 22000000, img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=240&fit=crop&q=80', photos: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=240&fit=crop&q=80'], listedBy: 'landlord', listedByRole: 'LANDLORD', ownerId: 'frank', availability: sampleAvailability(), hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' }
   ];
 
   let listings = [];
@@ -10688,7 +10876,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // ---- Listing filters: search + area + price + type (runs on the DATA, not the DOM) ----
   // The upcoming filter drawer only has to call setS5Filters({...}); every feed
   // render already goes through applyS5Filters(), so paging can slot in after it.
-  const S5_FILTER_DEFAULTS = { q: '', areas: [], areaType: '', minPrice: 0, maxPrice: 0, rentType: 'all', hasVideo: false, sort: 'default' };
+  const S5_FILTER_DEFAULTS = { q: '', areas: [], areaType: '', minPrice: 0, maxPrice: 0, rentType: 'all', propType: 'all', hasVideo: false, sort: 'default' };
   let s5Filters = Object.assign({}, S5_FILTER_DEFAULTS, { areas: [] });
   let s5SearchTimer = null;
   function listingPriceNgn(l) {
@@ -10714,6 +10902,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (f.minPrice && price < f.minPrice) return false;
       if (f.maxPrice && price > f.maxPrice) return false;
       if (kind === 'rent' && f.rentType !== 'all' && l.type !== f.rentType) return false;
+      if (kind !== 'rent' && f.propType && f.propType !== 'all') {
+        const pk = listingPropKind(l);
+        if (f.propType === 'land' && pk !== 'land') return false;
+        if (f.propType === 'house' && pk !== 'house') return false;
+        if (f.propType !== 'land' && f.propType !== 'house' && !(pk === 'house' && l.houseType === f.propType)) return false;
+      }
       if (f.hasVideo && !l.hasVideo) return false;
       return true;
     });
@@ -10725,7 +10919,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function s5ActiveFilterCount() {
     const f = s5Filters;
     return (f.areas.length ? 1 : 0) + (f.areaType ? 1 : 0) + ((f.minPrice || f.maxPrice) ? 1 : 0)
-      + (f.rentType !== 'all' ? 1 : 0) + (f.hasVideo ? 1 : 0) + (f.sort !== 'default' ? 1 : 0);
+      + (f.rentType !== 'all' ? 1 : 0) + ((f.propType && f.propType !== 'all') ? 1 : 0) + (f.hasVideo ? 1 : 0) + (f.sort !== 'default' ? 1 : 0);
   }
   function rerenderS5Feed() {
     if ((currentUserRole || 'tenant') !== 'tenant') return;
@@ -10761,6 +10955,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (f.areaType) chips.push(['atype', f.areaType === 'urban' ? 'Urban areas' : 'Local communities']);
     if (f.minPrice || f.maxPrice) chips.push(['price', f.minPrice && f.maxPrice ? fltFmtMoney(f.minPrice) + ' – ' + fltFmtMoney(f.maxPrice) : (f.minPrice ? 'From ' + fltFmtMoney(f.minPrice) : 'Up to ' + fltFmtMoney(f.maxPrice))]);
     if (f.rentType !== 'all') chips.push(['rtype', f.rentType === 'shortlet' ? 'Shortlet' : 'Rent']);
+    if (f.propType && f.propType !== 'all') chips.push(['ptype', f.propType === 'land' ? 'Land only' : (f.propType === 'house' ? 'Any house' : f.propType)]);
     if (f.hasVideo) chips.push(['video', 'Walkthrough video']);
     if (f.sort !== 'default') chips.push(['sort', (FLT_SORTS.find(x => x[0] === f.sort) || [0, f.sort])[1]]);
     const x = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
@@ -10783,6 +10978,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     else if (k === 'atype') s5Filters.areaType = '';
     else if (k === 'price') { s5Filters.minPrice = 0; s5Filters.maxPrice = 0; }
     else if (k === 'rtype') s5Filters.rentType = 'all';
+    else if (k === 'ptype') s5Filters.propType = 'all';
     else if (k === 'video') s5Filters.hasVideo = false;
     else if (k === 'sort') s5Filters.sort = 'default';
     rerenderS5Feed();
@@ -10811,7 +11007,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function openFilterSheet() {
     if ((currentUserRole || 'tenant') !== 'tenant') { showToast('Filters apply to the tenant listings search'); return; }
     const f = s5Filters;
-    fltDraft = { city: currentMarketId, areas: f.areas.slice(), areaType: f.areaType, minPrice: f.minPrice, maxPrice: f.maxPrice, rentType: f.rentType, hasVideo: f.hasVideo, sort: f.sort };
+    fltDraft = { city: currentMarketId, areas: f.areas.slice(), areaType: f.areaType, minPrice: f.minPrice, maxPrice: f.maxPrice, rentType: f.rentType, propType: f.propType || 'all', hasVideo: f.hasVideo, sort: f.sort };
     fltAreaQuery = '';
     renderFilterSheet();
     document.getElementById('filter-sheet').classList.add('open');
@@ -10852,6 +11048,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <input class="field-input" id="flt-max" type="text" inputmode="numeric" placeholder="Max" value="${d.maxPrice || ''}">
           </div>
         </div>
+        ${!isRent ? `<div class="flt-sec"><p class="flt-h">Property type</p><div class="flt-wrap">${[['all', 'All'], ['land', 'Land only'], ['house', 'Any house'], ['Bungalow', 'Bungalow'], ['Duplex', 'Duplex'], ['Detached Duplex', 'Detached Duplex'], ['Semi-Detached Duplex', 'Semi-Detached'], ['Terrace', 'Terrace'], ['Block of Flats', 'Block of Flats'], ['Mansion', 'Mansion'], ['Commercial Building', 'Commercial']].map(x => opt('data-flt-ptype', x[0], x[1], (d.propType || 'all') === x[0])).join('')}</div></div>` : ''}
         ${isRent ? `<div class="flt-sec"><p class="flt-h">Property type</p><div class="flt-wrap">${opt('data-flt-rtype', 'all', 'All', d.rentType === 'all')}${opt('data-flt-rtype', 'rent', 'Rent', d.rentType === 'rent')}${opt('data-flt-rtype', 'shortlet', 'Shortlet', d.rentType === 'shortlet')}</div></div>` : ''}
         <div class="flt-sec"><p class="flt-h">Extras</p><div class="flt-wrap">${opt('data-flt-video', '1', 'Has walkthrough video', d.hasVideo)}</div></div>
         <div class="flt-sec"><p class="flt-h">Sort by</p><div class="flt-wrap">${FLT_SORTS.map(x => opt('data-flt-sort', x[0], x[1], d.sort === x[0])).join('')}</div></div>
@@ -10874,7 +11071,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (d.city !== currentMarketId) setMarket(d.city); // clears area picks, then we re-apply the draft
     let lo = d.minPrice, hi = d.maxPrice;
     if (lo && hi && lo > hi) { const t = lo; lo = hi; hi = t; }
-    Object.assign(s5Filters, { areas: d.areas.slice(), areaType: d.areaType, minPrice: lo, maxPrice: hi, rentType: d.rentType, hasVideo: d.hasVideo, sort: d.sort });
+    Object.assign(s5Filters, { areas: d.areas.slice(), areaType: d.areaType, minPrice: lo, maxPrice: hi, rentType: d.rentType, propType: d.propType || 'all', hasVideo: d.hasVideo, sort: d.sort });
     closeFilterSheet();
     rerenderS5Feed();
   }
@@ -10892,9 +11089,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
         d.areaType = b.dataset.fltAtype;
         if (d.areaType) { const ok = new Set(marketAreaList(d.city).filter(a => a.type === d.areaType).map(a => a.id)); d.areas = d.areas.filter(id => ok.has(id)); }
       } else if ((b = t.closest('[data-flt-rtype]'))) { d.rentType = b.dataset.fltRtype; }
+      else if ((b = t.closest('[data-flt-ptype]'))) { d.propType = b.dataset.fltPtype; }
       else if (t.closest('[data-flt-video]')) { d.hasVideo = !d.hasVideo; }
       else if ((b = t.closest('[data-flt-sort]'))) { d.sort = b.dataset.fltSort; }
-      else if (t.closest('[data-flt-clear]')) { Object.assign(d, { areas: [], areaType: '', minPrice: 0, maxPrice: 0, rentType: 'all', hasVideo: false, sort: 'default' }); }
+      else if (t.closest('[data-flt-clear]')) { Object.assign(d, { areas: [], areaType: '', minPrice: 0, maxPrice: 0, rentType: 'all', propType: 'all', hasVideo: false, sort: 'default' }); }
       else if (t.closest('[data-flt-apply]')) { applyFilterSheet(); return; }
       else return;
       renderFilterSheet();
@@ -11446,7 +11644,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <div class="s5-card-titlerow"><p class="s5-card-title">${p.title}</p><button type="button" class="s5-info-btn" data-listing-id="${p.id}" aria-label="View listing details"><i data-lucide="info" class="w-3.5 h-3.5"></i>Details</button></div>
           <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
           <p class="s5-card-price">${formatMoney(p.totalPrice, 'ngn')} <span>total price</span></p>
-          ${p.sqm ? `<p class="s5-card-location" style="margin:-4px 0 8px;"><i data-lucide="ruler" class="w-3.5 h-3.5"></i>${formatSqm(p.sqm)}</p>` : ''}
+          ${p.type === 'land' ? `<p class="s5-card-location" style="margin:-4px 0 8px;"><i data-lucide="${listingPropKind(p) === 'house' ? 'home' : 'ruler'}" class="w-3.5 h-3.5"></i>${listingPropSummary(p)}</p>` : (p.sqm ? `<p class="s5-card-location" style="margin:-4px 0 8px;"><i data-lucide="ruler" class="w-3.5 h-3.5"></i>${formatSqm(p.sqm)}</p>` : '')}
           ${p.titleTypeLabel ? `
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin: 2px 0 10px;">
             <span class="s5-status-badge insp-status-conducted" style="white-space:nowrap;"><i data-lucide="scroll-text" class="w-3 h-3"></i>${p.titleTypeLabel}</span>
@@ -11660,11 +11858,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const dates = Array.isArray(p.availability) ? p.availability.length : 0;
     const details = [
       row('Location', liEsc(p.location || '\u2014')),
-      row('Property type', liEsc(String(p.title || '').split(',')[0] || '\u2014')),
+      row('Property type', liEsc(isLand ? (listingPropKind(p) === 'house' ? (p.houseType || 'House') : 'Land only') : (String(p.title || '').split(',')[0] || '\u2014'))),
     ];
+    if (isLand && listingPropKind(p) === 'land' && p.landUse) details.push(row('Land use', liEsc(p.landUse)));
     if (beds) details.push(row('Bedrooms', liEsc(beds)));
     if (p.bathrooms) details.push(row('Bathrooms', liEsc(p.bathrooms)));
-    if (isLand && p.sqm) details.push(row('Size', liEsc(formatSqm(p.sqm))));
+    if (isLand && p.sqm) details.push(row(listingPropKind(p) === 'house' ? 'Plot size' : 'Size', liEsc(formatSqm(p.sqm))));
     if (isLand && p.titleTypeLabel) details.push(row('Title document', liEsc(p.titleTypeLabel)));
     details.push(row('Listed by', liEsc(liListedBy(p))));
     if (dates) details.push(row('Inspection dates', `${dates} open`));
@@ -12931,7 +13130,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <p><strong>Clause 2 — Title Verification, Due Diligence &amp; Allocation Window:</strong> MainTown Realty conducts automated and preliminary verification of the title documents supplied by the Seller (C of O, Deed of Assignment, Governor's Consent, Gazette or layout plans). That verification is not legal due diligence, a Land Registry search or a certificate of title. You acknowledge that final legal due diligence, the physical search at the Land Registry, independent survey checks and title verification are your own responsibility and must be completed before you execute this Contract. Physical allocation is executed upon the Seller's title warranties being satisfied and adherence to the agreed payment plan.</p>
         <p><strong>Clause 3 — Automated Non-Custodial Split Payments:</strong> All payments (outright or installment) are processed instantly via automated payment split logic directly to the designated accounts of the Seller/Developer and MainTown Realty. MainTown Realty operates as a non-custodial facilitator and does not hold or escrow transaction funds.</p>
         <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule and are scheduled part-payments of the agreed purchase price; no interest or finance charge is added. A mandatory 30-day grace period applies to overdue payments, after which a written notice of default is issued with a 14-day cure period. Payments remaining in default beyond 60 days without cure trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
-        <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to you via the MainTown Realty logistics network.</p>
+        <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to you by SmartyHub Logistics, MainTown's delivery partner, at no cost to you, with pick-up within 24 to 48 hours of the Seller's dispatch request.</p>
         <p><strong>Clause 6 — Territorial Scope &amp; Interest-Free Instalments:</strong> ${TERRITORIAL_SCOPE_TEXT}</p>
         <p><strong>Clause 7 — Dispute Resolution (Mediation, then LCA Arbitration):</strong> ${ADR_CLAUSE_TEXT}</p>
         <p>Scroll to the bottom of this box to unlock the signature field below.</p>
@@ -13428,6 +13627,96 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
   document.getElementById('sig-cancel-btn').addEventListener('click', () => signatureModal.classList.remove('open'));
 
+  // ---- Signed Agreements vault ----
+  function agreementKey(m) { return `${m.listingTitle}|${m.tenantName}|${m.dateSigned}`; }
+  function recordSignedAgreement(listing, msg, tenantId) {
+    if (!listing || !msg) return null;
+    appState = loadAppState();
+    if (!Array.isArray(appState.agreements)) appState.agreements = [];
+    const key = agreementKey(msg);
+    let rec = appState.agreements.find(a => agreementKey(a) === key);
+    if (rec) return rec;
+    const parties = [tenantId, listing.ownerId, listing.companyId].filter(Boolean);
+    rec = {
+      id: `AGR-${Date.now().toString(36).toUpperCase()}`,
+      listingId: listing.id,
+      kind: listing.type || 'rent',
+      fileName: msg.fileName, fileSize: msg.fileSize, dateSigned: msg.dateSigned,
+      listingTitle: msg.listingTitle, tenantName: msg.tenantName, hostName: msg.hostName,
+      hostLabel: msg.hostLabel, rentLabel: msg.rentLabel,
+      nights: msg.nights, dailyDebitLabel: msg.dailyDebitLabel,
+      tenantId: tenantId || null,
+      partyIds: Array.from(new Set(parties)),
+      createdAt: Date.now()
+    };
+    appState.agreements.unshift(rec);
+    saveAppState(appState);
+    return rec;
+  }
+  // Agreements signed before this vault existed live only as chat messages;
+  // pull them in so they become downloadable from the portfolio too.
+  function backfillAgreementsFromChats() {
+    let added = false;
+    appState = loadAppState();
+    if (!Array.isArray(appState.agreements)) appState.agreements = [];
+    const idByName = (name) => {
+      const hit = Object.values(DEMO_USERS).find(u => u.name === name)
+        || Object.values(appState.users || {}).find(u => u && u.name === name);
+      return hit ? hit.id : null;
+    };
+    (conversations || []).forEach(c => (c.messages || []).forEach(m => {
+      if (m.type !== 'lease-doc') return;
+      if (appState.agreements.some(a => agreementKey(a) === agreementKey(m))) return;
+      const l = listings.find(x => x.title === m.listingTitle);
+      if (!l) return;
+      const tenantId = idByName(m.tenantName);
+      appState.agreements.push({
+        id: `AGR-${Date.now().toString(36).toUpperCase()}${appState.agreements.length}`,
+        listingId: l.id, kind: l.type || 'rent',
+        fileName: m.fileName, fileSize: m.fileSize, dateSigned: m.dateSigned,
+        listingTitle: m.listingTitle, tenantName: m.tenantName, hostName: m.hostName,
+        hostLabel: m.hostLabel, rentLabel: m.rentLabel,
+        tenantId, partyIds: Array.from(new Set([tenantId, l.ownerId, l.companyId].filter(Boolean))),
+        createdAt: Date.now()
+      });
+      added = true;
+    }));
+    if (added) saveAppState(appState);
+  }
+  function myAgreements() {
+    backfillAgreementsFromChats();
+    const uid = getCurrentUserId();
+    return (appState.agreements || []).filter(a => uid && (a.partyIds || []).includes(uid))
+      .slice().sort((x, y) => (y.createdAt || 0) - (x.createdAt || 0));
+  }
+  function renderSignedAgreements(sectionId, listId) {
+    const section = document.getElementById(sectionId);
+    const list = document.getElementById(listId);
+    if (!section || !list) return;
+    const rows = myAgreements();
+    section.style.display = rows.length ? 'block' : 'none';
+    list.innerHTML = rows.map(a => `
+      <div class="s5-list-item" style="margin-bottom:10px; flex-wrap:wrap;">
+        <div class="s5-list-icon"><i data-lucide="file-text" class="w-5 h-5"></i></div>
+        <div class="s5-list-text">
+          <p class="s5-list-title">${shortletEsc(a.listingTitle)}</p>
+          <p class="s5-list-sub">${shortletEsc(a.fileName)} \u00b7 Signed ${shortletEsc(a.dateSigned)}</p>
+        </div>
+        <div class="lease-doc-actions" style="width:100%;">
+          <button type="button" class="lease-doc-btn preview" data-agr-action="preview" data-agr-id="${shortletEsc(a.id)}"><i data-lucide="eye" class="w-3.5 h-3.5"></i>Preview</button>
+          <button type="button" class="lease-doc-btn download" data-agr-action="download" data-agr-id="${shortletEsc(a.id)}"><i data-lucide="download" class="w-3.5 h-3.5"></i>Download</button>
+        </div>
+      </div>`).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-agr-action]');
+    if (!btn) return;
+    const rec = (loadAppState().agreements || []).find(a => a.id === btn.dataset.agrId);
+    if (!rec) return;
+    if (btn.dataset.agrAction === 'preview') openLeasePreviewModal(rec); else downloadLeaseDocument(rec);
+  });
+
   // Dispatch the executed agreement into the Landlord-Tenant chat thread for this listing,
   // creating the thread on the fly if the tenant never went through the inspection flow.
   // Renders as a dedicated Lease Agreement document card (Part 2: In-Chat Lease Viewer).
@@ -13452,10 +13741,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
       tenantName,
       hostName,
       hostLabel: listing.listedBy === 'agent' ? 'Agent' : 'Landlord',
-      rentLabel
+      rentLabel,
+      kind: listing.type || 'rent',
+      nights: (listing.type === 'shortlet' && checkoutShortlet) ? checkoutShortlet.nights : undefined,
+      dailyDebitLabel: (listing.type === 'shortlet' && checkoutShortlet && checkoutShortlet.remainingNights > 0) ? formatMoney(checkoutShortlet.dailyDebitAmount, 'ngn') : undefined
     });
     conv.status = 'active';
     saveConversations();
+    recordSignedAgreement(listing, conv.messages[conv.messages.length - 1], getCurrentUserId());
     updateAllBellDots(true);
     if (!document.getElementById('screen-messages').classList.contains('hidden')) renderThreadList();
     if (activeThreadId === conv.id && document.getElementById('msg-thread-detail').style.display !== 'none') renderChatLog(conv);
@@ -13853,7 +14146,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <p><strong>Clause 2 — Title Verification, Due Diligence &amp; Allocation Window:</strong> MainTown Realty conducts automated and preliminary verification of the title documents supplied by the Seller (C of O, Deed of Assignment, Governor's Consent, Gazette or layout plans). That verification is not legal due diligence, a Land Registry search or a certificate of title. The Buyer acknowledges that final legal due diligence, the physical search at the Land Registry, independent survey checks and title verification are the Buyer's own responsibility and must be completed before the Buyer executes this Contract. Physical allocation is executed upon the Seller's title warranties being satisfied and adherence to the agreed payment plan.</p>
       <p><strong>Clause 3 — Automated Non-Custodial Split Payments:</strong> All payments (outright or installment) are processed instantly via automated payment split logic directly to the designated accounts of the Seller/Developer and MainTown Realty. MainTown Realty operates as a non-custodial facilitator and does not hold or escrow transaction funds.</p>
       <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule and are scheduled part-payments of the agreed purchase price; no interest or finance charge is added. A mandatory 30-day grace period applies to overdue payments, after which a written notice of default is issued with a 14-day cure period. Payments remaining in default beyond 60 days without cure trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
-      <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to the Buyer via the MainTown Realty logistics network.</p>
+      <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to the Buyer by SmartyHub Logistics, MainTown's delivery partner. Dispatch is free: you request it in the app by giving pick-up and delivery locations and contact numbers, and pick-up happens within 24 to 48 hours.</p>
       <p><strong>Clause 6 — Territorial Scope &amp; Interest-Free Instalments:</strong> ${TERRITORIAL_SCOPE_TEXT}</p>
       <p><strong>Clause 7 — Dispute Resolution (Mediation, then LCA Arbitration):</strong> ${ADR_CLAUSE_TEXT}</p>
       <h1>Signature</h1>
@@ -14967,6 +15260,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('tv-listing-type').value = 'rent';
     document.getElementById('tv-annual').value = '';
     const tvSqmEl = document.getElementById('tv-sqm'); if (tvSqmEl) tvSqmEl.value = '';
+    propKindState.tv = 'land'; ['tv-house-type', 'tv-bedrooms', 'tv-bathrooms'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    applyPropKindUI('tv');
     document.getElementById('tv-monthly-badge').style.display = 'none';
     document.getElementById('tv-fee-commission').textContent = '₦0';
     document.getElementById('tv-fee-legal').textContent = '₦0';
@@ -15146,6 +15441,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       showToast('Please fill in property title, address, and price');
       return;
     }
+    if (type === 'land') { const pe = landPropertyError('tv'); if (pe) { showToast(pe); return; } }
     if (!cityId) { showToast('Please select the city this property is in'); return; }
     if (!areaId && marketAreaList(cityId).length) { showToast('Please select the area this property is in'); return; }
     if (!document.getElementById('tv-listing-auth-toggle').checked) {
@@ -15206,7 +15502,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       listingsFeed.unshift({ ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: listingCoverImg(baseFields, 'shortlet') });
     } else {
       listingsFeed.unshift({
-        ...baseFields, type: 'land', totalPrice: annual, ...(getLandSqm('tv') > 0 ? { sqm: getLandSqm('tv') } : {}), img: listingCoverImg(baseFields, 'land'),
+        ...baseFields, type: 'land', totalPrice: annual, ...(getLandSqm('tv') > 0 ? { sqm: getLandSqm('tv') } : {}), ...landPropertyFields('tv'), img: listingCoverImg(baseFields, 'land'),
         // Deed of Assignment legal/processing fee % (5 or 10, Owner-selected
         // at listing time) — paid to the Owner with the buyer's first
         // installment, never to MainTown.
@@ -15580,6 +15876,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (legalPctField) legalPctField.style.display = type === 'land' ? 'block' : 'none';
     const sqmField = document.getElementById(`${prefix}-sqm-field`);
     if (sqmField) sqmField.style.display = type === 'land' ? 'block' : 'none';
+    const pkField = document.getElementById(`${prefix}-propkind-field`);
+    if (pkField) pkField.style.display = type === 'land' ? 'block' : 'none';
+    applyPropKindUI(prefix);
     if (cautionServiceFields) cautionServiceFields.style.display = (type === 'rent' || type === 'shortlet') ? 'block' : 'none';
 
     // Inspection Availability is a Land/Rent-only concept — Short-Let tenants
@@ -15622,6 +15921,63 @@ This voucher is auto-generated and serves as proof of settlement.`;
     };
   }
   // Land/Property size in sqm — typed in manually by the Landlord, Agent or Sales staff.
+  // ---- Land & Property: bare land vs house / building ----
+  const propKindState = { tv: 'land', s5: 'land' };
+  function applyPropKindUI(prefix) {
+    const kind = propKindState[prefix] || 'land';
+    document.querySelectorAll(`[data-propkind][data-prefix="${prefix}"]`).forEach(b => b.classList.toggle('active', b.dataset.propkind === kind));
+    const house = document.getElementById(`${prefix}-house-fields`);
+    const landUse = document.getElementById(`${prefix}-landuse-field`);
+    if (house) house.style.display = kind === 'house' ? 'block' : 'none';
+    if (landUse) landUse.style.display = kind === 'land' ? 'block' : 'none';
+    const lbl = document.querySelector(`[data-sqm-label="${prefix}"]`);
+    if (lbl) lbl.textContent = kind === 'house' ? 'Plot Size (sqm) \u2014 optional' : 'Land Size (sqm) \u2014 optional';
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-propkind]');
+    if (!b) return;
+    propKindState[b.dataset.prefix] = b.dataset.propkind;
+    applyPropKindUI(b.dataset.prefix);
+  });
+  // Error message if a house listing is missing its type (null when fine).
+  function landPropertyError(prefix) {
+    if ((propKindState[prefix] || 'land') !== 'house') return null;
+    const ht = document.getElementById(`${prefix}-house-type`);
+    if (!ht || !ht.value) return 'Please select the house type (e.g. Bungalow, Duplex)';
+    return null;
+  }
+  // Fields saved onto every Land & Property listing.
+  function landPropertyFields(prefix) {
+    const kind = propKindState[prefix] || 'land';
+    if (kind === 'land') {
+      const lu = document.getElementById(`${prefix}-land-use`);
+      return { propertyKind: 'land', landUse: lu ? lu.value : 'Residential' };
+    }
+    const num = (id) => { const el = document.getElementById(id); const n = el ? parseInt(el.value, 10) : NaN; return isNaN(n) ? undefined : n; };
+    const out = { propertyKind: 'house', houseType: document.getElementById(`${prefix}-house-type`).value };
+    const bd = num(`${prefix}-bedrooms`), ba = num(`${prefix}-bathrooms`);
+    if (bd !== undefined) out.bedrooms = bd;
+    if (ba !== undefined) out.bathrooms = ba;
+    return out;
+  }
+  // Older listings carry no propertyKind: "Land" as its own word in the title
+  // means bare land, anything else is a house.
+  function listingPropKind(l) {
+    if (l && l.propertyKind) return l.propertyKind;
+    return /\bland\b/i.test((l && l.title) || '') ? 'land' : 'house';
+  }
+  function listingPropSummary(l) {
+    const bits = [];
+    if (listingPropKind(l) === 'house') {
+      bits.push(l.houseType || 'House');
+      if (l.bedrooms) bits.push(`${l.bedrooms} bed`);
+      if (l.bathrooms) bits.push(`${l.bathrooms} bath`);
+    } else {
+      bits.push('Land' + (l.landUse ? ` \u00b7 ${l.landUse}` : ''));
+    }
+    if (l.sqm) bits.push(formatSqm(l.sqm));
+    return bits.join(' \u00b7 ');
+  }
   function getLandSqm(prefix) {
     const el = document.getElementById(`${prefix}-sqm`);
     return el ? (parseFloat(el.value) || 0) : 0;
@@ -15749,6 +16105,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       showToast('Please fill in property title, address, and annual price');
       return;
     }
+    if (type === 'land') { const pe = landPropertyError('s5'); if (pe) { showToast(pe); return; } }
     if (!cityId) { showToast('Please select the city this property is in'); return; }
     if (!areaId && marketAreaList(cityId).length) { showToast('Please select the area this property is in'); return; }
     if (!document.getElementById('s5-listing-auth-toggle').checked) {
@@ -15789,7 +16146,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         // Deed of Assignment legal/processing fee % (5 or 10, Owner-selected
         // at listing time) — paid to the Owner with the buyer's first
         // installment, never to MainTown.
-        listingData = { ...baseFields, type: 'land', totalPrice: annual, ...(getLandSqm('s5') > 0 ? { sqm: getLandSqm('s5') } : {}), legalFeePct: feeFields.legalFeePct, img: listingCoverImg(baseFields, 'land') };
+        listingData = { ...baseFields, type: 'land', totalPrice: annual, ...(getLandSqm('s5') > 0 ? { sqm: getLandSqm('s5') } : {}), ...landPropertyFields('s5'), legalFeePct: feeFields.legalFeePct, img: listingCoverImg(baseFields, 'land') };
       }
       listingsFeed.unshift(listingData);
       saveListings();
@@ -15893,7 +16250,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // Deed of Assignment legal/processing fee % (5 or 10, Owner-selected at
       // listing time) — paid to the Owner with the buyer's first
       // installment, never to MainTown.
-      listingData = { ...baseFields, type: 'land', totalPrice: annual, ...(getLandSqm('s5') > 0 ? { sqm: getLandSqm('s5') } : {}), legalFeePct: feeFields.legalFeePct, img: listingCoverImg(baseFields, 'land') };
+      listingData = { ...baseFields, type: 'land', totalPrice: annual, ...(getLandSqm('s5') > 0 ? { sqm: getLandSqm('s5') } : {}), ...landPropertyFields('s5'), legalFeePct: feeFields.legalFeePct, img: listingCoverImg(baseFields, 'land') };
     }
 
     agentListings.unshift({
@@ -18461,19 +18818,65 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Preview modal and the downloadable document — reuses the platform's
   // standard tenant legal clauses so the "complete signed lease text" is
   // consistent with what the tenant actually agreed to at signing.
+  // ---- Agreement content by deal type ----
+  // Land purchases and short-let bookings used to show the tenant RENTAL
+  // clauses. These are the exact clauses the buyer / guest signed at checkout.
+  function agreementKind(m) {
+    if (m && m.kind) return m.kind;
+    const l = (m && typeof listings !== 'undefined') ? listings.find(x => x.title === m.listingTitle) : null;
+    return (l && l.type) || 'rent';
+  }
+  function agreementSections(m) {
+    const kind = agreementKind(m);
+    if (kind === 'land') {
+      return [
+      { title: "Clause 1 — Pre-Checkout Inspection & Satisfaction", body: "Checkout requires prior completion of physical or virtual property inspection. By initiating payment, you confirm you (or your authorized representative) have inspected the land, verified its condition, and logged your status as Satisfied within the platform." },
+      { title: "Clause 2 — Title Verification, Due Diligence & Allocation Window", body: "MainTown Realty conducts automated and preliminary verification of the title documents supplied by the Seller (C of O, Deed of Assignment, Governor's Consent, Gazette or layout plans). That verification is not legal due diligence, a Land Registry search or a certificate of title. You acknowledge that final legal due diligence, the physical search at the Land Registry, independent survey checks and title verification are your own responsibility and must be completed before you execute this Contract. Physical allocation is executed upon the Seller's title warranties being satisfied and adherence to the agreed payment plan." },
+      { title: "Clause 3 — Automated Non-Custodial Split Payments", body: "All payments (outright or installment) are processed instantly via automated payment split logic directly to the designated accounts of the Seller/Developer and MainTown Realty. MainTown Realty operates as a non-custodial facilitator and does not hold or escrow transaction funds." },
+      { title: "Clause 4 — Installment Schedule, Grace Period & Default", body: "Installments are due according to the selected schedule and are scheduled part-payments of the agreed purchase price; no interest or finance charge is added. A mandatory 30-day grace period applies to overdue payments, after which a written notice of default is issued with a 14-day cure period. Payments remaining in default beyond 60 days without cure trigger automated contract restructuring or property forfeiture, subject to administrative charges." },
+      { title: "Clause 5 — Contract Countersignature & Document Dispatch", body: "Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to you by SmartyHub Logistics, MainTown's delivery partner, at no cost to you, with pick-up within 24 to 48 hours of the Seller's dispatch request." },
+      { title: 'Clause 6 \u2014 Territorial Scope & Interest-Free Instalments', body: TERRITORIAL_SCOPE_TEXT },
+      { title: 'Clause 7 \u2014 Dispute Resolution (Mediation, then LCA Arbitration)', body: ADR_CLAUSE_TEXT }
+      ];
+    }
+    if (kind === 'shortlet') {
+      const out = [
+      { title: "Clause 1 — Premises Conduct & House Rules", body: "By proceeding, you agree to abide strictly by the occupancy limits, noise regulations, check-in/check-out times, and property-specific rules set by the Host/Landlord." },
+      { title: "Clause 2 — Automated Non-Custodial Split Processing", body: "You authorize MainTown to process the transaction using automated payment split logic at the point of charge. Funds are split instantly and routed directly to designated accounts for: (1) the Host/Landlord (Net Short-Let Rent), (2) the Service/Property Manager Sub-Account (Caution Fee & Service Charges), and (3) MainTown Realty (Platform Facilitation Fee). MainTown operates solely as a non-custodial technology facilitator and does not hold or escrow transaction funds." },
+      { title: "Clause 3 — Direct Self-Service Caution Fee Refunds", body: "The Caution Fee is paid directly to the Host/Landlord's designated sub-account. Upon check-out, you must initiate any Caution Fee refund request directly through your MainTown app. MainTown Realty does not hold, manage, or claim caution fees on behalf of tenants. All refund approvals, damage assessments, and payouts are handled directly between you and the Host/Landlord." },
+      { title: "Clause 4 — Contract Countersignature SLA", body: "Upon PIN authorization, this Agreement is dispatched to the Host/Landlord for digital countersignature. If the Host fails to execute or confirm the booking within the designated acceptance window, the payment split authorization is reversed automatically to your source account/wallet without penalty." }
+      ];
+      let n = 5;
+      if (m.nights > 1 && m.dailyDebitLabel) {
+        out.push({ title: 'Clause 5 \u2014 Multi-Night Auto-Debit Authorization', body: `Night 1 (plus any Caution Fee & Service Charge) is charged at booking. For stays longer than one night, you authorize MainTown to auto-debit ${m.dailyDebitLabel} from your chosen payment method for each remaining night (Nights 2\u2013${m.nights}) until the stay is fully paid or you end the stay early.` });
+        n = 6;
+      }
+      out.push({ title: `Clause ${n} \u2014 Dispute Resolution (Mediation, then LCA Arbitration)`, body: ADR_CLAUSE_TEXT });
+      return out;
+    }
+    return legalContent.tenant.sections;
+  }
+  function agreementLabels(m) {
+    const kind = agreementKind(m);
+    if (kind === 'land') return { doc: 'EXECUTED CONTRACT OF SALE (LAND & PROPERTY PURCHASE)', tenant: 'Buyer', heading: 'Property & Price', header: 'Purchase Agreement', priceWord: 'Price' };
+    if (kind === 'shortlet') return { doc: 'EXECUTED SHORT-LET BOOKING AGREEMENT', tenant: 'Guest', heading: 'Property & Stay', header: 'Booking Agreement', priceWord: 'Booking' };
+    return { doc: 'EXECUTED TENANCY AGREEMENT', tenant: 'Tenant', heading: 'Property & Rent', header: 'Lease Agreement', priceWord: 'Rent' };
+  }
+
   function buildLeaseAgreementText(m) {
-    const clauses = legalContent.tenant.sections
+    const clauses = agreementSections(m)
       .map((s, i) => `${s.title}\n${s.body}`)
       .join('\n\n');
+    const lab = agreementLabels(m);
     return (
-`MAINTOWN REALTY — EXECUTED TENANCY AGREEMENT
+`MAINTOWN REALTY — ${lab.doc}
 =====================================
 Property: ${m.listingTitle}
-Rent: ${m.rentLabel}
+${lab.priceWord}: ${m.rentLabel}
 Date Signed: ${m.dateSigned}
 Status: Dual-Signed & Executed — Verified Legal Document
 
-Tenant: ${m.tenantName}
+${lab.tenant}: ${m.tenantName}
 ${m.hostLabel}: ${m.hostName}
 
 -------------------------------------
@@ -18489,7 +18892,9 @@ available in the Post-Lease Hub and this chat thread.`
 
   function openLeasePreviewModal(m) {
     currentPreviewedLease = m;
-    const clausesHtml = legalContent.tenant.sections.map(s => `
+    const lab = agreementLabels(m);
+    document.querySelector('#lease-preview-overlay .lease-preview-topbar h2').textContent = lab.header;
+    const clausesHtml = agreementSections(m).map(s => `
       <div class="lease-preview-section">
         <h3><i data-lucide="${s.critical ? 'alert-triangle' : 'check-circle-2'}" class="w-3.5 h-3.5" style="color:${s.critical ? '#f87171' : '#34d399'};"></i>${s.title}</h3>
         <p>${s.body}</p>
@@ -18509,7 +18914,7 @@ available in the Post-Lease Hub and this chat thread.`
 
       <div class="lease-preview-parties">
         <div class="lease-preview-party">
-          <p class="lease-preview-party-label">Tenant</p>
+          <p class="lease-preview-party-label">${lab.tenant}</p>
           <p class="lease-preview-party-name">${m.tenantName}</p>
         </div>
         <div class="lease-preview-party">
@@ -18519,7 +18924,7 @@ available in the Post-Lease Hub and this chat thread.`
       </div>
 
       <div class="lease-preview-section">
-        <h3><i data-lucide="home" class="w-3.5 h-3.5" style="color:#c084fc;"></i>Property &amp; Rent</h3>
+        <h3><i data-lucide="home" class="w-3.5 h-3.5" style="color:#c084fc;"></i>${lab.heading.replace('&','&amp;')}</h3>
         <p>${m.listingTitle} — ${m.rentLabel}</p>
       </div>
 
@@ -18538,8 +18943,84 @@ available in the Post-Lease Hub and this chat thread.`
   // Direct Download Hook: triggers a genuine browser download of the
   // generated lease document to the user's device (same Blob pattern the
   // app already uses for settlement receipts).
+  // Builds a REAL PDF file (text, A4, multi-page) entirely in the browser, so
+  // it opens in any PDF reader and works fully offline. The old code saved
+  // plain text with a .pdf name, which PDF readers reject as corrupt.
+  function buildTextPdfBlob(title, bodyText) {
+    const ascii = (t) => String(t == null ? '' : t)
+      .replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"')
+      .replace(/[\u2013\u2014\u2212]/g, '-').replace(/\u2026/g, '...')
+      .replace(/\u20A6/g, 'NGN ').replace(/[\u00B7\u2022]/g, '-').replace(/\u00A0/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/[^\x20-\x7E\n]/g, '?');
+    const esc = (t) => t.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+    const W = 595, H = 842, M = 50, SIZE = 10.5, LEAD = 15, MAXCH = 86;
+    const wrap = (line) => {
+      const out = []; let cur = '';
+      line.split(' ').forEach(w => {
+        if ((cur + ' ' + w).trim().length > MAXCH) { out.push(cur); cur = w; }
+        else cur = (cur + ' ' + w).trim();
+      });
+      out.push(cur);
+      return out;
+    };
+    const lines = [];
+    ascii(bodyText).split('\n').forEach(raw => {
+      if (/^[=\-]{5,}$/.test(raw.trim())) { lines.push(''); return; }
+      if (!raw.trim()) { lines.push(''); return; }
+      wrap(raw).forEach(l => lines.push(l));
+    });
+    const perPage = Math.floor((H - 2 * M - 30) / LEAD);
+    const pages = [];
+    for (let i = 0; i < lines.length; i += perPage) pages.push(lines.slice(i, i + perPage));
+    if (!pages.length) pages.push(['']);
+
+    const objs = [];
+    objs[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+    objs[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+    objs[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+    const kids = [];
+    pages.forEach((pg, idx) => {
+      const pageNo = 5 + idx * 2, contentNo = pageNo + 1;
+      kids.push(`${pageNo} 0 R`);
+      let c = 'BT\n';
+      let y = H - M;
+      if (idx === 0) {
+        // Long titles wrap onto extra bold lines instead of running off the page.
+        const tl = []; let cur = '';
+        ascii(title).split(' ').forEach(w => {
+          if ((cur + ' ' + w).trim().length > 52) { tl.push(cur); cur = w; } else cur = (cur + ' ' + w).trim();
+        });
+        tl.push(cur);
+        tl.forEach(t => { c += `/F2 14 Tf 1 0 0 1 ${M} ${y} Tm (${esc(t)}) Tj\n`; y -= 19; });
+        y -= 9;
+      }
+      c += `/F1 ${SIZE} Tf\n`;
+      pg.forEach(l => { c += `1 0 0 1 ${M} ${y} Tm (${esc(l)}) Tj\n`; y -= LEAD; });
+      c += 'ET\n';
+      c += `BT /F1 8 Tf 1 0 0 1 ${M} 28 Tm (MainTown Realty - Page ${idx + 1} of ${pages.length}) Tj ET\n`;
+      objs[pageNo] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentNo} 0 R >>`;
+      objs[contentNo] = `<< /Length ${c.length} >>\nstream\n${c}endstream`;
+    });
+    objs[2] = `<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${pages.length} >>`;
+
+    let pdf = '%PDF-1.4\n';
+    const offsets = [];
+    for (let i = 1; i < objs.length; i++) {
+      offsets[i] = pdf.length;
+      pdf += `${i} 0 obj\n${objs[i]}\nendobj\n`;
+    }
+    const xref = pdf.length;
+    pdf += `xref\n0 ${objs.length}\n0000000000 65535 f \n`;
+    for (let i = 1; i < objs.length; i++) pdf += `${String(offsets[i]).padStart(10, '0')} 00000 n \n`;
+    pdf += `trailer\n<< /Size ${objs.length} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    return new Blob([pdf], { type: 'application/pdf' });
+  }
+
   function downloadLeaseDocument(m) {
-    const blob = new Blob([buildLeaseAgreementText(m)], { type: 'application/pdf' });
+    const fullText = buildLeaseAgreementText(m);
+    const firstBreak = fullText.indexOf('\n');
+    const blob = buildTextPdfBlob(fullText.slice(0, firstBreak), fullText.slice(firstBreak + 1));
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -19039,6 +19520,7 @@ available in the Post-Lease Hub and this chat thread.`
   // title (e.g. "450sqm Land, Ibeju-Lekki"); anything else purchased outright
   // (bungalow, duplex, flat, etc.) is treated as a building for handover purposes.
   function isBareLandListing(listing) {
+    if (listing && listing.propertyKind) return listing.propertyKind === 'land';
     return !!(listing && /\bland\b/i.test(listing.title || ''));
   }
 
@@ -19156,6 +19638,7 @@ available in the Post-Lease Hub and this chat thread.`
   // Filing status — for whichever one is selected via activeAssetId. ----
   // ==================================================================
   function populateScreenAssetHub() {
+    renderSignedAgreements('ah-agreements-section', 'ah-agreements-list');
     const owned = myAssets();
     const listEl = document.getElementById('ah-asset-list');
     const detailSection = document.getElementById('ah-detail-section');
@@ -19952,19 +20435,24 @@ available in the Post-Lease Hub and this chat thread.`
       ['Why is chat with a landlord or agent locked?', 'Chat opens after your inspection request is accepted. Until then, use the listing details or message MainTown.'],
       ['How do I get the full property address?', 'Open the chat with the host and tap Request Full Address. They will share it there.'],
       ['Can I cancel an inspection?', 'Yes. Open Inspection Schedules and cancel before the visit. See the Inspection & Cancellation policy below.'],
-      ['Where do I find my signed lease?', 'Signed agreements appear in your chat with the landlord or agent, where you can preview and download them.'],
+      ['Where do I find my signed lease or purchase agreement?', 'Signed agreements appear in your chat with the landlord or agent, and are also saved under Signed Agreements in your Asset Portfolio, where you can preview and download them any time.'],
+      ['How do I get the original physical title documents?', 'Once the seller issues your Receipt and Deed, they request a free SmartyHub Logistics dispatch. SmartyHub collects the originals and delivers them to you, with pick-up within 24 to 48 hours.'],
       ['Can I pay in installments?', 'Eligible listings offer flexible rent or installment ownership. The terms are shown on the listing before you commit.']
     ],
     landlord: [
       ['How do I list a property?', 'Add a listing from your dashboard. Every listing goes through property title verification before it goes live.'],
       ['How do I respond to inspection requests?', 'Accept or decline from your inspections. Accepting unlocks chat with the tenant.'],
       ['How does a tenant get the full address?', 'Tenants request it in chat. You share it there once you are ready.'],
-      ['Where are lease agreements kept?', 'Agreements are shared in the chat with your tenant, where both of you can preview and download them.'],
+      ['Where are lease and purchase agreements kept?', 'Agreements are shared in the chat with your tenant or buyer, and are also saved under Signed Agreements in your Assets, where you can preview and download them any time.'],
+      ['How do I send the original title documents to a buyer?', 'After you issue the Receipt and Deed, tap Request Dispatch on the sold asset. Enter the pick-up and delivery locations and a phone number for each. SmartyHub Logistics collects the documents free of charge, with pick-up within 24 to 48 hours.'],
+      ['Where do I see shortlet guests and paid clients?', 'Open Bookings for shortlet stays and Tenants & Buyers for people who have paid for your listings. Both update as soon as a client pays.'],
+      ['Why can I not delete a listing?', 'You can delete a listing only while it is live. Once a client has paid for it, MainTown removes it from the feed automatically and it shows as Sold, Rented or Booked.'],
       ['When do I get paid?', 'Payments follow the split-payment protection terms agreed on the lease. See the Payments & Protection policy.']
     ],
     agent: [
       ['How do I list on behalf of an owner?', 'Add the listing from your dashboard. It shows you as the host, and it goes through property title verification before going live.'],
       ['How do I handle inspection requests?', 'Accept or decline from your inspections. Accepting unlocks chat with the tenant or client.'],
+      ['Where do I see who has paid for my listings?', 'Open Clients for people who have paid, and Bookings for shortlet stays. Your listings also show as Sold, Rented or Booked as soon as payment completes.'],
       ['Where are my commission terms?', 'They are in the partnership terms you accepted at sign-up. Message MainTown if you need a copy or have a question.'],
       ['Why do I need to verify my documents?', 'Verified agents build trust with tenants and owners. Upload your documents in verification to stay active.']
     ],
@@ -19976,6 +20464,7 @@ available in the Post-Lease Hub and this chat thread.`
     common: [
       ['How do I change my email or phone number?', 'Edit them under Account details on this screen. They save automatically once they are valid.'],
       ['Is my payment protected?', 'Payments made through MainTown are covered by automated split-payment protection. Funds are released according to the terms agreed on the listing or lease.'],
+      ['What does the red number on the bell mean?', 'It is the number of notifications that still need your attention. A notification clears once you open it and take its action.'],
       ['How do I reach MainTown?', 'Tap Chat with MainTown at the top of this screen. If you are offline or cannot reach us in chat, call the offline support line.']
     ]
   };
@@ -20722,11 +21211,16 @@ available in the Post-Lease Hub and this chat thread.`
       // { kycCompleted, policyAccepted, policyAcceptedAt } — a landlord/agent
       // must have both true before they can list/sell Land & Property, sign
       // a Contract of Sale, or receive a split payout for one. Frank (the
-      // fixed demo landlord) is deliberately seeded KYC-done-but-not-yet-
-      // policy-accepted so the gate has a ready demo case out of the box.
+      // fixed demo landlord) is already fully onboarded, so he is seeded as
+      // activated; only Agent-auto-onboarded landlords go through the gate.
       vendorActivation: {
-        frank: { kycCompleted: true, policyAccepted: false, policyAcceptedAt: null }
-      }
+        frank: { kycCompleted: true, policyAccepted: true, policyAcceptedAt: null }
+      },
+      // ---- Signed Agreements vault. One record per executed Lease / Purchase
+      // agreement, kept for BOTH parties (buyer/tenant + owner) so each can
+      // preview and download it any time from their Asset Portfolio, not just
+      // from the chat thread it was first dropped into. ----
+      agreements: []
     };
   }
   function loadAppState() {
@@ -20767,6 +21261,11 @@ available in the Post-Lease Hub and this chat thread.`
       { kycCompleted: false, policyAccepted: false, policyAcceptedAt: null };
   }
   function isVendorActivated(userId) {
+    // Accounts that are already fully onboarded (the fixed demo identities,
+    // e.g. Frank Hood) never see the gate. Only a Landlord who was
+    // auto-onboarded through an Agent and claimed their account has to
+    // complete it.
+    if (typeof DEMO_USERS !== 'undefined' && DEMO_USERS[userId] && DEMO_USERS[userId].onboarded) return true;
     const v = getVendorActivation(userId);
     return !!(v.kycCompleted && v.policyAccepted);
   }
@@ -23118,8 +23617,8 @@ available in the Post-Lease Hub and this chat thread.`
     navigateTo('screen-5');
   });
   document.getElementById('ent-download-template-btn').addEventListener('click', () => {
-    const header = 'Property Title,Estate Name,Category (Land/Rental/Shortlet),Price,Plot/Unit Count,State,LGA,Address,Description,Amenities';
-    const sample = 'Sample 3-Bed Terrace,Horizon Gardens,Land,25000000,1,Lagos,Ibeju-Lekki,"Plot 12, Horizon Gardens","Newly developed terrace","Fenced, Gated, C of O"';
+    const header = 'Property Title,Estate Name,Category (Land/Rental/Shortlet),Price,Plot/Unit Count,State,LGA,Address,Description,Amenities,Property Kind (Land/House),House Type,Bedrooms,Bathrooms';
+    const sample = 'Sample 3-Bed Terrace,Horizon Gardens,Land,25000000,1,Lagos,Ibeju-Lekki,"Plot 12, Horizon Gardens","Newly developed terrace","Fenced, Gated, C of O",House,Terrace,3,3\n450sqm Plot,Horizon Gardens,Land,8500000,1,Lagos,Ibeju-Lekki,"Plot 14, Horizon Gardens","Dry land","Fenced, C of O",Land,,,';
     const blob = new Blob([header + '\n' + sample], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -23153,11 +23652,24 @@ available in the Post-Lease Hub and this chat thread.`
       const text = String(reader.result || '').trim();
       const lines = text.split(/\r?\n/).filter(l => l.trim());
       const rows = lines.slice(1).map(line => {
-        const cells = line.match(/(".*?"|[^,]+)(?=,|$)/g) || [];
-        const clean = cells.map(c => c.replace(/^"|"$/g, '').trim());
-        const [title, estate, category, price, units, state, lga, address, description, amenities] = clean;
-        const valid = !!(title && category && price && !isNaN(parseFloat(price)));
-        return { title, estate, category, price, units, state, lga, address, description, amenities, valid };
+        // Quote-aware splitter that KEEPS empty cells, so a blank House Type
+        // can't shift the Bedrooms / Bathrooms columns.
+        const clean = [];
+        let cur = '', inQ = false;
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"') { if (inQ && line[i + 1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+          else if (ch === ',' && !inQ) { clean.push(cur.trim()); cur = ''; }
+          else cur += ch;
+        }
+        clean.push(cur.trim());
+        const [title, estate, category, price, units, state, lga, address, description, amenities, kindRaw, houseTypeRaw, bedroomsRaw, bathroomsRaw] = clean;
+        const HOUSE_TYPES = ['Bungalow', 'Duplex', 'Detached Duplex', 'Semi-Detached Duplex', 'Terrace', 'Block of Flats', 'Mansion', 'Commercial Building'];
+        const propKind = /^house/i.test(kindRaw || '') ? 'house' : (/^land/i.test(kindRaw || '') ? 'land' : '');
+        const houseType = HOUSE_TYPES.find(t => t.toLowerCase() === String(houseTypeRaw || '').toLowerCase()) || '';
+        const houseOk = propKind !== 'house' || !!houseType;
+        const valid = !!(title && category && price && !isNaN(parseFloat(price))) && houseOk;
+        return { title, estate, category, price, units, state, lga, address, description, amenities, propKind, houseType, bedrooms: parseInt(bedroomsRaw, 10), bathrooms: parseInt(bathroomsRaw, 10), valid };
       });
       entCsvParsedRows = rows;
       const validCount = rows.filter(r => r.valid).length;
@@ -23194,7 +23706,10 @@ available in the Post-Lease Hub and this chat thread.`
       const price = parseFloat(r.price) || 0;
       const listingData = type === 'rent'
         ? { ...baseFields, type: 'rent', annualPrice: price, ngn: `${formatMoney(Math.round(price / 12), 'ngn')} / mo`, usd: `$${Math.round(price / 12 / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent') }
-        : { ...baseFields, type: 'land', totalPrice: price, img: listingCoverImg(baseFields, 'land') };
+        : { ...baseFields, type: 'land', totalPrice: price, img: listingCoverImg(baseFields, 'land'),
+            ...(r.propKind === 'house'
+              ? { propertyKind: 'house', houseType: r.houseType, ...(r.bedrooms >= 0 ? { bedrooms: r.bedrooms } : {}), ...(r.bathrooms >= 0 ? { bathrooms: r.bathrooms } : {}) }
+              : (r.propKind === 'land' ? { propertyKind: 'land', landUse: 'Residential' } : {})) };
       listingsFeed.unshift(listingData);
       imported++;
     });
@@ -23440,8 +23955,8 @@ available in the Post-Lease Hub and this chat thread.`
     }
     saveAppState(appState);
     if (deedAsset) {
-      pushPlatformNotification('landlord', 'message', 'Send Physical Documents to Logistics',
-        `${deedAsset.title} is fully paid and the digital Deed of Assignment has been sent. Please send the original physical title documents to the MainTown Realty logistics team for secure delivery to the buyer.`,
+      pushPlatformNotification('landlord', 'message', 'Request Free Document Dispatch',
+        `${deedAsset.title} is fully paid and the digital Deed of Assignment has been sent. Tap to request a free SmartyHub Logistics dispatch of the original physical title documents to the buyer.`,
         { screen: 'screen-owner-assets' }, 'PHYSICAL_DOCS_TO_LOGISTICS', null, d.companyId);
     }
     pushPlatformNotification('tenant', 'message', d.docType || 'Document Delivered',
