@@ -4228,7 +4228,7 @@
 
       <div id="tv-sl-avail" style="display:none;">
         <p class="s5-section-label"><i data-lucide="calendar-range" class="w-4 h-4 text-purple-400"></i>Booking Availability</p>
-        <p class="modal-sub" style="margin:0 0 10px;color:#94a3b8;">Guests can only book nights inside this window, like Airbnb.</p>
+        <p class="modal-sub" style="margin:0 0 10px;color:#94a3b8;">Guests can only book nights inside this window.</p>
         <div class="field"><label class="field-label">Open for booking from</label><input class="field-input" id="tv-sl-from" type="date"></div>
         <div class="field"><label class="field-label">Open for booking until (last check-out)</label><input class="field-input" id="tv-sl-to" type="date"></div>
         <div class="field"><label class="field-label">Blocked dates (optional)</label>
@@ -4472,7 +4472,7 @@
 
         <div id="s5-sl-avail" style="display:none;">
         <p class="s5-section-label"><i data-lucide="calendar-range" class="w-4 h-4 text-purple-400"></i>Booking Availability</p>
-        <p class="modal-sub" style="margin:0 0 10px;color:#94a3b8;">Guests can only book nights inside this window, like Airbnb.</p>
+        <p class="modal-sub" style="margin:0 0 10px;color:#94a3b8;">Guests can only book nights inside this window.</p>
         <div class="field"><label class="field-label">Open for booking from</label><input class="field-input" id="s5-sl-from" type="date"></div>
         <div class="field"><label class="field-label">Open for booking until (last check-out)</label><input class="field-input" id="s5-sl-to" type="date"></div>
         <div class="field"><label class="field-label">Blocked dates (optional)</label>
@@ -9584,6 +9584,20 @@ document.addEventListener('DOMContentLoaded', () => {
   function shortletStatusLabel(st) {
     return ({ ACTIVE: 'Staying', COMPLETED: 'Completed', TERMINATED: 'Ended Early', AWAITING_DECISION: 'Stay Ending', CANCELLED_BY_GUEST: 'Cancelled', CANCELLED_BY_HOST: 'Cancelled by Host' }[st]) || (st || 'Booked');
   }
+  // Status shown on booking cards is driven by today's date (Lagos time) vs the
+  // check-in / check-out dates, not by the payment state (nights all paid upfront
+  // must not make a future booking look like it is ending).
+  function shortletPhase(b) {
+    if (b.status === 'CANCELLED_BY_GUEST' || b.status === 'CANCELLED_BY_HOST') return { key: 'cancelled', label: shortletStatusLabel(b.status), cls: 'refunded' };
+    if (b.status === 'TERMINATED') return { key: 'ended', label: shortletStatusLabel(b.status), cls: 'settled' };
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' });
+    const ci = String(b.checkIn || '').slice(0, 10), co = String(b.checkOut || b.checkIn || '').slice(0, 10);
+    if (!ci) return { key: 'booked', label: shortletStatusLabel(b.status), cls: b.status === 'ACTIVE' ? 'pending' : 'settled' };
+    if (today < ci) return { key: 'upcoming', label: 'Upcoming', cls: 'settled' };
+    if (today < co) return { key: 'active', label: 'Checked In', cls: 'pending' };
+    if (today === co) return { key: 'checkout', label: 'Check-out Today', cls: 'pending' };
+    return { key: 'completed', label: 'Completed', cls: 'settled' };
+  }
   function shortletGuestsHTML(rows) {
     return rows.map(({ b }) => `
       <div class="txn-row">
@@ -9592,7 +9606,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <p class="txn-title">${shortletEsc(resolveUserName(b.tenantId))}</p>
             <p class="txn-date">${shortletEsc(b.listingTitle)}</p>
           </div>
-          <span class="txn-status-badge ${shortletIsCancelled(b) ? 'refunded' : (b.status === 'ACTIVE' ? 'pending' : 'settled')}">${shortletStatusLabel(b.status)}</span>
+          <span class="txn-status-badge ${shortletPhase(b).cls}">${shortletPhase(b).label}</span>
         </div>
         <div class="txn-breakdown">
           <div class="txn-breakdown-row"><span>Check-in</span><span>${shortletDateLabel(b.checkIn)}</span></div>
@@ -9601,7 +9615,14 @@ document.addEventListener('DOMContentLoaded', () => {
           ${shortletIsCancelled(b) ? `<div class="txn-breakdown-row"><span>Refunded to guest</span><span>${formatMoney(b.refundTotal || 0, 'ngn')}</span></div>` : ''}
           ${(b.heldPayout > 0 && !shortletIsCancelled(b)) ? `<div class="txn-breakdown-row"><span>Payout held until check-in</span><span>${formatMoney(b.heldPayout, 'ngn')}</span></div>` : ''}
         </div>
-        ${shortletHostCanCancel(b) ? `<button type="button" class="insp-cancel-btn" style="margin-top:10px;" data-stay-host-cancel="${b.id}"><i data-lucide="calendar-x" class="w-4 h-4"></i>Cancel Booking</button>` : ''}
+        ${shortletHostCanCancel(b) ? `<button type="button" class="insp-cancel-btn" style="margin-top:10px;" data-stay-host-cancel="${b.id}"><i data-lucide="calendar-x" class="w-4 h-4"></i>Cancel Booking</button>`
+          : (['active', 'checkout'].includes(shortletPhase(b).key) ? `<button type="button" class="insp-cancel-btn" style="margin-top:10px;color:#a5b4fc;background:rgba(99,102,241,0.10);border-color:rgba(99,102,241,0.35);" data-stay-details="${b.id}"><i data-lucide="info" class="w-4 h-4"></i>View Details</button>
+        <div id="stay-details-${b.id}" class="txn-breakdown" style="display:none;margin-top:10px;">
+          <div class="txn-breakdown-row"><span>Guest</span><span>${shortletEsc(resolveUserName(b.tenantId))}</span></div>
+          <div class="txn-breakdown-row"><span>Total nights</span><span>${b.nights || 0}</span></div>
+          <div class="txn-breakdown-row"><span>Check-in time</span><span>2:00 PM</span></div>
+          <div class="txn-breakdown-row"><span>Check-out time</span><span>12:00 PM</span></div>
+        </div>` : '')}
       </div>`).join('');
   }
   function openGuestsModal(role) {
@@ -13046,7 +13067,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <p class="txn-title">${shortletEsc(b.listingTitle)}</p>
             <p class="txn-date">${shortletEsc(b.location || '')}</p>
           </div>
-          <span class="txn-status-badge ${cancelled ? 'refunded' : (b.status === 'ACTIVE' ? 'pending' : 'settled')}">${shortletStatusLabel(b.status)}</span>
+          <span class="txn-status-badge ${shortletPhase(b).cls}">${shortletPhase(b).label}</span>
         </div>
         <div class="txn-breakdown">
           <div class="txn-breakdown-row"><span>Check-in</span><span>${shortletDateLabel(b.checkIn)}, 2:00 PM</span></div>
@@ -13071,7 +13092,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const g = e.target.closest('[data-stay-cancel]');
     if (g) { openStayCancelModal(Number(g.dataset.stayCancel), 'guest'); return; }
     const h = e.target.closest('[data-stay-host-cancel]');
-    if (h) { openStayCancelModal(Number(h.dataset.stayHostCancel), 'host'); }
+    if (h) { openStayCancelModal(Number(h.dataset.stayHostCancel), 'host'); return; }
+    const d = e.target.closest('[data-stay-details]');
+    if (d) { const box = document.getElementById('stay-details-' + d.dataset.stayDetails); if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none'; }
   });
   window.addEventListener('maintown_state_updated', () => { try { renderStaysSummaryCard(); } catch (e) {} });
 
