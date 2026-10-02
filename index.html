@@ -6501,6 +6501,10 @@
         <label class="field-label">CAC / Registration Number</label>
         <input class="field-input" id="ent-setup-cac" type="text" placeholder="RC1234567">
       </div>
+      <div class="field">
+        <label class="field-label">Company Address</label>
+        <input class="field-input" id="ent-setup-address" type="text" placeholder="Registered office address">
+      </div>
       <button type="button" id="ent-setup-finish-btn" class="btn-primary">Finish Setup &amp; Go to Dashboard</button>
     </div>
 
@@ -10611,6 +10615,23 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const ln = listing.landlordName && String(listing.landlordName).trim();
     return (ln && !/^landlord$/i.test(ln)) ? ln : null;
   }
+  // Company-listed (Sales staff) properties: the agreement party is the COMPANY
+  // (name + address) and the countersignatory is the CEO — never a landlord.
+  function enterprisePartyInfo(listing) {
+    if (!listing || !isEnterpriseListing(listing)) return null;
+    const cid = listing.companyId || listing.ownerId;
+    let u = null;
+    try { const st = (typeof loadAppState === 'function') ? loadAppState() : appState; u = st && st.users && st.users[cid]; } catch (e) {}
+    const ent = (u && u.enterprise) || {};
+    return {
+      companyName: ent.companyName || listing.companyName || null,
+      companyAddress: ent.companyAddress || (u && u.address) || listing.companyAddress || '',
+      ceoName: (u && u.name && !/^(landlord|agent|tenant)$/i.test(u.name)) ? u.name : ''
+    };
+  }
+  function companyPartyLabel(name, address) {
+    return address ? `${name}, of ${address}` : name;
+  }
   function escHtmlLite(t) {
     return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
@@ -14574,7 +14595,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // called out to `${API_BASE_URL}/api/contracts/tenancy-policy`, a
   // server that doesn't exist in this build, which meant the modal could
   // never load and the whole rent-checkout flow was stuck).
-  function buildTenancyPolicyHtml({ landlordName, tenantName, propertyAddress, monthlyRent, commercial, commercialType, agreementTitle }) {
+  function buildTenancyPolicyHtml({ landlordName, tenantName, propertyAddress, monthlyRent, commercial, commercialType, agreementTitle, partyAddress, signatoryName }) {
     const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     // The agreement is addressed to the property type being paid for: a commercial
     // listing gets a Commercial Lease (annual rent, paid in full), not a residential tenancy.
@@ -14587,7 +14608,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <p>Rent is payable in monthly instalments under the Payment Schedule attached to this Agreement. Each instalment is a scheduled lease payment of rent. No interest, finance charge or credit fee is charged on any instalment, the total rent payable does not exceed the rent stated in this Agreement, and this Agreement is a lease — it is not a loan or credit facility.</p>`;
     return `
       <h1>${docTitle}</h1>
-      <p>This ${docTitle} ("Agreement") is made on <strong>${today}</strong> between <strong>${landlordName}</strong> ("${partyLabel}") and <strong>${tenantName}</strong> ("Tenant"), covering the property located at <strong>${propertyAddress}</strong> ("the Property"), facilitated through MainTown Realty.</p>
+      <p>This ${docTitle} ("Agreement") is made on <strong>${today}</strong> between <strong>${companyPartyLabel(landlordName, partyAddress)}</strong> ("${partyLabel}") and <strong>${tenantName}</strong> ("Tenant"), covering the property located at <strong>${propertyAddress}</strong> ("the Property"), facilitated through MainTown Realty.</p>
 
       <h1>1. Term &amp; Rent</h1>${termAndRentHtml}
 
@@ -14627,7 +14648,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <p>${ADR_CLAUSE_TEXT}</p>
 
       <h1>9. Signature</h1>
-      <p>By signing below and confirming with the verification code sent to your phone, both parties acknowledge they have read, understood and agree to be bound by the terms of this Agreement, including the Dispute Resolution clause in Clause 8. Electronic signatures and the computer-generated records of this Agreement and its execution are intended to be admissible in evidence in line with Section 84 of the Evidence Act 2011.</p>
+      <p>By signing below and confirming with the verification code sent to your phone, both parties acknowledge they have read, understood and agree to be bound by the terms of this Agreement, including the Dispute Resolution clause in Clause 8. Electronic signatures and the computer-generated records of this Agreement and its execution are intended to be admissible in evidence in line with Section 84 of the Evidence Act 2011.</p>${signatoryName ? `
+      <p>Countersigned for and on behalf of <strong>${landlordName}</strong> by its Chief Executive Officer, <strong>${signatoryName}</strong>.</p>` : ''}
     `;
   }
 
@@ -14640,7 +14662,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const monthlyRent = checkoutRentBreakdown ? formatMoney(checkoutRentBreakdown.monthly, 'ngn') : '—';
     const agrP = listingAgreementProfile(checkoutListing);
 
-    tpAgreementBox.innerHTML = buildTenancyPolicyHtml({ landlordName, tenantName, propertyAddress, monthlyRent, commercial: !!agrP.commercial, commercialType: agrP.detail, agreementTitle: agrP.title === 'Tenancy Agreement' ? null : agrP.title });
+    const entInfo = enterprisePartyInfo(checkoutListing);
+    tpAgreementBox.innerHTML = buildTenancyPolicyHtml({ landlordName, partyAddress: entInfo ? entInfo.companyAddress : '', signatoryName: entInfo ? entInfo.ceoName : '', tenantName, propertyAddress, monthlyRent, commercial: !!agrP.commercial, commercialType: agrP.detail, agreementTitle: agrP.title === 'Tenancy Agreement' ? null : agrP.title });
 
     // Re-check on the next frame, once layout has settled — if the text
     // doesn't fill/overflow the box, unlock immediately instead of waiting
@@ -14804,7 +14827,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       listingTitle: msg.listingTitle, tenantName: msg.tenantName, hostName: msg.hostName,
       tenantAddress: msg.tenantAddress || ((document.getElementById('reg-address') || {}).value || '').trim() || ((appState.users || {})[tenantId] || {}).address || '',
       hostAddress: msg.hostAddress || listing.ownerAddress || ((appState.users || {})[listing.ownerId] || {}).address || '',
-      hostLabel: msg.hostLabel, rentLabel: msg.rentLabel,
+      hostLabel: msg.hostLabel, signatoryName: msg.signatoryName || '', rentLabel: msg.rentLabel,
       agreementTitle: msg.agreementTitle, usage: msg.usage, commercialType: msg.commercialType,
       nights: msg.nights, dailyDebitLabel: msg.dailyDebitLabel,
       propertyAddress: msg.propertyAddress, checkIn: msg.checkIn, checkOut: msg.checkOut,
@@ -14838,7 +14861,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         listingId: l.id, kind: l.type || 'rent',
         fileName: m.fileName, fileSize: m.fileSize, dateSigned: m.dateSigned,
         listingTitle: m.listingTitle, tenantName: m.tenantName, hostName: m.hostName,
-        hostLabel: m.hostLabel, rentLabel: m.rentLabel,
+        hostLabel: m.hostLabel, signatoryName: m.signatoryName || '', rentLabel: m.rentLabel,
         tenantId, partyIds: Array.from(new Set([tenantId, l.ownerId, l.companyId].filter(Boolean))),
         createdAt: Date.now()
       });
@@ -14906,6 +14929,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       listingTitle: listing.title,
       tenantName,
       hostName,
+      hostAddress: isEnterpriseListing(listing) ? ((enterprisePartyInfo(listing) || {}).companyAddress || undefined) : undefined,
+      signatoryName: isEnterpriseListing(listing) ? ((enterprisePartyInfo(listing) || {}).ceoName || undefined) : undefined,
       hostLabel: payeeCompany ? hostRoleWord : (listing.listedBy === 'agent' ? 'Agent' : 'Landlord'),
       rentLabel,
       kind: listing.type || 'rent',
@@ -15159,6 +15184,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         ? (checkoutLandPayment && checkoutLandPayment.totalPrice ? formatMoney(checkoutLandPayment.totalPrice, 'ngn') : '—')
         : (checkoutRentBreakdown ? formatMoney(checkoutRentBreakdown.monthly, 'ngn') : '—'),
       sellerId: salesListedCompanyId || checkoutListing.ownerId || null,
+      companyAddress: salesListedCompanyId ? ((enterprisePartyInfo(checkoutListing) || {}).companyAddress || '') : '',
+      ceoName: salesListedCompanyId ? ((enterprisePartyInfo(checkoutListing) || {}).ceoName || '') : '',
       tenantSignature: checkoutTenantSignature,
       tenantSignedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       landlordSignature: null,
@@ -15168,14 +15195,23 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const countersignDoc = queueCountersignDocForCompany(checkoutListing, handover);
     if (countersignDoc) handover.docId = countersignDoc.id;
     saveHandover();
+    if (countersignDoc) {
+      // ENTERPRISE listing added by a Sales staff member, now paid for: the
+      // countersignature goes straight to the CEO's Legal review (and the
+      // Legal staff dashboard, notified inside queueCountersignDocForCompany).
+      // It must NEVER reach the normal Landlord dashboard — no landlord
+      // notification and no landlord countersign reminders.
+      const ceoId = countersignDoc.companyId;
+      pushPlatformNotification('enterprise_staff', 'message', 'Agreement Awaiting Your Countersignature',
+        `The client signed the ${handover.isLand ? 'contract of sale' : 'tenancy agreement'} for ${checkoutListing.title}. It is in Legal review for your countersignature.`,
+        { screen: 'entLegalReview', cta: 'Open Legal Review', docId: countersignDoc.id }, 'COUNTERSIGN_QUEUED', null, ceoId);
+      showToast("Signed agreement sent to the CEO's Legal review");
+      return;
+    }
     // Recent Activity was removed from the dashboard home view — this event now
     // routes exclusively through the Notification Bell.
-    // BUGFIX: this used to broadcast with no forUserId, matched only by
-    // `forRole === 'landlord'` — meaning it showed for whichever
-    // landlord-type account happened to be logged in, not necessarily the
-    // actual Seller of this listing (a real gap for Sales-Staff-listed land,
-    // where the "Seller" is a specific company/CEO account). Scoped to
-    // handover.sellerId now, same as the countersign reminder below.
+    // Normal Agent / Landlord listings: route to the Seller's own dashboard,
+    // scoped to handover.sellerId (the actual owner of this listing).
     pushPlatformNotification('landlord', 'message', 'Signed Agreement Received',
       `Tenant signed the agreement for ${checkoutListing.title} — awaiting your countersignature.`,
       { screen: 'handoverReview', docId: handover.docId || null }, 'TENANT_SIGNED_AGREEMENT', null, handover.sellerId || undefined);
@@ -15199,6 +15235,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   let countersignReminderTimer = null;
   function startCountersignReminder() {
     if (!COUNTERSIGN_REMINDERS_ENABLED) return;
+    if (handover && handover.docId) return; // enterprise (Sales-listed) — CEO/Legal handle it, never the landlord dashboard
     if (countersignReminderTimer) clearInterval(countersignReminderTimer);
     countersignReminderTimer = setInterval(() => {
       if (!handover || handover.status === 'completed' || !handover.isLand) {
@@ -15213,7 +15250,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
   // Resume the reminder loop after a page reload if a Land handover is still
   // sitting unsigned (a fresh load would otherwise lose the interval handle).
-  if (handover && handover.status === 'tenant-signed' && handover.isLand) startCountersignReminder();
+  if (handover && handover.status === 'tenant-signed' && handover.isLand && !handover.docId) startCountersignReminder();
 
   // ---- Landlord Agreement Review & Sign-Off Sheet ----
   const handoverReviewModal = document.getElementById('handover-review-modal');
@@ -15306,12 +15343,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function buildHandoverAgreementHtml(h) {
     const buyer = h.buyerName || (h.isLand ? 'the Buyer' : 'the Tenant');
     if (!h.isLand) {
-      return buildTenancyPolicyHtml({ landlordName: h.landlordName || 'the Landlord', tenantName: buyer, propertyAddress: h.propertyAddress || h.listingTitle, monthlyRent: h.priceLabel || '—', commercial: !!h.commercial, commercialType: h.commercialType, agreementTitle: (h.commercial && h.agreementTitle) ? h.agreementTitle : null });
+      return buildTenancyPolicyHtml({ landlordName: h.landlordName || 'the Landlord', tenantName: buyer, propertyAddress: h.propertyAddress || h.listingTitle, monthlyRent: h.priceLabel || '—', commercial: !!h.commercial, commercialType: h.commercialType, agreementTitle: (h.commercial && h.agreementTitle) ? h.agreementTitle : null, partyAddress: h.companyAddress || '', signatoryName: h.ceoName || '' });
     }
     const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     return `
       <h1>${escHtmlLite(h.agreementTitle || 'Contract of Sale')}</h1>
-      <p>This ${escHtmlLite(h.agreementTitle || 'Contract of Sale')} is made on <strong>${today}</strong> between <strong>${h.landlordName || 'the Seller'}</strong> (\"Seller/Developer\") and <strong>${buyer}</strong> (\"Buyer\"), for the land/property known as <strong>${h.propertyAddress || h.listingTitle}</strong>, at a total price of <strong>${h.priceLabel || '—'}</strong>, facilitated through MainTown Realty.</p>
+      <p>This ${escHtmlLite(h.agreementTitle || 'Contract of Sale')} is made on <strong>${today}</strong> between <strong>${companyPartyLabel(h.landlordName || 'the Seller', h.companyAddress)}</strong> (\"Seller/Developer\") and <strong>${buyer}</strong> (\"Buyer\"), for the land/property known as <strong>${h.propertyAddress || h.listingTitle}</strong>, at a total price of <strong>${h.priceLabel || '—'}</strong>, facilitated through MainTown Realty.</p>
       <h1>Binding Terms</h1>
       <p><strong>Clause 1 — Pre-Checkout Inspection &amp; Satisfaction:</strong> Checkout requires prior completion of physical or virtual property inspection. By initiating payment, the Buyer confirms they (or their authorized representative) have inspected the land, verified its condition, and logged their status as Satisfied within the platform.</p>
       <p><strong>Clause 2 — Title Verification, Due Diligence &amp; Allocation Window:</strong> MainTown Realty conducts automated and preliminary verification of the title documents supplied by the Seller (C of O, Deed of Assignment, Governor's Consent, Gazette or layout plans). That verification is not legal due diligence, a Land Registry search or a certificate of title. The Buyer acknowledges that final legal due diligence, the physical search at the Land Registry, independent survey checks and title verification are the Buyer's own responsibility and must be completed before the Buyer executes this Contract. Physical allocation is executed upon the Seller's title warranties being satisfied and adherence to the agreed payment plan.</p>
@@ -15321,7 +15358,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <p><strong>Clause 6 — Territorial Scope &amp; Interest-Free Instalments:</strong> ${TERRITORIAL_SCOPE_TEXT}</p>
       <p><strong>Clause 7 — Dispute Resolution (Mediation, then LCA Arbitration):</strong> ${ADR_CLAUSE_TEXT}</p>
       <h1>Signature</h1>
-      <p>By countersigning, the Seller acknowledges they have read, understood and agree to be bound by the terms of this Contract of Sale, already signed by the Buyer.</p>`;
+      <p>By countersigning, the Seller acknowledges they have read, understood and agree to be bound by the terms of this Contract of Sale, already signed by the Buyer.</p>${h.ceoName ? `<p>Countersigned for and on behalf of <strong>${h.landlordName}</strong> by its Chief Executive Officer, <strong>${h.ceoName}</strong>.</p>` : ''}`;
   }
   function checkHrScrollBottom() {
     if (hrReadDone) return;
@@ -20262,8 +20299,8 @@ SIGNATURES
 ${lab.tenant} - digitally signed on ${m.dateSigned}
 Address: ${m.tenantAddress || 'On file with MainTown Realty'}
 
-~SIG~${m.hostName}
-${m.hostLabel} - countersigned on ${m.dateSigned}
+~SIG~${m.signatoryName || m.hostName}
+${m.signatoryName ? 'CEO, for and on behalf of ' + m.hostName : m.hostLabel} - countersigned on ${m.dateSigned}
 Address: ${m.hostAddress || 'On file with MainTown Realty'}
 
 =====================================
@@ -24189,11 +24226,13 @@ available in the Post-Lease Hub and this chat thread.`
   document.getElementById('ent-setup-finish-btn').addEventListener('click', () => {
     const companyName = document.getElementById('ent-setup-company-name').value.trim();
     const cac = document.getElementById('ent-setup-cac').value.trim();
+    const companyAddress = (document.getElementById('ent-setup-address')?.value || '').trim();
     if (!companyName || !cac) { showToast('Please fill in Company Name and CAC Number'); return; }
+    if (!companyAddress) { showToast('Please add the company address'); return; }
     const uid = getCurrentUserId();
     appState.users[uid] = appState.users[uid] || { id: uid, role: 'landlord' };
     appState.users[uid].enterprise = {
-      companyName, companyLogo: entPendingLogoDataUrl, cacNumber: cac,
+      companyName, companyAddress, companyLogo: entPendingLogoDataUrl, cacNumber: cac,
       upgradedAt: Date.now(), staffIds: [],
     };
     saveAppState(appState);
