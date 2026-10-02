@@ -6760,8 +6760,8 @@
       <input class="field-input" id="lv-bvn" type="text" inputmode="numeric" maxlength="11" placeholder="11-digit BVN" autocomplete="off">
     </div>
 
-    <p class="s5-section-label"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i>Title Verification Documents</p>
-    <p class="modal-sub" style="margin-bottom:10px; text-align:left;">Select every document that applies to this property, then upload each one.</p>
+    <p class="s5-section-label"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i><span id="lv-doc-heading-text">Title Verification Documents</span></p>
+    <p class="modal-sub" id="lv-doc-sub" style="margin-bottom:10px; text-align:left;">Select every document that applies to this property, then upload each one.</p>
     <div id="lv-doc-options"><!-- populated dynamically --></div>
 
     <label class="agree-row" style="margin: 10px 0 4px;">
@@ -17270,6 +17270,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     { id: 'DEED_OF_ASSIGNMENT', label: 'Deed of Assignment', requiresConsent: false }
   ];
 
+  // Residential/Commercial rent and Shortlet listings don't need the long
+  // six-document title checklist (that is for Land & Property sales only).
+  // The owner just uploads ONE copy of a title document or a utility bill.
+  const OWNERSHIP_PROOF_DOC = { id: 'OWNERSHIP_PROOF', label: 'Title document / utility bill', requiresConsent: false };
+  const OWNERSHIP_PROOF_PROMPT = 'Upload a copy of title documents or utility bill';
+  function usesSingleOwnershipDoc(type) { return type === 'rent' || type === 'shortlet'; }
+
   let s5LandlordMode = 'existing';
   let lvCurrentAgentListingId = null;
   let lvSelectedDocs = {}; // docId -> { fileName, fileUrl }
@@ -17527,8 +17534,23 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   // ---- Landlord Verification Modal: render the multi-select title document
   // checklist, wire per-document file uploads, and handle approval/legal-review. ----
-  function renderLvDocOptions() {
+  function renderLvDocOptions(listingType) {
     const wrap = document.getElementById('lv-doc-options');
+    const single = usesSingleOwnershipDoc(listingType);
+    document.getElementById('lv-doc-heading-text').textContent = single ? 'Proof of Ownership' : 'Title Verification Documents';
+    document.getElementById('lv-doc-sub').textContent = single
+      ? 'One document is enough: a copy of your title documents or a recent utility bill for this property.'
+      : 'Select every document that applies to this property, then upload each one.';
+    if (single) {
+      wrap.innerHTML = `
+        <div class="s5-upload-box lv-single-upload" style="margin-bottom:6px;">
+          <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+          <span class="lv-single-label">${OWNERSHIP_PROOF_PROMPT}</span>
+          <input type="file" class="lv-single-file" hidden accept="image/*,.pdf">
+        </div>`;
+      if (window.lucide) lucide.createIcons();
+      return;
+    }
     wrap.innerHTML = TITLE_DOC_TYPES.map(d => `
       <div class="lv-doc-row" data-doc-id="${d.id}">
         <label class="agree-row" style="margin-bottom:0;">
@@ -17567,7 +17589,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('lv-bvn-field').style.display = lvHasBvn ? 'none' : 'block';
     document.getElementById('lv-bvn').value = '';
     document.getElementById('lv-authorize-toggle').checked = false;
-    renderLvDocOptions();
+    renderLvDocOptions(entry.type);
     document.getElementById('landlord-verify-modal').classList.add('open');
     if (window.lucide) lucide.createIcons();
   }
@@ -17589,7 +17611,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
       uploadBox.querySelector('.lv-doc-upload-label').textContent = file.name;
     }
   });
+  document.getElementById('lv-doc-options').addEventListener('change', (e) => {
+    const single = e.target.closest('.lv-single-file');
+    if (single && single.files.length) {
+      const file = single.files[0];
+      lvSelectedDocs[OWNERSHIP_PROOF_DOC.id] = { fileName: file.name, fileUrl: URL.createObjectURL(file) };
+      const box = single.closest('.lv-single-upload');
+      box.classList.add('has-file');
+      box.querySelector('.lv-single-label').textContent = file.name;
+    }
+  });
   document.getElementById('lv-doc-options').addEventListener('click', (e) => {
+    const singleBox = e.target.closest('.lv-single-upload');
+    if (singleBox && !e.target.closest('input[type=file]')) { singleBox.querySelector('.lv-single-file').click(); return; }
     const uploadBox = e.target.closest('.lv-doc-upload');
     if (uploadBox && !e.target.closest('input[type=file]')) uploadBox.querySelector('.lv-doc-file').click();
   });
@@ -17621,13 +17655,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
       showToast('This BVN is already linked to another account.');
       return;
     }
-    if (!checkedBoxes.length) {
-      showToast('Select at least one title document type that applies to this property');
-      return;
-    }
-    if (checkedBoxes.some(cb => !lvSelectedDocs[cb.dataset.docId])) {
-      showToast('Please upload a file for every title document type you selected');
-      return;
+    const lvSingle = usesSingleOwnershipDoc(entry.type);
+    if (lvSingle) {
+      if (!lvSelectedDocs[OWNERSHIP_PROOF_DOC.id]) {
+        showToast('Please upload a copy of your title documents or a utility bill');
+        return;
+      }
+    } else {
+      if (!checkedBoxes.length) {
+        showToast('Select at least one title document type that applies to this property');
+        return;
+      }
+      if (checkedBoxes.some(cb => !lvSelectedDocs[cb.dataset.docId])) {
+        showToast('Please upload a file for every title document type you selected');
+        return;
+      }
     }
     if (!authorized) {
       showToast('Please confirm and authorize before submitting');
@@ -17640,10 +17682,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!bvnOnFile) landlordUser.bvn = bvnTyped;
     saveAppState(appState);
 
-    const titleDocuments = checkedBoxes.map(cb => {
-      const doc = TITLE_DOC_TYPES.find(d => d.id === cb.dataset.docId);
-      return { id: doc.id, label: doc.label, ...lvSelectedDocs[doc.id] };
-    });
+    const titleDocuments = lvSingle
+      ? [{ id: OWNERSHIP_PROOF_DOC.id, label: OWNERSHIP_PROOF_DOC.label, ...lvSelectedDocs[OWNERSHIP_PROOF_DOC.id] }]
+      : checkedBoxes.map(cb => {
+          const doc = TITLE_DOC_TYPES.find(d => d.id === cb.dataset.docId);
+          return { id: doc.id, label: doc.label, ...lvSelectedDocs[doc.id] };
+        });
     entry.landlordBankAccount = bankAccount;
     entry.landlordBankName = bankName;
     entry.workflowStatus = 'LEGAL_REVIEW';
@@ -25431,6 +25475,7 @@ available in the Post-Lease Hub and this chat thread.`
 
   let entLegalUploadedDocs = {};
   let entLegalCurrentId = null;
+  let entLegalDocSet = TITLE_DOC_TYPES;
   function openEntLegalReview(listingId) {
     const l = listings.find(x => x.id == listingId);
     if (!l) return;
@@ -25448,7 +25493,9 @@ available in the Post-Lease Hub and this chat thread.`
     } else {
       masterBanner.style.display = 'none';
       approveBtn.disabled = true;
-      docList.innerHTML = TITLE_DOC_TYPES.map(doc => `
+      // Rent/Shortlet: one upload box. Land & Property: full title checklist.
+      entLegalDocSet = usesSingleOwnershipDoc(l.type) ? [{ ...OWNERSHIP_PROOF_DOC, label: OWNERSHIP_PROOF_PROMPT }] : TITLE_DOC_TYPES;
+      docList.innerHTML = entLegalDocSet.map(doc => `
         <div class="kyc-item" data-doc-key="${doc.id}">
           <div class="kyc-item-icon-wrap"><i data-lucide="file-text" class="w-5 h-5 text-slate-400"></i></div>
           <div class="kyc-item-text"><p class="kyc-item-title">${doc.label}</p><p class="kyc-item-status">Tap to upload</p></div>
@@ -25494,7 +25541,7 @@ available in the Post-Lease Hub and this chat thread.`
     if (!l) return;
     l.status = 'live';
     l.workflowStatus = 'LIVE';
-    l.titleDocuments = l.masterTitleLinked ? ['Master Title (linked)'] : TITLE_DOC_TYPES.filter(d => entLegalUploadedDocs[d.id]).map(d => d.label);
+    l.titleDocuments = l.masterTitleLinked ? ['Master Title (linked)'] : entLegalDocSet.filter(d => entLegalUploadedDocs[d.id]).map(d => (d.id === OWNERSHIP_PROOF_DOC.id ? OWNERSHIP_PROOF_DOC.label : d.label));
     l.legalVerifiedAt = Date.now();
     saveListings();
     document.getElementById('ent-legal-review-modal').classList.remove('open');
