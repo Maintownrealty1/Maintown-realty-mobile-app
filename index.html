@@ -3235,6 +3235,72 @@
   #screen-ent-finance #ent-finance-home > .ent-stat-row { background: #0B0F19; padding-bottom: 10px; margin-bottom: 10px; }
   body.light-theme #screen-ent-finance #ent-finance-home > .ent-stat-row { background: #ffffff; }
 
+
+  /* ---- Shortlet: host "About" + "What this place offers", guest star ratings ---- */
+  .sl-hostbox { margin-top: 6px; padding-top: 14px; border-top: 1px solid #1e293b; }
+  .sl-offer-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
+  .sl-offer-chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 999px; border: 1px solid #334155; background: rgba(15,23,42,0.6); color: #cbd5e1; font-size: 12.5px; font-weight: 500; cursor: pointer; }
+  .sl-offer-chip svg { width: 14px; height: 14px; }
+  .sl-offer-chip.on { background: rgba(147,51,234,0.18); border-color: #a855f7; color: #e9d5ff; }
+  .sl-count { font-size: 11px; color: #64748b; text-align: right; margin: 4px 0 0; }
+  .sl-custom-row { display: flex; gap: 8px; }
+  .sl-custom-row .field-input { flex: 1; }
+  .sl-offer-row { display: flex; align-items: center; gap: 14px; padding: 11px 0; font-size: 14px; color: #e2e8f0; border-bottom: 1px solid rgba(148,163,184,0.12); }
+  .sl-offer-row svg { width: 20px; height: 20px; color: #a78bfa; flex-shrink: 0; }
+  .sl-offer-row.off { color: #64748b; text-decoration: line-through; }
+  .sl-offer-row.off svg { color: #64748b; }
+  .sl-offers-more { display: none; }
+  .sl-offers-more.open { display: block; }
+  .sl-show-all { width: 100%; margin-top: 12px; padding: 12px; border-radius: 12px; border: 1px solid #334155; background: rgba(30,41,59,0.6); color: #e2e8f0; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .sl-stars { letter-spacing: 2px; font-size: 14px; color: #334155; white-space: nowrap; }
+  .sl-stars .on { color: #fbbf24; }
+  .sl-rating-line { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #94a3b8; margin: 0 0 12px; }
+  .sl-rating-line b { color: #f8fafc; }
+  .sl-card-rating { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #94a3b8; margin: 4px 0 8px; }
+  .sl-card-rating b { color: #fbbf24; font-weight: 700; }
+  .sl-rate-summary { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .sl-rate-big { font-size: 36px; font-weight: 800; color: #f8fafc; line-height: 1; }
+  .sl-rate-sub { font-size: 12px; color: #94a3b8; margin: 4px 0 0; }
+  .sl-dist-row { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #94a3b8; margin: 4px 0; }
+  .sl-dist-bar { flex: 1; height: 6px; border-radius: 99px; background: #1e293b; overflow: hidden; }
+  .sl-dist-bar i { display: block; height: 100%; background: #fbbf24; }
+  .sl-review { padding: 12px 0; border-top: 1px solid rgba(148,163,184,0.14); }
+  .sl-review-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12.5px; color: #e2e8f0; font-weight: 600; }
+  .sl-review-date { color: #64748b; font-weight: 400; font-size: 11.5px; }
+  .sl-review p { margin: 6px 0 0; font-size: 13px; line-height: 1.55; color: #b6c2d4; }
+  .sl-rate-btn { width: 100%; margin-top: 10px; padding: 11px; border-radius: 12px; border: 1px solid rgba(251,191,36,0.4); background: rgba(251,191,36,0.1); color: #fbbf24; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .sl-rated-note { margin: 10px 0 0; font-size: 12.5px; color: #94a3b8; display: flex; align-items: center; gap: 8px; }
+  #sl-rate-modal { display: none; position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 20px; }
+  #sl-rate-modal.open { display: flex; }
+  .sl-rate-card { width: 100%; max-width: 380px; background: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 22px; color: #e2e8f0; }
+  .sl-rate-card h3 { margin: 0 0 4px; font-size: 18px; font-weight: 700; color: #f8fafc; }
+  .sl-rate-card .sl-rate-prop { margin: 0; font-size: 13px; color: #94a3b8; }
+  .sl-rate-stars { display: flex; justify-content: center; gap: 8px; margin: 16px 0 6px; }
+  .sl-rate-stars button { background: none; border: 0; font-size: 40px; line-height: 1; color: #334155; cursor: pointer; padding: 0; }
+  .sl-rate-stars button.on { color: #fbbf24; }
+  .sl-rate-word { text-align: center; font-size: 13px; color: #fbbf24; min-height: 18px; margin: 0 0 12px; font-weight: 600; }
+  .sl-rate-actions { display: flex; gap: 10px; margin-top: 14px; }
+  .sl-rate-actions button { flex: 1; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; border: 1px solid #334155; background: transparent; color: #cbd5e1; }
+  .sl-rate-actions button.primary { background: #9333ea; border-color: #9333ea; color: #fff; }
+  body.light-theme .sl-hostbox { border-top-color: #e2e8f0; }
+  body.light-theme .sl-offer-chip { background: #f8fafc; border-color: #e2e8f0; color: #334155; }
+  body.light-theme .sl-offer-chip.on { background: #f3e8ff; border-color: #a855f7; color: #7e22ce; }
+  body.light-theme .sl-offer-row { color: #0f172a; border-bottom-color: #e2e8f0; }
+  body.light-theme .sl-offer-row svg { color: #9333ea; }
+  body.light-theme .sl-offer-row.off, body.light-theme .sl-offer-row.off svg { color: #94a3b8; }
+  body.light-theme .sl-show-all { background: #f1f5f9; border-color: #e2e8f0; color: #0f172a; }
+  body.light-theme .sl-stars { color: #cbd5e1; }
+  body.light-theme .sl-rating-line b, body.light-theme .sl-rate-big, body.light-theme .sl-rate-card h3 { color: #0f172a; }
+  body.light-theme .sl-dist-bar { background: #e2e8f0; }
+  body.light-theme .sl-review { border-top-color: #e2e8f0; }
+  body.light-theme .sl-review-top { color: #0f172a; }
+  body.light-theme .sl-review p { color: #475569; }
+  body.light-theme .sl-rate-card { background: #ffffff; border-color: #e2e8f0; color: #0f172a; }
+  body.light-theme .sl-rate-stars button { color: #cbd5e1; }
+  body.light-theme .sl-rate-stars button.on { color: #f59e0b; }
+  body.light-theme .sl-rate-actions button { border-color: #e2e8f0; color: #334155; }
+  body.light-theme .sl-rate-actions button.primary { color: #fff; }
+
   /* ---- Click-down drawers (listing sheet + profile) ---- */
   .li-drawer > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
   .li-drawer > summary::-webkit-details-marker { display: none; }
@@ -11837,6 +11903,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <div class="s5-card-titlerow"><p class="s5-card-title">${p.title}</p><button type="button" class="s5-info-btn" data-listing-id="${p.id}" aria-label="View listing details"><i data-lucide="info" class="w-3.5 h-3.5"></i>Details</button></div>
           <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
           <p class="s5-card-price">${currency === 'usd' ? p.usd : p.ngn} <span>${isShortlet ? 'shortlet' : (p.usage === 'commercial' ? String(p.commercialType || 'commercial').toLowerCase() : 'rent')}</span></p>
+          ${isShortlet ? slCardRatingHTML(p) : ''}
           <div class="s5-card-actions">
             <button type="button" class="s5-action-btn wt-btn" data-title="${p.title}"><i data-lucide="video" class="w-4 h-4"></i>Virtual Walkthrough</button>
           </div>
@@ -12141,17 +12208,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="li-chips" style="margin:0;">${amen.map(a => `<span class="li-chip">${liEsc(a)}</span>`).join('')}</div>
       </details>` : '';
 
+    const sl = isShortlet ? slDetailSections(p) : null;
     document.getElementById('li-body').innerHTML = `
       <h2 class="li-title">${liEsc(p.title)}</h2>
       <p class="li-loc"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${liEsc(p.location || '')}</p>
       <p class="li-price">${liEsc(priceMain)}<small>${liEsc(priceUnit)}</small></p>
+      ${sl ? sl.ratingLine : ''}
       <div class="li-chips">${chips.join('')}</div>
       ${preview ? `<p class="li-preview-note"><i data-lucide="eye"></i><span>${liEsc(opts.statusLabel || 'Preview')}. This is exactly how tenants see your listing; the buttons below are inactive in preview.</span></p>` : ''}
-      <details class="li-section li-drawer" open><summary class="li-h">About this listing</summary><p class="li-story">${liEsc(liStory(p))}</p></details>
+      ${sl ? (sl.offers + sl.ratings + sl.about) : `<details class="li-section li-drawer" open><summary class="li-h">About this listing</summary><p class="li-story">${liEsc(liStory(p))}</p></details>`}
       <details class="li-section li-drawer" open><summary class="li-h">Property details</summary><div class="li-rows">${details.join('')}</div></details>
       <details class="li-section li-drawer"><summary class="li-h">Agent, legal and other fees</summary><div class="li-rows">${fees.join('')}</div>
         <p class="li-note">Final amounts are confirmed and itemised before any payment.</p></details>
-      ${amenHtml}
+      ${isShortlet ? '' : amenHtml}
       ${unavailable ? `<p class="li-note" style="margin-bottom:12px;">This property is no longer available.</p>` : ''}`;
 
     const primarySel = isLand ? '.land-pay-btn' : (isShortlet ? '.shortlet-book-btn' : '.payment-options-btn');
@@ -12615,11 +12684,224 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const f = document.getElementById(`${p}-sl-from`).value, t = document.getElementById(`${p}-sl-to`).value;
     if (!f || !t) return 'Set the dates your shortlet is open for booking';
     if (t <= f) return 'The "open until" date must be after the "open from" date';
+    const aboutEl = document.getElementById(`${p}-sl-about`);
+    if (aboutEl && aboutEl.value.trim().length < 20) return 'Add an "About this space" description (at least 20 characters)';
+    if (slOffers[p] && !slOffers[p].sel.size && !slOffers[p].custom.length) return 'Select at least one item under "What this place offers"';
     return null;
   }
   function shortletAvailFields(p) {
-    return { shortletOpenFrom: document.getElementById(`${p}-sl-from`).value, shortletOpenTo: document.getElementById(`${p}-sl-to`).value, shortletBlockedDates: slBlocked[p].slice() };
+    const aboutEl = document.getElementById(`${p}-sl-about`);
+    const picked = SL_AMENITIES.filter(a => slOffers[p].sel.has(a.k));
+    const missing = SL_AMENITIES.filter(a => a.safety && !slOffers[p].sel.has(a.k)).map(a => a.l);
+    return {
+      shortletOpenFrom: document.getElementById(`${p}-sl-from`).value, shortletOpenTo: document.getElementById(`${p}-sl-to`).value, shortletBlockedDates: slBlocked[p].slice(),
+      // Host-written "About this space" + "What this place offers" (shown on the listing's Details sheet)
+      description: aboutEl ? aboutEl.value.trim() : '',
+      amenities: picked.map(a => a.l).concat(slOffers[p].custom),
+      amenitiesMissing: missing
+    };
   }
+
+  // ======================================================================
+  // Shortlet: host-filled "About this space" + "What this place offers",
+  // and guest star ratings (a guest can rate once their stay has checked out).
+  // ======================================================================
+  const SL_AMENITIES = [
+    { k: 'kitchen', l: 'Kitchen', i: 'utensils' },
+    { k: 'wifi', l: 'Wifi', i: 'wifi' },
+    { k: 'workspace', l: 'Dedicated workspace', i: 'laptop' },
+    { k: 'tv', l: 'TV', i: 'tv' },
+    { k: 'ac', l: 'Air conditioning', i: 'wind' },
+    { k: 'fan', l: 'Fan', i: 'fan' },
+    { k: 'power', l: 'Backup power / generator', i: 'zap' },
+    { k: 'water', l: 'Hot water', i: 'bath' },
+    { k: 'fridge', l: 'Fridge', i: 'refrigerator' },
+    { k: 'washer', l: 'Washing machine', i: 'washing-machine' },
+    { k: 'parking', l: 'Free parking', i: 'car' },
+    { k: 'pool', l: 'Swimming pool', i: 'waves' },
+    { k: 'gym', l: 'Gym', i: 'dumbbell' },
+    { k: 'breakfast', l: 'Breakfast included', i: 'coffee' },
+    { k: 'security', l: 'Gated / 24-hour security', i: 'shield-check' },
+    { k: 'cctv', l: 'Exterior security cameras on property', i: 'cctv' },
+    { k: 'smoke', l: 'Smoke alarm', i: 'alarm-smoke', safety: true },
+    { k: 'co', l: 'Carbon monoxide alarm', i: 'siren', safety: true },
+    { k: 'firstaid', l: 'First aid kit', i: 'cross', safety: true }
+  ];
+  const slOffers = { tv: { sel: new Set(), custom: [] }, s5: { sel: new Set(), custom: [] } };
+  const slIconFor = (label) => { const a = SL_AMENITIES.find(x => x.l.toLowerCase() === String(label).toLowerCase()); return a ? a.i : 'check'; };
+
+  function slOffersGridHTML(p) {
+    return SL_AMENITIES.map(a => `<button type="button" class="sl-offer-chip${slOffers[p].sel.has(a.k) ? ' on' : ''}" data-sl-offer="${a.k}" data-sl-prefix="${p}"><i data-lucide="${a.i}"></i>${a.l}</button>`).join('');
+  }
+  function slRenderCustom(p) {
+    const box = document.getElementById(`${p}-sl-custom-chips`);
+    if (!box) return;
+    box.innerHTML = slOffers[p].custom.map((c, i) => `<span class="sl-offer-chip on" style="cursor:pointer;" data-sl-rmcustom="${i}" data-sl-prefix="${p}">${liEsc(c)} &times;</span>`).join('');
+  }
+  function slHostReset(p) {
+    slOffers[p].sel.clear(); slOffers[p].custom = [];
+    const g = document.getElementById(`${p}-sl-offers`); if (g) { g.innerHTML = slOffersGridHTML(p); if (window.lucide) lucide.createIcons(); }
+    const a = document.getElementById(`${p}-sl-about`); if (a) a.value = '';
+    const c = document.getElementById(`${p}-sl-about-count`); if (c) c.textContent = '0 / 500';
+    const ci = document.getElementById(`${p}-sl-custom-input`); if (ci) ci.value = '';
+    slRenderCustom(p);
+  }
+  ['tv', 's5'].forEach(p => {
+    const host = document.getElementById(`${p}-sl-avail`);
+    if (!host) return;
+    host.insertAdjacentHTML('beforeend', `
+      <div class="sl-hostbox">
+        <p class="s5-section-label"><i data-lucide="info" class="w-4 h-4 text-purple-400"></i>About this space</p>
+        <p class="modal-sub" style="margin:0 0 10px;color:#94a3b8;">Tell guests what makes your place special: the area, the vibe, what is nearby. Shown on the listing's Details.</p>
+        <div class="field"><textarea class="field-input" id="${p}-sl-about" rows="5" maxlength="500" placeholder="e.g. A quiet, cosy apartment in the heart of Ikeja with easy access to major roads and the airport..."></textarea>
+          <p class="sl-count" id="${p}-sl-about-count">0 / 500</p></div>
+        <p class="s5-section-label"><i data-lucide="sparkles" class="w-4 h-4 text-purple-400"></i>What this place offers</p>
+        <p class="modal-sub" style="margin:0;color:#94a3b8;">Tap everything guests will get. Safety items you don't tick show as "Not included".</p>
+        <div class="sl-offer-grid" id="${p}-sl-offers">${slOffersGridHTML(p)}</div>
+        <div class="field"><label class="field-label">Something else? (optional)</label>
+          <div class="sl-custom-row"><input class="field-input" id="${p}-sl-custom-input" type="text" maxlength="40" placeholder="e.g. Rooftop lounge">
+          <button type="button" class="btn-secondary" data-sl-addcustom data-sl-prefix="${p}">Add</button></div>
+          <div class="sl-offer-grid" id="${p}-sl-custom-chips" style="margin-top:8px;"></div></div>
+      </div>`);
+    document.getElementById(`${p}-sl-about`).addEventListener('input', (e) => {
+      document.getElementById(`${p}-sl-about-count`).textContent = `${e.target.value.length} / 500`;
+    });
+  });
+  { const f = document.getElementById('s5-listing-form'); if (f) f.addEventListener('reset', () => setTimeout(() => slHostReset('s5'), 0)); }
+
+  // ---- Ratings store ----
+  function slReviews() { try { const a = JSON.parse(localStorage.getItem('mtr_shortlet_reviews')); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  function slSaveReviews(a) { try { localStorage.setItem('mtr_shortlet_reviews', JSON.stringify(a)); } catch (e) {} }
+  function slRatingFor(listingId) {
+    const rows = slReviews().filter(r => String(r.listingId) === String(listingId));
+    const n = rows.length;
+    return { n, avg: n ? rows.reduce((s, r) => s + r.stars, 0) / n : 0, rows };
+  }
+  function slReviewOf(bookingId) { return slReviews().find(r => r.bookingId === bookingId) || null; }
+  // A guest can rate once the stay has checked out (or was ended early). Cancelled stays can't be rated.
+  function slCanRate(b) {
+    return !shortletIsCancelled(b) && (b.status === 'TERMINATED' || Date.now() >= shortletCheckOutInstant(b));
+  }
+  function slStarsHTML(v) {
+    const r = Math.round(v);
+    return `<span class="sl-stars" role="img" aria-label="${(Math.round(v * 10) / 10)} out of 5">${[1, 2, 3, 4, 5].map(i => `<span class="${i <= r ? 'on' : ''}">&#9733;</span>`).join('')}</span>`;
+  }
+  function slCardRatingHTML(p) {
+    const r = slRatingFor(p.id);
+    return r.n
+      ? `<p class="sl-card-rating"><b>&#9733; ${r.avg.toFixed(1)}</b> (${r.n} rating${r.n === 1 ? '' : 's'})</p>`
+      : `<p class="sl-card-rating">New &middot; no ratings yet</p>`;
+  }
+  function slDetailSections(p) {
+    const r = slRatingFor(p.id);
+    const ratingLine = r.n
+      ? `<p class="sl-rating-line"><b>&#9733; ${r.avg.toFixed(1)}</b> &middot; ${r.n} rating${r.n === 1 ? '' : 's'}</p>`
+      : `<p class="sl-rating-line">New &middot; no ratings yet</p>`;
+
+    // What this place offers (filled in by the host)
+    const have = liAmenities(p).map(l => ({ l, off: false }));
+    const miss = (Array.isArray(p.amenitiesMissing) ? p.amenitiesMissing : []).map(l => ({ l, off: true }));
+    const all = have.concat(miss);
+    const row = (x) => `<div class="sl-offer-row${x.off ? ' off' : ''}"><i data-lucide="${x.off ? 'x' : slIconFor(x.l)}"></i><span>${liEsc(x.l)}</span></div>`;
+    const LIMIT = 6;
+    const offers = `<details class="li-section li-drawer" open><summary class="li-h">What this place offers</summary>
+      ${all.length ? `${all.slice(0, LIMIT).map(row).join('')}
+        ${all.length > LIMIT ? `<div class="sl-offers-more" id="sl-offers-more">${all.slice(LIMIT).map(row).join('')}</div>
+        <button type="button" class="sl-show-all" data-sl-offers-toggle data-total="${all.length}">Show all ${all.length} amenities</button>` : ''}`
+        : `<p class="li-note">The host hasn't listed what this place offers yet.</p>`}
+    </details>`;
+
+    // Guest ratings
+    let body;
+    if (!r.n) {
+      body = `<p class="li-note" style="margin:0;">No ratings yet. Guests can rate their stay after check-out.</p>`;
+    } else {
+      const dist = [5, 4, 3, 2, 1].map(s => {
+        const c = r.rows.filter(x => x.stars === s).length;
+        return `<div class="sl-dist-row"><span style="width:10px;">${s}</span><div class="sl-dist-bar"><i style="width:${Math.round(c / r.n * 100)}%"></i></div><span style="width:18px;text-align:right;">${c}</span></div>`;
+      }).join('');
+      const recent = r.rows.slice().sort((a, b) => b.at - a.at).slice(0, 5).map(x => `
+        <div class="sl-review"><div class="sl-review-top"><span>${liEsc(x.name || 'Guest')}</span><span>${slStarsHTML(x.stars)}</span></div>
+          <span class="sl-review-date">${new Date(x.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+          ${x.comment ? `<p>${liEsc(x.comment)}</p>` : ''}</div>`).join('');
+      body = `<div class="sl-rate-summary"><div><div class="sl-rate-big">${r.avg.toFixed(1)}</div><p class="sl-rate-sub">${r.n} rating${r.n === 1 ? '' : 's'}</p></div><div style="flex:1;">${dist}</div></div>${recent}`;
+    }
+    const ratings = `<details class="li-section li-drawer" open><summary class="li-h">Guest ratings</summary>${body}</details>`;
+
+    const about = `<details class="li-section li-drawer" open><summary class="li-h">About this space</summary><p class="li-story">${liEsc(liStory(p))}</p></details>`;
+    return { ratingLine, offers, ratings, about };
+  }
+
+  // ---- Rate-your-stay modal (guest, after check-out) ----
+  const SL_STAR_WORDS = ['', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'];
+  let slRateBookingId = null, slRateStars = 0;
+  function slEnsureRateModal() {
+    if (document.getElementById('sl-rate-modal')) return;
+    document.body.insertAdjacentHTML('beforeend', `
+      <div id="sl-rate-modal" role="dialog" aria-modal="true" aria-label="Rate your stay"><div class="sl-rate-card">
+        <h3>Rate your stay</h3><p class="sl-rate-prop" id="sl-rate-prop"></p>
+        <div class="sl-rate-stars" id="sl-rate-stars">${[1, 2, 3, 4, 5].map(i => `<button type="button" data-sl-star="${i}" aria-label="${i} star${i > 1 ? 's' : ''}">&#9733;</button>`).join('')}</div>
+        <p class="sl-rate-word" id="sl-rate-word"></p>
+        <textarea class="field-input" id="sl-rate-comment" rows="3" maxlength="300" placeholder="Tell future guests about your stay (optional)"></textarea>
+        <div class="sl-rate-actions"><button type="button" data-sl-rate-cancel>Not now</button><button type="button" class="primary" data-sl-rate-submit>Submit rating</button></div>
+      </div></div>`);
+  }
+  function slPaintStars() {
+    document.querySelectorAll('#sl-rate-stars button').forEach(b => b.classList.toggle('on', Number(b.dataset.slStar) <= slRateStars));
+    const w = document.getElementById('sl-rate-word'); if (w) w.textContent = SL_STAR_WORDS[slRateStars] || '';
+  }
+  function slOpenRate(bookingId) {
+    const b = shortletBookings.find(x => x.id === bookingId);
+    if (!b) return;
+    if (!slCanRate(b)) { showToast('You can rate your stay after check-out'); return; }
+    if (slReviewOf(bookingId)) { showToast('You have already rated this stay'); return; }
+    slEnsureRateModal();
+    slRateBookingId = bookingId; slRateStars = 0;
+    document.getElementById('sl-rate-prop').textContent = b.listingTitle || '';
+    document.getElementById('sl-rate-comment').value = '';
+    slPaintStars();
+    document.getElementById('sl-rate-modal').classList.add('open');
+  }
+  function slCloseRate() { const m = document.getElementById('sl-rate-modal'); if (m) m.classList.remove('open'); slRateBookingId = null; }
+  function slSubmitRate() {
+    const b = shortletBookings.find(x => x.id === slRateBookingId);
+    if (!b) { slCloseRate(); return; }
+    if (!slRateStars) { showToast('Tap a star to rate your stay'); return; }
+    if (slReviewOf(b.id)) { slCloseRate(); return; }
+    const all = slReviews();
+    all.push({ id: Date.now(), bookingId: b.id, listingId: b.listingId, tenantId: b.tenantId, name: resolveUserName(b.tenantId), stars: slRateStars, comment: (document.getElementById('sl-rate-comment').value || '').trim(), at: Date.now() });
+    slSaveReviews(all);
+    slCloseRate();
+    showToast('Thanks! Your rating has been posted');
+    try { renderMyStaysSheet(); } catch (e) {}
+    try { renderStaysSummaryCard(); } catch (e) {}
+    try { renderTenantFeed(currentCurrency); } catch (e) {}
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  }
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    const off = t.closest('[data-sl-offer]');
+    if (off) { const p = off.dataset.slPrefix, k = off.dataset.slOffer; const s = slOffers[p].sel; if (s.has(k)) s.delete(k); else s.add(k); off.classList.toggle('on', s.has(k)); return; }
+    const add = t.closest('[data-sl-addcustom]');
+    if (add) {
+      const p = add.dataset.slPrefix, inp = document.getElementById(`${p}-sl-custom-input`), v = (inp.value || '').trim();
+      if (!v) return;
+      if (slOffers[p].custom.length >= 6) { showToast('You can add up to 6 extra items'); return; }
+      if (!slOffers[p].custom.some(c => c.toLowerCase() === v.toLowerCase())) slOffers[p].custom.push(v);
+      inp.value = ''; slRenderCustom(p); return;
+    }
+    const rm = t.closest('[data-sl-rmcustom]');
+    if (rm) { slOffers[rm.dataset.slPrefix].custom.splice(Number(rm.dataset.slRmcustom), 1); slRenderCustom(rm.dataset.slPrefix); return; }
+    const tg = t.closest('[data-sl-offers-toggle]');
+    if (tg) { const more = document.getElementById('sl-offers-more'); const open = more.classList.toggle('open'); tg.textContent = open ? 'Show fewer' : `Show all ${tg.dataset.total} amenities`; return; }
+    const rb = t.closest('[data-sl-rate]');
+    if (rb) { slOpenRate(Number(rb.dataset.slRate)); return; }
+    const st = t.closest('[data-sl-star]');
+    if (st) { slRateStars = Number(st.dataset.slStar); slPaintStars(); return; }
+    if (t.closest('[data-sl-rate-cancel]') || t.id === 'sl-rate-modal') { slCloseRate(); return; }
+    if (t.closest('[data-sl-rate-submit]')) { slSubmitRate(); return; }
+  });
+
   function shortletUnavailableReason(l, inIso, outIso) {
     if (!l || !l.shortletOpenFrom) return '';
     if (inIso < l.shortletOpenFrom || outIso > l.shortletOpenTo) return `Pick dates between ${l.shortletOpenFrom} and ${l.shortletOpenTo}.`;
@@ -13244,7 +13526,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="dash-summary-icon"><i data-lucide="calendar-days" class="w-4 h-4"></i></div>
         <div class="dash-summary-text">
           <p class="dash-summary-title">My Shortlet Stays (${live.length} upcoming or current)</p>
-          <p class="dash-summary-sub">View a stay or cancel it \u00b7 tap to open</p>
+          <p class="dash-summary-sub">${stays.some(b => slCanRate(b) && !slReviewOf(b.id)) ? 'Rate your recent stay \u00b7 tap to open' : 'View a stay or cancel it \u00b7 tap to open'}</p>
         </div>
         <i data-lucide="chevron-right" class="w-4 h-4" style="color:#64748b;"></i>
       </div>`;
@@ -13275,6 +13557,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           ${(b.cautionHeld > 0) ? `<div class="txn-breakdown-row"><span>Caution Fee held (refundable)</span><span>${formatMoney(b.cautionHeld, 'ngn')}</span></div>` : ''}
           ${cancelled ? `<div class="txn-breakdown-row"><span>Refunded</span><span>${formatMoney(b.refundTotal || 0, 'ngn')}</span></div>` : ''}
         </div>
+        ${slCanRate(b) ? (slReviewOf(b.id) ? `<p class="sl-rated-note">${slStarsHTML(slReviewOf(b.id).stars)} You rated this stay</p>` : `<button type="button" class="sl-rate-btn" data-sl-rate="${b.id}">&#9733; Rate your stay</button>`) : ''}
         ${['upcoming', 'active', 'checkout', 'overdue'].includes(shortletPhase(b).key) ? `<button type="button" class="insp-cancel-btn" style="margin-top:10px;color:#a5b4fc;background:rgba(99,102,241,0.10);border-color:rgba(99,102,241,0.35);" data-stay-contact="${b.id}" data-stay-side="guest"><i data-lucide="message-circle" class="w-4 h-4"></i>Message Host</button>` : ''}
         ${can ? `<p class="role-hint" style="text-align:left; margin:10px 0 8px;">${hint}</p>
         <button type="button" class="insp-cancel-btn" data-stay-cancel="${b.id}"><i data-lucide="calendar-x" class="w-4 h-4"></i>Cancel Stay</button>` : ''}
@@ -16164,7 +16447,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     populateAreaSelect('tv-city', 'tv-area');
     document.getElementById('tv-city-hint').className = 'mkt-city-hint';
     document.getElementById('tv-listing-type').value = 'rent'; { const u = document.getElementById('tv-usage'); if (u) u.value = 'residential'; }
-    document.getElementById('tv-annual').value = '';
+    document.getElementById('tv-annual').value = ''; slHostReset('tv');
     const tvSqmEl = document.getElementById('tv-sqm'); if (tvSqmEl) tvSqmEl.value = '';
     propKindState.tv = 'land'; ['tv-house-type', 'tv-bedrooms', 'tv-bathrooms'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     applyPropKindUI('tv');
