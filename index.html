@@ -4115,8 +4115,6 @@
           <div class="field"><label class="field-label">Parking spaces</label><input class="field-input" id="tv-commercial-parking" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 5"></div>
           <div class="field"><label class="field-label">Power supply</label>
             <select class="field-input" id="tv-commercial-power"><option>Public grid</option><option>Grid + generator</option><option>Grid + inverter/solar</option><option>Generator only</option></select></div>
-          <div class="rent-badge" style="display:inline-flex;"><span>Commercial rentals are paid annually, in full upfront. No monthly flex-rent.</span></div>
-          <div class="rent-badge" style="display:inline-flex;"><span>Commercial leases use their own agreement, to be reviewed by a lawyer before use.</span></div>
         </div>
       </div>
       <div class="field">
@@ -4323,8 +4321,6 @@
           <div class="field"><label class="field-label">Parking spaces</label><input class="field-input" id="s5-commercial-parking" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 5"></div>
           <div class="field"><label class="field-label">Power supply</label>
             <select class="field-input" id="s5-commercial-power"><option>Public grid</option><option>Grid + generator</option><option>Grid + inverter/solar</option><option>Generator only</option></select></div>
-          <div class="rent-badge" style="display:inline-flex;"><span>Commercial rentals are paid annually, in full upfront. No monthly flex-rent.</span></div>
-          <div class="rent-badge" style="display:inline-flex;"><span>Commercial leases use their own agreement, to be reviewed by a lawyer before use.</span></div>
         </div>
       </div>
       <div class="field">
@@ -4460,14 +4456,6 @@
               <p>The landlord sets up their own payout bank account and BVN when they claim their account — you won't need to enter those on their behalf.</p>
             </div>
           </div>
-        </div>
-
-        <!-- Enterprise staff (Sales) add on behalf of the company — no
-             Landlord/Owner switcher needed, since MainTown/the company IS
-             the owner of record. -->
-        <div id="s5-enterprise-owner-note" class="s5-notice-box" style="display:none;">
-          <i data-lucide="briefcase" class="w-5 h-5"></i>
-          <p>Listed on behalf of your company — no Landlord/Owner needed. This goes straight to MainTown's legal review queue.</p>
         </div>
 
         <div id="s5-sl-avail" style="display:none;">
@@ -4884,6 +4872,13 @@
         <div id="ent-legal-deed-requests-list"></div>
       </div>
 
+      <!-- Physical document dispatch: Legal sends the original deed / documents to
+           the buyer on company listings, and the buyer confirms when received. -->
+      <div id="ent-legal-dispatch-section" style="margin-top:22px; display:none;">
+        <p class="s5-section-label"><i data-lucide="truck" class="w-4 h-4 text-purple-400"></i>Physical Document Dispatch</p>
+        <div id="ent-legal-dispatch-list"></div>
+      </div>
+
       <!-- Agreements signed by clients on Sales-listed properties, waiting for
            the CEO's countersignature — Legal reviews and can remind the CEO. -->
       <div id="ent-legal-countersign-section" style="margin-top:22px; display:none;">
@@ -5221,6 +5216,18 @@
     </button>
   </div>
 
+  <div id="s6h-physdocs-box" class="s5-list-item" style="margin-bottom: 10px; display:none;">
+    <div class="s5-list-icon"><i data-lucide="package-check" class="w-5 h-5"></i></div>
+    <div class="s5-list-text">
+      <p class="s5-list-title">Original Title Documents</p>
+      <p class="s5-list-sub" id="s6h-physdocs-sub">Dispatched to you by SmartyHub Logistics</p>
+      <p class="s5-list-sub"><span class="s5-status-badge insp-status-pending" id="s6h-physdocs-status" style="margin-top: 4px;">Pending dispatch</span></p>
+    </div>
+  </div>
+  <button type="button" id="s6h-physdocs-confirm-btn" class="s5-add-btn" style="display:none; margin-bottom: 14px;">
+    <i data-lucide="package-check" class="w-4 h-4"></i> Confirm Receipt of Original Documents
+  </button>
+
   <div class="s5-list-item" style="margin-bottom: 10px;">
     <div class="s5-list-icon"><i data-lucide="map" class="w-5 h-5"></i></div>
     <div class="s5-list-text">
@@ -5239,7 +5246,7 @@
   </div>
 
   <!-- Physical Access / Site Marker Schedule -->
-  <p class="s5-section-label"><i data-lucide="calendar-check" class="w-4 h-4 text-purple-400"></i>Physical Access &amp; Site Marker Schedule</p>
+  <p class="s5-section-label" id="s6h-appt-section-label"><i data-lucide="calendar-check" class="w-4 h-4 text-purple-400"></i>Physical Access &amp; Site Marker Schedule</p>
   <div class="s5-hold-preview" style="margin-bottom: 12px;">
     <div class="s5-hold-row"><span id="s6h-appt-label">Boundary Pegging Appointment</span><strong id="s6h-appt-date">—</strong></div>
     <div class="s5-hold-row" id="s6h-appt-location-row" style="display:none;"><span>Location</span><strong id="s6h-appt-location">—</strong></div>
@@ -5270,24 +5277,12 @@
       <i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span id="s6h-appt-confirmed-text"></span>
     </div>
     <button type="button" id="s6h-appt-attend-btn" class="s5-add-btn">
-      <i data-lucide="map-pin-check" class="w-4 h-4"></i> Confirm — I've Completed Physical Allocation
+      <i data-lucide="map-pin-check" class="w-4 h-4"></i> Confirm Physical Allocation
     </button>
   </div>
 
   <div class="rent-badge" id="s6h-appt-attended" style="display:none; margin-bottom: 20px; background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.35); color:#34d399;">
     <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i><span id="s6h-appt-attended-text"></span>
-  </div>
-
-  <!-- Digital Smart Lock PIN — Building/unit purchases only -->
-  <div id="s6h-smartlock-box" class="s5-list-item" style="display:none; margin-bottom: 20px;">
-    <div class="s5-list-icon"><i data-lucide="scan-line" class="w-5 h-5"></i></div>
-    <div class="s5-list-text">
-      <p class="s5-list-title">Digital Smart Lock PIN</p>
-      <p class="s5-list-sub" id="s6h-smartlock-pin">Not generated yet</p>
-    </div>
-    <button type="button" id="s6h-smartlock-btn" class="s5-back-btn" title="Generate Smart Lock PIN" style="width:auto; padding:0 14px; gap:6px; display:flex; align-items:center; white-space:nowrap;">
-      <i data-lucide="key-round" class="w-4 h-4"></i><span style="font-size:11.5px; font-weight:600;">Generate PIN</span>
-    </button>
   </div>
 
   <p class="s5-section-label"><i data-lucide="user-round" class="w-4 h-4 text-purple-400"></i>Assigned Handover Officer / Seller</p>
@@ -5362,10 +5357,21 @@
     <div class="s5-list-item" style="margin-bottom: 10px;">
       <div class="s5-list-icon"><i data-lucide="landmark" class="w-5 h-5"></i></div>
       <div class="s5-list-text">
-        <p class="s5-list-title">Physical Land Allocation</p>
+        <p class="s5-list-title" id="ah-allocation-title">Physical Land Allocation</p>
         <p class="s5-list-sub"><span class="s5-status-badge insp-status-pending" id="ah-allocation-status" style="margin-top: 4px;">—</span></p>
       </div>
     </div>
+
+    <div id="ah-physdocs-box" class="s5-list-item" style="margin-bottom: 10px; display:none;">
+      <div class="s5-list-icon"><i data-lucide="package-check" class="w-5 h-5"></i></div>
+      <div class="s5-list-text">
+        <p class="s5-list-title">Original Title Documents</p>
+        <p class="s5-list-sub"><span class="s5-status-badge insp-status-pending" id="ah-physdocs-status" style="margin-top: 4px;">Pending dispatch</span></p>
+      </div>
+    </div>
+    <button type="button" id="ah-physdocs-confirm-btn" class="s5-add-btn" style="display:none; margin-bottom: 14px;">
+      <i data-lucide="package-check" class="w-4 h-4"></i> Confirm Receipt of Original Documents
+    </button>
 
     <div class="s5-list-item" style="margin-bottom: 20px;">
       <div class="s5-list-icon"><i data-lucide="stamp" class="w-5 h-5"></i></div>
@@ -6296,6 +6302,19 @@
   </div>
 </div>
 
+<div id="damage-modal" class="modal-overlay" style="z-index:70;">
+  <div class="modal-card">
+    <div class="modal-icon-wrap"><i data-lucide="alert-triangle" class="w-8 h-8 text-red-400"></i></div>
+    <h2 class="modal-title">Report Damage</h2>
+    <p class="modal-sub" id="dm-property">—</p>
+    <p class="role-hint" style="text-align:left; margin:0 0 10px;">Report within 24 hours of check-out. The guest's Caution Fee stays on hold and MainTown reviews your report before anything is paid out. You can claim up to <strong id="dm-max">—</strong>.</p>
+    <div class="field"><label class="field-label">Amount you are claiming (NGN)</label><input class="field-input" id="dm-amount" type="number" min="1" inputmode="numeric"></div>
+    <div class="field"><label class="field-label">What happened</label><textarea class="field-input" id="dm-note" rows="3" maxlength="500" placeholder="Describe the damage"></textarea></div>
+    <button type="button" id="dm-submit" class="btn-primary" style="margin-top:10px;">Submit Report</button>
+    <button type="button" id="dm-cancel" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
 <!-- Landlord/Agent Delete Listing Confirmation Modal — triggered by the trash
      icon on a listing row in "My Properties" (Landlord) or "My Listings"
      (Agent). Removes the listing from the host's own management list AND
@@ -6816,7 +6835,7 @@
     <button type="button" id="checkout-verify-btn" class="btn-primary" style="margin-top:0; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:6px;">
       <i data-lucide="check-circle" class="w-4 h-4"></i> Verify &amp; Pay
     </button>
-    <button type="button" id="checkout-simulate-btn" class="btn-secondary" style="margin-bottom: 0;">Simulate Verification</button>
+    <button type="button" id="checkout-simulate-btn" class="btn-secondary" style="margin-bottom: 0; display:none;">Simulate Verification</button>
     <button type="button" id="checkout-otp-close" class="btn-secondary">Cancel</button>
   </div>
 </div>
@@ -7907,6 +7926,11 @@ document.addEventListener('DOMContentLoaded', () => {
       regBvnInput.focus();
       return;
     }
+    if (mtBvnTakenByOther(regBvnInput.value.trim(), null)) {
+      showToast('This BVN is already linked to another account.');
+      regBvnInput.focus();
+      return;
+    }
     otpModal.classList.add('open');
     document.querySelector('#otp-modal .otp-input').focus();
   });
@@ -8205,7 +8229,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { label: 'Rentals & Shortlets', body: 'A flat 10% commission fee applies to the deal. You receive 60% of it; MainTown keeps 40%.' },
         { label: 'Land & Property Sales', body: "A 10% Agency Commission applies, charged as two 5% halves. The Buyer's 5% always goes to MainTown. The Seller's 5% comes to you whenever you list the property." },
         { label: 'Payout timing', body: 'Your share is split and paid to your account automatically the moment the tenant/buyer pays — never held or delayed by MainTown.' },
-        { label: "Fees you never collect", body: "The tenancy Legal Fee always goes to MainTown. Caution Deposit, Service Charge, and the Deed of Assignment fee always go to the Landlord/Owner, not to you." }
+        { label: "Fees you never collect", body: "The tenancy Legal Fee always goes to MainTown. Caution Deposit, Service Charge, and the Deed of Assignment fee always go to the Landlord/Owner, not to you." },
+        { label: 'Commercial listings', body: 'Commercial rentals are paid annually, in full upfront, with no monthly flex-rent. Commercial leases use their own agreement.' }
       ]
     },
     landlord: {
@@ -8219,7 +8244,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { label: 'Rentals & Shortlets', body: 'Caution Deposit and Service Charge are entirely yours to set (or skip). The Legal Fee for the tenancy agreement is collected by MainTown, not you.' },
         { label: 'Land & Property Sales', body: "The Deed of Assignment fee (5% or 10%, your choice) is paid to you with the buyer's first installment. Separately, a 10% Agency Commission applies: the Buyer's 5% always goes to MainTown; the Seller's 5% goes to your listing Agent if one is involved, or also to MainTown if you list directly." },
         { label: 'Payout timing', body: 'Your share is paid directly to your verified payout account the moment a payment is made — never held or delayed.' },
-        { label: 'What MainTown always collects', body: 'Only the tenancy Legal Fee and its share of the Agency Commission — never your Caution Deposit, Service Charge, or Deed of Assignment fee.' }
+        { label: 'What MainTown always collects', body: 'Only the tenancy Legal Fee and its share of the Agency Commission — never your Caution Deposit, Service Charge, or Deed of Assignment fee.' },
+        { label: 'Commercial listings', body: 'Commercial rentals are paid annually, in full upfront, with no monthly flex-rent. Commercial leases use their own agreement.' }
       ]
     }
   };
@@ -9205,9 +9231,15 @@ document.addEventListener('DOMContentLoaded', () => {
               statusRows += `
                 <div class="oa-status-row">
                   <p class="s5-list-sub oa-status-label">Physical Documents &middot; SmartyHub ${shortletEsc(dsp.ref)}</p>
-                  <span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap; flex-shrink:0;"><i data-lucide="truck" class="w-3 h-3"></i>Pick-up in 24&ndash;48 hrs</span>
+                  <span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap; flex-shrink:0;"><i data-lucide="${dsp.status === 'DELIVERED' ? 'package-check' : 'truck'}" class="w-3 h-3"></i>${dsp.status === 'DELIVERED' ? 'Receipt confirmed' : 'Pick-up in 24&ndash;48 hrs'}</span>
                 </div>
                 <p class="s5-list-sub" style="margin:2px 0 0;">From: ${shortletEsc(dsp.pickup)}${dsp.pickupPhone ? ' \u00b7 ' + shortletEsc(dsp.pickupPhone) : ''}<br>To: ${shortletEsc(dsp.delivery)}${dsp.deliveryPhone ? ' \u00b7 ' + shortletEsc(dsp.deliveryPhone) : ''}</p>`;
+            } else if (isEnterpriseListing(l)) {
+              statusRows += `
+                <div class="oa-status-row">
+                  <p class="s5-list-sub oa-status-label">Original Documents &middot; dispatched by Legal</p>
+                  <span class="s5-status-badge insp-status-pending" style="white-space:nowrap; flex-shrink:0;">Pending dispatch by Legal</span>
+                </div>`;
             } else {
               statusRows += `
                 <div class="oa-status-row">
@@ -9306,6 +9338,11 @@ document.addEventListener('DOMContentLoaded', () => {
     appState = loadAppState();
     const asset = (appState.assets || []).find(a => a.id === assetId);
     if (!asset) return;
+    const dspListing = listingForAsset(asset);
+    if (dspListing && isEnterpriseListing(dspListing) && getEnterpriseStaffRole() !== 'legal') {
+      showToast('Original documents for company listings are dispatched by the Legal officer');
+      return;
+    }
     dispatchAssetId = assetId;
     document.getElementById('dispatch-modal-property').textContent = asset.title;
     document.getElementById('dispatch-pickup').value = '';
@@ -9343,6 +9380,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ref: `SH-${Date.now().toString(36).toUpperCase().slice(-6)}`,
       pickup, delivery, pickupPhone, deliveryPhone, status: 'REQUESTED',
       requestedAt: Date.now(),
+      requestedBy: getCurrentUserId(),
       pickupWindow: '24\u201348 hours'
     };
     saveAppState(appState);
@@ -9357,6 +9395,7 @@ document.addEventListener('DOMContentLoaded', () => {
       { screen: 'assetHub' }, 'DISPATCH_REQUESTED', null, asset.ownerId);
 
     showToast('Request received \u2014 SmartyHub pick-up within 24\u201348 hours');
+    if (typeof renderLegalDispatch === 'function') renderLegalDispatch();
     populateScreenOwnerAssets();
     window.dispatchEvent(new Event('maintown_state_updated'));
   });
@@ -9454,7 +9493,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     list.innerHTML = txns.map((t, i) => `
-      <div class="txn-row">
+      <div class="txn-row" data-payout-row="${i}" data-role="${role}" style="cursor:pointer;">
         <div class="txn-row-top">
           <div>
             <p class="txn-title">${t.listingTitle || 'Settlement'}</p>
@@ -9587,10 +9626,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Status shown on booking cards is driven by today's date (Lagos time) vs the
   // check-in / check-out dates, not by the payment state (nights all paid upfront
   // must not make a future booking look like it is ending).
+  function lagosToday() { return new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' }); }
   function shortletPhase(b) {
     if (b.status === 'CANCELLED_BY_GUEST' || b.status === 'CANCELLED_BY_HOST') return { key: 'cancelled', label: shortletStatusLabel(b.status), cls: 'refunded' };
     if (b.status === 'TERMINATED') return { key: 'ended', label: shortletStatusLabel(b.status), cls: 'settled' };
-    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' });
+    if (b.status === 'ACTIVE' && b.debitFailedNight) return { key: 'overdue', label: 'Payment Due', cls: 'refunded' };
+    const today = lagosToday();
     const ci = String(b.checkIn || '').slice(0, 10), co = String(b.checkOut || b.checkIn || '').slice(0, 10);
     if (!ci) return { key: 'booked', label: shortletStatusLabel(b.status), cls: b.status === 'ACTIVE' ? 'pending' : 'settled' };
     if (today < ci) return { key: 'upcoming', label: 'Upcoming', cls: 'settled' };
@@ -9599,14 +9640,30 @@ document.addEventListener('DOMContentLoaded', () => {
     return { key: 'completed', label: 'Completed', cls: 'settled' };
   }
   function shortletGuestsHTML(rows) {
-    return rows.map(({ b }) => `
+    const btnStyle = 'margin-top:10px;color:#a5b4fc;background:rgba(99,102,241,0.10);border-color:rgba(99,102,241,0.35);';
+    return rows.map(({ b }) => {
+      const ph = shortletPhase(b);
+      const live = ['upcoming', 'active', 'checkout', 'overdue'].includes(ph.key);
+      const contactBtn = live ? `<button type="button" class="insp-cancel-btn" style="${btnStyle}" data-stay-contact="${b.id}" data-stay-side="host"><i data-lucide="message-circle" class="w-4 h-4"></i>Contact Guest</button>` : '';
+      const ended = ['completed', 'ended'].includes(ph.key) || (ph.key === 'cancelled' && b.cautionReleaseAt);
+      const damageBtn = (ended && b.cautionHeld > 0 && !b.cautionClaim && Date.now() < shortletCautionReleaseAt(b))
+        ? `<button type="button" class="insp-cancel-btn" style="${btnStyle}" data-stay-damage="${b.id}"><i data-lucide="alert-triangle" class="w-4 h-4"></i>Report Damage</button>` : '';
+      const cancelBtn = shortletHostCanCancel(b) ? `<button type="button" class="insp-cancel-btn" style="margin-top:10px;" data-stay-host-cancel="${b.id}"><i data-lucide="calendar-x" class="w-4 h-4"></i>Cancel Booking</button>` : '';
+      const detailsBtn = ['active', 'checkout', 'overdue'].includes(ph.key) ? `<button type="button" class="insp-cancel-btn" style="${btnStyle}" data-stay-details="${b.id}"><i data-lucide="info" class="w-4 h-4"></i>View Details</button>
+        <div id="stay-details-${b.id}" class="txn-breakdown" style="display:none;margin-top:10px;">
+          <div class="txn-breakdown-row"><span>Guest</span><span>${shortletEsc(resolveUserName(b.tenantId))}</span></div>
+          <div class="txn-breakdown-row"><span>Total nights</span><span>${b.nights || 0}</span></div>
+          <div class="txn-breakdown-row"><span>Check-in time</span><span>2:00 PM</span></div>
+          <div class="txn-breakdown-row"><span>Check-out time</span><span>12:00 PM</span></div>
+        </div>` : '';
+      return `
       <div class="txn-row">
         <div class="txn-row-top">
           <div>
             <p class="txn-title">${shortletEsc(resolveUserName(b.tenantId))}</p>
             <p class="txn-date">${shortletEsc(b.listingTitle)}</p>
           </div>
-          <span class="txn-status-badge ${shortletPhase(b).cls}">${shortletPhase(b).label}</span>
+          <span class="txn-status-badge ${ph.cls}">${ph.label}</span>
         </div>
         <div class="txn-breakdown">
           <div class="txn-breakdown-row"><span>Check-in</span><span>${shortletDateLabel(b.checkIn)}</span></div>
@@ -9614,16 +9671,12 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="txn-breakdown-row net"><span>Nights Paid</span><span>${b.nightsPaid || 0} of ${b.nights || 0}</span></div>
           ${shortletIsCancelled(b) ? `<div class="txn-breakdown-row"><span>Refunded to guest</span><span>${formatMoney(b.refundTotal || 0, 'ngn')}</span></div>` : ''}
           ${(b.heldPayout > 0 && !shortletIsCancelled(b)) ? `<div class="txn-breakdown-row"><span>Payout held until check-in</span><span>${formatMoney(b.heldPayout, 'ngn')}</span></div>` : ''}
+          ${(b.cautionHeld > 0) ? `<div class="txn-breakdown-row"><span>Guest Caution Fee held by MainTown</span><span>${formatMoney(b.cautionHeld, 'ngn')}</span></div>` : ''}
+          ${b.cautionClaim ? `<div class="txn-breakdown-row"><span>Damage report</span><span>Under review</span></div>` : ''}
         </div>
-        ${shortletHostCanCancel(b) ? `<button type="button" class="insp-cancel-btn" style="margin-top:10px;" data-stay-host-cancel="${b.id}"><i data-lucide="calendar-x" class="w-4 h-4"></i>Cancel Booking</button>`
-          : (['active', 'checkout'].includes(shortletPhase(b).key) ? `<button type="button" class="insp-cancel-btn" style="margin-top:10px;color:#a5b4fc;background:rgba(99,102,241,0.10);border-color:rgba(99,102,241,0.35);" data-stay-details="${b.id}"><i data-lucide="info" class="w-4 h-4"></i>View Details</button>
-        <div id="stay-details-${b.id}" class="txn-breakdown" style="display:none;margin-top:10px;">
-          <div class="txn-breakdown-row"><span>Guest</span><span>${shortletEsc(resolveUserName(b.tenantId))}</span></div>
-          <div class="txn-breakdown-row"><span>Total nights</span><span>${b.nights || 0}</span></div>
-          <div class="txn-breakdown-row"><span>Check-in time</span><span>2:00 PM</span></div>
-          <div class="txn-breakdown-row"><span>Check-out time</span><span>12:00 PM</span></div>
-        </div>` : '')}
-      </div>`).join('');
+        ${contactBtn}${cancelBtn}${detailsBtn}${damageBtn}
+      </div>`;
+    }).join('');
   }
   function openGuestsModal(role) {
     document.getElementById('cd-title').textContent = 'Bookings';
@@ -9756,7 +9809,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('ph-txn-list').addEventListener('click', (e) => {
     const btn = e.target.closest('.txn-download-btn');
-    if (!btn) return;
+    if (!btn) {
+      const row = e.target.closest('[data-payout-row]');
+      if (row) openPayoutReceipt(row.dataset.role, Number(row.dataset.payoutRow));
+      return;
+    }
     const role = btn.dataset.role;
     const t = myPayouts(role)[Number(btn.dataset.idx)];
     if (!t) return;
@@ -9782,15 +9839,7 @@ Transaction Audit Reference: ${t.id}
 =====================================
 This voucher is auto-generated and serves as proof of settlement.`;
 
-    const blob = new Blob([receiptText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `receipt-${t.id}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    saveReceiptPdf(receiptText, `MainTown_Receipt_${t.id}.pdf`);
     showToast('Receipt downloaded');
   }
 
@@ -10227,9 +10276,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const paidInFull = (a.installmentsPaid || 0) >= (a.installmentsTotal || 1);
       if (!paidInFull) return;
       if (!a.allocationRequestStatus) {
-        out.push({ asset: a, title: 'Continue: Request Physical Allocation', sub: `${a.title} is paid in full \u00b7 book your site allocation appointment` });
+        const pw = physWordForAsset(a);
+        out.push({ asset: a, title: 'Continue: Request ' + pw, sub: `${a.title} is paid in full \u00b7 book your ${pw === 'Physical Access' ? 'key handover' : 'site allocation'} appointment` });
       } else if (a.allocationRequestStatus === 'CONFIRMED') {
-        out.push({ asset: a, title: 'Confirm Your Physical Allocation', sub: `${a.title} \u00b7 appointment confirmed \u2014 tap once you have been on site` });
+        const pw2 = physWordForAsset(a);
+        out.push({ asset: a, title: 'Confirm Your ' + pw2, sub: `${a.title} \u00b7 appointment confirmed \u2014 tap once you have been on site` });
+      }
+      if (a.dispatch && a.dispatch.status !== 'DELIVERED') {
+        out.push({ asset: a, title: 'Confirm Receipt of Your Documents', sub: `${a.title} \u00b7 original documents dispatched (${a.dispatch.ref}) \u00b7 confirm once received` });
       }
     });
     return out;
@@ -10446,6 +10500,73 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
   function enterpriseSalesStaffIdFor(listing) {
     return isEnterpriseListing(listing) ? (listing.listedByStaffId || null) : null;
+  }
+
+  // ---- Payee name: who actually receives the money on a listing ----
+  // Company (Sales staff) listings are paid to the COMPANY, so checkout, the
+  // receipt and every agreement show the company name instead of "Landlord".
+  // Returns null for non-company listings (callers keep their own default).
+  // Owner's FULL LEGAL NAME: the name matched on their verified ID (NIN/BVN) when
+  // available, otherwise the full name on their account. Never the role word "Landlord".
+  function ownerLegalName(userId) {
+    if (!userId) return null;
+    try {
+      const st = (typeof loadAppState === 'function') ? loadAppState() : appState;
+      const u = st && st.users && st.users[userId];
+      if (u) {
+        const k = u.kyc;
+        if (k && k.status === 'verified' && k.legalName) return String(k.legalName).trim();
+        if (u.legalName) return String(u.legalName).trim();
+        if (u.name && String(u.name).trim()) return String(u.name).trim();
+      }
+      if (typeof DEMO_USERS !== 'undefined' && DEMO_USERS[userId] && DEMO_USERS[userId].name) return DEMO_USERS[userId].name;
+    } catch (e) {}
+    return null;
+  }
+  // Who receives the money / is the other party on the agreement:
+  //   company listing -> the company name; any other listing (landlord- or agent-listed)
+  //   -> the property owner's full legal name. Null only if nothing is on file.
+  function listingPayeeName(listing) {
+    if (!listing) return null;
+    if (isEnterpriseListing(listing)) {
+      const cid = listing.companyId || listing.ownerId;
+      try {
+        const st = (typeof loadAppState === 'function') ? loadAppState() : appState;
+        const u = st && st.users && st.users[cid];
+        const n = u && u.enterprise && u.enterprise.companyName;
+        if (n) return n;
+      } catch (e) {}
+      return listing.companyName || null;
+    }
+    const n = ownerLegalName(listing.ownerId);
+    if (n && !/^(landlord|agent|tenant)$/i.test(n)) return n;
+    const ln = listing.landlordName && String(listing.landlordName).trim();
+    return (ln && !/^landlord$/i.test(ln)) ? ln : null;
+  }
+  function escHtmlLite(t) {
+    return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  // ---- Agreement profile: the agreement follows the property type being paid for ----
+  //   Residential rent -> Tenancy Agreement
+  //   Commercial rent  -> Commercial Lease Agreement (Shop / Office / Warehouse / Event Hall)
+  //   Shortlet         -> Short-Let Booking Confirmation
+  //   Land             -> Land Purchase Agreement (land use)
+  //   House for sale   -> Property Sale Agreement (house type)
+  function listingAgreementProfile(l) {
+    l = l || {};
+    if (l.type === 'shortlet') return { kind: 'shortlet', title: 'Short-Let Booking Confirmation', fileBase: 'Booking_Confirmation', detail: '' };
+    if (l.type === 'land') {
+      const pk = l.propertyKind || (/\bland\b/i.test(l.title || '') ? 'land' : 'house');
+      if (pk === 'house') { const d = l.houseType || 'House'; return { kind: 'land', isHouse: true, title: `Property Sale Agreement (${d})`, fileBase: 'Property_Sale_Agreement', detail: d }; }
+      const d = l.landUse || 'Land';
+      return { kind: 'land', isHouse: false, title: `Land Purchase Agreement (${d})`, fileBase: 'Land_Purchase_Agreement', detail: d };
+    }
+    if (l.usage === 'commercial') {
+      const d = l.commercialType || 'Commercial Space';
+      return { kind: 'rent', commercial: true, title: `Commercial Lease Agreement (${d})`, fileBase: 'Commercial_Lease_Agreement', detail: d };
+    }
+    return { kind: 'rent', commercial: false, title: 'Tenancy Agreement', fileBase: 'Tenancy_Agreement', detail: '' };
   }
 
   function logTransaction(entry) {
@@ -11634,7 +11755,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } else if (role === 'landlord') {
       renderLandlordList();
     } else {
-      document.getElementById('s5-tab-mine').click();
+      // Sales staff (enterprise_staff) already have View Listings + Inspections cards on their
+      // dashboard, so they get the listing form only: no Upload/My Listings switcher.
+      const isEntStaffView = role === 'enterprise_staff';
+      const agentTabsBar = document.querySelector('#agent-view .s5-tabs');
+      if (agentTabsBar) agentTabsBar.style.display = isEntStaffView ? 'none' : '';
+      document.getElementById(isEntStaffView ? 's5-tab-new' : 's5-tab-mine').click();
       renderAgentListings(); // also populate "My Listings" + Inspections Manager in the background so role-switching shows live data immediately
       if (typeof populateExistingLandlordSelect === 'function') populateExistingLandlordSelect();
 
@@ -11642,9 +11768,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // Landlord/Owner switcher; the company is the owner of record.
       const isEnterpriseStaffAdding = role === 'enterprise_staff';
       const landlordSection = document.getElementById('s5-landlord-section');
-      const ownerNote = document.getElementById('s5-enterprise-owner-note');
       if (landlordSection) landlordSection.style.display = isEnterpriseStaffAdding ? 'none' : 'block';
-      if (ownerNote) ownerNote.style.display = isEnterpriseStaffAdding ? 'flex' : 'none';
     }
 
     if (window.lucide) lucide.createIcons();
@@ -12513,7 +12637,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!l || !l.shortletOpenFrom) { note.style.display = 'none'; err.style.display = 'none'; return; }
     note.style.display = 'block';
     note.textContent = `Available ${l.shortletOpenFrom} to ${l.shortletOpenTo}` + ((l.shortletBlockedDates || []).length ? ` (except ${l.shortletBlockedDates.join(', ')})` : '');
-    const today = new Date().toISOString().slice(0, 10);
+    const today = lagosToday();
     inEl.min = l.shortletOpenFrom > today ? l.shortletOpenFrom : today; inEl.max = l.shortletOpenTo; outEl.max = l.shortletOpenTo;
     const r = (inEl.value && outEl.value) ? shortletUnavailableReason(l, inEl.value, outEl.value) : '';
     err.textContent = r; err.style.display = r ? 'block' : 'none';
@@ -12522,7 +12646,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function openShortletBookingModal(listing) {
     sbListing = listing;
     document.getElementById('sb-property-name').textContent = `${listing.title} — ${listing.location}`;
-    const todayIso = new Date().toISOString().slice(0, 10);
+    const todayIso = lagosToday();
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     document.getElementById('sb-checkin-date').value = (listing.shortletOpenFrom && listing.shortletOpenFrom > todayIso) ? listing.shortletOpenFrom : todayIso;
@@ -12553,8 +12677,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const isFirstNight = nightNumber === 1;
     const cautionFee = isFirstNight ? (listing && listing.cautionFee || 0) : 0;
     const serviceChargeFee = isFirstNight && listing && listing.serviceChargeMode === 'charged' ? (listing.serviceChargeFee || 0) : 0;
-    const hostPassthrough = cautionFee + serviceChargeFee;
-    const totalDue = rate + platformFee + hostPassthrough;
+    const hostPassthrough = serviceChargeFee;   // the Caution Fee is held by MainTown, not paid to the host
+    const totalDue = rate + platformFee + cautionFee + serviceChargeFee;
     if (getWalletBalance(uid) < totalDue) return false;
     debitWallet(uid, totalDue);
     recordTransaction({
@@ -12578,13 +12702,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function finalizeShortletCheckout() {
     const listing = checkoutListing;
     const sl = checkoutShortlet;
-    if (!listing || !sl) return;
+    if (!listing || !sl) return false;
     const uid = currentDemoUserId();
+    // Dates are re-checked at the moment of payment: the host may have blocked them
+    // or another guest may have booked them while this checkout was open.
+    { const r = shortletUnavailableReason(listing, sl.checkIn, sl.checkOut);
+      if (r) { showToast(r); return false; } }
 
     if (checkoutSource === 'wallet') {
       if (!debitWallet(uid, sl.dueNowAmount)) {
         showToast('Insufficient wallet balance — payment could not be authorized');
-        return;
+        return false;
       }
     }
     // Card-funded checkouts never touch the wallet — the charge is simulated
@@ -12603,18 +12731,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
       id: Date.now(), listingId: listing.id, listingTitle: listing.title, location: listing.location,
       tenantId: uid, nights: sl.nights, nightsPaid: 1, nightlyRate: sl.nightlyRate,
       checkIn: sl.checkIn, checkOut: sl.checkOut, startedAt: Date.now(),
-      status: sl.remainingNights > 0 ? 'ACTIVE' : 'COMPLETED',
+      status: 'ACTIVE',
       paymentMethod: checkoutSource === 'wallet' ? 'WALLET' : 'DEBIT_CARD',
-      cautionFee: sl.cautionFee || 0, serviceChargeFee: sl.serviceChargeFee || 0,
+      cautionFee: sl.cautionFee || 0, cautionHeld: sl.cautionFee || 0, serviceChargeFee: sl.serviceChargeFee || 0,
       agreementSignedTenant: true, agreementSignedTenantAt: Date.now()
     };
     // The Host's share is held by the payment provider until check-in (see payShortletHost).
-    payShortletHost(booking, listing, sl.netRent + sl.cautionFee + sl.serviceChargeFee,
+    payShortletHost(booking, listing, sl.netRent + sl.serviceChargeFee,
       `Shortlet payout — Night 1 of ${sl.nights} at ${listing.title}`);
 
     shortletBookings.unshift(booking);
     saveShortletBookings();
-    if (booking.status === 'ACTIVE') scheduleShortletAutoDebit(booking.id);
     try { dispatchAgreementToChat(listing); } catch (e) {}
 
     showToast(sl.remainingNights > 0
@@ -12623,55 +12750,119 @@ This voucher is auto-generated and serves as proof of settlement.`;
     pushPlatformNotification('tenant', 'booking', 'Shortlet Booked',
       `Night 1 of your ${sl.nights}-night stay at "${listing.title}" is confirmed.`, null, 'shortlet', null, uid);
     window.dispatchEvent(new Event('maintown_state_updated'));
+    return true;
   }
 
-  // Simulated daily auto-debit: a real deployment would run this from a
-  // server-side scheduled job at each new calendar day. Here an accelerated
-  // interval stands in for "the next day" so the flow can be demoed live.
-  const SHORTLET_DEMO_DAY_MS = 10000;
-  function scheduleShortletAutoDebit(bookingId) {
-    if (shortletAutoDebitTimers[bookingId]) clearInterval(shortletAutoDebitTimers[bookingId]);
-    shortletAutoDebitTimers[bookingId] = setInterval(() => {
-      const booking = shortletBookings.find(b => b.id === bookingId);
-      if (!booking || booking.status !== 'ACTIVE') {
-        clearInterval(shortletAutoDebitTimers[bookingId]);
-        delete shortletAutoDebitTimers[bookingId];
-        return;
-      }
-      const nextNight = booking.nightsPaid + 1;
-      const charged = chargeShortletNight(booking, nextNight);
-      if (!charged) {
-        pushPlatformNotification('tenant', 'booking', 'Shortlet Auto-Debit Failed',
-          `Night ${nextNight} of your stay at "${booking.listingTitle}" couldn't be auto-debited — fund your wallet to keep your booking active.`,
-          null, 'shortlet', null, booking.tenantId);
-        window.dispatchEvent(new Event('maintown_state_updated'));
-        return;
-      }
-      booking.nightsPaid = nextNight;
-      if (booking.nightsPaid >= booking.nights) {
-        // The booked (paid-for) period is up — instead of silently ending
-        // the stay, hand the tenant a toggle: pay for another night, or
-        // terminate. The stay pauses here (status AWAITING_DECISION) until
-        // they choose either action.
-        booking.status = 'AWAITING_DECISION';
-        clearInterval(shortletAutoDebitTimers[bookingId]);
-        delete shortletAutoDebitTimers[bookingId];
-        pushPlatformNotification('tenant', 'booking', 'Your Stay Is Ending — Action Needed',
-          `Night ${nextNight} of ${booking.nights} at "${booking.listingTitle}" is paid. Pay for another night or terminate your stay.`,
-          { screen: 'shortletExtension', bookingId: booking.id }, 'shortlet', null, booking.tenantId);
-      } else {
-        pushPlatformNotification('tenant', 'booking', 'Shortlet Night Auto-Debited',
-          `Night ${nextNight} of ${booking.nights} at "${booking.listingTitle}" was auto-debited from your wallet.`,
-          null, 'shortlet', null, booking.tenantId);
-      }
-      saveShortletBookings();
-      window.dispatchEvent(new Event('maintown_state_updated'));
-    }, SHORTLET_DEMO_DAY_MS);
+  // Calendar-driven nightly engine. Night 1 is paid at checkout. Night N falls due
+  // at check-in (2:00 PM Lagos) + (N-1) days, never earlier, so a booking made
+  // for next week is NOT debited for its later nights today. A real deployment
+  // would run this from a server-side scheduled job; here it runs on load and
+  // every 30 seconds. It also moves a stay through its end-of-stay states.
+  const SHORTLET_DAY_MS = 86400000;
+  const SHORTLET_PAYMENT_GRACE_MS = 24 * 3600000;   // time a guest has to fund a missed night
+  const SHORTLET_CAUTION_WINDOW_MS = 24 * 3600000;  // host's window to report damage after check-out
+  function shortletCautionReleaseAt(b) { return b.cautionReleaseAt || (shortletCheckOutInstant(b) + SHORTLET_CAUTION_WINDOW_MS); }
+  // Pays the held Caution Fee (or what is left of it) back to the guest.
+  function releaseShortletCaution(b, note) {
+    const amt = b.cautionHeld || 0;
+    if (!(amt > 0)) return;
+    const card = b.paymentMethod === 'DEBIT_CARD';
+    if (!card) creditWallet(b.tenantId, amt);
+    recordTransaction({ userId: b.tenantId, direction: 'credit', category: 'SHORTLET_REFUND',
+      title: `${card ? 'Caution Fee returned to card' : 'Caution Fee returned'} \u2014 ${b.listingTitle}`, amount: amt, status: 'REFUNDED',
+      meta: { propertyName: b.listingTitle, feeType: 'Caution Fee Return' } });
+    pushPlatformNotification('tenant', 'payment', 'Caution Fee Returned',
+      `${formatMoney(amt, 'ngn')} Caution Fee for "${b.listingTitle}" has been returned to you${note ? ' (' + note + ')' : ''}.`, null, 'shortlet', null, b.tenantId);
+    b.cautionHeld = 0; b.cautionReleasedAt = Date.now();
   }
+  function shortletNightsDue(b) {
+    const t = Date.now() - shortletCheckInInstant(b);
+    if (t < 0) return 0;
+    return Math.min(b.nights || 1, Math.floor(t / SHORTLET_DAY_MS) + 1);
+  }
+  function shortletHostIdOf(l) {
+    if (!l) return null;
+    return l.agentId || l.listedByStaffId || l.ownerId || null;
+  }
+  function runShortletTick() {
+    if (!Array.isArray(shortletBookings)) return;
+    let changed = false, listingsChanged = false;
+    // A shortlet is booked night by night, so it must never be flipped to RENTED
+    // (that hid it from every later guest and blocked host-side changes).
+    (listings || []).forEach(l => { if (l && l.type === 'shortlet' && l.status === 'RENTED') { l.status = 'live'; listingsChanged = true; } });
+    if (listingsChanged) saveListings();
+    shortletBookings.forEach(b => {
+      const listing = listings.find(x => String(x.id) === String(b.listingId));
+      if (b.status === 'AWAITING_DECISION' && lagosToday() < String(b.checkOut || '').slice(0, 10)) { b.status = 'ACTIVE'; changed = true; }
+      if (b.status === 'ACTIVE') {
+        const due = shortletNightsDue(b);
+        while ((b.nightsPaid || 0) < due) {
+          const n = (b.nightsPaid || 0) + 1;
+          if (!chargeShortletNight(b, n)) {
+            if (b.debitFailedNight === n && Date.now() - (b.debitFailedAt || Date.now()) >= SHORTLET_PAYMENT_GRACE_MS) {
+              // Grace period over: the stay ends. The Caution Fee covers the missed night (up to the nightly rate);
+              // whatever is left of it is returned after the usual window.
+              const cover = Math.min(b.cautionHeld || 0, b.nightlyRate || 0);
+              if (cover > 0 && listing && shortletHostIdOf(listing)) {
+                payHostNow(shortletHostIdOf(listing), cover, `Missed-night cover from Caution Fee \u2014 ${b.listingTitle}`, b.listingTitle);
+                b.cautionHeld -= cover;
+              }
+              b.status = 'TERMINATED'; b.endReason = 'PAYMENT_DEFAULT'; b.endedAt = Date.now();
+              b.cautionReleaseAt = Date.now() + SHORTLET_CAUTION_WINDOW_MS;
+              delete b.debitFailedNight; delete b.debitFailedAt;
+              pushPlatformNotification('tenant', 'booking', 'Stay Ended - Payment Not Received',
+                `Night ${n} at "${b.listingTitle}" was not paid within 24 hours, so your stay has ended.`, null, 'shortlet', null, b.tenantId);
+              if (listing && shortletHostIdOf(listing)) pushPlatformNotification('landlord', 'booking', 'Stay Ended - Guest Payment Missed',
+                `The guest at "${b.listingTitle}" did not pay Night ${n} within 24 hours, so the stay has ended. The Caution Fee covered up to one night.`,
+                null, 'shortlet', null, shortletHostIdOf(listing));
+              changed = true;
+              break;
+            }
+            if (b.debitFailedNight !== n) {   // tell each side once per night, not on every retry
+              b.debitFailedNight = n; b.debitFailedAt = Date.now();
+              pushPlatformNotification('tenant', 'booking', 'Shortlet Auto-Debit Failed',
+                `Night ${n} of your stay at "${b.listingTitle}" couldn't be auto-debited. Fund your wallet within 24 hours or your stay will end.`,
+                null, 'shortlet', null, b.tenantId);
+              if (listing && shortletHostIdOf(listing)) pushPlatformNotification('landlord', 'booking', 'Guest Payment Overdue',
+                `Night ${n} at "${b.listingTitle}" could not be collected from the guest yet. We keep retrying.`,
+                null, 'shortlet', null, shortletHostIdOf(listing));
+              changed = true;
+            }
+            break;
+          }
+          b.nightsPaid = n; delete b.debitFailedNight; delete b.debitFailedAt; changed = true;
+          pushPlatformNotification('tenant', 'booking', 'Shortlet Night Auto-Debited',
+            `Night ${n} of ${b.nights} at "${b.listingTitle}" was auto-debited from your wallet.`, null, 'shortlet', null, b.tenantId);
+        }
+      }
+      if (b.status === 'ACTIVE' || b.status === 'AWAITING_DECISION') {
+        if (Date.now() >= shortletCheckOutInstant(b)) {
+          if ((b.nightsPaid || 0) >= (b.nights || 1)) { b.status = 'COMPLETED'; changed = true; }
+        } else if (b.status === 'ACTIVE' && (b.nightsPaid || 0) >= (b.nights || 1) && lagosToday() >= String(b.checkOut || '').slice(0, 10)) {
+          // Last night is paid and it is check-out day: let the guest extend or end the stay.
+          b.status = 'AWAITING_DECISION'; changed = true;
+          pushPlatformNotification('tenant', 'booking', 'Your Stay Is Ending - Action Needed',
+            `Your stay at "${b.listingTitle}" ends today at 12:00 PM. Pay for another night or end your stay.`,
+            { screen: 'shortletExtension', bookingId: b.id }, 'shortlet', null, b.tenantId);
+        }
+      }
+      // The Caution Fee goes back to the guest once the report window closes, unless the host reported damage.
+      if ((b.cautionHeld || 0) > 0 && !b.cautionClaim && b.status !== 'ACTIVE' && b.status !== 'AWAITING_DECISION' && Date.now() >= shortletCautionReleaseAt(b)) {
+        releaseShortletCaution(b, 'no damage reported'); changed = true;
+      }
+      // A stay's chat closes 48 hours after check-out (or straight away on cancellation or early end).
+      if (b.status !== 'ACTIVE' && b.status !== 'AWAITING_DECISION' && (shortletIsCancelled(b) || b.status === 'TERMINATED' || Date.now() > shortletCheckOutInstant(b) + 48 * 3600000)) {
+        if (shortletArchiveThreads(b)) changed = true;
+      }
+    });
+    if (changed) { saveShortletBookings(); window.dispatchEvent(new Event('maintown_state_updated')); }
+  }
+  // Kept so every existing caller still works; the engine itself is date-driven now.
+  function scheduleShortletAutoDebit() { runShortletTick(); }
 
   // Resume auto-debit timers for any still-ACTIVE bookings after a page reload
   // (a fresh page load would otherwise lose the setInterval handles above).
-  shortletBookings.filter(b => b.status === 'ACTIVE').forEach(b => scheduleShortletAutoDebit(b.id));
+  runShortletTick();
 
 
   // ==================================================================
@@ -12840,17 +13031,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
       tier = 'started';
       const stayed = Math.min(b.nights || paidNights, Math.max(1, Math.floor(-msToCheckIn / 86400000) + 1));
       refundNights = Math.max(0, paidNights - stayed);
-      refundCaution = 0; refundService = 0;
+      refundCaution = 0; refundService = 0;   // the Caution Fee is not forfeited: it follows the normal return window
     }
+    const escrowed = b.cautionHeld != null;    // older bookings paid the Caution Fee straight to the host
+    const cautionDeferred = (tier === 'started' && escrowed) ? caution : 0;
     const rateRefund = refundNights * rate;
     const feeRefund = refundNights * fee;
     const refundTotal = rateRefund + feeRefund + refundCaution + refundService;
     return {
       tier, hours, rate, fee, night, caution, service, paidNights, paidTotal,
       rateRefund, feeRefund, cautionRefund: refundCaution, serviceRefund: refundService,
-      refundTotal, kept: paidTotal - refundTotal,
+      refundTotal, cautionDeferred, kept: paidTotal - refundTotal - cautionDeferred,
       // what has to come back out of the Host's share (the Platform Fee is MainTown's to refund)
-      hostReversal: rateRefund + refundCaution + refundService,
+      hostReversal: rateRefund + refundService + (escrowed ? 0 : refundCaution),
       upfrontCharged: night + caution + service
     };
   }
@@ -12868,9 +13061,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (shortletAutoDebitTimers[bookingId]) { clearInterval(shortletAutoDebitTimers[bookingId]); delete shortletAutoDebitTimers[bookingId]; }
     b.status = by === 'host' ? 'CANCELLED_BY_HOST' : 'CANCELLED_BY_GUEST';
     b.cancelledAt = Date.now();
+    shortletArchiveThreads(b);
     b.cancelTier = q.tier;
     b.refundTotal = q.refundTotal;
     b.refundKept = q.kept;
+    if (b.cautionHeld != null) {
+      if (q.cautionRefund > 0) b.cautionHeld = Math.max(0, b.cautionHeld - q.cautionRefund);   // refunded to the guest above
+      if (q.tier === 'started' && b.cautionHeld > 0) b.cautionReleaseAt = Date.now() + SHORTLET_CAUTION_WINDOW_MS;
+    }
 
     if (q.refundTotal > 0) {
       const toCard = b.paymentMethod === 'DEBIT_CARD'
@@ -12986,6 +13184,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (q.cautionRefund > 0) rows += row('Caution Fee refunded', money(q.cautionRefund));
     if (q.serviceRefund > 0) rows += row('Service Charge refunded', money(q.serviceRefund));
     if (q.kept > 0) rows += row(q.tier === 'late' ? 'Night 1 (not refunded)' : 'Not refunded', money(q.kept));
+    if (q.cautionDeferred > 0) rows += row('Caution Fee (returned 24h after you leave)', money(q.cautionDeferred));
     rows += row('You get back', money(q.refundTotal), true);
     document.getElementById('sc-title').textContent = by === 'host' ? 'Cancel This Booking?' : 'Cancel This Stay?';
     document.getElementById('sc-property').textContent = b.listingTitle + ' \u00b7 ' + shortletDateLabel(b.checkIn) + ' to ' + shortletDateLabel(b.checkOut);
@@ -13073,8 +13272,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <div class="txn-breakdown-row"><span>Check-in</span><span>${shortletDateLabel(b.checkIn)}, 2:00 PM</span></div>
           <div class="txn-breakdown-row"><span>Check-out</span><span>${shortletDateLabel(b.checkOut)}, 12:00 PM</span></div>
           <div class="txn-breakdown-row net"><span>Nights Paid</span><span>${b.nightsPaid || 0} of ${b.nights || 0}</span></div>
+          ${(b.cautionHeld > 0) ? `<div class="txn-breakdown-row"><span>Caution Fee held (refundable)</span><span>${formatMoney(b.cautionHeld, 'ngn')}</span></div>` : ''}
           ${cancelled ? `<div class="txn-breakdown-row"><span>Refunded</span><span>${formatMoney(b.refundTotal || 0, 'ngn')}</span></div>` : ''}
         </div>
+        ${['upcoming', 'active', 'checkout', 'overdue'].includes(shortletPhase(b).key) ? `<button type="button" class="insp-cancel-btn" style="margin-top:10px;color:#a5b4fc;background:rgba(99,102,241,0.10);border-color:rgba(99,102,241,0.35);" data-stay-contact="${b.id}" data-stay-side="guest"><i data-lucide="message-circle" class="w-4 h-4"></i>Message Host</button>` : ''}
         ${can ? `<p class="role-hint" style="text-align:left; margin:10px 0 8px;">${hint}</p>
         <button type="button" class="insp-cancel-btn" data-stay-cancel="${b.id}"><i data-lucide="calendar-x" class="w-4 h-4"></i>Cancel Stay</button>` : ''}
       </div>`;
@@ -13093,13 +13294,53 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (g) { openStayCancelModal(Number(g.dataset.stayCancel), 'guest'); return; }
     const h = e.target.closest('[data-stay-host-cancel]');
     if (h) { openStayCancelModal(Number(h.dataset.stayHostCancel), 'host'); return; }
+    const dg = e.target.closest('[data-stay-damage]');
+    if (dg) { openDamageModal(Number(dg.dataset.stayDamage)); return; }
+    const mc = e.target.closest('[data-stay-contact]');
+    if (mc) { openShortletThread(Number(mc.dataset.stayContact), mc.dataset.staySide); return; }
     const d = e.target.closest('[data-stay-details]');
     if (d) { const box = document.getElementById('stay-details-' + d.dataset.stayDetails); if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none'; }
   });
   window.addEventListener('maintown_state_updated', () => { try { renderStaysSummaryCard(); } catch (e) {} });
 
   releaseDueShortletPayouts();
-  setInterval(releaseDueShortletPayouts, 30000);
+  setInterval(() => { runShortletTick(); releaseDueShortletPayouts(); }, 30000);
+
+  // ---- Host damage report: freezes the Caution Fee and hands the case to MainTown ----
+  let damageBookingId = null;
+  function openDamageModal(bookingId) {
+    const b = shortletBookings.find(x => x.id === bookingId);
+    if (!b || !(b.cautionHeld > 0) || b.cautionClaim || Date.now() >= shortletCautionReleaseAt(b)) { showToast('The damage report window for this stay has closed'); return; }
+    damageBookingId = bookingId;
+    document.getElementById('dm-property').textContent = b.listingTitle;
+    document.getElementById('dm-max').textContent = formatMoney(b.cautionHeld, 'ngn');
+    document.getElementById('dm-amount').value = ''; document.getElementById('dm-note').value = '';
+    document.getElementById('closed-deals-modal').classList.remove('open');
+    document.getElementById('damage-modal').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('dm-cancel').addEventListener('click', () => { document.getElementById('damage-modal').classList.remove('open'); damageBookingId = null; });
+  document.getElementById('dm-submit').addEventListener('click', () => {
+    const b = shortletBookings.find(x => x.id === damageBookingId);
+    if (!b || b.cautionClaim || !(b.cautionHeld > 0) || Date.now() >= shortletCautionReleaseAt(b)) { showToast('The damage report window for this stay has closed'); return; }
+    const amount = Math.round(Number(document.getElementById('dm-amount').value));
+    const note = document.getElementById('dm-note').value.trim();
+    if (!(amount > 0) || amount > b.cautionHeld) { showToast(`Enter an amount up to ${formatMoney(b.cautionHeld, 'ngn')}`); return; }
+    if (note.length < 10) { showToast('Please describe the damage (at least 10 characters)'); return; }
+    b.cautionClaim = { amount, note: note.slice(0, 500), at: Date.now(), status: 'UNDER_REVIEW' };
+    saveShortletBookings();
+    pushPlatformNotification('tenant', 'booking', 'Damage Reported on Your Stay',
+      `The host reported damage at "${b.listingTitle}" and claimed ${formatMoney(amount, 'ngn')}. Your Caution Fee stays on hold while MainTown reviews. You can reply in the MainTown help chat.`, null, 'shortlet', null, b.tenantId);
+    try {
+      const sup = getOrCreateSupportThread();
+      sup.messages.push({ from: 'me', type: 'text', status: 'sent', text: shortletEsc(`Damage report for ${b.listingTitle} (booking ${b.id}, guest ${resolveUserName(b.tenantId)}). Claiming ${formatMoney(amount, 'ngn')}: ${note}`) });
+      saveConversations();
+    } catch (e) {}
+    document.getElementById('damage-modal').classList.remove('open');
+    damageBookingId = null;
+    showToast('Damage report sent to MainTown');
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  });
 
   // ---- Shortlet Extension / Terminate Prompt ----
   const shortletExtensionModal = document.getElementById('shortlet-extension-modal');
@@ -13122,11 +13363,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('se-pay-btn').addEventListener('click', () => {
     const booking = shortletBookings.find(b => b.id === seActiveBookingId);
     if (!booking) return;
+    const oldOut = String(booking.checkOut).slice(0, 10);
+    const d = new Date(oldOut + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + 1);
+    const newOut = d.toISOString().slice(0, 10);
+    const extListing = listings.find(l => String(l.id) === String(booking.listingId));
+    const blocked = (extListing && extListing.shortletBlockedDates) || [];
+    const taken = (shortletBookings || []).some(o => o.id !== booking.id && String(o.listingId) === String(booking.listingId) && shortletHoldsDates(o) && oldOut < o.checkOut && newOut > o.checkIn);
+    if (taken || blocked.includes(oldOut) || (extListing && extListing.shortletOpenTo && newOut > extListing.shortletOpenTo)) {
+      showToast('The next night is not available at this property, so this stay cannot be extended.');
+      return;
+    }
     booking.nights += 1; // extend the commitment by exactly the one night being paid for
+    booking.checkOut = newOut; // and move the check-out date so the calendar stays correct
     const nextNight = booking.nightsPaid + 1;
     const charged = chargeShortletNight(booking, nextNight);
     if (!charged) {
-      booking.nights -= 1;
+      booking.nights -= 1; booking.checkOut = oldOut;
       showToast("Payment failed — fund your wallet and try again");
       return;
     }
@@ -13134,7 +13386,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
     booking.status = 'ACTIVE';
     saveShortletBookings();
     shortletExtensionModal.classList.remove('open');
-    scheduleShortletAutoDebit(booking.id);
     pushPlatformNotification('tenant', 'booking', 'Stay Extended',
       `Night ${nextNight} at "${booking.listingTitle}" was paid — your stay continues.`,
       null, 'shortlet', null, booking.tenantId);
@@ -13147,6 +13398,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const booking = shortletBookings.find(b => b.id === seActiveBookingId);
     if (!booking) return;
     booking.status = 'TERMINATED';
+    booking.endedAt = Date.now();
+    if ((booking.cautionHeld || 0) > 0) booking.cautionReleaseAt = shortletCheckOutInstant(booking) + SHORTLET_CAUTION_WINDOW_MS;
     saveShortletBookings();
     shortletExtensionModal.classList.remove('open');
     const listing = listings.find(l => l.id === booking.listingId);
@@ -13683,17 +13936,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // the card, its filename, subtitle, and the co-signer label ("Seller" /
     // "Host/Landlord" / "Landlord") all follow the same branch, mirroring the
     // Purchase/Rent/Short-Let Breakdown label swap directly below.
-    document.getElementById('s6-agreement-title-text').textContent = isLand ? 'Accept Purchase & Installment Terms' : (isShortlet ? 'Booking Terms & Confirmation' : (listing.usage === 'commercial' ? 'Execute Commercial Lease Agreement' : 'Execute Tenancy Agreement'));
-    document.getElementById('s6-agreement-doc-name').textContent = isLand ? 'Land_Purchase_Agreement.pdf' : (isShortlet ? 'Booking_Confirmation.pdf' : (listing.usage === 'commercial' ? 'Commercial_Lease_Agreement.pdf' : 'Tenancy_Agreement.pdf'));
-    document.getElementById('s6-agreement-doc-sub').textContent = isLand ? 'Standard MainTown Land Allocation & Title Transfer Terms' : (isShortlet ? 'Instant booking: no signature needed. Your confirmation is issued after payment.' : (listing.usage === 'commercial' ? 'Commercial lease terms (draft wording, pending legal review)' : 'Standard MainTown Realty lease terms'));
-    document.getElementById('s6-agreement-cosign-label').textContent = isLand ? 'Seller Signature' : (isShortlet ? 'Host/Landlord Signature' : 'Landlord Signature');
+    // Agreement title, file name and signer label all follow the property type
+    // being paid for, and the counter-party is the company when it is a company listing.
+    const agrProfile = listingAgreementProfile(listing);
+    const payeeName = listingPayeeName(listing);
+    document.getElementById('s6-agreement-title-text').textContent = isLand ? `Accept ${agrProfile.title}` : (isShortlet ? 'Booking Terms & Confirmation' : `Execute ${agrProfile.title}`);
+    document.getElementById('s6-agreement-doc-name').textContent = `${agrProfile.fileBase}.pdf`;
+    document.getElementById('s6-agreement-doc-sub').textContent = isLand ? `${agrProfile.title}: MainTown Land Allocation & Title Transfer Terms` : (isShortlet ? 'Instant booking: no signature needed. Your confirmation is issued after payment.' : (listing.usage === 'commercial' ? 'Commercial lease terms: annual rent paid in full upfront (draft wording, pending legal review)' : 'Standard MainTown Realty lease terms'));
+    document.getElementById('s6-agreement-cosign-label').textContent = `${payeeName || (isLand ? 'Seller' : (isShortlet ? 'Host/Landlord' : 'Landlord'))} Signature`;
     // Pre-attached status: same demo convention as before (the counter-party's
     // signature ships pre-attached on every listing) — driven off the
     // listing's own signature flag when present, defaulting to pre-attached.
     const cosignPreattached = listing.landlordSignature !== 'Pending';
     document.getElementById('s6-agreement-cosign-status').textContent = cosignPreattached ? '✓ Pre-attached' : 'Pending';
 
-    { const h = document.getElementById('s6-signoff-heading'); if (h) h.textContent = isLand ? 'Land Allocation & Payment Sign-Off' : (isShortlet ? 'Booking Terms' : (listing.usage === 'commercial' ? 'Commercial Lease & Payment Sign-Off' : 'Tenancy & Payment Sign-Off')); }
+    { const h = document.getElementById('s6-signoff-heading'); if (h) h.textContent = isLand ? (agrProfile.isHouse ? 'Property Purchase & Payment Sign-Off' : 'Land Allocation & Payment Sign-Off') : (isShortlet ? 'Booking Terms' : (listing.usage === 'commercial' ? `Commercial Lease (${agrProfile.detail}) & Payment Sign-Off` : 'Tenancy & Payment Sign-Off')); }
     { // Shortlets: Airbnb-style click-to-accept, no signature, no host countersign.
       const sf = signInput.closest('.field'); if (sf) sf.style.display = isShortlet ? 'none' : '';
       const at = document.getElementById('s6-adr-ack-text');
@@ -13739,7 +13996,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
       if (checkoutLandPayment.mode === 'outright') {
         document.getElementById('s6-row1-label').textContent = 'Total Price';
-        document.getElementById('s6-row2-label').textContent = 'Deed of Assignment / Title Processing Fee (to Owner)';
+        document.getElementById('s6-row2-label').textContent = `Deed of Assignment / Title Processing Fee (to ${payeeName || 'Owner'})`;
         document.getElementById('s6-row3-label').textContent = 'Installment Plan';
         document.getElementById('s6-rent-amount').textContent = formatMoney(checkoutLandPayment.totalPrice, 'ngn');
         document.getElementById('s6-deposit-amount').textContent = formatMoney(checkoutLandPayment.processingFee, 'ngn');
@@ -13759,7 +14016,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         // Deed of Assignment fee is paid straight to the Landlord/Owner, not MainTown.
         document.getElementById('s6-row1-label').textContent = `Downpayment (${checkoutLandPayment.label || 'Monthly'} Installment)`;
         document.getElementById('s6-row2-label').textContent = 'Agency Commission — Your 5% (Seller pays the other 5%)';
-        document.getElementById('s6-row3-label').textContent = `Deed of Assignment Fee (${checkoutLandPayment.legalPct || 5}% — to Owner)`;
+        document.getElementById('s6-row3-label').textContent = `Deed of Assignment Fee (${checkoutLandPayment.legalPct || 5}% — to ${payeeName || 'Owner'})`;
         document.getElementById('s6-rent-amount').textContent = formatMoney(checkoutLandPayment.monthly, 'ngn');
         document.getElementById('s6-deposit-amount').textContent = formatMoney(checkoutLandPayment.buyerCommission, 'ngn');
         document.getElementById('s6-fee-amount').textContent = formatMoney(checkoutLandPayment.legal, 'ngn');
@@ -13804,14 +14061,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const serviceRow = document.getElementById('s6-service-row');
       if (sl.cautionFee > 0) {
         cautionRow.style.display = 'flex';
-        document.getElementById('s6-row4-label').textContent = 'Caution Fee (to Host)';
+        document.getElementById('s6-row4-label').textContent = `Caution Fee (to ${payeeName || 'Host'})`;
         document.getElementById('s6-caution-amount').textContent = formatMoney(sl.cautionFee, 'ngn');
       } else {
         cautionRow.style.display = 'none';
       }
       if (sl.serviceChargeFee > 0) {
         serviceRow.style.display = 'flex';
-        document.getElementById('s6-row5-label').textContent = 'Service Charge (to Host)';
+        document.getElementById('s6-row5-label').textContent = `Service Charge (to ${payeeName || 'Host'})`;
         document.getElementById('s6-service-amount').textContent = formatMoney(sl.serviceChargeFee, 'ngn');
       } else {
         serviceRow.style.display = 'none';
@@ -13844,8 +14101,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       document.getElementById('s6-row3').style.display = 'flex';
       document.getElementById('s6-shortlet-autodebit-notice').style.display = 'none';
       document.getElementById('s6-shortlet-cancel-notice').style.display = 'none';
-      document.getElementById('s6-breakdown-label').innerHTML = '<i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Rent Breakdown (Year 1)';
-      document.getElementById('s6-row1-label').textContent = 'First Rent Installment';
+      // Commercial rentals are ONE outright annual payment: no "installment" wording,
+      // no monthly split. Residential keeps the Year-1 installment breakdown.
+      const isCommercialRent = listing.usage === 'commercial';
+      document.getElementById('s6-breakdown-label').innerHTML = `<i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>${isCommercialRent ? `${escHtmlLite(listing.commercialType || 'Commercial')} Rent Breakdown (Annual, paid in full)` : 'Rent Breakdown (Year 1)'}`;
+      document.getElementById('s6-row1-label').textContent = isCommercialRent ? 'Annual Rent (paid in full)' : 'First Rent Installment';
       document.getElementById('s6-row2-label').textContent = 'Agency Commission (10%)';
       document.getElementById('s6-row3-label').textContent = 'Legal Fee (5%) — to MainTown';
 
@@ -13853,13 +14113,23 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // use the stored annualPrice (set at listing submission), or fall back to
       // (monthly rent × 12) for older/seed listings that predate that field.
       const monthlyNgn = parseFloat((listing.ngn || '').replace(/[^0-9.]/g, '')) || 0;
-      const annualNgn = listing.annualPrice || (monthlyNgn * 12);
+      const annualNgn = listing.annualPrice || (isCommercialRent ? monthlyNgn : (monthlyNgn * 12));
       checkoutRentBreakdown = annotateCommissionSplit(computeYear1Breakdown(annualNgn), listing);
+      if (isCommercialRent) {
+        // Outright: the landlord/company receives the full annual rent now; nothing left to auto-debit.
+        checkoutRentBreakdown.monthly = annualNgn;
+        checkoutRentBreakdown.upfront = annualNgn + checkoutRentBreakdown.commission + checkoutRentBreakdown.legal;
+        checkoutRentBreakdown.remainingMonths = 0;
+        checkoutRentBreakdown.remainingTotal = 0;
+        checkoutRentBreakdown.isOutright = true;
+      }
       // Caution Deposit & Service Charge: manually set by the Agent/Landlord/
       // Sales staff at listing time, paid straight to the Landlord — never
       // MainTown — alongside the first rent installment.
       checkoutRentBreakdown.cautionFee = listing.cautionFee || 0;
       checkoutRentBreakdown.serviceChargeFee = (listing.serviceChargeMode === 'charged') ? (listing.serviceChargeFee || 0) : 0;
+      document.getElementById('s6-row4-label').textContent = `Caution Deposit (to ${payeeName || 'Landlord'})`;
+      document.getElementById('s6-row5-label').textContent = `Service Charge (to ${payeeName || 'Landlord'})`;
       const rate = currentCurrency === 'usd' ? (1 / 1600) : 1;
 
       // No MainTown fee is added at rental checkout. The one-time ₦5,000 credit
@@ -14019,15 +14289,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // called out to `${API_BASE_URL}/api/contracts/tenancy-policy`, a
   // server that doesn't exist in this build, which meant the modal could
   // never load and the whole rent-checkout flow was stuck).
-  function buildTenancyPolicyHtml({ landlordName, tenantName, propertyAddress, monthlyRent }) {
+  function buildTenancyPolicyHtml({ landlordName, tenantName, propertyAddress, monthlyRent, commercial, commercialType, agreementTitle }) {
     const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    return `
-      <h1>Tenancy &amp; Policy Agreement</h1>
-      <p>This Tenancy &amp; Policy Agreement ("Agreement") is made on <strong>${today}</strong> between <strong>${landlordName}</strong> ("Landlord/Owner") and <strong>${tenantName}</strong> ("Tenant"), covering the property located at <strong>${propertyAddress}</strong> ("the Property"), facilitated through MainTown Realty.</p>
-
-      <h1>1. Term &amp; Rent</h1>
+    // The agreement is addressed to the property type being paid for: a commercial
+    // listing gets a Commercial Lease (annual rent, paid in full), not a residential tenancy.
+    const docTitle = escHtmlLite(agreementTitle || (commercial ? `Commercial Lease Agreement (${commercialType || 'Commercial Space'})` : 'Tenancy & Policy Agreement'));
+    const partyLabel = commercial ? 'Landlord/Lessor' : 'Landlord/Owner';
+    const termAndRentHtml = commercial ? `
+      <p>The Tenant agrees to lease the Property for a term of one (1) year for ${escHtmlLite(commercialType || 'commercial')} use, at an annual rent of <strong>${monthlyRent}</strong>, paid in full in a single payment at checkout and split automatically at the point of charge — ${escHtmlLite(landlordName)}'s share is paid directly to its own account, with MainTown's platform fee deducted at the same time. MainTown does not hold Tenant funds at any point.</p>
+      <p>Commercial rent is an outright annual payment: no monthly instalments or auto-debits apply. No interest, finance charge or credit fee is charged, the rent payable does not exceed the annual rent stated in this Agreement, and this Agreement is a lease — it is not a loan or credit facility.</p>` : `
       <p>The Tenant agrees to occupy the Property for the agreed lease term at a monthly rent of <strong>${monthlyRent}</strong>, auto-debited from the Tenant and split automatically at the point of charge — the Landlord's share is paid directly to the Landlord's own account, with MainTown's platform fee deducted at the same time. MainTown does not hold Tenant funds at any point.</p>
-      <p>Rent is payable in monthly instalments under the Payment Schedule attached to this Agreement. Each instalment is a scheduled lease payment of rent. No interest, finance charge or credit fee is charged on any instalment, the total rent payable does not exceed the rent stated in this Agreement, and this Agreement is a lease — it is not a loan or credit facility.</p>
+      <p>Rent is payable in monthly instalments under the Payment Schedule attached to this Agreement. Each instalment is a scheduled lease payment of rent. No interest, finance charge or credit fee is charged on any instalment, the total rent payable does not exceed the rent stated in this Agreement, and this Agreement is a lease — it is not a loan or credit facility.</p>`;
+    return `
+      <h1>${docTitle}</h1>
+      <p>This ${docTitle} ("Agreement") is made on <strong>${today}</strong> between <strong>${landlordName}</strong> ("${partyLabel}") and <strong>${tenantName}</strong> ("Tenant"), covering the property located at <strong>${propertyAddress}</strong> ("the Property"), facilitated through MainTown Realty.</p>
+
+      <h1>1. Term &amp; Rent</h1>${termAndRentHtml}
 
       <h1>2. Automated Payment &amp; Dispute Protection</h1>
       <ul>
@@ -14039,8 +14316,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <h1>3. Tenant Obligations</h1>
       <ul>
         <li>Keep the Property in good condition and report damages promptly.</li>
-        <li>Pay rent on or before each due date to avoid late fees or default flags.</li>
-        <li>Use the Property strictly for lawful residential purposes.</li>
+        <li>${commercial ? 'Pay the annual rent in full at checkout, and any renewal rent on or before its due date.' : 'Pay rent on or before each due date to avoid late fees or default flags.'}</li>
+        <li>${commercial ? `Use the Property strictly for lawful ${escHtmlLite((commercialType || 'commercial').toLowerCase())} purposes.` : 'Use the Property strictly for lawful residential purposes.'}</li>
       </ul>
 
       <h1>4. Landlord Obligations</h1>
@@ -14072,12 +14349,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Renders the Tenancy & Policy Agreement inside the scroll box.
   async function loadTenancyPolicyAgreement() {
     tpAgreementBox.innerHTML = '<p style="text-align:center; color:#64748b;">Loading agreement…</p>';
-    const landlordName = (checkoutListing && checkoutListing.landlordName) || 'the Landlord';
+    const landlordName = listingPayeeName(checkoutListing) || (checkoutListing && checkoutListing.landlordName) || 'the Landlord';
     const tenantName = (document.getElementById('reg-fullname')?.value || '').trim() || 'the Tenant';
     const propertyAddress = (checkoutListing && (checkoutListing.location || checkoutListing.title)) || 'the property';
     const monthlyRent = checkoutRentBreakdown ? formatMoney(checkoutRentBreakdown.monthly, 'ngn') : '—';
+    const agrP = listingAgreementProfile(checkoutListing);
 
-    tpAgreementBox.innerHTML = buildTenancyPolicyHtml({ landlordName, tenantName, propertyAddress, monthlyRent });
+    tpAgreementBox.innerHTML = buildTenancyPolicyHtml({ landlordName, tenantName, propertyAddress, monthlyRent, commercial: !!agrP.commercial, commercialType: agrP.detail, agreementTitle: agrP.title === 'Tenancy Agreement' ? null : agrP.title });
 
     // Re-check on the next frame, once layout has settled — if the text
     // doesn't fill/overflow the box, unlock immediately instead of waiting
@@ -14121,7 +14399,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     updateAuthorizeState();
 
     dispatchAgreementToChat(checkoutListing);
-    showToast('Tenancy & Policy Agreement signed');
+    showToast(`${(checkoutListing && listingAgreementProfile(checkoutListing).title) || 'Agreement'} signed`);
   });
 
   // ==================================================================
@@ -14242,6 +14520,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       tenantAddress: msg.tenantAddress || ((document.getElementById('reg-address') || {}).value || '').trim() || ((appState.users || {})[tenantId] || {}).address || '',
       hostAddress: msg.hostAddress || listing.ownerAddress || ((appState.users || {})[listing.ownerId] || {}).address || '',
       hostLabel: msg.hostLabel, rentLabel: msg.rentLabel,
+      agreementTitle: msg.agreementTitle, usage: msg.usage, commercialType: msg.commercialType,
       nights: msg.nights, dailyDebitLabel: msg.dailyDebitLabel,
       propertyAddress: msg.propertyAddress, checkIn: msg.checkIn, checkOut: msg.checkOut,
       tenantId: tenantId || null,
@@ -14321,15 +14600,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Renders as a dedicated Lease Agreement document card (Part 2: In-Chat Lease Viewer).
   function dispatchAgreementToChat(listing) {
     if (!listing) return;
-    let conv = conversations.find(c => c.listingTitle === listing.title);
+    let conv = conversations.find(c => c.convType !== 'shortlet' && c.listingTitle === listing.title);
     if (!conv) {
       conv = { id: Date.now(), inspectionId: null, listingTitle: listing.title, feeType: listing.listedBy === 'agent' ? 'agent' : 'landlord', fee: 0, status: 'active', messages: [] };
       conversations.unshift(conv);
     }
     const tenantName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Tenant';
-    const hostName = listing.listedBy === 'agent' ? (listing.agentName || 'Agent') : (listing.landlordName || 'Landlord');
-    const fileName = `${listing.type === 'shortlet' ? 'Booking_Confirmation' : 'Lease_Agreement'}_${listing.title.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '')}.pdf`;
-    const rentLabel = checkoutRentBreakdown ? `${formatMoney(checkoutRentBreakdown.monthly, 'ngn')} / month` : (listing.ngn || 'See agreement for terms');
+    const payeeCompany = listingPayeeName(listing);
+    const agrP = listingAgreementProfile(listing);
+    const hostName = payeeCompany || (listing.listedBy === 'agent' ? (listing.agentName || 'Agent') : (listing.landlordName || 'Landlord'));
+    const hostRoleWord = isEnterpriseListing(listing) ? 'Company' : (listing.type === 'land' ? 'Seller' : (listing.type === 'shortlet' ? 'Host' : 'Landlord'));
+    const fileName = `${agrP.fileBase}_${listing.title.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '')}.pdf`;
+    const rentLabel = checkoutRentBreakdown ? (agrP.commercial ? `${formatMoney(checkoutRentBreakdown.monthly, 'ngn')} / year (paid in full)` : `${formatMoney(checkoutRentBreakdown.monthly, 'ngn')} / month`) : (listing.ngn || 'See agreement for terms');
     conv.messages.push({
       from: 'system',
       type: 'lease-doc',
@@ -14339,9 +14621,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       listingTitle: listing.title,
       tenantName,
       hostName,
-      hostLabel: listing.listedBy === 'agent' ? 'Agent' : 'Landlord',
+      hostLabel: payeeCompany ? hostRoleWord : (listing.listedBy === 'agent' ? 'Agent' : 'Landlord'),
       rentLabel,
       kind: listing.type || 'rent',
+      agreementTitle: agrP.title, usage: listing.usage || undefined, commercialType: listing.commercialType || undefined,
       propertyAddress: listing.location, checkIn: (listing.type === 'shortlet' && checkoutShortlet) ? checkoutShortlet.checkIn : undefined, checkOut: (listing.type === 'shortlet' && checkoutShortlet) ? checkoutShortlet.checkOut : undefined,
       nights: (listing.type === 'shortlet' && checkoutShortlet) ? checkoutShortlet.nights : undefined,
       dailyDebitLabel: (listing.type === 'shortlet' && checkoutShortlet && checkoutShortlet.remainingNights > 0) ? formatMoney(checkoutShortlet.dailyDebitAmount, 'ngn') : undefined
@@ -14583,7 +14866,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       listingTitle: checkoutListing.title,
       isLand: checkoutListing.type === 'land',
       propertyAddress: checkoutListing.location || checkoutListing.title,
-      landlordName: checkoutListing.landlordName || (checkoutListing.type === 'land' ? 'the Seller' : 'the Landlord'),
+      landlordName: listingPayeeName(checkoutListing) || checkoutListing.landlordName || (checkoutListing.type === 'land' ? 'the Seller' : 'the Landlord'),
+      agreementTitle: listingAgreementProfile(checkoutListing).title,
+      commercial: !!listingAgreementProfile(checkoutListing).commercial,
+      commercialType: checkoutListing.commercialType || null,
       priceLabel: checkoutListing.type === 'land'
         ? (checkoutLandPayment && checkoutLandPayment.totalPrice ? formatMoney(checkoutLandPayment.totalPrice, 'ngn') : '—')
         : (checkoutRentBreakdown ? formatMoney(checkoutRentBreakdown.monthly, 'ngn') : '—'),
@@ -14735,12 +15021,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function buildHandoverAgreementHtml(h) {
     const buyer = h.buyerName || (h.isLand ? 'the Buyer' : 'the Tenant');
     if (!h.isLand) {
-      return buildTenancyPolicyHtml({ landlordName: h.landlordName || 'the Landlord', tenantName: buyer, propertyAddress: h.propertyAddress || h.listingTitle, monthlyRent: h.priceLabel || '—' });
+      return buildTenancyPolicyHtml({ landlordName: h.landlordName || 'the Landlord', tenantName: buyer, propertyAddress: h.propertyAddress || h.listingTitle, monthlyRent: h.priceLabel || '—', commercial: !!h.commercial, commercialType: h.commercialType, agreementTitle: (h.commercial && h.agreementTitle) ? h.agreementTitle : null });
     }
     const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     return `
-      <h1>Contract of Sale</h1>
-      <p>This Contract of Sale is made on <strong>${today}</strong> between <strong>${h.landlordName || 'the Seller'}</strong> (\"Seller/Developer\") and <strong>${buyer}</strong> (\"Buyer\"), for the land/property known as <strong>${h.propertyAddress || h.listingTitle}</strong>, at a total price of <strong>${h.priceLabel || '—'}</strong>, facilitated through MainTown Realty.</p>
+      <h1>${escHtmlLite(h.agreementTitle || 'Contract of Sale')}</h1>
+      <p>This ${escHtmlLite(h.agreementTitle || 'Contract of Sale')} is made on <strong>${today}</strong> between <strong>${h.landlordName || 'the Seller'}</strong> (\"Seller/Developer\") and <strong>${buyer}</strong> (\"Buyer\"), for the land/property known as <strong>${h.propertyAddress || h.listingTitle}</strong>, at a total price of <strong>${h.priceLabel || '—'}</strong>, facilitated through MainTown Realty.</p>
       <h1>Binding Terms</h1>
       <p><strong>Clause 1 — Pre-Checkout Inspection &amp; Satisfaction:</strong> Checkout requires prior completion of physical or virtual property inspection. By initiating payment, the Buyer confirms they (or their authorized representative) have inspected the land, verified its condition, and logged their status as Satisfied within the platform.</p>
       <p><strong>Clause 2 — Title Verification, Due Diligence &amp; Allocation Window:</strong> MainTown Realty conducts automated and preliminary verification of the title documents supplied by the Seller (C of O, Deed of Assignment, Governor's Consent, Gazette or layout plans). That verification is not legal due diligence, a Land Registry search or a certificate of title. The Buyer acknowledges that final legal due diligence, the physical search at the Land Registry, independent survey checks and title verification are the Buyer's own responsibility and must be completed before the Buyer executes this Contract. Physical allocation is executed upon the Seller's title warranties being satisfied and adherence to the agreed payment plan.</p>
@@ -14925,7 +15211,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       checkoutPinFundBtnEl.style.display = insufficient ? 'flex' : 'none';
       checkoutVerifyBtn.disabled = insufficient;
       checkoutVerifyBtn.style.opacity = insufficient ? '0.5' : '1';
-      checkoutSimulateBtn.style.display = insufficient ? 'none' : 'block';
+      checkoutSimulateBtn.style.display = 'none';
     } else {
       checkoutPinBalanceLineEl.style.display = 'none';
       checkoutPinInsufficientEl.style.display = 'none';
@@ -14933,11 +15219,28 @@ This voucher is auto-generated and serves as proof of settlement.`;
       checkoutPinSubEl.textContent = 'Enter your 6-digit MainTown Transaction PIN to authorize your card payment';
       checkoutVerifyBtn.disabled = false;
       checkoutVerifyBtn.style.opacity = '1';
-      checkoutSimulateBtn.style.display = 'block';
+      checkoutSimulateBtn.style.display = 'none';
     }
   }
 
+  // Pre-flight: stops stale or self-dealing payments before any PIN is asked for.
+  function checkoutPreflight() {
+    const l = checkoutListing;
+    if (!l) return true;
+    const fresh = (Array.isArray(listings) ? listings.find(x => String(x.id) === String(l.id)) : null) || l;
+    if (l.type !== 'shortlet' && (isListingUnavailable(fresh) || isListingUnavailable(l))) {
+      showToast('This property is no longer available.');
+      refreshCheckoutAvailabilityNotice();
+      return false;
+    }
+    const uid = currentDemoUserId();
+    const related = [l.ownerId, l.agentId, l.listedByStaffId, l.companyId].filter(Boolean).map(String);
+    if (uid && related.includes(String(uid))) { showToast('You cannot pay for a listing you own or manage.'); return false; }
+    return true;
+  }
+
   document.getElementById('s6-authorize-btn').addEventListener('click', () => {
+    if (!checkoutPreflight()) return;
     checkoutOtpInputs.forEach(i => (i.value = ''));
     checkoutOtpModal.classList.add('open');
     refreshCheckoutPinGate();
@@ -15032,8 +15335,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (isLand && sellerCommissionDeduction > 0) ownerSubLabel += ` (less ${formatMoney(sellerCommissionDeduction * rate, cur)} Seller Agency Commission)`;
     if (isLand && ownerLegalShare > 0) ownerSubLabel += ` + ${formatMoney(ownerLegalShare * rate, cur)} Deed of Assignment fee`;
     if (!isLand && (cautionFee > 0 || serviceChargeFee > 0)) ownerSubLabel += ` + Caution Deposit/Service Charge`;
+    const payeeForRow = listingPayeeName(checkoutListing);
+    const isCommercialRow = !isLand && checkoutListing.usage === 'commercial';
+    const rentWord = isCommercialRow ? 'Annual Rent' : 'Net Rent';
+    const ownerRowLabel = isLand
+      ? (payeeForRow ? `${escHtmlLite(payeeForRow)}'s Share` : "Seller / Developer's Share")
+      : (payeeForRow ? `${escHtmlLite(payeeForRow)}'s Share (${rentWord})` : `Landlord's Share (${rentWord})`);
     const rows = [
-      `<div class="s5-hold-row"><span>${isLand ? "Seller / Developer's Share" : "Landlord's Share (Net Rent)"}${sub(ownerSubLabel)}</span><strong>${fmt((b.monthly || 0) + ownerExtras)}</strong></div>`
+      `<div class="s5-hold-row"><span>${ownerRowLabel}${sub(ownerSubLabel)}</span><strong>${fmt((b.monthly || 0) + ownerExtras)}</strong></div>`
     ];
     if (isLand) {
       // Land: the 10% Agency Commission is two flat 5% halves, not a ratio of
@@ -15194,7 +15503,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // through the new checkout flow with dates, breakdown, clauses and
     // agreement sign-off captured up front.
     if (checkoutListing && checkoutListing.type === 'shortlet') {
-      finalizeShortletCheckout();
+      if (!finalizeShortletCheckout()) { checkoutAuthSubmitting = false; return; }
       // BUGFIX: this branch used to return before the two steps every other
       // checkout path relies on below (see the Land/Rent flow further down)
       // — it never flipped the listing to RENTED and never cleared
@@ -15202,7 +15511,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // on the feed AND kept resurfacing the "Continue Your Payment" card on
       // Home forever, since saveCheckoutResumeState() never got called to
       // drop the stale localStorage record either.
-      markListingUnavailableAfterCheckout(checkoutListing);
+      // Shortlets stay on the feed: availability is decided by dates, not by a RENTED flag.
       checkoutPaymentPending = false;
       saveCheckoutResumeState();
       checkoutAuthSubmitting = false;
@@ -15223,6 +15532,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const total = getCheckoutTotalDueNgn();
       if (!debitWallet(uid, total)) {
         showToast('Insufficient wallet balance — payment could not be authorized');
+        checkoutAuthSubmitting = false;
         return;
       }
       // Wallet Ledger: split the debit into its two constituent transaction
@@ -15301,24 +15611,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
       showToast('Enter the full 6-digit PIN');
       return;
     }
-    const expectedPin = mtUserId() ? mtCurrentPin(mtUserId()) : '123456';
-    if (code !== expectedPin) {
-      showToast(expectedPin === '123456' ? 'Incorrect PIN — for this demo, use 123456' : 'Incorrect PIN');
+    const pinUser = mtUserId() || currentDemoUserId();
+    const pinRes = mtCheckPin(pinUser, code);
+    if (!pinRes.ok) {
+      showToast(pinRes.locked ? mtPinLockMessage(pinUser) : ('Incorrect PIN. ' + pinRes.left + ' attempt' + (pinRes.left === 1 ? '' : 's') + ' left.'));
       checkoutOtpInputs.forEach(i => (i.value = ''));
       checkoutOtpInputs[0].focus();
       return;
     }
+    if (!checkoutPreflight()) { checkoutOtpModal.classList.remove('open'); return; }
     approveCheckoutPayment();
   });
 
-  checkoutSimulateBtn.addEventListener('click', () => {
-    if (checkoutSource === 'wallet' && getWalletBalance(currentDemoUserId()) < getCheckoutTotalDueNgn()) {
-      refreshCheckoutPinGate();
-      return;
-    }
-    '123456'.split('').forEach((digit, idx) => (checkoutOtpInputs[idx].value = digit));
-    approveCheckoutPayment();
-  });
+  // The old "Simulate Verification" shortcut auto-typed the default PIN. It is disabled so every payment needs the real PIN.
+  checkoutSimulateBtn.addEventListener('click', (e) => { e.preventDefault(); });
 
   function buildActiveLeaseFromCheckout() {
     if (!checkoutListing) return;
@@ -15347,10 +15653,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       activeLease = {
         ...ownershipFields,
         title: checkoutListing.title,
-        amountLabel: document.getElementById('s6-rent-amount').textContent + ' / mo',
-        dueLabel: 'Move-in date pending — schedule below',
+        amountLabel: (checkoutRentBreakdown && checkoutRentBreakdown.isOutright) ? `${document.getElementById('s6-rent-amount').textContent} / yr (paid in full)` : document.getElementById('s6-rent-amount').textContent + ' / mo',
+        dueLabel: (checkoutRentBreakdown && checkoutRentBreakdown.isOutright) ? 'No further payments due' : 'Move-in date pending — schedule below',
         card: checkoutSource === 'card' ? `Card ending in ${document.getElementById('s6-card-last4').textContent}` : 'MainTown Funded Wallet',
-        monthlyAmount: checkoutRentBreakdown ? checkoutRentBreakdown.monthly : 0,
+        monthlyAmount: (checkoutRentBreakdown && !checkoutRentBreakdown.isOutright) ? checkoutRentBreakdown.monthly : 0,
         remainingMonths: checkoutRentBreakdown ? checkoutRentBreakdown.remainingMonths : 11,
         autoDebitSchedule: null
       };
@@ -16002,6 +16308,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       errEl.classList.add('show');
       return;
     }
+    if (mtBvnTakenByOther(bvnNin, getCurrentUserId())) {
+      errText.textContent = 'This BVN is already linked to another account.';
+      errEl.classList.add('show');
+      return;
+    }
     // Step 2: Legal Policy sign-off.
     if (!document.getElementById('va-policy-checkbox').checked) {
       errText.textContent = 'Please check the box above to continue.';
@@ -16318,6 +16629,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Once a client has paid (SOLD / RENTED / booked) only MainTown takes the
     // listing off the feed; owners and agents can delete only while it's live.
     const paidListing = listings.find(l => l.title === title);
+    if (paidListing && paidListing.type === 'shortlet' && (shortletBookings || []).some(b => String(b.listingId) === String(paidListing.id) && shortletHoldsDates(b))) {
+      showToast('This shortlet has upcoming or current bookings. Cancel them first, or wait until they check out.');
+      return;
+    }
     if (isListingUnavailable(paidListing)) {
       showToast('This listing has been paid for and can no longer be deleted');
       return;
@@ -17017,6 +17332,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     if (!bvnOnFile && !/^\d{11}$/.test(bvnTyped)) {
       showToast('Enter your 11-digit BVN');
+      return;
+    }
+    if (!bvnOnFile && mtBvnTakenByOther(bvnTyped, getCurrentUserId())) {
+      showToast('This BVN is already linked to another account.');
       return;
     }
     if (!checkedBoxes.length) {
@@ -19001,7 +19320,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         (c.convType === 'support' && c.userId === uid) ||
         (c.convType === 'staff-ceo' && c.staffId === uid) ||
         (c.convType === 'staff-staff' && Array.isArray(c.participantIds) && c.participantIds.includes(uid)) ||
-        (staffRole === 'sales' && c.salesStaffId === uid)
+        (staffRole === 'sales' && c.salesStaffId === uid) ||
+        (c.convType === 'shortlet' && Array.isArray(c.participantIds) && c.participantIds.includes(uid))
       );
     } else if (typeof isEnterpriseCeo === 'function' && isEnterpriseCeo(uid)) {
       // Privacy: the CEO can message staff directly (staff-ceo) and message a
@@ -19015,6 +19335,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
     // A MainTown support chat belongs to the account that opened it.
     visibleConversations = visibleConversations.filter(c => c.convType !== 'support' || c.userId === (uid || 'guest'));
+    // A stay chat belongs only to the guest and the host on that booking.
+    visibleConversations = visibleConversations.filter(c => c.convType !== 'shortlet' || (Array.isArray(c.participantIds) && c.participantIds.includes(uid)));
 
     if (!visibleConversations.length) {
       list.innerHTML = '';
@@ -19035,7 +19357,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const peer = getConversationPeer(c);
       const avatarInner = peer.photo
         ? `<img src="${peer.photo}" alt="${peer.name}">`
-        : `<i data-lucide="${peer.label === 'Support' ? 'life-buoy' : (peer.label === 'Tenant' ? 'user' : (peer.label === 'Agent' ? 'briefcase' : 'key-round'))}" class="w-4 h-4"></i>`;
+        : `<i data-lucide="${peer.label === 'Support' ? 'life-buoy' : ((peer.label === 'Tenant' || peer.label === 'Guest') ? 'user' : (peer.label === 'Agent' ? 'briefcase' : 'key-round'))}" class="w-4 h-4"></i>`;
       return `
       <div class="thread-item ${archived ? 'archived' : ''}" data-id="${c.id}">
         <div class="thread-avatar">${avatarInner}</div>
@@ -19124,8 +19446,56 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Resolves who the other party in a conversation is, for the call overlay peer
   // name/photo and for "them" chat bubbles — Agent/Landlord (Tenant's view) or
   // Tenant (Landlord's/Agent's view), using the identity data captured earlier.
+
+  // ---- Shortlet stay chat: one thread per booking, between the guest and the host
+  //      side that manages the listing (landlord, agent or sales staff). It is
+  //      separate from inspection threads and visible only to those two people. ----
+  function getOrCreateShortletThread(b, hostId, hostRole) {
+    let conv = conversations.find(c => c.convType === 'shortlet' && c.bookingId === b.id && c.hostId === hostId);
+    if (conv) return conv;
+    conv = {
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      convType: 'shortlet', bookingId: b.id, listingTitle: b.listingTitle,
+      feeType: 'shortlet', fee: 0, status: 'active',
+      tenantId: b.tenantId, hostId, hostRole: hostRole || 'landlord',
+      participantIds: [b.tenantId, hostId],
+      messages: [{ from: 'system', type: 'text', text: `Stay chat for ${shortletEsc(b.listingTitle)}: check-in ${shortletDateLabel(b.checkIn)}, check-out ${shortletDateLabel(b.checkOut)}.` }]
+    };
+    conversations.unshift(conv);
+    saveConversations();
+    return conv;
+  }
+  function shortletArchiveThreads(b) {
+    let any = false;
+    conversations.forEach(c => { if (c.convType === 'shortlet' && c.bookingId === b.id && c.status !== 'archived') { c.status = 'archived'; any = true; } });
+    if (any) saveConversations();
+    return any;
+  }
+  function openShortletThread(bookingId, side) {
+    const b = shortletBookings.find(x => x.id === bookingId);
+    if (!b) return;
+    const l = listings.find(x => String(x.id) === String(b.listingId));
+    const me = getCurrentUserId();
+    let hostId, hostRole;
+    if (side === 'host') { hostId = me; hostRole = currentUserRole || 'landlord'; }
+    else { hostId = shortletHostIdOf(l); hostRole = (l && l.agentId) ? 'agent' : 'landlord'; }
+    if (!hostId || !b.tenantId) { showToast('Unable to open this chat right now'); return; }
+    const conv = getOrCreateShortletThread(b, hostId, hostRole);
+    if (shortletIsCancelled(b) || b.status === 'TERMINATED') conv.status = 'archived';
+    document.getElementById('closed-deals-modal').classList.remove('open');
+    navigateTo('screen-messages');
+    renderThreadList();
+    openThreadDetail(conv.id);
+  }
+
   function getConversationPeer(conv) {
     const role = currentUserRole || 'tenant';
+    if (conv.convType === 'shortlet') {
+      const me = getCurrentUserId();
+      const iAmGuest = me === conv.tenantId;
+      const otherId = iAmGuest ? conv.hostId : conv.tenantId;
+      return { name: resolveUserName(otherId), photo: null, label: iAmGuest ? 'Host' : 'Guest' };
+    }
     // MainTown support line (opened from Profile > Contact MainTown)
     if (conv.convType === 'support') return { name: 'MainTown', photo: null, label: 'Support' };
     // Staff <-> CEO direct line: resolve the peer explicitly instead of via
@@ -19211,7 +19581,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       activeThreadHostInfo = null;
     }
 
-    document.getElementById('msg-thread-sub').textContent = conv.status === 'archived' ? 'Archived conversation' : (conv.convType === 'support' ? 'Chat with the MainTown team' : 'Active inspection conversation');
+    document.getElementById('msg-thread-sub').textContent = conv.status === 'archived' ? 'Archived conversation' : (conv.convType === 'support' ? 'Chat with the MainTown team' : conv.convType === 'shortlet' ? 'Stay conversation' : 'Active inspection conversation');
     const isSupportThread = conv.convType === 'support';
     const propPill = document.querySelector('#msg-thread-detail .msg-property-pill');
     if (propPill) propPill.style.display = isSupportThread ? 'none' : '';
@@ -19226,7 +19596,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Tenant-only. Landlords/Agents only ever see the property title header. ----
     const addressBtn = document.getElementById('msg-request-address-btn');
     const isTenant = (currentUserRole || 'tenant') === 'tenant';
-    addressBtn.style.display = (isTenant && conv.status !== 'archived' && conv.convType !== 'support') ? 'flex' : 'none';
+    addressBtn.style.display = (isTenant && conv.status !== 'archived' && conv.convType !== 'support' && conv.convType !== 'shortlet') ? 'flex' : 'none';
     addressBtn.disabled = !!conv.addressRevealed;
     addressBtn.innerHTML = conv.addressRevealed
       ? `<i data-lucide="check" class="w-4 h-4"></i> Full Address Shared`
@@ -19326,9 +19696,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!text) return;
     const conv = conversations.find(c => c.id === activeThreadId);
     if (!conv) return;
-    const msg = { from: 'me', type: 'text', text, status: 'sent' };
+    if (conv.status === 'archived') { showToast('This conversation is closed'); return; }
+    if (conv.convType !== 'support') {
+      const leak = mtChatLeakCheck(text);
+      if (leak) { showToast('Sharing ' + leak + ' in chat is not allowed. Keep payments and contact on MainTown.'); return; }
+    }
+    const msg = { from: 'me', type: 'text', text: shortletEsc(text), status: 'sent' };
     conv.messages.push(msg);
     saveConversations();
+    if (conv.convType === 'shortlet') {
+      const me = getCurrentUserId(), toGuest = me !== conv.tenantId;
+      pushPlatformNotification(toGuest ? 'tenant' : (conv.hostRole || 'landlord'), 'booking', 'New message about your stay',
+        `${resolveUserName(me)}: ${text.length > 80 ? text.slice(0, 80) + '...' : text}`, null, 'shortlet', null, toGuest ? conv.tenantId : conv.hostId);
+    }
     input.value = '';
     renderChatLog(conv);
     document.getElementById('msg-chat-log').scrollTop = document.getElementById('msg-chat-log').scrollHeight;
@@ -19492,12 +19872,26 @@ This voucher is auto-generated and serves as proof of settlement.`;
       out.push({ title: `Clause ${n} \u2014 Dispute Resolution (Mediation, then LCA Arbitration)`, body: ADR_CLAUSE_TEXT });
       return out;
     }
+    const metaS = agreementMeta(m);
+    if (metaS && metaS.commercial) {
+      return [{ title: `Commercial Use & Annual Rent (${metaS.commercialType || 'Commercial Space'})`, body: `This is a commercial lease. The Property may only be used for lawful ${String(metaS.commercialType || 'commercial').toLowerCase()} purposes. Rent is one outright annual payment made in full at checkout; no monthly instalments or auto-debits apply. Any Caution Deposit and Service Charge are paid directly to the ${m.hostLabel || 'Landlord'} alongside the rent.` }, ...legalContent.tenant.sections];
+    }
     return legalContent.tenant.sections;
+  }
+  // Title/usage of the agreement, so older and newer chat documents both address the property type.
+  function agreementMeta(m) {
+    if (m && m.agreementTitle) return { title: m.agreementTitle, commercial: m.usage === 'commercial', commercialType: m.commercialType };
+    const l = (m && typeof listings !== 'undefined') ? listings.find(x => x.title === m.listingTitle) : null;
+    if (!l) return null;
+    const p = listingAgreementProfile(l);
+    return { title: p.title, commercial: !!p.commercial, commercialType: l.commercialType };
   }
   function agreementLabels(m) {
     const kind = agreementKind(m);
-    if (kind === 'land') return { doc: 'EXECUTED CONTRACT OF SALE (LAND & PROPERTY PURCHASE)', tenant: 'Buyer', heading: 'Property & Price', header: 'Purchase Agreement', priceWord: 'Price' };
+    const meta = agreementMeta(m);
+    if (kind === 'land') return { doc: meta ? `EXECUTED ${meta.title.toUpperCase()}` : 'EXECUTED CONTRACT OF SALE (LAND & PROPERTY PURCHASE)', tenant: 'Buyer', heading: 'Property & Price', header: meta ? meta.title : 'Purchase Agreement', priceWord: 'Price' };
     if (kind === 'shortlet') return { doc: 'BOOKING CONFIRMATION', tenant: 'Guest', heading: 'Property & Stay', header: 'Booking Confirmation', priceWord: 'Rate' };
+    if (meta && meta.commercial) return { doc: `EXECUTED ${meta.title.toUpperCase()}`, tenant: 'Tenant', heading: 'Property & Annual Rent', header: meta.title, priceWord: 'Annual Rent' };
     return { doc: 'EXECUTED TENANCY AGREEMENT', tenant: 'Tenant', heading: 'Property & Rent', header: 'Lease Agreement', priceWord: 'Rent' };
   }
 
@@ -20188,6 +20582,68 @@ available in the Post-Lease Hub and this chat thread.`
     return !!(listing && /\bland\b/i.test(listing.title || ''));
   }
 
+  // House/building sales use "Physical Access"; land uses "Physical Allocation".
+  function listingForAsset(asset) { return asset ? (listings.find(l => String(l.id) === String(asset.listingId)) || null) : null; }
+  function physWordForListing(listing) { return isBareLandListing(listing) ? 'Physical Allocation' : 'Physical Access'; }
+  function physWordForAsset(asset) { return physWordForListing(listingForAsset(asset)); }
+
+  // Buyer-facing "Original Physical Documents" row + confirm-receipt button (handover screen and My Assets).
+  function renderPhysDocsRow(prefix, asset) {
+    const box = document.getElementById(prefix + '-physdocs-box');
+    const status = document.getElementById(prefix + '-physdocs-status');
+    const btn = document.getElementById(prefix + '-physdocs-confirm-btn');
+    if (!box || !status || !btn) return;
+    if (!asset || !asset.deedAvailable) { box.style.display = 'none'; btn.style.display = 'none'; return; }
+    const d = asset.dispatch;
+    box.style.display = 'flex';
+    if (!d) {
+      status.textContent = 'Pending dispatch';
+      status.className = 's5-status-badge insp-status-pending';
+      btn.style.display = 'none';
+    } else if (d.status === 'DELIVERED') {
+      status.textContent = 'Receipt confirmed \u00b7 ' + new Date(d.receivedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      status.className = 's5-status-badge insp-status-confirmed';
+      btn.style.display = 'none';
+    } else {
+      status.textContent = 'In transit \u00b7 ' + d.ref;
+      status.className = 's5-status-badge insp-status-conducted';
+      btn.style.display = 'flex';
+      btn.dataset.assetId = asset.id;
+    }
+    if (window.lucide) lucide.createIcons();
+  }
+  let physDocsConfirming = false;
+  function confirmPhysicalDocsReceived(assetId) {
+    if (physDocsConfirming) return;
+    appState = loadAppState();
+    const asset = (appState.assets || []).find(a => a.id === assetId);
+    const uid = getCurrentUserId();
+    if (!asset || asset.ownerId !== uid) { showToast('Only the buyer can confirm receipt'); return; }
+    if (!asset.dispatch) { showToast('Your documents have not been dispatched yet'); return; }
+    if (asset.dispatch.status === 'DELIVERED') return;
+    physDocsConfirming = true;
+    asset.dispatch.status = 'DELIVERED';
+    asset.dispatch.receivedAt = Date.now();
+    asset.dispatch.receivedBy = uid;
+    saveAppState(appState);
+    const listing = listingForAsset(asset);
+    const body = `${resolveUserName(asset.ownerId)} has confirmed receipt of the original title documents for ${asset.title} (dispatch ref. ${asset.dispatch.ref}).`;
+    if (listing && isEnterpriseListing(listing)) {
+      notifyCompanyAllocation(listing, 'Receipt of Documents Confirmed', body, { type: 'PHYSICAL_DOCS_RECEIVED' });
+    } else if (asset.sellerId) {
+      pushPlatformNotification('landlord', 'message', 'Receipt of Documents Confirmed', body, { screen: 'screen-owner-assets' }, 'PHYSICAL_DOCS_RECEIVED', null, asset.sellerId);
+    }
+    showToast('Receipt of documents confirmed');
+    physDocsConfirming = false;
+    if (typeof populateScreenLandHandover === 'function' && !document.getElementById('screen-land-handover').classList.contains('hidden')) populateScreenLandHandover();
+    if (typeof renderLegalDispatch === 'function') renderLegalDispatch();
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  }
+  ['s6h', 'ah'].forEach(p => {
+    const b = document.getElementById(p + '-physdocs-confirm-btn');
+    if (b) b.addEventListener('click', () => confirmPhysicalDocsReceived(b.dataset.assetId));
+  });
+
   function populateScreenLandHandover() {
     const listing = handoverOverrideListing || checkoutListing || landListingsList()[0] || null;
     handoverOverrideListing = null;
@@ -20207,16 +20663,17 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('s6h-survey-ref').textContent = `Survey Plan No. LA/2026/SP-${planNo} · Beacon Ref: 6.45${planNo.slice(0,2)}°N, 3.39${planNo.slice(2,4)}°E`;
 
     // Physical Access / Site Marker Schedule — bare land gets a surveyor boundary-
-    // pegging appointment; buildings get a key-handover appointment + smart lock PIN.
+    // pegging appointment; buildings get a key-handover appointment.
     const bareLand = isBareLandListing(listing);
-    document.getElementById('s6h-appt-label').textContent = bareLand ? 'Boundary Pegging Appointment' : 'Key Handover Appointment';
-    document.getElementById('s6h-appt-date-input-label').textContent = bareLand ? 'Choose Boundary Pegging Date' : 'Choose Physical Handover Date';
+    const physWord = bareLand ? 'Physical Allocation' : 'Physical Access';
+    document.getElementById('s6h-appt-label').textContent = physWord + ' Appointment';
+    document.getElementById('s6h-appt-date-input-label').textContent = 'Choose ' + physWord + ' Date';
+    const apptSecLabel = document.getElementById('s6h-appt-section-label');
+    if (apptSecLabel) apptSecLabel.lastChild.textContent = bareLand ? 'Physical Allocation & Site Marker Schedule' : 'Physical Access & Key Handover';
+    document.getElementById('s6h-appt-confirm-btn').lastChild.textContent = ' Request ' + physWord;
+    document.getElementById('s6h-appt-attend-btn').lastChild.textContent = bareLand ? ' Confirm Physical Allocation' : ' Confirm Physical Access';
     document.getElementById('s6h-appt-location-row').style.display = bareLand ? 'none' : 'flex';
     if (!bareLand) document.getElementById('s6h-appt-location').textContent = (listing && listing.location) || '—';
-    document.getElementById('s6h-smartlock-box').style.display = bareLand ? 'none' : 'flex';
-    if (bareLand) {
-      document.getElementById('s6h-smartlock-pin').textContent = 'Not generated yet';
-    }
 
     // Handover Officer / Seller — reuse the listing's landlord/agent identity.
     const officerName = (listing && listing.landlordName) || (listing && listing.agentName) || 'MainTown Handover Desk';
@@ -20262,6 +20719,8 @@ available in the Post-Lease Hub and this chat thread.`
     } else if (apptStatus === 'ATTENDED') {
       document.getElementById('s6h-appt-attended-text').textContent = `${apptLabel} completed on ${apptDateLabel}`;
     }
+
+    renderPhysDocsRow('s6h', myAsset);
 
     // Deed of Assignment status — only ever set true by the Owner actually
     // issuing it from their Asset Portfolio (see oa-issue-deed-btn), never
@@ -20364,6 +20823,9 @@ available in the Post-Lease Hub and this chat thread.`
       CONFIRMED: `Scheduled for ${asset.allocationDateLabel} — confirm once completed`,
       ATTENDED: `Completed on ${asset.allocationDateLabel}`
     };
+    const ahTitle = document.getElementById('ah-allocation-title');
+    if (ahTitle) ahTitle.textContent = physWordForAsset(asset) === 'Physical Access' ? 'Physical Access (Key Handover)' : 'Physical Land Allocation';
+    renderPhysDocsRow('ah', asset);
     allocBadge.textContent = allocLabelMap[allocStatus] || 'Not Yet Requested';
     allocBadge.className = 's5-status-badge ' + (allocStatus === 'ATTENDED' ? 'insp-status-confirmed' : 'insp-status-pending');
     const cofoBadge = document.getElementById('ah-cofo-status');
@@ -20422,7 +20884,7 @@ available in the Post-Lease Hub and this chat thread.`
   document.getElementById('ah-message-btn').addEventListener('click', () => {
     const asset = myAssets().find(a => a.id === activeAssetId);
     navigateTo('screen-messages');
-    const conv = asset ? conversations.find(c => c.listingTitle === asset.title) : null;
+    const conv = asset ? conversations.find(c => c.convType !== 'shortlet' && c.listingTitle === asset.title) : null;
     if (conv) { openThreadDetail(conv.id); } else { showToast('Chat unlocked — no messages yet'); }
   });
 
@@ -20458,16 +20920,16 @@ available in the Post-Lease Hub and this chat thread.`
     const apptLabel = document.getElementById('s6h-appt-label').textContent;
     if (isEnterpriseListing(listing)) {
       const who = (appState.users && appState.users[asset.ownerId] && appState.users[asset.ownerId].name) || buyerName;
-      notifyCompanyAllocation(listing, 'Physical Allocation Requested',
+      notifyCompanyAllocation(listing, physWordForListing(listing) + ' Requested',
         `${who} requested a ${apptLabel.toLowerCase()} for ${listing.title} on ${formatted}. The sales agent handling this listing will confirm it.`,
         { type: 'ALLOCATION_REQUESTED' });
     } else if (listing.ownerId) {
-      pushPlatformNotification('landlord', 'message', 'Physical Allocation Requested',
+      pushPlatformNotification('landlord', 'message', physWordForListing(listing) + ' Requested',
         `${buyerName} requested a ${apptLabel.toLowerCase()} for ${listing.title} on ${formatted}. Please confirm this date.`,
         { screen: 'screen-owner-assets' }, 'ALLOCATION_REQUESTED', null, listing.ownerId);
     }
 
-    showToast(isEnterpriseListing(listing) ? 'Physical allocation requested — awaiting your sales agent' : 'Physical allocation requested — awaiting Owner/Agent confirmation');
+    showToast(physWordForListing(listing) + (isEnterpriseListing(listing) ? ' requested \u2014 awaiting your sales agent' : ' requested \u2014 awaiting Owner/Agent confirmation'));
     populateScreenLandHandover();
   });
 
@@ -20488,16 +20950,16 @@ available in the Post-Lease Hub and this chat thread.`
 
     if (isEnterpriseListing(listing)) {
       const who = (appState.users && appState.users[asset.ownerId] && appState.users[asset.ownerId].name) || 'The buyer';
-      notifyCompanyAllocation(listing, 'Physical Allocation Completed',
-        `${who} confirmed the physical allocation for ${asset.title} is complete. Legal can now prepare the Deed once any other requirements are met.`,
+      notifyCompanyAllocation(listing, physWordForListing(listing) + ' Completed',
+        `${who} confirmed the ${physWordForListing(listing).toLowerCase()} for ${asset.title} is complete. Legal can now prepare the Deed once any other requirements are met.`,
         { type: 'ALLOCATION_ATTENDED' });
     } else if (listing.ownerId) {
-      pushPlatformNotification('landlord', 'message', 'Physical Allocation Completed',
-        `${asset.title}'s physical allocation has been completed and confirmed by the buyer — you can now issue the Receipt & Deed of Assignment from your Asset Portfolio.`,
+      pushPlatformNotification('landlord', 'message', physWordForListing(listing) + ' Completed',
+        `${asset.title}'s ${physWordForListing(listing).toLowerCase()} has been completed and confirmed by the buyer — you can now issue the Receipt & Deed of Assignment from your Asset Portfolio.`,
         { screen: 'screen-owner-assets' }, 'ALLOCATION_ATTENDED', null, listing.ownerId);
     }
 
-    showToast('Physical allocation confirmed — Owner notified to issue documents');
+    showToast(physWordForListing(listing) + ' confirmed \u2014 Owner notified to issue documents');
     populateScreenLandHandover();
   });
 
@@ -20509,7 +20971,7 @@ available in the Post-Lease Hub and this chat thread.`
   document.getElementById('s6h-message-btn').addEventListener('click', () => {
     const listing = checkoutListing || landListingsList()[0] || null;
     navigateTo('screen-messages');
-    const conv = listing ? conversations.find(c => c.listingTitle === listing.title) : null;
+    const conv = listing ? conversations.find(c => c.convType !== 'shortlet' && c.listingTitle === listing.title) : null;
     if (conv) {
       openThreadDetail(conv.id);
     } else {
@@ -20520,12 +20982,6 @@ available in the Post-Lease Hub and this chat thread.`
   document.getElementById('s6h-deed-view-btn').addEventListener('click', () => {
     if (document.getElementById('s6h-deed-view-btn').disabled) return;
     showToast('Downloading Deed of Assignment.pdf');
-  });
-
-  document.getElementById('s6h-smartlock-btn').addEventListener('click', () => {
-    const pin = String(Math.floor(100000 + Math.random() * 900000));
-    document.getElementById('s6h-smartlock-pin').textContent = `${pin} · Expires in 24 hours`;
-    showToast('Smart lock PIN generated');
   });
 
   document.getElementById('s6h-active-props-btn').addEventListener('click', () => {
@@ -21078,6 +21534,10 @@ available in the Post-Lease Hub and this chat thread.`
 
     renderProfileHelp(role);
 
+    // Sales/other staff have no wallet, so no wallet PIN. The CEO account does.
+    const pinBtn = document.getElementById('pf-open-pin');
+    if (pinBtn) pinBtn.style.display = (role === 'enterprise_staff' && getEnterpriseStaffRole() !== 'ceo') ? 'none' : '';
+
     if (window.lucide) lucide.createIcons();
   }
 
@@ -21159,17 +21619,21 @@ available in the Post-Lease Hub and this chat thread.`
     landlord: { icon: 'badge-check', title: 'Listing & Verification', sub: 'What we check before a listing goes live', sections: [
       ['Verification', 'Every listing goes through property title verification before it goes live.'],
       ['Accuracy', 'Photos, price and details must match the property. Misleading listings can be removed.'],
-      ['Inspections', 'Respond to requests promptly. Accepting one unlocks chat with the tenant.']
+      ['Inspections', 'Respond to requests promptly. Accepting one unlocks chat with the tenant.'],
+      ['Commercial listings', 'Commercial rentals (shops, offices, warehouses and event halls) are paid annually, in full upfront. There is no monthly flex-rent. Commercial leases use their own agreement.']
     ]},
     agent: { icon: 'handshake', title: 'Partnership & Conduct', sub: 'Your commitments as a MainTown agent', sections: [
       ['Partnership terms', 'Your commission and responsibilities are set out in the partnership terms you accepted at sign-up.'],
       ['Representing listings', 'List only properties you are authorised to represent, and keep owners and clients informed.'],
-      ['Conduct', 'Keep client conversations and payments on MainTown.']
+      ['Conduct', 'Keep client conversations and payments on MainTown.'],
+      ['Commercial listings', 'Commercial rentals (shops, offices, warehouses and event halls) are paid annually, in full upfront. There is no monthly flex-rent. Commercial leases use their own agreement.']
     ]},
     enterprise_staff: { icon: 'lock', title: 'Internal Use & Confidentiality', sub: 'Handling customer and payment data', sections: [
       ['Confidentiality', 'Tenant, landlord and payment information is for work use only.'],
       ['Escalation', 'Use Message CEO to flag a transaction, a document or a sale.'],
-      ['Private chats', 'Team chats are visible only to the people in them.']
+      ['Private chats', 'Team chats are visible only to the people in them.'],
+      ['Company listings', 'Listings you add are listed on behalf of your company, so no Landlord/Owner is needed. They go straight to the MainTown legal review queue.'],
+      ['Commercial listings', 'Commercial rentals (shops, offices, warehouses and event halls) are paid annually, in full upfront. There is no monthly flex-rent. Commercial leases use their own agreement.']
     ]}
   };
 
@@ -21537,6 +22001,68 @@ available in the Post-Lease Hub and this chat thread.`
   }
   function mtCurrentPassword(id) { const c = mtLoadCreds()[id]; return c && c.password ? c.password : null; }
 
+  // ---- Front-end guards: PIN lockout, PIN prompt, checkout pre-flight, chat leak filter, BVN dedupe ----
+  // These are courtesy guards that live in the browser. The server must enforce the same rules.
+  const MT_PIN_MAX_TRIES = 5, MT_PIN_LOCK_MS = 15 * 60 * 1000;
+  function mtPinGuardLoad() { try { return JSON.parse(localStorage.getItem('maintown_pin_guard') || '{}') || {}; } catch (e) { return {}; } }
+  function mtPinGuardSave(g) { try { localStorage.setItem('maintown_pin_guard', JSON.stringify(g)); } catch (e) {} }
+  function mtPinLockRemainingMs(id) { const r = mtPinGuardLoad()[id]; return (r && r.lockedUntil > Date.now()) ? r.lockedUntil - Date.now() : 0; }
+  function mtPinLockMessage(id) { return 'Too many wrong PIN attempts. Try again in ' + Math.max(1, Math.ceil(mtPinLockRemainingMs(id) / 60000)) + ' min.'; }
+  function mtCheckPin(id, entered) {
+    if (mtPinLockRemainingMs(id) > 0) return { ok: false, locked: true, left: 0 };
+    const g = mtPinGuardLoad(); const r = g[id] || { fails: 0, lockedUntil: 0 };
+    if (entered === mtCurrentPin(id)) { delete g[id]; mtPinGuardSave(g); return { ok: true, locked: false, left: MT_PIN_MAX_TRIES }; }
+    r.fails = (r.fails || 0) + 1;
+    if (r.fails >= MT_PIN_MAX_TRIES) { r.fails = 0; r.lockedUntil = Date.now() + MT_PIN_LOCK_MS; g[id] = r; mtPinGuardSave(g); return { ok: false, locked: true, left: 0 }; }
+    g[id] = r; mtPinGuardSave(g);
+    return { ok: false, locked: false, left: MT_PIN_MAX_TRIES - r.fails };
+  }
+  // Resolves true only when the signed-in user enters the right wallet PIN.
+  function mtAskPin(title, sub) {
+    return new Promise((resolve) => {
+      const id = mtUserId() || getCurrentUserId();
+      if (mtPinLockRemainingMs(id) > 0) { showToast(mtPinLockMessage(id)); resolve(false); return; }
+      const wrap = document.createElement('div');
+      wrap.className = 'modal-overlay open';
+      wrap.innerHTML = '<div class="modal-card"><h2 class="modal-title"></h2><p class="modal-sub" style="margin-bottom:14px;"></p>' +
+        '<div class="pf-field"><label class="field-label">Wallet PIN</label><input class="field-input" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="6-digit PIN"></div>' +
+        '<p class="login-error-msg show" style="display:none;"><span></span></p>' +
+        '<button type="button" class="btn-primary" data-ok>Confirm</button><button type="button" class="btn-secondary" data-cancel>Cancel</button></div>';
+      wrap.querySelector('.modal-title').textContent = title || 'Enter wallet PIN';
+      wrap.querySelector('.modal-sub').textContent = sub || 'Your 6-digit PIN authorizes this action.';
+      document.body.appendChild(wrap);
+      const input = wrap.querySelector('input'), err = wrap.querySelector('.login-error-msg'), errT = err.querySelector('span');
+      const done = (v) => { wrap.remove(); resolve(v); };
+      input.addEventListener('input', () => { input.value = input.value.replace(/\D/g, '').slice(0, 6); err.style.display = 'none'; });
+      wrap.querySelector('[data-cancel]').addEventListener('click', () => done(false));
+      wrap.querySelector('[data-ok]').addEventListener('click', () => {
+        if (!/^\d{6}$/.test(input.value)) { errT.textContent = 'Enter your 6-digit PIN.'; err.style.display = 'block'; return; }
+        const r = mtCheckPin(id, input.value);
+        if (r.ok) { done(true); return; }
+        input.value = '';
+        if (r.locked) { showToast(mtPinLockMessage(id)); done(false); return; }
+        errT.textContent = 'Incorrect PIN. ' + r.left + ' attempt' + (r.left === 1 ? '' : 's') + ' left.'; err.style.display = 'block';
+      });
+      setTimeout(() => input.focus(), 60);
+    });
+  }
+  // Blocks phone numbers, emails, links and bank-account details in tenant/host chats (off-platform ban).
+  function mtChatLeakCheck(text) {
+    const t = String(text || '').toLowerCase();
+    const stripped = t.replace(/[\s\-.()]/g, '');
+    if (/(\+?234|0)[789][01]\d{8}/.test(stripped)) return 'phone numbers';
+    if (/[\w.+-]+@[\w-]+\.[a-z]{2,}/.test(t)) return 'email addresses';
+    if (/(https?:\/\/|www\.|wa\.me|t\.me|bit\.ly)/.test(t)) return 'links';
+    if (/(account|acct|bank|transfer|pay me|send money)/.test(t) && /\b\d{10}\b/.test(t)) return 'bank account details';
+    return null;
+  }
+  function mtBvnTakenByOther(bvn, selfId) {
+    try {
+      const users = (loadAppState().users) || {};
+      return Object.keys(users).some(id => id !== selfId && (users[id].bvn === bvn || users[id].bvnNin === bvn));
+    } catch (e) { return false; }
+  }
+
   (function bindSecurityModals() {
     const wire = (openId, modalId, cancelId, saveId, errId, errTxtId, fieldIds, onSave) => {
       const modal = document.getElementById(modalId);
@@ -21566,7 +22092,9 @@ available in the Post-Lease Hub and this chat thread.`
     wire('pf-open-pin', 'pf-pin-modal', 'pf-pin-cancel', 'pf-pin-save', 'pf-pin-error', 'pf-pin-error-text',
       ['pf-pin-old', 'pf-pin-new', 'pf-pin-confirm'], (id, [oldP, newP, conf]) => {
         if (!/^\d{6}$/.test(oldP)) return 'Enter your current 6-digit PIN.';
-        if (oldP !== mtCurrentPin(id)) return 'Current PIN is incorrect.';
+        const chk = mtCheckPin(id, oldP);
+        if (chk.locked) return mtPinLockMessage(id);
+        if (!chk.ok) return 'Current PIN is incorrect. ' + chk.left + ' attempt' + (chk.left === 1 ? '' : 's') + ' left.';
         if (!/^\d{6}$/.test(newP)) return 'New PIN must be exactly 6 digits.';
         if (newP === oldP) return 'New PIN must be different from your current PIN.';
         if (newP !== conf) return 'New PINs do not match.';
@@ -22034,7 +22562,7 @@ available in the Post-Lease Hub and this chat thread.`
       const ninRes = (results.find(r => r[0] === 'nin') || [])[2];
       const addr = ninRes && ninRes.address ? ninRes.address : '';
       if (addr) { document.getElementById('va-address').value = addr; }
-      vaKycState = { status: demo ? 'demo' : 'verified', mode: demo ? 'demo' : 'live', reference: results.map(r => r[2].reference).join(','), bvnLast4: bvn ? bvn.slice(-4) : '', ninLast4: nin ? nin.slice(-4) : '', address: addr, verifiedAt: new Date().toISOString() };
+      vaKycState = { status: demo ? 'demo' : 'verified', mode: demo ? 'demo' : 'live', reference: results.map(r => r[2].reference).join(','), bvnLast4: bvn ? bvn.slice(-4) : '', ninLast4: nin ? nin.slice(-4) : '', address: addr, legalName: ((ninRes && ninRes.status === 'verified' && ninRes.matchedName) ? String(ninRes.matchedName).trim() : '') || undefined, verifiedAt: new Date().toISOString() };
       if (nin) document.getElementById('va-nin').value = kycMasked(nin);
       vaShowKycResult(demo ? 'demo' : 'ok', demo ? 'Demo mode: this is NOT a real verification. Connect your verification backend to go live.' : 'Identity verified' + (addr ? '. Address filled from your ID.' : '.'));
     } finally { btn.disabled = false; btn.innerHTML = label; if (window.lucide) lucide.createIcons(); }
@@ -22948,10 +23476,17 @@ available in the Post-Lease Hub and this chat thread.`
   document.getElementById('wd-cancel-btn').addEventListener('click', () => {
     document.getElementById('withdraw-wallet-modal').classList.remove('open');
   });
-  document.getElementById('wd-confirm-btn').addEventListener('click', () => {
+  let wdBusy = false;
+  document.getElementById('wd-confirm-btn').addEventListener('click', async () => {
+    if (wdBusy) return;
     const uid = walletTargetUserId();
     const amt = parseFloat(document.getElementById('wd-amount').value);
     if (!(amt > 0)) { showToast('Enter a valid amount to withdraw'); return; }
+    if (getWalletBalance(uid) < amt) { document.getElementById('wd-error').style.display = 'block'; return; }
+    wdBusy = true;
+    const pinOk = await mtAskPin('Confirm withdrawal', 'Enter your wallet PIN to send ' + formatMoney(amt, 'ngn') + ' to your bank.');
+    wdBusy = false;
+    if (!pinOk) return;
     if (!debitWallet(uid, amt)) {
       document.getElementById('wd-error').style.display = 'block';
       return;
@@ -22988,6 +23523,8 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('receipt-escrow').textContent = (t.meta && t.meta.escrowStatus) || (t.status === 'PENDING_ESCROW' ? 'Funds Held in MainTown Escrow' : 'N/A');
     document.getElementById('receipt-date').textContent = new Date(t.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
     document.getElementById('receipt-ref').textContent = t.id;
+    currentReceipt = { kind: 'txn', id: t.id };
+    document.getElementById('receipt-dispute-btn').style.display = '';
     document.getElementById('txn-receipt-modal').classList.add('open');
   }
 
@@ -22996,11 +23533,80 @@ available in the Post-Lease Hub and this chat thread.`
     if (!row) return;
     openTxnReceipt(row.dataset.txnId);
   });
+
+  // ---- Receipts for every transaction list (view + download as PDF) ----
+  // Whatever receipt the modal is showing: { kind:'txn', id } or { kind:'payout', role, idx }.
+  let currentReceipt = null;
+  function txnReceiptText(t) {
+    const isCredit = t.direction === 'credit';
+    const m = t.meta || {};
+    const when = new Date(t.timestamp).toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+    const lines = [
+      'MAINTOWN REALTY - TRANSACTION RECEIPT',
+      '=====================================',
+      `Status: ${walletStatusLabel(t.status, t)}`,
+      `Amount: ${isCredit ? '+' : '-'}${formatMoney(t.amount, 'ngn')}`,
+      `Description: ${t.title}`,
+      `Sender: ${m.sender || '-'}`,
+      `Recipient: ${m.recipient || '-'}`,
+      `Property: ${m.propertyName || '-'}`,
+      `Fee Type: ${m.feeType || t.category || '-'}`,
+      `Settlement Status: ${m.escrowStatus || (t.status === 'PENDING_ESCROW' ? 'Funds Held in MainTown Escrow' : 'N/A')}`
+    ];
+    if (m.needsCompanyConfirmation) lines.push(`Company Confirmation: ${m.confirmed ? 'Payment Confirmed' : 'Awaiting Confirmation'}`);
+    lines.push(`Date: ${when}`, `Reference ID: ${t.id}`, '=====================================', 'This receipt is auto-generated by MainTown Realty and serves as proof of this transaction.');
+    return lines.join('\n');
+  }
+  function saveReceiptPdf(text, fileName) {
+    const firstBreak = text.indexOf('\n');
+    const blob = buildTextPdfBlob(text.slice(0, firstBreak), text.slice(firstBreak + 1));
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+  function downloadTxnReceipt(t) {
+    saveReceiptPdf(txnReceiptText(t), `MainTown_Receipt_${t.id}.pdf`);
+    showToast('Receipt downloaded');
+  }
+  // Settlement vouchers (Landlord / Agent payout history) open in the same receipt modal.
+  function openPayoutReceipt(role, idx) {
+    const t = myPayouts(role)[idx];
+    const copy = payoutHistoryCopy[role];
+    if (!t || !copy) return;
+    currentReceipt = { kind: 'payout', role, idx };
+    const badge = document.getElementById('receipt-status-badge');
+    badge.textContent = t.status === 'DISBURSED' ? 'SETTLED TO BANK' : String(t.status || 'SUCCESSFUL');
+    badge.className = 'txn-status-badge settled';
+    const amountEl = document.getElementById('receipt-amount');
+    amountEl.textContent = '+' + formatMoney(t.amount, 'ngn');
+    amountEl.style.color = '#34d399';
+    document.getElementById('receipt-title').textContent = t.listingTitle || 'Settlement';
+    document.getElementById('receipt-sender').textContent = 'MainTown Automated Settlement';
+    document.getElementById('receipt-recipient').textContent = t.bankAccount || '—';
+    document.getElementById('receipt-property').textContent = t.listingTitle || '—';
+    document.getElementById('receipt-feetype').textContent = copy.sheetTitle;
+    document.getElementById('receipt-escrow').textContent = 'Settled to bank';
+    document.getElementById('receipt-date').textContent = new Date(t.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+    document.getElementById('receipt-ref').textContent = t.id;
+    document.getElementById('receipt-dispute-btn').style.display = 'none';
+    document.getElementById('txn-receipt-modal').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
   document.getElementById('receipt-close-btn').addEventListener('click', () => {
     document.getElementById('txn-receipt-modal').classList.remove('open');
   });
   document.getElementById('receipt-download-btn').addEventListener('click', () => {
-    showToast('Downloading Digital Bank Receipt.pdf');
+    if (!currentReceipt) return;
+    if (currentReceipt.kind === 'payout') {
+      const t = myPayouts(currentReceipt.role)[currentReceipt.idx];
+      if (t) downloadReceipt(currentReceipt.role, t);
+      return;
+    }
+    appState = loadAppState();
+    const t = (appState.transactions || []).find(x => x.id === currentReceipt.id);
+    if (t) downloadTxnReceipt(t);
   });
   document.getElementById('receipt-dispute-btn').addEventListener('click', () => {
     document.getElementById('txn-receipt-modal').classList.remove('open');
@@ -23695,7 +24301,7 @@ available in the Post-Lease Hub and this chat thread.`
     const txns = companyTransactions();
     const list = document.getElementById('ent-finance-report-list');
     list.innerHTML = txns.length ? txns.map(t => `
-      <div class="ent-list-item">
+      <div class="ent-list-item" data-txn-id="${t.id}" style="cursor:pointer;">
         <div class="ent-list-icon" data-txn-id="${t.id}" style="cursor:pointer;"><i data-lucide="${t.direction === 'credit' ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i></div>
         <div class="ent-list-text" data-txn-id="${t.id}" style="cursor:pointer;"><p class="ent-list-title">${t.title}</p><p class="ent-list-sub">${new Date(t.timestamp).toLocaleDateString()} · ${(t.meta && t.meta.needsCompanyConfirmation) ? (t.meta.confirmed ? 'Payment Confirmed' : 'Awaiting Confirmation') : walletStatusLabel(t.status, t)}</p></div>
         <p style="font-size:12.5px; font-weight:700; color:${t.direction === 'credit' ? '#34d399' : '#f87171'};">${t.direction === 'credit' ? '+' : '-'}${formatMoney(t.amount, 'ngn')}</p>
@@ -23756,9 +24362,48 @@ available in the Post-Lease Hub and this chat thread.`
     const readyDeeds = companyDeedRequests().filter(r => { const a = (appState.assets || []).find(x => x.id === r.assetId); return assetDeedStage(a) === 'READY' && !companyDeedDoc(r.assetId); });
     document.getElementById('ent-legal-stat-pending').textContent = String(pending.length + awaitingReview.length + readyDeeds.length);
     renderLegalDeedRequests();
+    renderLegalDispatch();
     renderLegalCountersignQueue();
     renderLegalCountersignedDocs();
   }
+  // Company sales whose digital Deed is out: Legal dispatches the originals, the buyer confirms receipt.
+  function renderLegalDispatch() {
+    const section = document.getElementById('ent-legal-dispatch-section');
+    const list = document.getElementById('ent-legal-dispatch-list');
+    if (!section || !list) return;
+    appState = loadAppState();
+    const cid = getEnterpriseCompanyId();
+    const rows = (appState.assets || []).filter(a => {
+      const l = listingForAsset(a);
+      return a.deedAvailable && l && isEnterpriseListing(l) && (l.companyId || l.ownerId) === cid;
+    }).sort((x, y) => (y.deedIssuedAt || 0) - (x.deedIssuedAt || 0));
+    if (!rows.length) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    list.innerHTML = rows.map(a => {
+      const d = a.dispatch;
+      const buyer = resolveUserName(a.ownerId);
+      const sub = !d ? `Buyer: ${buyer} \u00b7 pending dispatch`
+        : d.status === 'DELIVERED' ? `Buyer: ${buyer} \u00b7 ${d.ref} \u00b7 receipt confirmed ${new Date(d.receivedAt).toLocaleDateString()}`
+        : `Buyer: ${buyer} \u00b7 ${d.ref} \u00b7 in transit, awaiting buyer's confirmation`;
+      const action = !d
+        ? `<button type="button" class="ent-list-action-btn primary" data-dispatch-asset="${a.id}"><i data-lucide="truck" class="w-3.5 h-3.5"></i>Dispatch Documents</button>`
+        : `<span class="s5-status-badge ${d.status === 'DELIVERED' ? 'insp-status-confirmed' : 'insp-status-pending'}" style="white-space:nowrap;">${d.status === 'DELIVERED' ? 'Received' : 'In transit'}</span>`;
+      return `
+      <div class="ent-list-item">
+        <div class="ent-list-icon"><i data-lucide="${d && d.status === 'DELIVERED' ? 'package-check' : 'truck'}" class="w-4 h-4"></i></div>
+        <div class="ent-list-text">
+          <p class="ent-list-title">Physical documents \u2014 ${a.title}</p>
+          <p class="ent-list-sub">${sub}</p>
+        </div>
+        ${action}
+      </div>`;
+    }).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.getElementById('ent-legal-dispatch-list').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-dispatch-asset]');
+    if (b) openDispatchModal(b.dataset.dispatchAsset);
+  });
   function companyDeedRequests() {
     const companyId = getEnterpriseCompanyId();
     return (appState.deedRequests || []).filter(r => r.companyId === companyId);
@@ -24716,9 +25361,12 @@ available in the Post-Lease Hub and this chat thread.`
     }
     saveAppState(appState);
     if (deedAsset) {
-      pushPlatformNotification('landlord', 'message', 'Request Free Document Dispatch',
-        `${deedAsset.title} is fully paid and the digital Deed of Assignment has been sent. Tap to request a free SmartyHub Logistics dispatch of the original physical title documents to the buyer.`,
-        { screen: 'screen-owner-assets' }, 'PHYSICAL_DOCS_TO_LOGISTICS', null, d.companyId);
+      // Company listings: the Legal officer (not the CEO) dispatches the original documents.
+      companyStaffIdsByRole(d.companyId, 'legal').forEach(legalId => {
+        pushPlatformNotification('legal', 'message', 'Original Documents Ready for Dispatch',
+          `The digital Deed of Assignment for ${deedAsset.title} has been issued to ${buyer.name}. Please arrange dispatch of the original title documents through SmartyHub Logistics.`,
+          { screen: 'screen-ent-legal-dash' }, 'PHYSICAL_DOCS_TO_LOGISTICS', null, legalId);
+      });
     }
     pushPlatformNotification('tenant', 'message', d.docType || 'Document Delivered',
       `Your ${(d.docType || 'document').toLowerCase()} for ${d.listingTitle} is ready — view it in ${isLandDoc ? 'My Assets' : 'My Lease'}.`,
@@ -24750,7 +25398,7 @@ available in the Post-Lease Hub and this chat thread.`
     const txns = (appState.transactions || []).filter(t => t.userId === companyId || (t.meta && t.meta.companyId === companyId));
     const list = document.getElementById('ent-ledger-list');
     list.innerHTML = txns.length ? txns.map(t => `
-      <div class="ent-list-item">
+      <div class="ent-list-item" data-txn-id="${t.id}" style="cursor:pointer;">
         <div class="ent-list-icon"><i data-lucide="${t.direction === 'credit' ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i></div>
         <div class="ent-list-text"><p class="ent-list-title">${t.title}</p><p class="ent-list-sub">${new Date(t.timestamp).toLocaleDateString()} · ${(t.meta && t.meta.needsCompanyConfirmation) ? (t.meta.confirmed ? 'Payment Confirmed' : 'Awaiting Confirmation') : walletStatusLabel(t.status, t)}</p></div>
         <p style="font-size:12.5px; font-weight:700; color:${t.direction === 'credit' ? '#34d399' : '#f87171'};">${t.direction === 'credit' ? '+' : '-'}${formatMoney(t.amount, 'ngn')}</p>
@@ -24770,7 +25418,11 @@ available in the Post-Lease Hub and this chat thread.`
   }
   document.getElementById('ent-ledger-list').addEventListener('click', (e) => {
     const confirmBtn = e.target.closest('[data-confirm-payment]');
-    if (!confirmBtn) return;
+    if (!confirmBtn) {
+      const row = e.target.closest('[data-txn-id]');
+      if (row) openTxnReceipt(row.dataset.txnId);
+      return;
+    }
     confirmCompanyPayment(confirmBtn.dataset.confirmPayment);
     renderEntLedger();
   });
@@ -24798,6 +25450,7 @@ available in the Post-Lease Hub and this chat thread.`
     if (getEnterpriseStaffRole() !== 'ceo' || !appState.users[companyId]) return;
     const entBvn = document.getElementById('ent-wallet-bvn').value.trim();
     if (!/^\d{11}$/.test(entBvn)) { showToast('Enter a valid 11-digit BVN to save your settlement account'); return; }
+    if (mtBvnTakenByOther(entBvn, companyId)) { showToast('This BVN is already linked to another account.'); return; }
     appState.users[companyId].settlementBank = {
       bankName: document.getElementById('ent-wallet-bank-name').value.trim(),
       accountNumber: document.getElementById('ent-wallet-bank-account').value.trim(),
@@ -24806,11 +25459,17 @@ available in the Post-Lease Hub and this chat thread.`
     saveAppState(appState);
     showToast('Settlement account updated');
   });
-  document.getElementById('ent-wallet-withdraw-btn').addEventListener('click', () => {
+  let entWdBusy = false;
+  document.getElementById('ent-wallet-withdraw-btn').addEventListener('click', async () => {
+    if (entWdBusy) return;
     if (getEnterpriseStaffRole() !== 'ceo') { showToast('Only the CEO account can withdraw funds'); return; }
     const companyId = getEnterpriseCompanyId();
     const bal = getWalletBalance(companyId);
     if (!(bal > 0)) { showToast('No funds available to withdraw'); return; }
+    entWdBusy = true;
+    const entPinOk = await mtAskPin('Confirm withdrawal', 'Enter your wallet PIN to withdraw ' + formatMoney(bal, 'ngn') + ' to your bank.');
+    entWdBusy = false;
+    if (!entPinOk) return;
     if (!debitWallet(companyId, bal)) { showToast('Withdrawal failed'); return; }
     recordTransaction({
       userId: companyId, direction: 'debit', category: 'WITHDRAWAL',
