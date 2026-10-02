@@ -2155,6 +2155,8 @@
     font-size: 12px; cursor: pointer; margin-bottom: 18px; text-align: center; transition: border-color 0.15s ease;
   }
   .s5-upload-box:hover { border-color: #a855f7; color: #c084fc; }
+  .kyc-item-hint { font-size: 11px; line-height: 1.35; color: #64748b; margin-top: 2px; }
+  .kyc-item.uploaded .kyc-item-hint { display: none; }
   .s5-upload-box.has-file { border-color: #10b981; color: #34d399; border-style: solid; }
   .s5-upload-meta { font-size: 10.5px; color: #64748b; margin-top: -2px; }
   .s5-upload-box.has-file .s5-upload-meta { color: #6ee7b7; }
@@ -15624,6 +15626,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const ownerRowLabel = isLand
       ? (payeeForRow ? `${escHtmlLite(payeeForRow)}'s Share` : "Seller / Developer's Share")
       : (payeeForRow ? `${escHtmlLite(payeeForRow)}'s Share (${rentWord})` : `Landlord's Share (${rentWord})`);
+    // The commission split ratio is internal: buyers only see who was paid
+    // (the agent by name, and MainTown), never the percentages behind it.
+    const agentRowLabel = checkoutListing.agentName ? `${escHtmlLite(checkoutListing.agentName)}'s Share` : "Agent's Share";
     const rows = [
       `<div class="s5-hold-row"><span>${ownerRowLabel}${sub(ownerSubLabel)}</span><strong>${fmt((b.monthly || 0) + ownerExtras)}</strong></div>`
     ];
@@ -15631,20 +15636,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // Land: the 10% Agency Commission is two flat 5% halves, not a ratio of
       // one pooled figure — describe each half by who paid it.
       if (agentTake > 0) {
-        rows.push(`<div class="s5-hold-row"><span>Agent's Commission Share${sub("Seller's 5% Agency Commission — paid directly to the agent")}</span><strong>${fmt(agentTake)}</strong></div>`);
+        rows.push(`<div class="s5-hold-row"><span>${agentRowLabel}${sub('Agent commission, paid directly to the agent')}</span><strong>${fmt(agentTake)}</strong></div>`);
       }
-      const maintownSubLabel = isAgentManaged
-        ? `Buyer's 5% Agency Commission${platformLegalShare > 0 ? ' + legal fee' : ''}`
-        : `Buyer's 5% + Seller's 5% Agency Commission (no agent involved)${platformLegalShare > 0 ? ' + legal fee' : ''}`;
+      const maintownSubLabel = `Platform commission${platformLegalShare > 0 ? ' + legal fee' : ''}`;
       rows.push(`<div class="s5-hold-row"><span>MainTown's Share${sub(maintownSubLabel)}</span><strong>${fmt(maintownCommission + platformLegalShare)}</strong></div>`);
     } else {
-      const agentShare = b.agentShareOfCommission != null ? b.agentShareOfCommission : 0.60;
-      const agentSharePct = Math.round(agentShare * 100);
-      const maintownSharePct = 100 - agentSharePct;
       if (agentTake > 0) {
-        rows.push(`<div class="s5-hold-row"><span>Agent's Commission Share${sub(`${agentSharePct}% of the agent commission — paid directly to the agent`)}</span><strong>${fmt(agentTake)}</strong></div>`);
+        rows.push(`<div class="s5-hold-row"><span>${agentRowLabel}${sub('Agent commission, paid directly to the agent')}</span><strong>${fmt(agentTake)}</strong></div>`);
       }
-      rows.push(`<div class="s5-hold-row"><span>MainTown's Share${sub(isAgentManaged ? `${maintownSharePct}% of agent commission${platformLegalShare > 0 ? ' + legal fee' : ''}` : `Commission${platformLegalShare > 0 ? ' + legal fee' : ''}`)}</span><strong>${fmt(maintownCommission + platformLegalShare)}</strong></div>`);
+      rows.push(`<div class="s5-hold-row"><span>MainTown's Share${sub(`Platform commission${platformLegalShare > 0 ? ' + legal fee' : ''}`)}</span><strong>${fmt(maintownCommission + platformLegalShare)}</strong></div>`);
     }
     if (aiFee > 0) {
       rows.push(`<div class="s5-hold-row" style="color:#c4b5fd;"><span>MainTown AI Fee${sub('One-time')}</span><strong style="color:#c4b5fd;">${fmt(aiFee)}</strong></div>`);
@@ -17275,6 +17275,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // The owner just uploads ONE copy of a title document or a utility bill.
   const OWNERSHIP_PROOF_DOC = { id: 'OWNERSHIP_PROOF', label: 'Title document / utility bill', requiresConsent: false };
   const OWNERSHIP_PROOF_PROMPT = 'Upload a copy of title documents or utility bill';
+  const OWNERSHIP_PROOF_HINT = 'e.g. C of O, Deed, or Electricity/Water Bill';
   function usesSingleOwnershipDoc(type) { return type === 'rent' || type === 'shortlet'; }
 
   let s5LandlordMode = 'existing';
@@ -17546,6 +17547,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="s5-upload-box lv-single-upload" style="margin-bottom:6px;">
           <i data-lucide="upload-cloud" class="w-5 h-5"></i>
           <span class="lv-single-label">${OWNERSHIP_PROOF_PROMPT}</span>
+          <span class="s5-upload-meta lv-single-hint">${OWNERSHIP_PROOF_HINT}</span>
           <input type="file" class="lv-single-file" hidden accept="image/*,.pdf">
         </div>`;
       if (window.lucide) lucide.createIcons();
@@ -17619,6 +17621,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const box = single.closest('.lv-single-upload');
       box.classList.add('has-file');
       box.querySelector('.lv-single-label').textContent = file.name;
+      const hintEl = box.querySelector('.lv-single-hint'); if (hintEl) hintEl.style.display = 'none';
     }
   });
   document.getElementById('lv-doc-options').addEventListener('click', (e) => {
@@ -25498,7 +25501,7 @@ available in the Post-Lease Hub and this chat thread.`
       docList.innerHTML = entLegalDocSet.map(doc => `
         <div class="kyc-item" data-doc-key="${doc.id}">
           <div class="kyc-item-icon-wrap"><i data-lucide="file-text" class="w-5 h-5 text-slate-400"></i></div>
-          <div class="kyc-item-text"><p class="kyc-item-title">${doc.label}</p><p class="kyc-item-status">Tap to upload</p></div>
+          <div class="kyc-item-text"><p class="kyc-item-title">${doc.label}</p><p class="kyc-item-status">Tap to upload</p>${doc.id === OWNERSHIP_PROOF_DOC.id ? `<p class="kyc-item-hint">${OWNERSHIP_PROOF_HINT}</p>` : ''}</div>
           <button type="button" class="kyc-reupload-btn" title="Re-upload / Replace"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
           <input type="file" hidden class="kyc-file-input" id="ent-legal-doc-file-${doc.id}" accept="image/*,application/pdf">
           <div class="kyc-progress-track"><div class="kyc-progress-fill"></div></div>
