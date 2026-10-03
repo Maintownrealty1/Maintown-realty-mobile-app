@@ -3321,6 +3321,10 @@
   .pf-sec-btn span { flex: 1; }
   .pf-sec-btn .pf-sec-chev { color: #64748b; }
   body.light-theme .pf-sec-btn { color: #0f172a; }
+
+  /* Hide all scrollbars (page + inner scroll areas); scrolling still works */
+  html, body, * { scrollbar-width: none; -ms-overflow-style: none; }
+  html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; background: transparent; }
 </style>
 <style id="mtl-logo-anim">
   /* "M" and roof are written out stroke-by-stroke, then the windows pop in */
@@ -5799,16 +5803,6 @@
 
   <!-- Agreement Documents Vault -->
   <p class="s5-section-label"><i data-lucide="folder-lock" class="w-4 h-4 text-purple-400"></i>Agreement Documents Vault</p>
-  <div class="s5-list-item" style="margin-bottom: 10px;">
-    <div class="s5-list-icon"><i data-lucide="file-text" class="w-5 h-5"></i></div>
-    <div class="s5-list-text">
-      <p class="s5-list-title">LexiDraft Tenancy Agreement.pdf</p>
-      <p class="s5-list-sub"><span class="ml-stamp-badge"><i data-lucide="stamp" class="w-3 h-3"></i>Stamped by Legal Adviser</span></p>
-    </div>
-    <button type="button" class="s5-back-btn ml-doc-btn" id="ml-download-agreement-btn" style="width:auto; padding:0 14px;">
-      <i data-lucide="download" class="w-4 h-4"></i><span>Download</span>
-    </button>
-  </div>
   <div class="s5-list-item" style="margin-bottom: 20px;">
     <div class="s5-list-icon"><i data-lucide="map-pinned" class="w-5 h-5"></i></div>
     <div class="s5-list-text">
@@ -5822,6 +5816,11 @@
 
   <!-- Signed tenancy agreements forwarded by Sales staff (Legal -> CEO -> Sales -> Client pipeline) -->
   <div id="ml-enterprise-docs-list"></div>
+
+  <div id="ml-agreements-section" style="display:none; margin-top:6px; margin-bottom:14px;">
+    <p class="s5-section-label"><i data-lucide="file-check" class="w-4 h-4 text-emerald-400"></i>Signed Agreements</p>
+    <div id="ml-agreements-list"></div>
+  </div>
 
   <!-- Lease Metrics Grid -->
   <p class="s5-section-label"><i data-lucide="layout-grid" class="w-4 h-4 text-purple-400"></i>Lease Metrics</p>
@@ -10626,7 +10625,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     return {
       companyName: ent.companyName || listing.companyName || null,
       companyAddress: ent.companyAddress || (u && u.address) || listing.companyAddress || '',
-      ceoName: (u && u.name && !/^(landlord|agent|tenant)$/i.test(u.name)) ? u.name : ''
+      ceoName: (() => { const n = (ent.ceoName || (u && u.name) || '').trim(); const co = (ent.companyName || '').trim().toLowerCase(); return (n && !/^(landlord|agent|tenant|ceo|admin)$/i.test(n) && n.toLowerCase() !== co) ? n : ''; })()
     };
   }
   function companyPartyLabel(name, address) {
@@ -14875,11 +14874,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     return (appState.agreements || []).filter(a => uid && (a.partyIds || []).includes(uid))
       .slice().sort((x, y) => (y.createdAt || 0) - (x.createdAt || 0));
   }
-  function renderSignedAgreements(sectionId, listId) {
+  function renderSignedAgreements(sectionId, listId, only) {
     const section = document.getElementById(sectionId);
     const list = document.getElementById(listId);
     if (!section || !list) return;
-    const rows = myAgreements();
+    const deliveredTitles = new Set((appState.tenantLeaseDocuments || []).filter(d => d.buyerId && d.buyerId === currentDemoUserId()).map(d => d.listingTitle));
+    const rows = myAgreements().filter(a => !(only === 'lease' && deliveredTitles.has(a.listingTitle))).filter(a => !only || (only === 'land' ? agreementKind(a) === 'land' : agreementKind(a) !== 'land'));
     section.style.display = rows.length ? 'block' : 'none';
     list.innerHTML = rows.map(a => `
       <div class="s5-list-item" style="margin-bottom:10px; flex-wrap:wrap;">
@@ -15133,7 +15133,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function isSalesListedEnterpriseListing(listing) {
     if (!isEnterpriseListing(listing) || !listing.listedByStaffId) return false;
     const staff = appState.users && appState.users[listing.listedByStaffId];
-    return !!(staff && staff.role === 'enterprise_staff' && staff.staffRole === 'sales');
+    if (!staff) return listing.listedByStaffId !== (listing.companyId || listing.ownerId); // staff account removed: still company-listed
+    return staff.role === 'enterprise_staff' && staff.staffRole === 'sales';
   }
   function queueCountersignDocForCompany(listing, handoverObj) {
     if (!isSalesListedEnterpriseListing(listing)) return null;
@@ -15141,8 +15142,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!companyId) return null;
     const isLand = listing.type === 'land';
     appState.legalDocuments = appState.legalDocuments || [];
+    const dup = appState.legalDocuments.find(x => x.kind === 'COUNTERSIGN' && String(x.listingId) === String(listing.id)
+      && (x.buyerId || null) === (handoverObj.buyerId || null) && x.status === 'PENDING_COUNTERSIGN');
+    if (dup) return dup;
     const doc = {
-      id: Date.now(), companyId, kind: 'COUNTERSIGN', isLand,
+      id: Date.now() + Math.floor(Math.random() * 1000), companyId, kind: 'COUNTERSIGN', isLand,
       name: `${isLand ? 'Contract of Sale' : 'Tenancy Agreement'} — ${listing.title}`,
       fileDataUrl: null, uploadedBy: null, uploadedAt: Date.now(),
       status: 'PENDING_COUNTERSIGN',
@@ -15372,7 +15376,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
   hrAgreementBox.addEventListener('scroll', checkHrScrollBottom);
 
+  let hrReadOnly = false;
+  let handoverBackup = undefined; // the tenant's own handover, restored after a CEO/Legal doc session
+  function restoreHandoverAfterDocSession() {
+    if (handoverBackup !== undefined) { handover = handoverBackup; handoverBackup = undefined; }
+    hrReadOnly = false;
+  }
   function openHandoverReviewModal() {
+    if (handover && handover.docId && handover.status !== 'completed' && !hrReadOnly && getEnterpriseStaffRole() !== 'ceo') { showToast('Only the CEO can countersign. Legal can review and send reminders.'); return; }
     if (!handover) return;
     hrAgreementBox.innerHTML = buildHandoverAgreementHtml(handover);
     hrAgreementBox.scrollTop = 0;
@@ -15383,6 +15394,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const completedPanel = document.getElementById('hr-completed-panel');
     const landlordPreview = document.getElementById('hr-landlord-sig-preview');
 
+    if (hrReadOnly && handover.status !== 'completed') {
+      signPanel.style.display = 'none';
+      completedPanel.style.display = 'none';
+      hrScrollHint.classList.add('hidden');
+      landlordPreview.className = 'agreement-sig-preview landlord-sig pending';
+      landlordPreview.textContent = 'Awaiting CEO';
+      handoverReviewModal.classList.add('open');
+      if (window.lucide) lucide.createIcons();
+      return;
+    }
     hrReadDone = handover.status === 'completed';
     hrScrollHint.classList.toggle('hidden', hrReadDone);
     signPanel.classList.toggle('tp-locked', !hrReadDone);
@@ -15418,24 +15439,35 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   // Restores the agreement behind a specific countersign doc (several can be
   // waiting at once) and opens the standard review & sign sheet for the CEO.
-  function openCountersignForDoc(docId) {
+  function openCountersignForDoc(docId, readOnly) {
+    if (!readOnly && getEnterpriseStaffRole() !== 'ceo') { showToast('Only the CEO can countersign. Legal can review and send reminders.'); return; }
     const d = (appState.legalDocuments || []).find(x => String(x.id) === String(docId));
     if (!d || !d.handoverSnapshot) { openHandoverReviewModal(); return; }
-    if (d.status === 'COUNTERSIGNED') { showToast('Already countersigned and sent back'); return; }
-    handover = Object.assign({}, d.handoverSnapshot, { status: 'tenant-signed', docId: d.id });
-    saveHandover();
+    if (!readOnly && d.status === 'COUNTERSIGNED') { showToast('Already countersigned and sent back'); return; }
+    // Work on a copy; keep whatever handover this device already had and put it back afterwards.
+    if (handoverBackup === undefined) handoverBackup = handover;
+    hrReadOnly = !!readOnly;
+    handover = Object.assign({}, d.handoverSnapshot, { status: d.status === 'COUNTERSIGNED' ? 'completed' : 'tenant-signed', docId: d.id }, d.landlordSignature ? { landlordSignature: d.landlordSignature } : {});
     openHandoverReviewModal();
   }
-  document.getElementById('hr-close-btn').addEventListener('click', () => handoverReviewModal.classList.remove('open'));
+  document.getElementById('hr-close-btn').addEventListener('click', () => { handoverReviewModal.classList.remove('open'); restoreHandoverAfterDocSession(); });
 
-  document.getElementById('hr-sign-send-btn').addEventListener('click', () => {
-    if (hrSignSendBtn.disabled || !handover || !hrReadDone) return;
+  let hrPinBusy = false;
+  document.getElementById('hr-sign-send-btn').addEventListener('click', async () => {
+    if (hrSignSendBtn.disabled || !handover || !hrReadDone || hrPinBusy) return;
+    if (handover.docId && getEnterpriseStaffRole() !== 'ceo') { showToast('Only the CEO can countersign this agreement'); return; }
+    // Countersigning is a legally binding act: re-confirm the signer with their wallet PIN.
+    hrPinBusy = true;
+    const pinOk = await mtAskPin('Confirm countersignature', 'Enter your 6-digit PIN to countersign this agreement.');
+    hrPinBusy = false;
+    if (!pinOk) { showToast('Countersignature cancelled — PIN not confirmed'); return; }
+    if (!handover || !hrReadDone) return;
     handover.landlordSignature = hrSigMode === 'draw'
       ? { mode: 'draw', data: hrSigCanvas.toDataURL('image/png') }
       : { mode: 'type', data: hrSigTypeInput.value.trim() };
     handover.landlordSignedAt = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     handover.status = 'completed';
-    saveHandover();
+    if (!handover.docId) saveHandover();
     if (countersignReminderTimer) { clearInterval(countersignReminderTimer); countersignReminderTimer = null; }
 
     // Enterprise: mark the queued countersign doc as done, and tell Legal + the
@@ -15473,6 +15505,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     populateScreen4();
     if (!document.getElementById('screen-post-lease').classList.contains('hidden')) populateScreen7();
     handoverReviewModal.classList.remove('open');
+    restoreHandoverAfterDocSession();
   });
 
   document.getElementById('hr-download-btn').addEventListener('click', () => {
@@ -21128,7 +21161,7 @@ available in the Post-Lease Hub and this chat thread.`
   // Filing status — for whichever one is selected via activeAssetId. ----
   // ==================================================================
   function populateScreenAssetHub() {
-    renderSignedAgreements('ah-agreements-section', 'ah-agreements-list');
+    renderSignedAgreements('ah-agreements-section', 'ah-agreements-list', 'land');
     const owned = myAssets();
     const listEl = document.getElementById('ah-asset-list');
     const detailSection = document.getElementById('ah-detail-section');
@@ -21481,6 +21514,7 @@ available in the Post-Lease Hub and this chat thread.`
   // ---- SCREEN MY-LEASE: Digital Vault & Title Audit ----
   // ==================================================================
   function populateMyLeaseScreen() {
+    renderSignedAgreements('ml-agreements-section', 'ml-agreements-list', 'lease');
     const listing = checkoutListing || rentListings()[0] || null;
     const lease = activeLease || {};
 
@@ -21552,10 +21586,6 @@ available in the Post-Lease Hub and this chat thread.`
     else showToast(`Opening ${d.fileName}`);
   });
 
-  document.getElementById('ml-download-agreement-btn').addEventListener('click', () => {
-    const isDualSigned = typeof handover !== 'undefined' && handover && handover.status === 'completed';
-    showToast(`Opening ${isDualSigned ? 'Executed Tenancy Agreement (Dual-Signed).pdf' : 'Signed Tenancy Agreement.pdf'} (read-only)`);
-  });
   document.getElementById('ml-view-title-btn').addEventListener('click', () => {
     showToast('Opening Cadastral Survey & GPS Audit Certificate (read-only)');
   });
@@ -24835,6 +24865,7 @@ available in the Post-Lease Hub and this chat thread.`
           <p class="ent-list-title">${d.name}</p>
           <p class="ent-list-sub">Client signed ${d.tenantSignedAt || ''} · Awaiting CEO countersignature${d.reminderCount ? ' · Reminded ' + d.reminderCount + '×' : ''}</p>
           <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+            <button type="button" class="ent-list-action-btn" data-legal-read-doc="${d.id}"><i data-lucide="eye" class="w-3.5 h-3.5"></i>Read</button>
             ${d.legalReviewedAt
               ? `<span class="ent-doc-status-badge ent-doc-status-approved"><i data-lucide="check" class="w-3 h-3"></i>Reviewed</span>`
               : `<button type="button" class="ent-list-action-btn" data-legal-review-doc="${d.id}"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i>Mark Reviewed</button>`}
@@ -24845,6 +24876,8 @@ available in the Post-Lease Hub and this chat thread.`
     if (window.lucide) lucide.createIcons();
   }
   document.getElementById('ent-legal-countersign-list').addEventListener('click', (e) => {
+    const readBtn = e.target.closest('[data-legal-read-doc]');
+    if (readBtn) { openCountersignForDoc(readBtn.dataset.legalReadDoc, true); return; }
     const reviewBtn = e.target.closest('[data-legal-review-doc]');
     const remindBtn = e.target.closest('[data-legal-remind-doc]');
     const docId = reviewBtn ? reviewBtn.dataset.legalReviewDoc : remindBtn ? remindBtn.dataset.legalRemindDoc : null;
@@ -24860,6 +24893,7 @@ available in the Post-Lease Hub and this chat thread.`
         { screen: 'handoverReview', docId: d.id }, 'COUNTERSIGN_REVIEWED', null, d.companyId);
       showToast('Marked as reviewed — the CEO has been notified');
     } else {
+      if (d.lastReminderAt && Date.now() - d.lastReminderAt < 60 * 60 * 1000) { showToast('The CEO was already reminded within the last hour'); return; }
       d.reminderCount = (d.reminderCount || 0) + 1;
       d.lastReminderAt = Date.now();
       saveAppState(appState);
@@ -25608,6 +25642,28 @@ available in the Post-Lease Hub and this chat thread.`
     const list = document.getElementById('ent-ceo-legal-docs-list');
     if (!list) return;
     appState = loadAppState();
+    (function ensureAddressCard() {
+      let card = document.getElementById('ent-ceo-address-card');
+      const cid = getEnterpriseCompanyId();
+      const rec = appState.users && appState.users[cid];
+      const needs = isCeoSession() && rec && rec.enterprise && !rec.enterprise.companyAddress;
+      if (!needs) { if (card) card.remove(); return; }
+      if (card) return;
+      list.insertAdjacentHTML('beforebegin', `<div id="ent-ceo-address-card" class="ent-list-item" style="flex-direction:column; align-items:stretch; gap:8px; margin-bottom:12px;">
+        <p class="ent-list-title">Add your company address</p>
+        <p class="ent-list-sub">It appears on every tenancy agreement and contract of sale.</p>
+        <input class="field-input" id="ent-ceo-address-input" type="text" placeholder="Registered office address">
+        <button type="button" class="ent-list-action-btn primary" id="ent-ceo-address-save">Save address</button></div>`);
+      document.getElementById('ent-ceo-address-save').addEventListener('click', () => {
+        const v = (document.getElementById('ent-ceo-address-input').value || '').trim();
+        if (!v) { showToast('Please enter the company address'); return; }
+        appState = loadAppState();
+        appState.users[cid].enterprise.companyAddress = v;
+        saveAppState(appState);
+        showToast('Company address saved');
+        renderCeoLegalDocsList();
+      });
+    })();
     const deedWrap = document.getElementById('ent-ceo-deed-requests-wrap');
     const deedList = document.getElementById('ent-ceo-deed-requests-list');
     const deedRows = ceoOpenDeedRequests();
@@ -25629,6 +25685,7 @@ available in the Post-Lease Hub and this chat thread.`
           <p class="ent-list-title">${d.name}</p>
           <p class="ent-list-sub">${d.docType ? d.docType + ' · ' : ''}${d.kind !== 'COUNTERSIGN' && d.listingTitle ? d.listingTitle + ' · ' : ''}${d.buyerName && d.kind !== 'COUNTERSIGN' ? 'For ' + d.buyerName + ' · ' : ''}${CEO_DOC_STATUS_LABEL[d.status] || d.status}${d.status === 'PENDING_COUNTERSIGN' && d.legalReviewedAt ? ' · Reviewed by Legal' : ''}${d.status === 'PENDING_COUNTERSIGN' && d.reminderCount ? ' · Legal reminded ' + d.reminderCount + '×' : ''}</p>
         </div>
+        ${(d.kind === 'COUNTERSIGN' && ['COUNTERSIGNED','APPROVED','DELIVERED_TO_CLIENT'].includes(d.status)) ? `<button type="button" class="ent-list-action-btn" data-download-doc="${d.id}"><i data-lucide="download" class="w-3.5 h-3.5"></i>Download PDF</button>` : ''}
         ${d.status === 'PENDING_COUNTERSIGN' ? `<button type="button" class="ent-list-action-btn primary" data-countersign-doc="${d.id}"><i data-lucide="pen-line" class="w-3.5 h-3.5"></i>Countersign</button>` : ''}
         ${d.status === 'SENT_TO_CEO' ? `<button type="button" class="ent-list-action-btn primary" data-review-doc="${d.id}"><i data-lucide="file-search" class="w-3.5 h-3.5"></i>Review</button>` : ''}
       </div>`).join('')
@@ -25760,9 +25817,29 @@ available in the Post-Lease Hub and this chat thread.`
   document.getElementById('ent-ceo-legal-docs-list')?.addEventListener('click', (e) => {
     const signBtn = e.target.closest('[data-countersign-doc]');
     if (signBtn) { if (!isCeoSession()) { showToast('Only the CEO can countersign'); return; } openCountersignForDoc(signBtn.dataset.countersignDoc); return; }
+    const dlBtn = e.target.closest('[data-download-doc]');
+    if (dlBtn) { downloadCompanyAgreementPdf(dlBtn.dataset.downloadDoc); return; }
     const reviewBtn = e.target.closest('[data-review-doc]');
     if (reviewBtn) openDocReview(reviewBtn.dataset.reviewDoc);
   });
+  // CEO: download the executed land contract / tenancy agreement as a PDF.
+  function downloadCompanyAgreementPdf(docId) {
+    const d = (appState.legalDocuments || []).find(x => String(x.id) === String(docId));
+    if (!d) return;
+    const snap = d.handoverSnapshot || {};
+    let rec = (appState.agreements || []).find(a => String(a.listingId) === String(d.listingId) && (a.partyIds || []).includes(d.buyerId));
+    if (!rec) {
+      const dateSigned = d.countersignedAt ? new Date(d.countersignedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : (snap.landlordSignedAt || '');
+      rec = {
+        listingId: d.listingId, kind: d.isLand ? 'land' : 'rent',
+        fileName: (d.name || 'Agreement').replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '') + '.pdf',
+        dateSigned, listingTitle: d.listingTitle || '', tenantName: d.buyerName || snap.tenantName || 'Client',
+        hostName: snap.landlordName || '', hostAddress: snap.companyAddress || '', signatoryName: snap.ceoName || '',
+        hostLabel: 'Company', rentLabel: snap.rentLabel || 'See agreement for terms', propertyAddress: snap.propertyAddress || ''
+      };
+    }
+    downloadLeaseDocument(rec);
+  }
 
   // ---- Tab: Financial Ledger & Audit Receipts (read-only, no withdrawal) ----
   function renderEntLedger() {
