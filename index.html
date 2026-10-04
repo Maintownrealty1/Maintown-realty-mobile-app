@@ -10709,8 +10709,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const real = dxStoredDeals().find(d => String(d.listingId) === String(l.id) && d.status === 'live' && d.endsAt > now);
     return real || (samples || []).find(d => String(d.listingId) === String(l.id)) || null;
   }
+  const DEALS_DEMO_SAMPLES = true; // set false at launch: sample deals discount REAL listings
   function dxApplyDeals() {
-    const samples = dxSampleDeals();
+    const samples = DEALS_DEMO_SAMPLES ? dxSampleDeals() : [];
     (listings || []).forEach(l => {
       const d = dxActiveDealFor(l, samples);
       if (!d) { if (l._dealBase) { Object.assign(l, l._dealBase); delete l._dealBase; delete l._deal; } return; }
@@ -10725,6 +10726,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (um && d.oldPrice) l.usd = `$${Math.round(parseInt(um[0].replace(/,/g, ''), 10) * d.newPrice / d.oldPrice)}${unit}`;
     });
   }
+  setInterval(() => { try { dxApplyDeals(); } catch (e) {} }, 30000);
   function dxTagHtml(p) { return `<span class="dealx-pill" style="top:46px;z-index:3;">${dxPct(p._deal.oldPrice, p._deal.newPrice)}% OFF</span>`; }
   function dxMetaHtml(p) {
     const d = p._deal, unit = p.type === 'land' ? '' : (p.type === 'shortlet' ? ' / night' : ' / mo');
@@ -14768,6 +14770,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   loadCheckoutResumeState();
 
   function openCheckout(listing, landPayment) {
+    dxApplyDeals(); // an ended deal must never price a new checkout
     // Safety guard: never let an already-SOLD/RENTED listing re-enter checkout
     // (e.g. via a stale cart/inspection reference from another open screen).
     if (isListingUnavailable(listing)) {
@@ -16417,6 +16420,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function approveCheckoutPayment() {
     if (checkoutAuthSubmitting) return;
+    if (checkoutListing && checkoutListing._deal && checkoutListing._deal.endsAt <= Date.now()) {
+      dxApplyDeals();
+      showToast('This deal has ended. Go back and restart checkout at the regular price.');
+      return;
+    }
     checkoutAuthSubmitting = true;
     clearInterval(checkoutOtpTimer);
     checkoutOtpModal.classList.remove('open');
