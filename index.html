@@ -3308,6 +3308,7 @@
   .dealx-sort .dealx-chip.active { background: rgba(214,185,133,0.2); border-color: rgba(214,185,133,0.6); color: #d6b985; }
   body.light-theme .dealx-sort .dealx-chip.active { color: #8a6414; background: #fbf3df; border-color: #e6d3a3; }
   .dealx-card { margin-bottom: 14px; }
+  .dealx-meta2 { display: flex; gap: 10px; align-items: center; margin: -4px 0 8px; font-size: 11.5px; }
   .dealx-details-btn { margin-top: 10px; width: 100%; padding: 9px; border-radius: 10px; border: 1px solid rgba(124,58,237,0.5); background: rgba(124,58,237,0.12); color: inherit; font-size: 12.5px; font-weight: 700; }
   .dealx-del-btn { padding: 6px 12px; border-radius: 10px; border: 0; background: rgba(239,68,68,0.15); color: #ef4444; font-size: 11.5px; font-weight: 700; }
   .dealx-agree { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; margin-top: 12px; }
@@ -10687,28 +10688,50 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function dxSampleDeals() {
     let seed = parseInt(localStorage.getItem('mtr_deals_seed') || '0', 10);
     if (!seed) { seed = Date.now(); try { localStorage.setItem('mtr_deals_seed', String(seed)); } catch (e) {} }
-    const H = 3600e3;
-    const img = (id) => `https://images.unsplash.com/photo-${id}?w=700&h=420&fit=crop&q=80`;
-    const base = [
-      { key: 's1', kind: 'shortlet', dealType: 'shortlet_discount', title: 'Luxury 2-Bed Shortlet, Lekki Phase 1', location: 'Lekki Phase 1, Lagos', oldPrice: 85000, newPrice: 68000, unit: ' / night', hours: 52, poster: 'HD Properties', img: img('1502672260266-1c1ef2d93688') },
-      { key: 's2', kind: 'land', dealType: 'distress', title: '450sqm Land, Ibeju-Lekki', location: 'Ibeju-Lekki, Lagos', oldPrice: 8500000, newPrice: 6375000, unit: '', hours: 120, poster: 'Frank Hood', reason: 'Owner is relocating abroad and needs a quick sale. Documents are ready for transfer.', img: img('1500382017468-9049fed747ef') },
-      { key: 's3', kind: 'rent', dealType: 'price_drop', title: '3-Bed Duplex, Ikeja GRA', location: 'Ikeja GRA, Lagos', oldPrice: 350000, newPrice: 315000, unit: ' / mo', hours: 216, poster: 'John Adam', img: img('1512917774080-9991f1c4c750') },
-      { key: 's4', kind: 'shortlet', dealType: 'shortlet_discount', title: 'Studio Shortlet, Victoria Island', location: 'Victoria Island, Lagos', oldPrice: 55000, newPrice: 44000, unit: ' / night', hours: 20, poster: 'HD Properties', img: img('1560448204-e02f11c3d0e2') },
-      { key: 's5', kind: 'land', dealType: 'distress', title: '3-Bed Bungalow, Epe', location: 'Epe, Lagos', oldPrice: 22000000, newPrice: 17600000, unit: '', hours: 144, poster: 'HD Properties', reason: 'Developer is clearing the final units before year end.', img: img('1600585154340-be6161a56a0c') },
-      { key: 's6', kind: 'rent', dealType: 'price_drop', title: 'Studio Apartment, Yaba', location: 'Yaba, Lagos', oldPrice: 95000, newPrice: 85500, unit: ' / mo', hours: 288, poster: 'Frank Hood', img: img('1560448204-e02f11c3d0e2') }
-    ];
+    const H = 3600e3, now = Date.now();
+    const pcts = [20, 25, 10, 15, 12, 18], hrs = [52, 120, 216, 20, 144, 288];
+    const pool = (listings || []).filter(l => l.status !== 'draft' && (l.type === 'rent' || l.type === 'shortlet' || l.type === 'land') && !isListingUnavailable(l));
+    return pool.slice(0, 6).map((l, i) => {
+      const base = dxBasePrice(l); if (!base.amount) return null;
+      const cycle = hrs[i] * H, elapsed = Math.max(0, now - seed);
+      return { id: 'sample-' + l.id, listingId: l.id, kind: l.type, title: l.title, location: l.location, status: 'live', sample: true,
+        dealType: l.type === 'land' ? 'distress' : (l.type === 'shortlet' ? 'shortlet_discount' : 'price_drop'),
+        oldPrice: base.amount, newPrice: Math.round(base.amount * (100 - pcts[i]) / 100), unit: base.unit, posterName: 'MainTown sample',
+        reason: l.type === 'land' ? 'Seller needs a quick sale. Documents are ready for transfer.' : '',
+        endsAt: seed + cycle * (Math.floor(elapsed / cycle) + 1) };
+    }).filter(Boolean);
+  }
+  // Deal overlay: while a deal is live, the listing itself carries the deal price, so every
+  // card, checkout, inspection and booking flow uses it automatically. It is reverted when
+  // the deal ends and is never written to storage (see listingForStorage).
+  function dxActiveDealFor(l, samples) {
     const now = Date.now();
-    return base.map(d => {
-      const cycle = d.hours * H;
-      const elapsed = Math.max(0, now - seed);
-      return Object.assign({}, d, { id: 'sample-' + d.key, posterName: d.poster, status: 'live', sample: true, endsAt: seed + cycle * (Math.floor(elapsed / cycle) + 1) });
+    const real = dxStoredDeals().find(d => String(d.listingId) === String(l.id) && d.status === 'live' && d.endsAt > now);
+    return real || (samples || []).find(d => String(d.listingId) === String(l.id)) || null;
+  }
+  function dxApplyDeals() {
+    const samples = dxSampleDeals();
+    (listings || []).forEach(l => {
+      const d = dxActiveDealFor(l, samples);
+      if (!d) { if (l._dealBase) { Object.assign(l, l._dealBase); delete l._dealBase; delete l._deal; } return; }
+      if (!l._dealBase) l._dealBase = { ngn: l.ngn, usd: l.usd, totalPrice: l.totalPrice, nightlyRate: l.nightlyRate };
+      const bs = l._dealBase;
+      l._deal = { id: d.id, dealType: d.dealType, oldPrice: d.oldPrice, newPrice: d.newPrice, endsAt: d.endsAt, reason: d.reason || '', posterName: d.posterName || '' };
+      if (l.type === 'land') { l.totalPrice = d.newPrice; return; }
+      const unit = l.type === 'shortlet' ? ' / night' : ' / mo';
+      if (l.type === 'shortlet') l.nightlyRate = d.newPrice;
+      l.ngn = `${formatMoney(d.newPrice, 'ngn')}${unit}`;
+      const um = String(bs.usd || '').match(/[\d,]+/);
+      if (um && d.oldPrice) l.usd = `$${Math.round(parseInt(um[0].replace(/,/g, ''), 10) * d.newPrice / d.oldPrice)}${unit}`;
     });
   }
-  function dxStoredDeals() { appState = loadAppState(); return Array.isArray(appState.deals) ? appState.deals : []; }
-  function dxLiveDeals() {
-    const real = dxStoredDeals().filter(d => d.status === 'live' && d.endsAt > Date.now());
-    return real.concat(dxSampleDeals());
+  function dxTagHtml(p) { return `<span class="dealx-pill" style="top:46px;z-index:3;">${dxPct(p._deal.oldPrice, p._deal.newPrice)}% OFF</span>`; }
+  function dxMetaHtml(p) {
+    const d = p._deal, unit = p.type === 'land' ? '' : (p.type === 'shortlet' ? ' / night' : ' / mo');
+    return `<p class="dealx-meta2"><span class="dealx-old">${dxMoney(d.oldPrice)}${unit}</span><span class="dealx-timer">${dxLeft(d.endsAt)}</span></p>`;
   }
+  function dxStoredDeals() { appState = loadAppState(); return Array.isArray(appState.deals) ? appState.deals : []; }
+  function dxLiveDeals() { dxApplyDeals(); return (listings || []).filter(l => l._deal && !isListingUnavailable(l)); }
 
   function dxCardHtml(d) {
     const pct = dxPct(d.oldPrice, d.newPrice);
@@ -10729,10 +10752,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function renderDealsFeed() {
     let rows = dxLiveDeals();
-    if (dealsFilter !== 'all') rows = rows.filter(d => d.kind === dealsFilter);
-    rows.sort((a, b) => dealsSort === 'discount' ? dxPct(b.oldPrice, b.newPrice) - dxPct(a.oldPrice, a.newPrice) : a.endsAt - b.endsAt);
+    if (dealsFilter !== 'all') rows = rows.filter(l => l.type === dealsFilter);
+    rows.sort((a, b) => dealsSort === 'discount' ? dxPct(b._deal.oldPrice, b._deal.newPrice) - dxPct(a._deal.oldPrice, a._deal.newPrice) : a._deal.endsAt - b._deal.endsAt);
     const el = document.getElementById('dealx-feed');
-    el.innerHTML = rows.length ? rows.map(dxCardHtml).join('') : '<div class="dealx-empty">No offers in this category right now. Check back soon.</div>';
+    el.innerHTML = rows.length ? rows.map(l => l.type === 'land' ? s5LandCardHtml(l) : s5RentCardHtml(l, currentCurrency)).join('') : '<div class="dealx-empty">No offers in this category right now. Check back soon.</div>';
     document.querySelectorAll('#dealx-kind-chips .dealx-chip').forEach(b => b.classList.toggle('active', b.dataset.dkind === dealsFilter));
     document.querySelectorAll('#dealx-sort-chips .dealx-chip').forEach(b => b.classList.toggle('active', b.dataset.dsort === dealsSort));
     if (window.lucide) lucide.createIcons();
@@ -10805,6 +10828,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
   function dxBasePrice(l) {
     if (!l) return { amount: 0, unit: '' };
+    if (l._dealBase) l = Object.assign({}, l, l._dealBase);
     if (l.type === 'land') return { amount: Number(l.totalPrice) || 0, unit: '' };
     if (l.type === 'shortlet') return { amount: Number(l.nightlyRate) || 0, unit: ' / night' };
     return { amount: parseInt(String(l.ngn || '').replace(/[^0-9]/g, ''), 10) || 0, unit: ' / mo' };
@@ -10896,7 +10920,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('dealx-tabs').addEventListener('click', (e) => { const b = e.target.closest('.dealx-tab'); if (b) setDealsTab(b.dataset.dtab); });
   document.getElementById('dealx-kind-chips').addEventListener('click', (e) => { const b = e.target.closest('.dealx-chip'); if (b) { dealsFilter = b.dataset.dkind; renderDealsFeed(); } });
   document.getElementById('dealx-sort-chips').addEventListener('click', (e) => { const b = e.target.closest('.dealx-chip'); if (b) { dealsSort = b.dataset.dsort; renderDealsFeed(); } });
-  document.getElementById('dealx-feed').addEventListener('click', (e) => { const c = e.target.closest('.dealx-details-btn'); if (c) openDealDetail(c.dataset.dealId); });
+  document.getElementById('dealx-feed').addEventListener('click', (e) => { dxApplyDeals(); s5FeedHandle(e.target); });
   document.getElementById('dealx-post-btn').addEventListener('click', openDealPost);
   document.getElementById('dealpost-listing').addEventListener('change', dxRefreshPostForm);
   ['dealpost-type', 'dealpost-price', 'dealpost-end', 'dealpost-reason', 'dealpost-agree'].forEach(id => {
@@ -11555,6 +11579,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function listingForStorage(l) {
     const isBlob = v => typeof v === 'string' && v.indexOf('blob:') === 0;
     const copy = { ...l };
+    if (copy._dealBase) { Object.assign(copy, copy._dealBase); delete copy._dealBase; delete copy._deal; }
     if (Array.isArray(copy.photos)) copy.photos = copy.photos.filter(u => !isBlob(u));
     if (isBlob(copy.videoUrl)) copy.videoUrl = null;
     if (isBlob(copy.img)) copy.img = PROPERTY_IMG_FALLBACK[copy.type] || PROPERTY_IMG_FALLBACK.rent;
@@ -12433,11 +12458,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderMarketBars();
     renderS5FilterChips();
     if (!marketIsLive()) { feed.innerHTML = marketComingSoonHTML(currentMarket(), 'page'); if (window.lucide) lucide.createIcons(); startMarketHeroes(); return; }
+    dxApplyDeals();
     const base = rentListings().filter(l => !isListingUnavailable(l) && inCurrentMarket(l));
     const data = applyS5Filters(base, 'rent');
     setS5ResultCount(data.length, base.length);
     if (!data.length && base.length) { feed.innerHTML = s5NoMatchHTML(); return; }
-    feed.innerHTML = data.map(p => {
+    feed.innerHTML = data.map(p => s5RentCardHtml(p, currency)).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+  function s5RentCardHtml(p, currency) {
       const isShortlet = p.type === 'shortlet';
       // BUGFIX: this used to hard-exclude shortlets from ever being treated
       // as unavailable (`!isShortlet && ...`), so a shortlet that had
@@ -12451,6 +12480,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="s5-card-img-wrap">
           <img src="${p.img}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'${isShortlet ? 'shortlet' : 'rent'}')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Preliminary Verification</span>
+          ${p._deal ? dxTagHtml(p) : ''}
           ${unavailable ? '' : mtlFavBtn(p)}
           ${isShortlet ? `<span class="s5-live-media-badge"><i data-lucide="calendar-days" class="w-3 h-3"></i>Shortlet</span>` : ''}
           ${p.hasVideo ? `<span class="s5-live-media-badge" style="${isShortlet ? 'top:38px;' : ''}"><i data-lucide="video" class="w-3 h-3"></i>Walkthrough Video</span>` : ''}
@@ -12460,6 +12490,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <div class="s5-card-titlerow"><p class="s5-card-title">${p.title}</p><button type="button" class="s5-info-btn" data-listing-id="${p.id}" aria-label="View listing details"><i data-lucide="info" class="w-3.5 h-3.5"></i>Details</button></div>
           <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
           <p class="s5-card-price">${currency === 'usd' ? p.usd : p.ngn} <span>${isShortlet ? 'shortlet' : (p.usage === 'commercial' ? String(p.commercialType || 'commercial').toLowerCase() : 'rent')}</span></p>
+          ${p._deal ? dxMetaHtml(p) : ''}
           ${isShortlet ? slCardRatingHTML(p) : ''}
           <div class="s5-card-actions">
             <button type="button" class="s5-action-btn wt-btn" data-title="${p.title}"><i data-lucide="video" class="w-4 h-4"></i>Virtual Walkthrough</button>
@@ -12475,8 +12506,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
           ${unavailable ? `<p class="s5-unavailable-notice rented"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i>This property is no longer available as it has been successfully RENTED.</p>` : ''}`}
         </div>
       </div>`;
-    }).join('');
-    if (window.lucide) lucide.createIcons();
   }
 
   function renderLandFeed() {
@@ -12485,11 +12514,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderMarketBars();
     renderS5FilterChips();
     if (!marketIsLive()) { feed.innerHTML = marketComingSoonHTML(currentMarket(), 'page'); if (window.lucide) lucide.createIcons(); startMarketHeroes(); return; }
+    dxApplyDeals();
     const base = landListingsList().filter(l => !isListingUnavailable(l) && inCurrentMarket(l));
     const data = applyS5Filters(base, 'land');
     setS5ResultCount(data.length, base.length);
     if (!data.length && base.length) { feed.innerHTML = s5NoMatchHTML(); return; }
-    feed.innerHTML = data.map(p => {
+    feed.innerHTML = data.map(p => s5LandCardHtml(p)).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+  function s5LandCardHtml(p) {
       const photos = (p.photos && p.photos.length) ? p.photos : [p.img];
       const unavailable = isListingUnavailable(p);
       return `
@@ -12497,6 +12530,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="s5-card-img-wrap" data-listing-id="${p.id}" data-slide-index="0">
           <img class="s5-slide-img" src="${photos[0]}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'land')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Preliminary Title Check</span>
+          ${p._deal ? dxTagHtml(p) : ''}
           ${unavailable ? '' : mtlFavBtn(p)}
           ${photos.length > 1 ? `
           <button type="button" class="s5-slide-nav prev" data-listing-id="${p.id}" data-dir="-1" aria-label="Previous photo"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
@@ -12513,6 +12547,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <div class="s5-card-titlerow"><p class="s5-card-title">${p.title}</p><button type="button" class="s5-info-btn" data-listing-id="${p.id}" aria-label="View listing details"><i data-lucide="info" class="w-3.5 h-3.5"></i>Details</button></div>
           <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
           <p class="s5-card-price">${formatMoney(p.totalPrice, 'ngn')} <span>total price</span></p>
+          ${p._deal ? dxMetaHtml(p) : ''}
           ${p.type === 'land' ? `<p class="s5-card-location" style="margin:-4px 0 8px;"><i data-lucide="${listingPropKind(p) === 'house' ? 'home' : 'ruler'}" class="w-3.5 h-3.5"></i>${listingPropSummary(p)}</p>` : (p.sqm ? `<p class="s5-card-location" style="margin:-4px 0 8px;"><i data-lucide="ruler" class="w-3.5 h-3.5"></i>${formatSqm(p.sqm)}</p>` : '')}
           ${p.titleTypeLabel ? `
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin: 2px 0 10px;">
@@ -12532,12 +12567,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
           ${unavailable ? `<p class="s5-unavailable-notice sold"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i>This property is no longer available as it has been successfully SOLD.</p>` : ''}
         </div>
       </div>`;
-    }).join('');
-    if (window.lucide) lucide.createIcons();
   }
 
   document.getElementById('s5-listing-feed').addEventListener('click', (e) => s5FeedHandle(e.target));
   function s5FeedHandle(target) {
+    if (typeof dxApplyDeals === 'function') dxApplyDeals();
     const e = { target };
     const wtBtn = e.target.closest('.wt-btn');
     const landBtn = e.target.closest('.land-pay-btn');
@@ -15356,7 +15390,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     rec = {
       id: `AGR-${Date.now().toString(36).toUpperCase()}`,
       listingId: listing.id,
-      kind: listing.type || 'rent',
+      kind: listing.type || 'rent', deal: msg.deal,
       fileName: msg.fileName, fileSize: msg.fileSize, dateSigned: msg.dateSigned,
       listingTitle: msg.listingTitle, tenantName: msg.tenantName, hostName: msg.hostName,
       tenantAddress: msg.tenantAddress || ((document.getElementById('reg-address') || {}).value || '').trim() || ((appState.users || {})[tenantId] || {}).address || '',
@@ -15469,6 +15503,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       hostLabel: payeeCompany ? hostRoleWord : (listing.listedBy === 'agent' ? 'Agent' : 'Landlord'),
       rentLabel,
       kind: listing.type || 'rent',
+      deal: listing._deal ? { ...listing._deal } : undefined,
       agreementTitle: agrP.title, usage: listing.usage || undefined, commercialType: listing.commercialType || undefined,
       propertyAddress: listing.location, checkIn: (listing.type === 'shortlet' && checkoutShortlet) ? checkoutShortlet.checkIn : undefined, checkOut: (listing.type === 'shortlet' && checkoutShortlet) ? checkoutShortlet.checkOut : undefined,
       nights: (listing.type === 'shortlet' && checkoutShortlet) ? checkoutShortlet.nights : undefined,
@@ -20783,6 +20818,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     return (l && l.type) || 'rent';
   }
   function agreementSections(m) {
+    const base = agreementSectionsBase(m);
+    const lst = (typeof listings !== 'undefined') ? listings.find(x => x.title === (m && m.listingTitle)) : null;
+    const d = (m && m.deal) || (lst && lst._deal);
+    if (!d) return base;
+    const un = agreementKind(m) === 'land' ? '' : (agreementKind(m) === 'shortlet' ? ' / night' : ' / month');
+    return base.concat([{ title: `Clause ${base.length + 1} \u2014 Deal Offer Price`, body: `This transaction is made under a MainTown Deal Offer. The agreed price is ${dxMoney(d.newPrice)}${un} instead of the regular ${dxMoney(d.oldPrice)}${un} (${dxPct(d.oldPrice, d.newPrice)}% off), valid until ${new Date(d.endsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}. The ${agreementKind(m) === 'land' ? 'Seller' : (agreementKind(m) === 'shortlet' ? 'Host' : 'Landlord/Agent')} confirms the regular price shown is genuine, will honour the deal price for this transaction, and has accepted the MainTown Deal Offer Agreement. All other terms of this document are unchanged.${d.reason ? ' Reason given for the offer: ' + d.reason : ''}` }]);
+  }
+  function agreementSectionsBase(m) {
     const kind = agreementKind(m);
     if (kind === 'land') {
       return [
