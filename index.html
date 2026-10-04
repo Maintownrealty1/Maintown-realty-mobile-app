@@ -3282,6 +3282,18 @@
   body.light-theme .dash-grid .dash-tile .dash-tile-icon-wrap svg,
   body.light-theme .ent-quick-card .ent-quick-card-icon svg { color: #7c3aed !important; }
 
+
+  /* Light mode: white ring around notification badges (was a dark ring) */
+  body.light-theme .bell-dot { box-shadow: 0 0 0 2px #ffffff; }
+  body.light-theme .mtai-badge { border-color: #ffffff; }
+  body.light-theme .dash-unread-dot { box-shadow: 0 0 0 2px #ffffff; }
+  /* Enterprise card: darker gold subtitle on white, brighter gold chip in dark mode */
+  body.light-theme .ent-promo-sub { color: #8a6414; }
+  .ent-promo-icon { background: rgba(230,195,120,0.2); color: #e6c378; }
+  .ent-promo-cta { color: #e6c378; }
+  body.light-theme .ent-promo-icon { background: #fbf3df; color: #a07a22; }
+  body.light-theme .ent-promo-cta { color: #8a6414; }
+
   /* ---- Bottom nav: fully solid so scrolled content disappears behind it (no see-through) ---- */
   #app-bottom-nav { padding-top: 10px; padding-bottom: max(16px, env(safe-area-inset-bottom)); }
   #app-bottom-nav::before {
