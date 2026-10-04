@@ -3184,6 +3184,29 @@
   body.light-theme .ent-attention strong { color: #0f172a; }
   body.light-theme .ent-attention.ok { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
 
+
+  /* CEO home: quick access as small rounded-square buttons with a label underneath */
+  .ent-access-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(62px, 1fr)); gap: 12px 8px; margin-bottom: 22px; }
+  .ent-access-card {
+    min-height: 0; padding: 0; background: none; border: 0; box-shadow: none; border-radius: 0;
+    flex-direction: column; align-items: center; text-align: center; gap: 7px;
+  }
+  .ent-access-card:hover { border-color: transparent; }
+  .ent-access-card .ent-access-icon {
+    width: 56px; height: 56px; border-radius: 16px; position: relative;
+    background: linear-gradient(180deg, rgba(139,92,246,0.28), rgba(91,33,182,0.38)); border: 1px solid rgba(139,92,246,0.45); color: #ede9fe;
+  }
+  .ent-access-card .ent-access-icon svg { width: 21px; height: 21px; }
+  .ent-access-card .ent-access-title { margin: 0; padding: 0; font-size: 11.5px; font-weight: 600; line-height: 1.2; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ent-access-badge {
+    position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+    background: #ec4899; color: #fff; font-size: 10.5px; font-weight: 800; line-height: 18px; text-align: center; border: 2px solid #0B0F19;
+  }
+  .ent-access-card.warn .ent-access-icon { background: var(--brass-soft); border-color: rgba(214,185,133,0.5); color: var(--brass); }
+  body.light-theme .ent-access-card { background: none; border: 0; box-shadow: none; color: #0f172a; }
+  body.light-theme .ent-access-card .ent-access-icon { background: #f3e8ff; border-color: #e9d5ff; color: #7c3aed; }
+  body.light-theme .ent-access-badge { border-color: #fff; }
+
   /* ---- Bottom nav: fully solid so scrolled content disappears behind it (no see-through) ---- */
   #app-bottom-nav { padding-top: 10px; padding-bottom: max(16px, env(safe-area-inset-bottom)); }
   #app-bottom-nav::before {
@@ -15411,7 +15434,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
       signPanel.style.display = 'none';
       completedPanel.style.display = 'block';
       landlordPreview.className = 'agreement-sig-preview landlord-sig';
-      if (handover.landlordSignature.mode === 'draw') {
+      if (!handover.landlordSignature) {
+        landlordPreview.textContent = 'Signed by CEO';
+      } else if (handover.landlordSignature.mode === 'draw') {
         landlordPreview.innerHTML = `<img src="${handover.landlordSignature.data}" alt="Landlord signature">`;
       } else {
         landlordPreview.textContent = handover.landlordSignature.data;
@@ -15473,6 +15498,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Enterprise: mark the queued countersign doc as done, and tell Legal + the
     // Sales staff member handling this client that it has gone back.
     if (handover.docId) {
+      appState = loadAppState();
       const cd = (appState.legalDocuments || []).find(x => String(x.id) === String(handover.docId));
       if (cd && cd.status !== 'COUNTERSIGNED') {
         cd.status = 'COUNTERSIGNED';
@@ -25230,19 +25256,17 @@ available in the Post-Lease Hub and this chat thread.`
       { key: 'legal', icon: 'scale', title: 'Legal review', num: legalQueue.total, unit: 'in review', sub: legalQueue.total ? [legalQueue.titles ? `${legalQueue.titles} ${plural(legalQueue.titles, 'title', 'titles')}` : '', legalQueue.agreements ? `${legalQueue.agreements} to countersign` : '', legalQueue.docs ? `${legalQueue.docs} ${plural(legalQueue.docs, 'document', 'documents')}` : '', legalQueue.deeds ? `${legalQueue.deeds} ${plural(legalQueue.deeds, 'deed request', 'deed requests')}` : ''].filter(Boolean).join(' · ') : 'Titles, agreements and deeds', warn: legalQueue.total > 0 },
       { key: 'ledger', icon: 'receipt', title: 'Ledger', num: txns.length, unit: plural(txns.length, 'transaction', 'transactions'), sub: escrowTxns.length ? `${escrowTxns.length} to confirm` : 'Receipts and CSV export', warn: escrowTxns.length > 0 },
     ].filter(c => visible.includes(c.key));
+    const shortTitle = { inventory: 'Inventory', team: 'Team', legal: 'Legal', ledger: 'Ledger' };
     let html = cards.map(c => `
-      <button type="button" class="ent-access-card${c.warn ? ' warn' : ''}" data-ent-open="${c.key}">
-        <span class="ent-access-head"><span class="ent-access-icon"><i data-lucide="${c.icon}"></i></span><i data-lucide="arrow-up-right" class="ent-access-arrow"></i></span>
-        <span class="ent-access-title">${c.title}</span>
-        <span><span class="ent-access-num">${c.num}</span><span class="ent-access-unit">${c.unit}</span></span>
-        <span class="ent-access-sub">${c.sub}</span>
+      <button type="button" class="ent-access-card${c.warn ? ' warn' : ''}" data-ent-open="${c.key}" title="${c.sub}">
+        <span class="ent-access-icon"><i data-lucide="${c.icon}"></i>${(c.key === 'legal' || c.key === 'ledger') && (c.key === 'legal' ? legalQueue.total : escrowTxns.length) ? `<span class="ent-access-badge">${c.key === 'legal' ? legalQueue.total : escrowTxns.length}</span>` : ''}</span>
+        <span class="ent-access-title">${shortTitle[c.key] || c.title}</span>
       </button>`).join('');
     if (visible.includes('wallet')) {
       html += `
-      <button type="button" class="ent-access-card wide" data-ent-open="wallet">
+      <button type="button" class="ent-access-card" data-ent-open="wallet" title="Settlement bank and withdrawals">
         <span class="ent-access-icon"><i data-lucide="landmark"></i></span>
-        <span class="ent-access-text"><span class="ent-access-title" style="display:block;">Wallet &amp; payouts</span><span class="ent-access-sub" style="display:block;">Settlement bank and withdrawals</span></span>
-        <i data-lucide="arrow-up-right" class="ent-access-arrow"></i>
+        <span class="ent-access-title">Wallet</span>
       </button>`;
     }
     document.getElementById('ent-access-grid').innerHTML = html;
@@ -25838,7 +25862,14 @@ available in the Post-Lease Hub and this chat thread.`
         hostLabel: 'Company', rentLabel: snap.rentLabel || 'See agreement for terms', propertyAddress: snap.propertyAddress || ''
       };
     }
-    downloadLeaseDocument(rec);
+    const signer = d.countersignedBy && appState.users && appState.users[d.countersignedBy];
+    const coName = ((appState.users && appState.users[d.companyId] && appState.users[d.companyId].enterprise) || {}).companyName || '';
+    const signerName = signer && signer.name && signer.name.trim().toLowerCase() !== coName.trim().toLowerCase() && !/^(landlord|agent|tenant|ceo|admin)$/i.test(signer.name.trim()) ? signer.name.trim() : '';
+    const info = enterprisePartyInfo((typeof listings !== 'undefined' ? listings : []).find(l => String(l.id) === String(d.listingId))) || {};
+    downloadLeaseDocument(Object.assign({}, rec, {
+      signatoryName: signerName || rec.signatoryName || info.ceoName || '',
+      hostAddress: info.companyAddress || rec.hostAddress || ''
+    }));
   }
 
   // ---- Tab: Financial Ledger & Audit Receipts (read-only, no withdrawal) ----
