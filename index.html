@@ -6010,6 +6010,7 @@
       <li>I will not raise the listing price before the deal ends, or inflate the old price to fake a discount.</li>
       <li>Distress-sale reasons and all details I give are true. False deals may be removed and my account suspended.</li>
       <li>MainTown may reject, pause or remove a deal that breaks these rules. Standard commission still applies to completed deals.</li>
+      <li>Distress sales of land and property are by outright payment only; no installment plan is offered.</li>
       <li>Once the end date passes the deal stops showing to tenants, and I can delete it from My deals.</li>
     </ul></details>
   <label class="dealx-agree"><input type="checkbox" id="dealpost-agree"><span>I have read and accept the Deal Offer Agreement</span></label>
@@ -18580,9 +18581,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
     ));
   }
 
+  function dxOutrightOnly(l) { return !!(l && l.type === 'land' && l._deal && l._deal.dealType === 'distress' && l._deal.endsAt > Date.now()); }
   function openLandPaymentModal(listing) {
+    dxApplyDeals();
     landModalListing = listing;
     landModalMode = 'outright';
+    (function () {
+      const only = dxOutrightOnly(listing);
+      document.getElementById('lp-mode-installment').style.display = only ? 'none' : '';
+      let n = document.getElementById('lp-distress-note');
+      if (!n) { n = document.createElement('p'); n.id = 'lp-distress-note'; n.className = 'dealx-note'; n.style.margin = '0 0 10px'; document.getElementById('lp-mode-outright').parentNode.insertAdjacentElement('afterend', n); }
+      n.textContent = 'Distress sale: this property is sold on outright payment only. Installments are not available.';
+      n.style.display = only ? '' : 'none';
+    })();
     landModalFreq = 'monthly';
     document.getElementById('lp-freq-monthly').classList.add('active');
     document.getElementById('lp-freq-quarterly').classList.remove('active');
@@ -18625,6 +18636,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('lp-installment-panel').style.display = 'none';
   });
   document.getElementById('lp-mode-installment').addEventListener('click', () => {
+    if (dxOutrightOnly(landModalListing)) { showToast('Distress sales are outright payment only'); return; }
     landModalMode = 'installment';
     document.getElementById('lp-mode-installment').classList.add('active');
     document.getElementById('lp-mode-outright').classList.remove('active');
@@ -18663,7 +18675,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     const fee = Math.round(landModalListing.totalPrice * 0.02);
     let payload;
-    if (landModalMode === 'outright') {
+    if (landModalMode === 'outright' || dxOutrightOnly(landModalListing)) {
       payload = { mode: 'outright', totalPrice: landModalListing.totalPrice, processingFee: fee };
     } else {
       const b = annotateCommissionSplit(computeInstallmentBreakdown(landModalListing.totalPrice, landModalFreq, landModalListing.legalFeePct), landModalListing);
@@ -20881,7 +20893,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const d = (m && m.deal) || (lst && lst._deal);
     if (!d) return base;
     const un = agreementKind(m) === 'land' ? '' : (agreementKind(m) === 'shortlet' ? ' / night' : ' / month');
-    return base.concat([{ title: `Clause ${base.length + 1} \u2014 Deal Offer Price`, body: `This transaction is made under a MainTown Deal Offer. The agreed price is ${dxMoney(d.newPrice)}${un} instead of the regular ${dxMoney(d.oldPrice)}${un} (${dxPct(d.oldPrice, d.newPrice)}% off), valid until ${new Date(d.endsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}. The ${agreementKind(m) === 'land' ? 'Seller' : (agreementKind(m) === 'shortlet' ? 'Host' : 'Landlord/Agent')} confirms the regular price shown is genuine, will honour the deal price for this transaction, and has accepted the MainTown Deal Offer Agreement. All other terms of this document are unchanged.${d.reason ? ' Reason given for the offer: ' + d.reason : ''}` }]);
+    return base.concat([{ title: `Clause ${base.length + 1} \u2014 Deal Offer Price`, body: `This transaction is made under a MainTown Deal Offer. The agreed price is ${dxMoney(d.newPrice)}${un} instead of the regular ${dxMoney(d.oldPrice)}${un} (${dxPct(d.oldPrice, d.newPrice)}% off), valid until ${new Date(d.endsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}. The ${agreementKind(m) === 'land' ? 'Seller' : (agreementKind(m) === 'shortlet' ? 'Host' : 'Landlord/Agent')} confirms the regular price shown is genuine, will honour the deal price for this transaction, and has accepted the MainTown Deal Offer Agreement.${d.dealType === 'distress' && agreementKind(m) === 'land' ? ' As a distress sale, payment is by outright purchase only; no installment plan applies.' : ''} All other terms of this document are unchanged.${d.reason ? ' Reason given for the offer: ' + d.reason : ''}` }]);
   }
   function agreementSectionsBase(m) {
     const kind = agreementKind(m);
