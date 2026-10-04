@@ -19352,6 +19352,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // legacy listings with none configured).
     ibAvailabilityMap = new Map(getListingAvailability(inspectionListing).map(a => [a.date, a.slots]));
     ibCalendarViewDate = new Date();
+    // Open the calendar on the first month that actually has an open date, so a
+    // listing whose host dates start next month never looks fully blocked.
+    (function () {
+      const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+      const future = [...ibAvailabilityMap.keys()].filter(k => ibAvailabilityMap.get(k) && ibAvailabilityMap.get(k).length && new Date(k + 'T00:00:00') >= t0).sort();
+      if (future.length) { const f = new Date(future[0] + 'T00:00:00'); ibCalendarViewDate = new Date(f.getFullYear(), f.getMonth(), 1); }
+      else showToast('The host has no open inspection dates right now. Please check back soon.');
+    })();
     ibSelectedDate = null;
     ibSelectedSlot = null;
     // Site Visit Safety Waiver: rendered from the shared clause text and must
