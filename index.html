@@ -3307,7 +3307,13 @@
   .dealx-sort .dealx-chip { font-size: 11.5px; padding: 5px 12px; }
   .dealx-sort .dealx-chip.active { background: rgba(214,185,133,0.2); border-color: rgba(214,185,133,0.6); color: #d6b985; }
   body.light-theme .dealx-sort .dealx-chip.active { color: #8a6414; background: #fbf3df; border-color: #e6d3a3; }
-  .dealx-card { margin-bottom: 14px; cursor: pointer; }
+  .dealx-card { margin-bottom: 14px; }
+  .dealx-details-btn { margin-top: 10px; width: 100%; padding: 9px; border-radius: 10px; border: 1px solid rgba(124,58,237,0.5); background: rgba(124,58,237,0.12); color: inherit; font-size: 12.5px; font-weight: 700; }
+  .dealx-del-btn { padding: 6px 12px; border-radius: 10px; border: 0; background: rgba(239,68,68,0.15); color: #ef4444; font-size: 11.5px; font-weight: 700; }
+  .dealx-agree { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; margin-top: 12px; }
+  .dealx-agree input { margin-top: 3px; }
+  .dealx-terms { font-size: 12px; opacity: .85; line-height: 1.5; margin: 10px 0 0; padding: 10px 12px; border-radius: 12px; background: rgba(148,163,184,0.1); }
+  .dealx-terms li { margin: 4px 0 4px 16px; list-style: disc; }
   .dealx-img { position: relative; height: 170px; background: #1e293b center / cover no-repeat; }
   .dealx-pill { position: absolute; top: 10px; left: 10px; padding: 4px 10px; border-radius: 999px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 800; }
   .dealx-type { position: absolute; top: 10px; right: 10px; padding: 4px 10px; border-radius: 999px; background: rgba(6,8,15,0.72); color: #e6c378; font-size: 11px; font-weight: 700; backdrop-filter: blur(4px); }
@@ -5985,6 +5991,16 @@
     <label class="field-label">Why is this a distress sale?</label>
     <textarea class="field-input" id="dealpost-reason" rows="3" placeholder="e.g. Owner relocating abroad and needs a quick sale"></textarea>
   </div>
+  <details class="dealx-terms"><summary style="font-weight:700;cursor:pointer;">Deal Offer Agreement (read)</summary>
+    <ul>
+      <li>I own this listing or am authorised to act for the owner, and the old price shown is its real current price.</li>
+      <li>I will honour the deal price for every tenant or buyer who books or pays before the end date.</li>
+      <li>I will not raise the listing price before the deal ends, or inflate the old price to fake a discount.</li>
+      <li>Distress-sale reasons and all details I give are true. False deals may be removed and my account suspended.</li>
+      <li>MainTown may reject, pause or remove a deal that breaks these rules. Standard commission still applies to completed deals.</li>
+      <li>Once the end date passes the deal stops showing to tenants, and I can delete it from My deals.</li>
+    </ul></details>
+  <label class="dealx-agree"><input type="checkbox" id="dealpost-agree"><span>I have read and accept the Deal Offer Agreement</span></label>
   <div class="dealx-checks" id="dealpost-checks"></div>
   <button type="button" class="dealx-btn" id="dealpost-submit">Submit for review</button>
 </div>
@@ -10706,6 +10722,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <p class="dealx-loc">${dxEsc(d.location)}</p>
         <div class="dealx-prices"><span class="dealx-new">${dxMoney(d.newPrice)}${dxEsc(d.unit)}</span><span class="dealx-old">${dxMoney(d.oldPrice)}</span></div>
         <div class="dealx-meta"><span class="dealx-timer">${dxLeft(d.endsAt)}</span><span class="dealx-poster"><i data-lucide="badge-check"></i>${dxEsc(d.posterName || 'Verified poster')}</span></div>
+        <button type="button" class="dealx-details-btn" data-deal-id="${dxEsc(d.id)}">Details</button>
       </div>
     </div>`;
   }
@@ -10731,7 +10748,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div><p style="font-weight:700;font-size:13.5px;">${dxEsc(d.title)}</p>
         <p style="font-size:12px;opacity:.7;">${dxMoney(d.newPrice)}${dxEsc(d.unit)} · ${dxPct(d.oldPrice, d.newPrice)}% off · ${DEAL_TYPE_LABEL[d.dealType]}</p>
         ${d.status === 'rejected' && d.rejectReason ? `<p style="font-size:11.5px;color:#ef4444;margin-top:2px;">${dxEsc(d.rejectReason)}</p>` : ''}</div>
-        <span class="dealx-status ${statusOf(d)}">${statusOf(d)}</span></div>`).join('')
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;"><span class="dealx-status ${statusOf(d)}">${statusOf(d)}</span>${(statusOf(d) === 'expired' || d.status === 'rejected') ? `<button type="button" class="dealx-del-btn" data-deal-delete="${dxEsc(d.id)}">Delete</button>` : ''}</div></div>`).join('')
       : '<div class="dealx-empty">You have not posted a deal yet.</div>';
     const pending = all.filter(d => d.status === 'pending');
     html += '<p class="dealx-section-label">MainTown review queue (demo)</p><p class="dealx-note" style="margin:0 0 8px;">In the live app only MainTown staff see this list. It is here so you can test approving a deal.</p>';
@@ -10773,7 +10790,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="dealx-detail-row"><span>Offer</span><strong>${dxLeft(d.endsAt)}</strong></div>
         <div class="dealx-detail-row"><span>Posted by</span><strong>${dxEsc(d.posterName || 'Verified poster')}</strong></div>
         ${d.reason ? `<div class="dealx-detail-row"><span>Reason</span><strong style="max-width:60%;text-align:right;">${dxEsc(d.reason)}</strong></div>` : ''}
-        <p class="dealx-note">Checked by MainTown. The old price is the listing's price before the deal.</p>
+        <p class="dealx-note">Poster has agreed to honour this price until the offer ends. Checked by MainTown. The old price is the listing's price before the deal.</p>
         <button type="button" class="dealx-btn" id="deal-detail-view" data-deal-id="${dxEsc(d.id)}">View listing</button>
         <button type="button" class="dealx-btn ghost" id="deal-detail-close">Close</button>
       </div>`;
@@ -10811,7 +10828,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       { ok: !(l && l.priceRaisedAt && Date.now() - l.priceRaisedAt < DEAL_MAX_DAYS * 864e5), text: 'Price was not raised in the last 30 days' },
       { ok: endMs > Date.now() && endMs <= Date.now() + DEAL_MAX_DAYS * 864e5 + 864e5, text: `Offer ends within ${DEAL_MAX_DAYS} days` },
       { ok: !dupe, text: 'No other deal running or waiting on this listing' },
-      { ok: type !== 'distress' || reason.length >= 20, text: 'Distress sales include a reason (20+ characters)' }
+      { ok: type !== 'distress' || reason.length >= 20, text: 'Distress sales include a reason (20+ characters)' },
+      { ok: !!document.getElementById('dealpost-agree').checked, text: 'Deal Offer Agreement accepted' }
     ];
   }
   function dxRefreshPostForm() {
@@ -10837,6 +10855,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     sel.innerHTML = mine.map(l => `<option value="${dxEsc(l.id)}">${dxEsc(l.title)}</option>`).join('');
     document.getElementById('dealpost-price').value = '';
     document.getElementById('dealpost-reason').value = '';
+    document.getElementById('dealpost-agree').checked = false;
     const endEl = document.getElementById('dealpost-end');
     const iso = (ms) => new Date(ms - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
     endEl.min = iso(Date.now() + 864e5);
@@ -10864,7 +10883,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       endsAt: new Date(document.getElementById('dealpost-end').value + 'T23:59:00').getTime(),
       reason: (document.getElementById('dealpost-reason').value || '').trim(),
       posterId: uid, posterName: (ent && ent.companyName) || me.name || 'Verified poster',
-      status: 'pending', createdAt: Date.now()
+      status: 'pending', createdAt: Date.now(), agreement: { accepted: true, version: 1, at: Date.now() }
     });
     saveAppState(appState);
     showToast('Submitted — MainTown will review it before it goes live');
@@ -10877,14 +10896,27 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('dealx-tabs').addEventListener('click', (e) => { const b = e.target.closest('.dealx-tab'); if (b) setDealsTab(b.dataset.dtab); });
   document.getElementById('dealx-kind-chips').addEventListener('click', (e) => { const b = e.target.closest('.dealx-chip'); if (b) { dealsFilter = b.dataset.dkind; renderDealsFeed(); } });
   document.getElementById('dealx-sort-chips').addEventListener('click', (e) => { const b = e.target.closest('.dealx-chip'); if (b) { dealsSort = b.dataset.dsort; renderDealsFeed(); } });
-  document.getElementById('dealx-feed').addEventListener('click', (e) => { const c = e.target.closest('.dealx-card'); if (c) openDealDetail(c.dataset.dealId); });
+  document.getElementById('dealx-feed').addEventListener('click', (e) => { const c = e.target.closest('.dealx-details-btn'); if (c) openDealDetail(c.dataset.dealId); });
   document.getElementById('dealx-post-btn').addEventListener('click', openDealPost);
   document.getElementById('dealpost-listing').addEventListener('change', dxRefreshPostForm);
-  ['dealpost-type', 'dealpost-price', 'dealpost-end', 'dealpost-reason'].forEach(id => {
+  ['dealpost-type', 'dealpost-price', 'dealpost-end', 'dealpost-reason', 'dealpost-agree'].forEach(id => {
     const el = document.getElementById(id); el.addEventListener('input', dxRefreshPostForm); el.addEventListener('change', dxRefreshPostForm);
   });
   document.getElementById('dealpost-submit').addEventListener('click', submitDeal);
   document.getElementById('dealx-mine').addEventListener('click', (e) => {
+    const del = e.target.closest('[data-deal-delete]');
+    if (del) {
+      appState = loadAppState();
+      const d = (appState.deals || []).find(x => String(x.id) === String(del.dataset.dealDelete));
+      if (!d || d.posterId !== currentDemoUserId()) return;
+      if (!(d.status === 'rejected' || (d.status === 'live' && d.endsAt <= Date.now()))) { showToast('You can delete a deal once its end date has passed'); return; }
+      if (!confirm('Delete this deal?')) return;
+      appState.deals = appState.deals.filter(x => x !== d);
+      saveAppState(appState);
+      showToast('Deal deleted');
+      renderMyDeals();
+      return;
+    }
     const ap = e.target.closest('[data-deal-approve]'), rj = e.target.closest('[data-deal-reject]');
     if (!ap && !rj) return;
     appState = loadAppState();
