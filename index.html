@@ -3294,6 +3294,61 @@
   body.light-theme .ent-promo-icon { background: #fbf3df; color: #a07a22; }
   body.light-theme .ent-promo-cta { color: #8a6414; }
 
+
+  /* ---- Deals & Offers ---- */
+  .dealx-sub { font-size: 12.5px; opacity: .7; margin: 0 0 14px; line-height: 1.45; }
+  .dealx-hint { font-size: 11.5px; opacity: .7; margin: 6px 0 0; }
+  .dealx-tabs { display: flex; gap: 6px; margin-bottom: 12px; padding: 4px; border-radius: 14px; background: rgba(148,163,184,0.12); }
+  .dealx-tab { flex: 1; padding: 8px 10px; border-radius: 10px; border: 0; background: transparent; color: inherit; font-size: 12.5px; font-weight: 700; opacity: .7; }
+  .dealx-tab.active { background: rgba(139,92,246,0.25); opacity: 1; }
+  .dealx-chips { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 10px; padding-bottom: 2px; }
+  .dealx-chip { flex-shrink: 0; padding: 7px 14px; border-radius: 999px; border: 1px solid rgba(148,163,184,0.3); background: transparent; color: inherit; font-size: 12px; font-weight: 600; }
+  .dealx-chip.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+  .dealx-sort .dealx-chip { font-size: 11.5px; padding: 5px 12px; }
+  .dealx-sort .dealx-chip.active { background: rgba(214,185,133,0.2); border-color: rgba(214,185,133,0.6); color: #d6b985; }
+  body.light-theme .dealx-sort .dealx-chip.active { color: #8a6414; background: #fbf3df; border-color: #e6d3a3; }
+  .dealx-card { margin-bottom: 14px; cursor: pointer; }
+  .dealx-img { position: relative; height: 170px; background: #1e293b center / cover no-repeat; }
+  .dealx-pill { position: absolute; top: 10px; left: 10px; padding: 4px 10px; border-radius: 999px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 800; }
+  .dealx-type { position: absolute; top: 10px; right: 10px; padding: 4px 10px; border-radius: 999px; background: rgba(6,8,15,0.72); color: #e6c378; font-size: 11px; font-weight: 700; backdrop-filter: blur(4px); }
+  .dealx-body { padding: 12px 14px 14px; }
+  .dealx-title { font-size: 15px; font-weight: 700; margin: 0 0 2px; }
+  .dealx-loc { font-size: 12px; opacity: .65; margin: 0 0 8px; }
+  .dealx-prices { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .dealx-new { font-size: 18px; font-weight: 800; }
+  .dealx-old { font-size: 12.5px; opacity: .55; text-decoration: line-through; }
+  .dealx-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 11.5px; }
+  .dealx-timer { color: #d97706; font-weight: 700; }
+  body:not(.light-theme) .dealx-timer { color: #fbbf24; }
+  .dealx-poster { opacity: .7; display: inline-flex; align-items: center; gap: 4px; }
+  .dealx-poster svg { width: 13px; height: 13px; color: #16a34a; }
+  .dealx-empty { text-align: center; padding: 40px 10px; opacity: .65; font-size: 13px; }
+  .dealx-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 14px; border-radius: 14px; border: 0; background: #7c3aed; color: #fff; font-size: 14px; font-weight: 700; margin-top: 8px; }
+  .dealx-btn.ghost { background: transparent; border: 1px solid rgba(148,163,184,0.35); color: inherit; }
+  .dealx-post-btn { position: fixed; left: 20px; right: 20px; bottom: 104px; width: auto; z-index: 30; box-shadow: 0 10px 24px -8px rgba(124,58,237,0.6); }
+  .dealx-checks { margin: 14px 0 6px; display: flex; flex-direction: column; gap: 6px; }
+  .dealx-check { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; }
+  .dealx-check svg { width: 15px; height: 15px; flex-shrink: 0; margin-top: 1px; }
+  .dealx-check.ok svg { color: #16a34a; }
+  .dealx-check.bad svg { color: #ef4444; }
+  .dealx-check.bad { opacity: .95; }
+  .dealx-status { font-size: 10.5px; font-weight: 800; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: .02em; }
+  .dealx-status.live { background: rgba(22,163,74,0.18); color: #16a34a; }
+  .dealx-status.pending { background: rgba(245,158,11,0.18); color: #d97706; }
+  .dealx-status.rejected, .dealx-status.expired { background: rgba(239,68,68,0.15); color: #ef4444; }
+  .dealx-mine-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; margin-bottom: 8px; border-radius: 14px; border: 1px solid rgba(148,163,184,0.2); }
+  .dealx-mine-row p { margin: 0; }
+  .dealx-section-label { font-size: 12px; font-weight: 800; opacity: .75; margin: 16px 0 8px; }
+  .dealx-review-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .dealx-review-actions button { flex: 1; padding: 8px; border-radius: 10px; border: 0; font-size: 12px; font-weight: 700; color: #fff; }
+  .dealx-modal { position: fixed; inset: 0; z-index: 120; background: rgba(2,6,23,0.7); display: flex; align-items: flex-end; justify-content: center; }
+  .dealx-modal-card { width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; border-radius: 22px 22px 0 0; background: #0c1322; color: #f1f5f9; padding: 0 0 18px; }
+  body.light-theme .dealx-modal-card { background: #ffffff; color: #0f172a; }
+  .dealx-modal-card .dealx-img { height: 190px; border-radius: 22px 22px 0 0; }
+  .dealx-modal-body { padding: 14px 18px 0; }
+  .dealx-detail-row { display: flex; justify-content: space-between; font-size: 13px; padding: 8px 0; border-bottom: 1px solid rgba(148,163,184,0.18); }
+  .dealx-note { font-size: 11.5px; opacity: .65; margin: 10px 0 0; line-height: 1.45; }
+
   /* ---- Bottom nav: fully solid so scrolled content disappears behind it (no see-through) ---- */
   #app-bottom-nav { padding-top: 10px; padding-bottom: max(16px, env(safe-area-inset-bottom)); }
   #app-bottom-nav::before {
@@ -5869,6 +5924,75 @@
 <!-- ===================== END SCREEN PAY-RENT ===================== -->
 
 <!-- ===================== SCREEN MY-LEASE: Digital Vault & Title Audit ===================== -->
+<div id="screen-deals" class="screen-view hidden pb-24">
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="deals-back-btn"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="percent" class="w-3.5 h-3.5"></i><span>Limited offers</span></p>
+    </div>
+  </div>
+  <h1 class="s5-role-title" style="margin-bottom: 4px;">Deals &amp; Offers</h1>
+  <p class="dealx-sub">Verified price drops, distress sales and shortlet discounts. Every deal is checked by MainTown.</p>
+  <div class="dealx-tabs" id="dealx-tabs" style="display:none;">
+    <button type="button" class="dealx-tab active" data-dtab="feed">Offers</button>
+    <button type="button" class="dealx-tab" data-dtab="mine">My deals</button>
+  </div>
+  <div id="dealx-feed-wrap">
+    <div class="dealx-chips" id="dealx-kind-chips">
+      <button type="button" class="dealx-chip active" data-dkind="all">All</button>
+      <button type="button" class="dealx-chip" data-dkind="shortlet">Shortlet</button>
+      <button type="button" class="dealx-chip" data-dkind="rent">Rent</button>
+      <button type="button" class="dealx-chip" data-dkind="land">Land</button>
+    </div>
+    <div class="dealx-chips dealx-sort" id="dealx-sort-chips">
+      <button type="button" class="dealx-chip active" data-dsort="ending">Ending soon</button>
+      <button type="button" class="dealx-chip" data-dsort="discount">Biggest discount</button>
+    </div>
+    <div id="dealx-feed"></div>
+  </div>
+  <div id="dealx-mine" style="display:none;"></div>
+  <button type="button" class="dealx-btn dealx-post-btn" id="dealx-post-btn" style="display:none;"><i data-lucide="plus" class="w-4 h-4"></i>Post a deal</button>
+</div>
+
+<div id="screen-deal-post" class="screen-view hidden pb-24">
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="dealpost-back-btn"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="percent" class="w-3.5 h-3.5"></i><span>Post a deal</span></p>
+    </div>
+  </div>
+  <h1 class="s5-role-title" style="margin-bottom: 4px;">New deal</h1>
+  <p class="dealx-sub">Pick one of your live listings and set the offer. MainTown reviews it before tenants see it.</p>
+  <div class="field">
+    <label class="field-label">Listing</label>
+    <select class="field-input" id="dealpost-listing"></select>
+    <p class="dealx-hint" id="dealpost-current"></p>
+  </div>
+  <div class="field">
+    <label class="field-label">Deal type</label>
+    <select class="field-input" id="dealpost-type"></select>
+  </div>
+  <div class="field">
+    <label class="field-label">New price (₦)</label>
+    <input class="field-input" id="dealpost-price" type="number" inputmode="numeric" min="1" placeholder="Offer price">
+    <p class="dealx-hint" id="dealpost-pct"></p>
+  </div>
+  <div class="field">
+    <label class="field-label">Offer ends</label>
+    <input class="field-input" id="dealpost-end" type="date">
+  </div>
+  <div class="field" id="dealpost-reason-wrap" style="display:none;">
+    <label class="field-label">Why is this a distress sale?</label>
+    <textarea class="field-input" id="dealpost-reason" rows="3" placeholder="e.g. Owner relocating abroad and needs a quick sale"></textarea>
+  </div>
+  <div class="dealx-checks" id="dealpost-checks"></div>
+  <button type="button" class="dealx-btn" id="dealpost-submit">Submit for review</button>
+</div>
+
+<div id="deal-detail-modal" class="dealx-modal" style="display:none;">
+  <div class="dealx-modal-card" id="deal-detail-body"></div>
+</div>
+
 <div id="screen-my-lease" class="screen-view hidden pb-24">
 
   <div class="s5-topbar">
@@ -8921,7 +9045,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { icon: 'wrench', label: 'Report Issue', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'reportIssue' },
         { icon: 'file-text', label: 'My Lease', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'myLease' },
         { icon: 'credit-card', label: 'Wallet', bg: 'bg-fuchsia-500/10', color: 'text-fuchsia-400', action: 'wallet' },
-        { icon: 'landmark', label: 'Assets', bg: 'bg-teal-500/10', color: 'text-teal-400', action: 'assetHub' }
+        { icon: 'landmark', label: 'Assets', bg: 'bg-teal-500/10', color: 'text-teal-400', action: 'assetHub' },
+        { icon: 'percent', label: 'Deals', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'deals' }
       ],
       activity: [
         { icon: 'receipt', color: 'text-emerald-400', title: 'Rent payment received', sub: 'Aug 1 · ₦180,000' },
@@ -8938,7 +9063,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { icon: 'door-open', label: 'Bookings', bg: 'bg-cyan-500/10', color: 'text-cyan-400', action: 'guests' },
         { icon: 'calendar-check', label: 'Inspections', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'browse' },
         { icon: 'credit-card', label: 'Wallet', bg: 'bg-fuchsia-500/10', color: 'text-fuchsia-400', action: 'wallet' },
-        { icon: 'landmark', label: 'Assets', bg: 'bg-teal-500/10', color: 'text-teal-400', action: 'ownerAssets' }
+        { icon: 'landmark', label: 'Assets', bg: 'bg-teal-500/10', color: 'text-teal-400', action: 'ownerAssets' },
+        { icon: 'percent', label: 'Deals', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'deals' }
       ],
       activity: [
         { icon: 'wallet', color: 'text-emerald-400', title: 'Payout disbursed', sub: 'Aug 3 · ₦620,000' }
@@ -8953,7 +9079,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { icon: 'users', label: 'Clients', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'clients' },
         { icon: 'door-open', label: 'Bookings', bg: 'bg-cyan-500/10', color: 'text-cyan-400', action: 'guests' },
         { icon: 'bar-chart-3', label: 'Commission', bg: 'bg-emerald-500/10', color: 'text-emerald-400', action: 'payoutHistory' },
-        { icon: 'credit-card', label: 'Wallet', bg: 'bg-fuchsia-500/10', color: 'text-fuchsia-400', action: 'wallet' }
+        { icon: 'credit-card', label: 'Wallet', bg: 'bg-fuchsia-500/10', color: 'text-fuchsia-400', action: 'wallet' },
+        { icon: 'percent', label: 'Deals', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'deals' }
       ],
       activity: [
         { icon: 'calendar-check', color: 'text-amber-400', title: 'Walkthrough completed', sub: 'Duplex, Victoria Island' },
@@ -10517,6 +10644,269 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (e.target.closest('.dash-notif-more')) navigateTo('screen-notifications');
   });
 
+  // ==================================================================
+  // ---- Deals & Offers ----
+  // Landlords, Agents and company CEOs post a deal on one of their own live
+  // listings. MainTown reviews it (demo review queue below); only approved,
+  // un-expired deals reach the tenant feed. Sample deals are shown so the
+  // feed is never empty while the product is being tried out.
+  // ==================================================================
+  const DEAL_TYPE_LABEL = { price_drop: 'Price drop', distress: 'Distress sale', shortlet_discount: 'Shortlet discount' };
+  const DEAL_MAX_DAYS = 30;
+  let dealsFilter = 'all', dealsSort = 'ending', dealsTab = 'feed';
+
+  function dxEsc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+  function dxMoney(n) { return '₦' + Math.round(n).toLocaleString('en-US'); }
+  function dxPct(oldP, newP) { return Math.max(0, Math.round((oldP - newP) / oldP * 100)); }
+  function dxLeft(endsAt) {
+    const ms = endsAt - Date.now();
+    if (ms <= 0) return 'Ended';
+    const m = Math.floor(ms / 60000), h = Math.floor(m / 60), d = Math.floor(h / 24);
+    if (d >= 1) return `Ends in ${d}d ${h % 24}h`;
+    if (h >= 1) return `Ends in ${h}h ${m % 60}m`;
+    return `Ends in ${m}m`;
+  }
+  function dxCanPost() { return currentUserRole === 'landlord' || currentUserRole === 'agent'; }
+
+  function dxSampleDeals() {
+    let seed = parseInt(localStorage.getItem('mtr_deals_seed') || '0', 10);
+    if (!seed) { seed = Date.now(); try { localStorage.setItem('mtr_deals_seed', String(seed)); } catch (e) {} }
+    const H = 3600e3;
+    const img = (id) => `https://images.unsplash.com/photo-${id}?w=700&h=420&fit=crop&q=80`;
+    const base = [
+      { key: 's1', kind: 'shortlet', dealType: 'shortlet_discount', title: 'Luxury 2-Bed Shortlet, Lekki Phase 1', location: 'Lekki Phase 1, Lagos', oldPrice: 85000, newPrice: 68000, unit: ' / night', hours: 52, poster: 'HD Properties', img: img('1502672260266-1c1ef2d93688') },
+      { key: 's2', kind: 'land', dealType: 'distress', title: '450sqm Land, Ibeju-Lekki', location: 'Ibeju-Lekki, Lagos', oldPrice: 8500000, newPrice: 6375000, unit: '', hours: 120, poster: 'Frank Hood', reason: 'Owner is relocating abroad and needs a quick sale. Documents are ready for transfer.', img: img('1500382017468-9049fed747ef') },
+      { key: 's3', kind: 'rent', dealType: 'price_drop', title: '3-Bed Duplex, Ikeja GRA', location: 'Ikeja GRA, Lagos', oldPrice: 350000, newPrice: 315000, unit: ' / mo', hours: 216, poster: 'John Adam', img: img('1512917774080-9991f1c4c750') },
+      { key: 's4', kind: 'shortlet', dealType: 'shortlet_discount', title: 'Studio Shortlet, Victoria Island', location: 'Victoria Island, Lagos', oldPrice: 55000, newPrice: 44000, unit: ' / night', hours: 20, poster: 'HD Properties', img: img('1560448204-e02f11c3d0e2') },
+      { key: 's5', kind: 'land', dealType: 'distress', title: '3-Bed Bungalow, Epe', location: 'Epe, Lagos', oldPrice: 22000000, newPrice: 17600000, unit: '', hours: 144, poster: 'HD Properties', reason: 'Developer is clearing the final units before year end.', img: img('1600585154340-be6161a56a0c') },
+      { key: 's6', kind: 'rent', dealType: 'price_drop', title: 'Studio Apartment, Yaba', location: 'Yaba, Lagos', oldPrice: 95000, newPrice: 85500, unit: ' / mo', hours: 288, poster: 'Frank Hood', img: img('1560448204-e02f11c3d0e2') }
+    ];
+    const now = Date.now();
+    return base.map(d => {
+      const cycle = d.hours * H;
+      const elapsed = Math.max(0, now - seed);
+      return Object.assign({}, d, { id: 'sample-' + d.key, posterName: d.poster, status: 'live', sample: true, endsAt: seed + cycle * (Math.floor(elapsed / cycle) + 1) });
+    });
+  }
+  function dxStoredDeals() { appState = loadAppState(); return Array.isArray(appState.deals) ? appState.deals : []; }
+  function dxLiveDeals() {
+    const real = dxStoredDeals().filter(d => d.status === 'live' && d.endsAt > Date.now());
+    return real.concat(dxSampleDeals());
+  }
+
+  function dxCardHtml(d) {
+    const pct = dxPct(d.oldPrice, d.newPrice);
+    return `<div class="s5-card dealx-card" data-deal-id="${dxEsc(d.id)}">
+      <div class="dealx-img" style="background-image:url('${dxEsc(d.img)}')">
+        <span class="dealx-pill">${pct}% OFF</span>
+        <span class="dealx-type">${DEAL_TYPE_LABEL[d.dealType] || 'Offer'}</span>
+      </div>
+      <div class="dealx-body">
+        <p class="dealx-title">${dxEsc(d.title)}</p>
+        <p class="dealx-loc">${dxEsc(d.location)}</p>
+        <div class="dealx-prices"><span class="dealx-new">${dxMoney(d.newPrice)}${dxEsc(d.unit)}</span><span class="dealx-old">${dxMoney(d.oldPrice)}</span></div>
+        <div class="dealx-meta"><span class="dealx-timer">${dxLeft(d.endsAt)}</span><span class="dealx-poster"><i data-lucide="badge-check"></i>${dxEsc(d.posterName || 'Verified poster')}</span></div>
+      </div>
+    </div>`;
+  }
+
+  function renderDealsFeed() {
+    let rows = dxLiveDeals();
+    if (dealsFilter !== 'all') rows = rows.filter(d => d.kind === dealsFilter);
+    rows.sort((a, b) => dealsSort === 'discount' ? dxPct(b.oldPrice, b.newPrice) - dxPct(a.oldPrice, a.newPrice) : a.endsAt - b.endsAt);
+    const el = document.getElementById('dealx-feed');
+    el.innerHTML = rows.length ? rows.map(dxCardHtml).join('') : '<div class="dealx-empty">No offers in this category right now. Check back soon.</div>';
+    document.querySelectorAll('#dealx-kind-chips .dealx-chip').forEach(b => b.classList.toggle('active', b.dataset.dkind === dealsFilter));
+    document.querySelectorAll('#dealx-sort-chips .dealx-chip').forEach(b => b.classList.toggle('active', b.dataset.dsort === dealsSort));
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function renderMyDeals() {
+    const uid = currentDemoUserId();
+    const all = dxStoredDeals();
+    const mine = all.filter(d => d.posterId === uid).sort((a, b) => b.createdAt - a.createdAt);
+    const statusOf = (d) => (d.status === 'live' && d.endsAt <= Date.now()) ? 'expired' : d.status;
+    let html = '<p class="dealx-section-label">Your deals</p>';
+    html += mine.length ? mine.map(d => `<div class="dealx-mine-row">
+        <div><p style="font-weight:700;font-size:13.5px;">${dxEsc(d.title)}</p>
+        <p style="font-size:12px;opacity:.7;">${dxMoney(d.newPrice)}${dxEsc(d.unit)} · ${dxPct(d.oldPrice, d.newPrice)}% off · ${DEAL_TYPE_LABEL[d.dealType]}</p>
+        ${d.status === 'rejected' && d.rejectReason ? `<p style="font-size:11.5px;color:#ef4444;margin-top:2px;">${dxEsc(d.rejectReason)}</p>` : ''}</div>
+        <span class="dealx-status ${statusOf(d)}">${statusOf(d)}</span></div>`).join('')
+      : '<div class="dealx-empty">You have not posted a deal yet.</div>';
+    const pending = all.filter(d => d.status === 'pending');
+    html += '<p class="dealx-section-label">MainTown review queue (demo)</p><p class="dealx-note" style="margin:0 0 8px;">In the live app only MainTown staff see this list. It is here so you can test approving a deal.</p>';
+    html += pending.length ? pending.map(d => `<div class="dealx-mine-row" style="flex-direction:column;align-items:stretch;">
+        <div><p style="font-weight:700;font-size:13.5px;">${dxEsc(d.title)}</p>
+        <p style="font-size:12px;opacity:.7;">${dxMoney(d.oldPrice)} → ${dxMoney(d.newPrice)}${dxEsc(d.unit)} · ${dxPct(d.oldPrice, d.newPrice)}% off · ${DEAL_TYPE_LABEL[d.dealType]}</p>
+        ${d.reason ? `<p style="font-size:12px;margin-top:4px;">“${dxEsc(d.reason)}”</p>` : ''}</div>
+        <div class="dealx-review-actions"><button type="button" style="background:#16a34a;" data-deal-approve="${dxEsc(d.id)}">Approve</button><button type="button" style="background:#ef4444;" data-deal-reject="${dxEsc(d.id)}">Reject</button></div></div>`).join('')
+      : '<div class="dealx-empty" style="padding:18px 10px;">Nothing waiting for review.</div>';
+    document.getElementById('dealx-mine').innerHTML = html;
+  }
+
+  function setDealsTab(tab) {
+    dealsTab = tab;
+    document.querySelectorAll('#dealx-tabs .dealx-tab').forEach(b => b.classList.toggle('active', b.dataset.dtab === tab));
+    document.getElementById('dealx-feed-wrap').style.display = tab === 'feed' ? '' : 'none';
+    document.getElementById('dealx-mine').style.display = tab === 'mine' ? '' : 'none';
+    document.getElementById('dealx-post-btn').style.display = (dxCanPost() && tab === 'mine') ? 'flex' : 'none';
+    if (tab === 'mine') renderMyDeals(); else renderDealsFeed();
+    if (window.lucide) lucide.createIcons();
+  }
+  function openDealsScreen(startTab) {
+    dealsFilter = 'all'; dealsSort = 'ending';
+    document.getElementById('dealx-tabs').style.display = dxCanPost() ? 'flex' : 'none';
+    setDealsTab(dxCanPost() && startTab === 'mine' ? 'mine' : 'feed');
+  }
+
+  function openDealDetail(id) {
+    const d = dxLiveDeals().concat(dxStoredDeals()).find(x => String(x.id) === String(id));
+    if (!d) return;
+    const pct = dxPct(d.oldPrice, d.newPrice);
+    document.getElementById('deal-detail-body').innerHTML = `
+      <div class="dealx-img" style="background-image:url('${dxEsc(d.img)}')"><span class="dealx-pill">${pct}% OFF</span><span class="dealx-type">${DEAL_TYPE_LABEL[d.dealType] || 'Offer'}</span></div>
+      <div class="dealx-modal-body">
+        <p class="dealx-title" style="font-size:17px;">${dxEsc(d.title)}</p>
+        <p class="dealx-loc">${dxEsc(d.location)}</p>
+        <div class="dealx-prices" style="margin-bottom:8px;"><span class="dealx-new" style="font-size:22px;">${dxMoney(d.newPrice)}${dxEsc(d.unit)}</span><span class="dealx-old">${dxMoney(d.oldPrice)}</span></div>
+        <div class="dealx-detail-row"><span>You save</span><strong>${dxMoney(d.oldPrice - d.newPrice)}${dxEsc(d.unit)} (${pct}%)</strong></div>
+        <div class="dealx-detail-row"><span>Offer</span><strong>${dxLeft(d.endsAt)}</strong></div>
+        <div class="dealx-detail-row"><span>Posted by</span><strong>${dxEsc(d.posterName || 'Verified poster')}</strong></div>
+        ${d.reason ? `<div class="dealx-detail-row"><span>Reason</span><strong style="max-width:60%;text-align:right;">${dxEsc(d.reason)}</strong></div>` : ''}
+        <p class="dealx-note">Checked by MainTown. The old price is the listing's price before the deal.</p>
+        <button type="button" class="dealx-btn" id="deal-detail-view" data-deal-id="${dxEsc(d.id)}">View listing</button>
+        <button type="button" class="dealx-btn ghost" id="deal-detail-close">Close</button>
+      </div>`;
+    document.getElementById('deal-detail-modal').style.display = 'flex';
+  }
+  function closeDealDetail() { document.getElementById('deal-detail-modal').style.display = 'none'; }
+
+  // ---- Poster flow ----
+  function dxPostableListings() {
+    const uid = currentDemoUserId();
+    return (listings || []).filter(l => l.status !== 'draft' && (l.ownerId === uid || l.companyId === uid || l.agentId === uid));
+  }
+  function dxBasePrice(l) {
+    if (!l) return { amount: 0, unit: '' };
+    if (l.type === 'land') return { amount: Number(l.totalPrice) || 0, unit: '' };
+    if (l.type === 'shortlet') return { amount: Number(l.nightlyRate) || 0, unit: ' / night' };
+    return { amount: parseInt(String(l.ngn || '').replace(/[^0-9]/g, ''), 10) || 0, unit: ' / mo' };
+  }
+  function dxSelectedListing() {
+    const id = document.getElementById('dealpost-listing').value;
+    return (listings || []).find(l => String(l.id) === String(id));
+  }
+  function dxChecks() {
+    const l = dxSelectedListing();
+    const type = document.getElementById('dealpost-type').value;
+    const price = Number(document.getElementById('dealpost-price').value);
+    const end = document.getElementById('dealpost-end').value;
+    const reason = (document.getElementById('dealpost-reason').value || '').trim();
+    const base = dxBasePrice(l);
+    const endMs = end ? new Date(end + 'T23:59:00').getTime() : 0;
+    const dupe = dxStoredDeals().some(d => String(d.listingId) === String(l && l.id) && (d.status === 'pending' || (d.status === 'live' && d.endsAt > Date.now())));
+    return [
+      { ok: !!l, text: 'Listing is live on MainTown' },
+      { ok: price > 0 && price < base.amount, text: 'New price is lower than the current price' },
+      { ok: !(l && l.priceRaisedAt && Date.now() - l.priceRaisedAt < DEAL_MAX_DAYS * 864e5), text: 'Price was not raised in the last 30 days' },
+      { ok: endMs > Date.now() && endMs <= Date.now() + DEAL_MAX_DAYS * 864e5 + 864e5, text: `Offer ends within ${DEAL_MAX_DAYS} days` },
+      { ok: !dupe, text: 'No other deal running or waiting on this listing' },
+      { ok: type !== 'distress' || reason.length >= 20, text: 'Distress sales include a reason (20+ characters)' }
+    ];
+  }
+  function dxRefreshPostForm() {
+    const l = dxSelectedListing();
+    const base = dxBasePrice(l);
+    const typeSel = document.getElementById('dealpost-type');
+    const prev = typeSel.value;
+    const opts = [['price_drop', 'Price drop'], ['distress', 'Distress sale']];
+    if (l && l.type === 'shortlet') opts.unshift(['shortlet_discount', 'Shortlet discount']);
+    typeSel.innerHTML = opts.map(o => `<option value="${o[0]}">${o[1]}</option>`).join('');
+    if (opts.some(o => o[0] === prev)) typeSel.value = prev;
+    document.getElementById('dealpost-current').textContent = l ? `Current price: ${dxMoney(base.amount)}${base.unit}` : '';
+    const price = Number(document.getElementById('dealpost-price').value);
+    document.getElementById('dealpost-pct').textContent = (price > 0 && base.amount) ? (price < base.amount ? `${dxPct(base.amount, price)}% off` : 'Must be lower than the current price') : '';
+    document.getElementById('dealpost-reason-wrap').style.display = typeSel.value === 'distress' ? '' : 'none';
+    document.getElementById('dealpost-checks').innerHTML = dxChecks().map(c => `<div class="dealx-check ${c.ok ? 'ok' : 'bad'}"><i data-lucide="${c.ok ? 'check-circle-2' : 'circle-x'}"></i><span>${c.text}</span></div>`).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+  function openDealPost() {
+    const mine = dxPostableListings();
+    if (!mine.length) { showToast('List a property first, then you can post a deal on it'); return; }
+    const sel = document.getElementById('dealpost-listing');
+    sel.innerHTML = mine.map(l => `<option value="${dxEsc(l.id)}">${dxEsc(l.title)}</option>`).join('');
+    document.getElementById('dealpost-price').value = '';
+    document.getElementById('dealpost-reason').value = '';
+    const endEl = document.getElementById('dealpost-end');
+    const iso = (ms) => new Date(ms - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    endEl.min = iso(Date.now() + 864e5);
+    endEl.max = iso(Date.now() + DEAL_MAX_DAYS * 864e5);
+    endEl.value = iso(Date.now() + 7 * 864e5);
+    navigateTo('screen-deal-post');
+    dxRefreshPostForm();
+  }
+  function submitDeal() {
+    const checks = dxChecks();
+    const failed = checks.find(c => !c.ok);
+    if (failed) { showToast(failed.text); return; }
+    const l = dxSelectedListing();
+    const base = dxBasePrice(l);
+    const uid = currentDemoUserId();
+    appState = loadAppState();
+    const ent = ((appState.users || {})[l.companyId || ''] || {}).enterprise;
+    const me = (appState.users || {})[uid] || {};
+    const imgSrc = l.img || '';
+    appState.deals = Array.isArray(appState.deals) ? appState.deals : [];
+    appState.deals.push({
+      id: 'deal-' + Date.now().toString(36), listingId: l.id, title: l.title, location: l.location, img: imgSrc,
+      kind: l.type === 'land' ? 'land' : l.type, dealType: document.getElementById('dealpost-type').value,
+      oldPrice: base.amount, newPrice: Number(document.getElementById('dealpost-price').value), unit: base.unit,
+      endsAt: new Date(document.getElementById('dealpost-end').value + 'T23:59:00').getTime(),
+      reason: (document.getElementById('dealpost-reason').value || '').trim(),
+      posterId: uid, posterName: (ent && ent.companyName) || me.name || 'Verified poster',
+      status: 'pending', createdAt: Date.now()
+    });
+    saveAppState(appState);
+    showToast('Submitted — MainTown will review it before it goes live');
+    navigateTo('screen-deals');
+    openDealsScreen('mine');
+  }
+
+  document.getElementById('deals-back-btn').addEventListener('click', () => navigateTo('screen-5'));
+  document.getElementById('dealpost-back-btn').addEventListener('click', () => { navigateTo('screen-deals'); openDealsScreen('mine'); });
+  document.getElementById('dealx-tabs').addEventListener('click', (e) => { const b = e.target.closest('.dealx-tab'); if (b) setDealsTab(b.dataset.dtab); });
+  document.getElementById('dealx-kind-chips').addEventListener('click', (e) => { const b = e.target.closest('.dealx-chip'); if (b) { dealsFilter = b.dataset.dkind; renderDealsFeed(); } });
+  document.getElementById('dealx-sort-chips').addEventListener('click', (e) => { const b = e.target.closest('.dealx-chip'); if (b) { dealsSort = b.dataset.dsort; renderDealsFeed(); } });
+  document.getElementById('dealx-feed').addEventListener('click', (e) => { const c = e.target.closest('.dealx-card'); if (c) openDealDetail(c.dataset.dealId); });
+  document.getElementById('dealx-post-btn').addEventListener('click', openDealPost);
+  document.getElementById('dealpost-listing').addEventListener('change', dxRefreshPostForm);
+  ['dealpost-type', 'dealpost-price', 'dealpost-end', 'dealpost-reason'].forEach(id => {
+    const el = document.getElementById(id); el.addEventListener('input', dxRefreshPostForm); el.addEventListener('change', dxRefreshPostForm);
+  });
+  document.getElementById('dealpost-submit').addEventListener('click', submitDeal);
+  document.getElementById('dealx-mine').addEventListener('click', (e) => {
+    const ap = e.target.closest('[data-deal-approve]'), rj = e.target.closest('[data-deal-reject]');
+    if (!ap && !rj) return;
+    appState = loadAppState();
+    const id = (ap || rj).dataset.dealApprove || (ap || rj).dataset.dealReject;
+    const d = (appState.deals || []).find(x => String(x.id) === String(id));
+    if (!d || d.status !== 'pending') return;
+    if (ap) { d.status = 'live'; d.approvedAt = Date.now(); showToast('Deal approved — it is now live in the feed'); }
+    else { d.status = 'rejected'; d.rejectReason = 'Did not meet the MainTown deal rules'; showToast('Deal rejected'); }
+    saveAppState(appState);
+    renderMyDeals();
+  });
+  document.getElementById('deal-detail-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'deal-detail-modal' || e.target.id === 'deal-detail-close') { closeDealDetail(); return; }
+    const v = e.target.closest('#deal-detail-view');
+    if (!v) return;
+    const d = dxLiveDeals().concat(dxStoredDeals()).find(x => String(x.id) === String(v.dataset.dealId));
+    closeDealDetail();
+    if (!d || d.sample) { showToast('Sample offer — real listings open here'); return; }
+    navigateTo('screen-5');
+    setTimeout(() => { const b = document.querySelector(`.s5-info-btn[data-listing-id="${d.listingId}"]`); if (b) b.click(); }, 250);
+  });
+
   // ---- Dashboard tile routing: "browse" tiles open Screen 5, others show a coming-soon toast ----
   document.getElementById('dash-grid').addEventListener('click', (e) => {
     const tile = e.target.closest('.dash-tile');
@@ -10529,6 +10919,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
       navigateTo('screen-pay-rent');
     } else if (tile.dataset.action === 'reportIssue') {
       navigateTo('screen-report-issue');
+    } else if (tile.dataset.action === 'deals') {
+      navigateTo('screen-deals');
+      openDealsScreen();
     } else if (tile.dataset.action === 'myLease') {
       navigateTo('screen-my-lease');
     } else if (tile.dataset.action === 'tenants' || tile.dataset.action === 'clients') {
