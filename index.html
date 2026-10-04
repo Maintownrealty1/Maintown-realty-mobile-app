@@ -3260,6 +3260,28 @@
   body .ent-quick-card .ent-quick-card-title { font-size: 11px; font-weight: 600; line-height: 1.2; margin: 0; text-align: center; }
   body .ent-quick-card .ent-quick-card-sub, body .ent-quick-card .ent-quick-card-chevron { display: none; }
 
+
+  /* Balance the last row: 5 or 6 shortcuts sit in 3 columns instead of 4 + a lonely tile */
+  .dash-grid:has(> .dash-tile:nth-child(5):last-child), .dash-grid:has(> .dash-tile:nth-child(6):last-child),
+  .ent-quick-grid:has(> .ent-quick-card:nth-child(5):last-child), .ent-quick-grid:has(> .ent-quick-card:nth-child(6):last-child) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+
+  /* One look for every home: the CEO purple square on Tenant, Landlord, Agent, Sales, Legal and Finance */
+  body .dash-grid .dash-tile .dash-tile-icon-wrap,
+  body .ent-quick-card .ent-quick-card-icon {
+    background: linear-gradient(180deg, rgba(139,92,246,0.28), rgba(91,33,182,0.38)) !important;
+    border: 1px solid rgba(139,92,246,0.45) !important; color: #ede9fe !important;
+    display: flex; align-items: center; justify-content: center;
+  }
+  body .dash-grid .dash-tile .dash-tile-icon-wrap svg,
+  body .ent-quick-card .ent-quick-card-icon svg { color: #ede9fe !important; width: 21px; height: 21px; }
+  body.light-theme .dash-grid .dash-tile .dash-tile-icon-wrap,
+  body.light-theme .ent-quick-card .ent-quick-card-icon { background: #f3e8ff !important; border: 1px solid #e9d5ff !important; color: #7c3aed !important; }
+  body.light-theme .dash-grid .dash-tile .dash-tile-icon-wrap svg,
+  body.light-theme .ent-quick-card .ent-quick-card-icon svg { color: #7c3aed !important; }
+
   /* ---- Bottom nav: fully solid so scrolled content disappears behind it (no see-through) ---- */
   #app-bottom-nav { padding-top: 10px; padding-bottom: max(16px, env(safe-area-inset-bottom)); }
   #app-bottom-nav::before {
@@ -4845,7 +4867,7 @@
         <button type="button" class="ent-quick-card" id="ent-sales-allocation-card">
           <div class="ent-quick-card-icon"><i data-lucide="map-pin-check" class="w-5 h-5"></i></div>
           <div class="ent-quick-card-text">
-            <p class="ent-quick-card-title">Physical Allocation</p>
+            <p class="ent-quick-card-title">Allocation</p>
             <p class="ent-quick-card-sub" id="ent-sales-allocation-sub">Confirm allocations for buyers of your listings</p>
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
@@ -4955,7 +4977,7 @@
         <button type="button" class="ent-quick-card" id="ent-finance-view-report-card">
           <div class="ent-quick-card-icon"><i data-lucide="receipt" class="w-5 h-5"></i></div>
           <div class="ent-quick-card-text">
-            <p class="ent-quick-card-title">View Payment Report</p>
+            <p class="ent-quick-card-title">Payment Report</p>
             <p class="ent-quick-card-sub">Full transaction detail — download each receipt</p>
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i>
@@ -8887,7 +8909,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { icon: 'wrench', label: 'Report Issue', bg: 'bg-amber-500/10', color: 'text-amber-400', action: 'reportIssue' },
         { icon: 'file-text', label: 'My Lease', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'myLease' },
         { icon: 'credit-card', label: 'Wallet', bg: 'bg-fuchsia-500/10', color: 'text-fuchsia-400', action: 'wallet' },
-        { icon: 'landmark', label: 'Portfolio Assets', bg: 'bg-teal-500/10', color: 'text-teal-400', action: 'assetHub' }
+        { icon: 'landmark', label: 'Assets', bg: 'bg-teal-500/10', color: 'text-teal-400', action: 'assetHub' }
       ],
       activity: [
         { icon: 'receipt', color: 'text-emerald-400', title: 'Rent payment received', sub: 'Aug 1 · ₦180,000' },
@@ -15851,13 +15873,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // pure pass-throughs straight to the Landlord/Owner — MainTown never touches
   // them — added on top of the net rent for the first payment only.
   // ==================================================================
-  function creditPartyWallet(userId, amount, { title, category, propertyName, feeType }) {
+  function creditPartyWallet(userId, amount, { title, category, propertyName, feeType, companyMeta }) {
     if (!userId || !(amount > 0)) return;
     creditWallet(userId, amount);
     recordTransaction({
       userId, direction: 'credit', category,
       title, amount, status: 'SUCCESSFUL',
-      meta: { sender: 'Buyer / Tenant (auto-split)', recipient: 'You', propertyName, feeType }
+      meta: Object.assign({ sender: 'Buyer / Tenant (auto-split)', recipient: 'You', propertyName, feeType }, companyMeta || {})
     });
   }
 
@@ -15891,6 +15913,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       title: `${isLand ? 'Land Owner' : 'Landlord'} Payout - ${listing.title || 'Property'}`,
       category: 'LANDLORD_PAYOUT',
       propertyName: listing.title,
+      companyMeta: isSalesListedEnterpriseListing(listing) ? { companyId: listing.companyId || listing.ownerId, salesStaffId: listing.listedByStaffId } : undefined,
       feeType: isLand
         ? [
             sellerCommissionDeduction > 0 ? 'Land Owner Net Balance (less Seller Agency Commission)' : 'Land Owner Net Balance',
@@ -24733,9 +24756,21 @@ available in the Post-Lease Hub and this chat thread.`
   // ==================================================================
   // ---- Finance Dashboard (own home) ----
   // ==================================================================
+  // Company money only: payments on company listings added by Sales staff, and the
+  // CEO's company-wallet withdrawals. The CEO's own landlord-mode activity (personal
+  // listings, personal wallet, rent they pay as a tenant) is never company money.
+  function isCompanyTxn(t, companyId) {
+    if (!t || !companyId) return false;
+    if (t.meta && t.meta.companyId === companyId) return true;
+    if (t.userId === companyId && t.direction === 'credit' && t.meta && t.meta.propertyName) {
+      return (typeof listings !== 'undefined' ? listings : []).some(l =>
+        l.title === t.meta.propertyName && (l.companyId || l.ownerId) === companyId && isSalesListedEnterpriseListing(l));
+    }
+    return false;
+  }
   function companyTransactions() {
     const companyId = getEnterpriseCompanyId();
-    return (appState.transactions || []).filter(t => t.userId === companyId || (t.meta && t.meta.companyId === companyId));
+    return (appState.transactions || []).filter(t => isCompanyTxn(t, companyId));
   }
   function renderFinanceHeader() {
     const companyId = getEnterpriseCompanyId();
@@ -25302,7 +25337,7 @@ available in the Post-Lease Hub and this chat thread.`
     // Quick access cards with live figures
     const team = Object.values(appState.users || {}).filter(u => u.role === 'enterprise_staff' && u.companyId === companyId);
     const invites = team.filter(u => u.status !== 'ACTIVE' && u.status !== 'DEACTIVATED').length;
-    const txns = (appState.transactions || []).filter(t => t.userId === companyId || (t.meta && t.meta.companyId === companyId));
+    const txns = (appState.transactions || []).filter(t => isCompanyTxn(t, companyId));
     const visible = ENT_TAB_VISIBILITY[getEnterpriseStaffRole() || 'ceo'] || [];
     const plural = (n, one, many) => (n === 1 ? one : many);
     const cards = [
@@ -25930,7 +25965,7 @@ available in the Post-Lease Hub and this chat thread.`
   // ---- Tab: Financial Ledger & Audit Receipts (read-only, no withdrawal) ----
   function renderEntLedger() {
     const companyId = getEnterpriseCompanyId();
-    const txns = (appState.transactions || []).filter(t => t.userId === companyId || (t.meta && t.meta.companyId === companyId));
+    const txns = (appState.transactions || []).filter(t => isCompanyTxn(t, companyId));
     const list = document.getElementById('ent-ledger-list');
     list.innerHTML = txns.length ? txns.map(t => `
       <div class="ent-list-item" data-txn-id="${t.id}" style="cursor:pointer;">
