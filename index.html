@@ -3207,6 +3207,59 @@
   body.light-theme .ent-access-card .ent-access-icon { background: #f3e8ff; border-color: #e9d5ff; color: #7c3aed; }
   body.light-theme .ent-access-badge { border-color: #fff; }
 
+
+  /* CEO home fits on one screen (no page scroll). Other tabs scroll as normal. */
+  #screen-enterprise.ent-home-mode { height: 100dvh; max-height: 100dvh; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 96px; box-sizing: border-box; }
+  #screen-enterprise.ent-home-mode .app-shell { min-height: 0; padding-top: 14px; padding-bottom: 0; }
+  #screen-enterprise.ent-home-mode .ent-header { margin-bottom: 10px; }
+  #screen-enterprise.ent-home-mode .ent-vault { padding: 14px 16px 12px; margin-bottom: 10px; border-radius: 20px; }
+  #screen-enterprise.ent-home-mode .ent-vault-balance { font-size: clamp(22px, 7vw, 28px); }
+  #screen-enterprise.ent-home-mode .ent-alloc { margin: 10px 0 6px; }
+  #screen-enterprise.ent-home-mode .ent-alloc-legend { margin-bottom: 8px; font-size: 10.5px; }
+  #screen-enterprise.ent-home-mode .ent-vault-stats { padding-top: 10px; }
+  #screen-enterprise.ent-home-mode .ent-vault-stat-value { font-size: 15px; }
+  #screen-enterprise.ent-home-mode .ent-attention { padding: 9px 12px; margin-bottom: 12px; }
+  #screen-enterprise.ent-home-mode .ent-section-title { margin-bottom: 8px; }
+  #screen-enterprise.ent-home-mode .ent-access-grid { grid-template-columns: repeat(auto-fit, minmax(54px, 1fr)); gap: 8px 6px; margin-bottom: 8px; }
+  #screen-enterprise.ent-home-mode .ent-access-card .ent-access-icon { width: 50px; height: 50px; border-radius: 14px; }
+  #screen-enterprise.ent-home-mode .ent-access-card .ent-access-title { font-size: 11px; }
+
+
+  /* Home shortcuts everywhere: small rounded-square buttons with the label underneath */
+  .dash-grid { grid-template-columns: repeat(4, 1fr); gap: 14px 6px; margin-bottom: 18px; }
+  body .dash-grid .dash-tile, body .dash-grid .dash-tile.dash-tile-wide {
+    background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important;
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px;
+    grid-column: auto; justify-self: stretch; width: 100%;
+  }
+  .dash-grid .dash-tile.dash-tile-wide::after { display: none; }
+  body .dash-grid .dash-tile .dash-tile-icon-wrap, body .dash-grid .dash-tile.dash-tile-wide .dash-tile-icon-wrap {
+    width: 54px; height: 54px; border-radius: 16px; margin: 0; flex-shrink: 0;
+  }
+  body .dash-grid .dash-tile .dash-tile-icon-wrap svg { width: 21px; height: 21px; }
+  body .dash-grid .dash-tile .dash-tile-label, body .dash-grid .dash-tile.dash-tile-wide .dash-tile-label {
+    font-size: 11px; font-weight: 600; line-height: 1.2; text-align: center;
+  }
+  .dash-grid .dash-tile .dash-tile-count { top: -4px; right: calc(50% - 34px); border: 2px solid #0B0F19; box-sizing: content-box; }
+  body.light-theme .dash-grid .dash-tile .dash-tile-count { border-color: #fff; }
+
+  /* Sales / Legal / Finance homes: compact stat cards + small square shortcuts */
+  .ent-stat-card { padding: 12px 14px; margin-bottom: 14px; }
+  .ent-stat-label { margin-bottom: 3px; }
+  .ent-stat-value { font-size: 22px; }
+  .ent-stat-sub { margin-top: 3px; }
+  .ent-stat-row { gap: 8px; margin-bottom: 14px; }
+  .ent-stat-row .ent-stat-value { font-size: 20px; }
+  .ent-quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 6px; margin-bottom: 16px; }
+  body .ent-quick-card {
+    background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important;
+    flex-direction: column; align-items: center; text-align: center; gap: 6px; width: 100%;
+  }
+  body .ent-quick-card .ent-quick-card-icon { width: 54px; height: 54px; border-radius: 16px; }
+  body .ent-quick-card .ent-quick-card-text { flex: none; width: 100%; }
+  body .ent-quick-card .ent-quick-card-title { font-size: 11px; font-weight: 600; line-height: 1.2; margin: 0; text-align: center; }
+  body .ent-quick-card .ent-quick-card-sub, body .ent-quick-card .ent-quick-card-chevron { display: none; }
+
   /* ---- Bottom nav: fully solid so scrolled content disappears behind it (no see-through) ---- */
   #app-bottom-nav { padding-top: 10px; padding-bottom: max(16px, env(safe-area-inset-bottom)); }
   #app-bottom-nav::before {
@@ -25151,6 +25204,8 @@ available in the Post-Lease Hub and this chat thread.`
 
   function switchEnterpriseTab(tabKey) {
     entActiveTab = tabKey;
+    const entScreenEl = document.getElementById('screen-enterprise');
+    if (entScreenEl) { entScreenEl.classList.toggle('ent-home-mode', tabKey === 'overview'); if (tabKey !== 'overview') entScreenEl.scrollTop = 0; }
     updateEntChrome(tabKey);
     document.querySelectorAll('#ent-tabs .ent-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.entTab === tabKey));
     document.querySelectorAll('.ent-tab-panel').forEach(p => p.style.display = 'none');
