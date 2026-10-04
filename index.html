@@ -3308,6 +3308,7 @@
   .dealx-sort .dealx-chip.active { background: rgba(214,185,133,0.2); border-color: rgba(214,185,133,0.6); color: #d6b985; }
   body.light-theme .dealx-sort .dealx-chip.active { color: #8a6414; background: #fbf3df; border-color: #e6d3a3; }
   .dealx-card { margin-bottom: 14px; }
+  .dealx-off { background: #16a34a; color: #fff; font-size: 11.5px; font-weight: 800; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
   .dealx-meta2 { display: flex; gap: 10px; align-items: center; margin: -4px 0 8px; font-size: 11.5px; }
   .dealx-details-btn { margin-top: 10px; width: 100%; padding: 9px; border-radius: 10px; border: 1px solid rgba(124,58,237,0.5); background: rgba(124,58,237,0.12); color: inherit; font-size: 12.5px; font-weight: 700; }
   .dealx-del-btn { padding: 6px 12px; border-radius: 10px; border: 0; background: rgba(239,68,68,0.15); color: #ef4444; font-size: 11.5px; font-weight: 700; }
@@ -3585,8 +3586,8 @@
 
   #s5-listing-feed { gap: 10px; padding: 0 6px; }
   #s5-listing-feed .s5-card { border-radius: 16px; }
-  #s5-listing-feed .s5-card-img-wrap { height: 104px; }
-  #s5-listing-feed .s5-card-img-wrap img { cursor: zoom-in; }
+  #s5-listing-feed .s5-card-img-wrap, #dealx-feed .s5-card-img-wrap { height: 150px; }
+  #s5-listing-feed .s5-card-img-wrap img, #dealx-feed .s5-card-img-wrap img { cursor: zoom-in; }
   #s5-listing-feed .s5-card-body { padding: 9px 12px 11px; }
   #s5-listing-feed .s5-card-title { font-size: 13.5px; }
   #s5-listing-feed .s5-card-location { font-size: 11px; margin: 0 0 6px; }
@@ -10730,7 +10731,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function dxTagHtml(p) { return `<span class="dealx-pill" style="top:46px;z-index:3;">${dxPct(p._deal.oldPrice, p._deal.newPrice)}% OFF</span>`; }
   function dxMetaHtml(p) {
     const d = p._deal, unit = p.type === 'land' ? '' : (p.type === 'shortlet' ? ' / night' : ' / mo');
-    return `<p class="dealx-meta2"><span class="dealx-old">${dxMoney(d.oldPrice)}${unit}</span><span class="dealx-timer">${dxLeft(d.endsAt)}</span></p>`;
+    return `<p class="dealx-meta2"><span class="dealx-off">${dxPct(d.oldPrice, d.newPrice)}% OFF</span><span class="dealx-old">${dxMoney(d.oldPrice)}${unit}</span><span class="dealx-timer">${dxLeft(d.endsAt)}</span></p>`;
   }
   function dxStoredDeals() { appState = loadAppState(); return Array.isArray(appState.deals) ? appState.deals : []; }
   function dxLiveDeals() { dxApplyDeals(); return (listings || []).filter(l => l._deal && !isListingUnavailable(l)); }
@@ -12482,7 +12483,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="s5-card-img-wrap">
           <img src="${p.img}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'${isShortlet ? 'shortlet' : 'rent'}')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Preliminary Verification</span>
-          ${p._deal ? dxTagHtml(p) : ''}
           ${unavailable ? '' : mtlFavBtn(p)}
           ${isShortlet ? `<span class="s5-live-media-badge"><i data-lucide="calendar-days" class="w-3 h-3"></i>Shortlet</span>` : ''}
           ${p.hasVideo ? `<span class="s5-live-media-badge" style="${isShortlet ? 'top:38px;' : ''}"><i data-lucide="video" class="w-3 h-3"></i>Walkthrough Video</span>` : ''}
@@ -12532,7 +12532,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="s5-card-img-wrap" data-listing-id="${p.id}" data-slide-index="0">
           <img class="s5-slide-img" src="${photos[0]}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'land')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Preliminary Title Check</span>
-          ${p._deal ? dxTagHtml(p) : ''}
           ${unavailable ? '' : mtlFavBtn(p)}
           ${photos.length > 1 ? `
           <button type="button" class="s5-slide-nav prev" data-listing-id="${p.id}" data-dir="-1" aria-label="Previous photo"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
@@ -13104,7 +13103,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return (p.photos && p.photos.length) ? p.photos : [p.img];
     }
     // 1) Feed cards (rent, shortlet and land)
-    const feed = document.getElementById('s5-listing-feed');
+    ['s5-listing-feed', 'dealx-feed'].forEach(fid => { const feed = document.getElementById(fid);
     if (feed) feed.addEventListener('click', (e) => {
       const wrap = e.target.closest('.s5-card-img-wrap');
       if (!wrap) return;
@@ -13120,7 +13119,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         const im = wrap.querySelector('.s5-slide-img'); if (im) im.src = list[i];
         const c = wrap.querySelector('.s5-slide-counter'); if (c) c.textContent = `${i + 1} / ${list.length}`;
       });
-    });
+    }); });
     // 2) Photo at the top of the Listing Details sheet
     const hero = document.getElementById('li-hero-img');
     if (hero) hero.addEventListener('click', () => {
