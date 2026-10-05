@@ -16919,7 +16919,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function myProperties() {
     const uid = getCurrentUserId();
-    return landlordProperties.filter(p => p.ownerId === uid);
+    const mine = landlordProperties.filter(p => p.ownerId === uid);
+    // An Enterprise CEO is an upgraded landlord: this screen shows only what they listed
+    // as the company (after upgrading), not their earlier personal landlord listings.
+    const ent = appState.users[uid] && appState.users[uid].enterprise;
+    if (!ent) return mine;
+    return mine.filter(p => p.companyId === uid || (typeof p.id === 'number' && p.id >= (ent.upgradedAt || 0)));
+  }
+  function ceoSalesListings() {
+    const uid = getCurrentUserId();
+    if (!uid || !isEnterpriseCeo(uid)) return [];
+    return enterpriseListings().filter(l => l.listedByRole === 'ENTERPRISE' && l.status !== 'draft');
   }
 
   function renderLandlordList() {
@@ -16931,7 +16941,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const list = document.getElementById('s5-landlord-list');
     const myProps = myProperties();
     const liveAgentListings = agentListings.filter(l => l.ownerId === getCurrentUserId() && l.workflowStatus === 'LIVE');
-    if (!myProps.length && !liveAgentListings.length) {
+    const salesRows = ceoSalesListings();
+    if (!myProps.length && !liveAgentListings.length && !salesRows.length) {
       list.innerHTML = `<p class="role-hint" style="text-align:left;">No properties or inspection requests yet.</p>`;
       if (window.lucide) lucide.createIcons();
       renderLandlordInspectionsManager();
@@ -16988,6 +16999,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
           </div>
           <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
             ${soldStatusBadgeHtml(listings.find(x => String(x.id) === String(l.listingId))) || `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`}
+          </div>
+        </div>`).join(''));
+    // CEO only: listings added by the company's Sales staff.
+    list.insertAdjacentHTML('beforeend', salesRows.map(l => `
+        <div class="s5-list-item">
+          <div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+          <div class="s5-list-text">
+            <p class="s5-list-title">${l.title}</p>
+            <p class="s5-list-sub">${l.location || ''} \u00b7 Listed by Sales${l.agentName ? ': ' + l.agentName : ''}</p>
+            <button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="preview" data-listing-id="${l.id}"><i data-lucide="eye" class="w-3 h-3"></i>Preview</button>
+          </div>
+          <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
+            ${soldStatusBadgeHtml(l) || `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`}
           </div>
         </div>`).join(''));
     if (window.lucide) lucide.createIcons();
@@ -17369,7 +17393,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const requiresConsent = titleDocuments.some(d => (TITLE_DOC_TYPES.find(t => t.id === d.id) || {}).requiresConsent);
     const isPublished = document.getElementById('tv-publish-toggle').checked;
     const newId = Date.now();
-    landlordProperties.unshift({ id: newId, title, address: composeListingLocation(address, cityId, areaId), status: 'escrow', listingId: newId, ownerId: getCurrentUserId() });
+    landlordProperties.unshift({ id: newId, title, address: composeListingLocation(address, cityId, areaId), status: 'escrow', listingId: newId, ownerId: getCurrentUserId(), companyId: isEnterpriseCeo(getCurrentUserId()) ? getCurrentUserId() : undefined });
     renderLandlordList();
 
     // Media Visibility: photos/walkthrough video uploaded here are stored on the listing
@@ -17391,6 +17415,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // hardcoded demo landlord.
       ownerId: getCurrentUserId(),
       listedByRole: 'LANDLORD',
+      companyId: isEnterpriseCeo(getCurrentUserId()) ? getCurrentUserId() : undefined,
       availability: tvPendingAvailability.map(a => ({ date: a.date, slots: a.slots.slice() })),
       // Caution Fee & Service Charge (rent/shortlet only — see Fee Transparency
       // policy): set here by the Owner, paid straight to them, never MainTown.
