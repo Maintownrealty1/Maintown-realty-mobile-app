@@ -10702,7 +10702,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!seed) { seed = Date.now(); try { localStorage.setItem('mtr_deals_seed', String(seed)); } catch (e) {} }
     const H = 3600e3, now = Date.now();
     const pcts = [20, 25, 10, 15, 12, 18], hrs = [52, 120, 216, 20, 144, 288];
-    const pool = (listings || []).filter(l => l.status !== 'draft' && (l.type === 'rent' || l.type === 'shortlet' || l.type === 'land') && !isListingUnavailable(l));
+    // Demo discounts only ever land on the built-in sample listings, never on a listing a user created.
+    const pool = (listings || []).filter(l => !l.ownerId && !l.agentId && !l.listedByRole && !l.companyId && l.status !== 'draft' && (l.type === 'rent' || l.type === 'shortlet' || l.type === 'land') && !isListingUnavailable(l));
     // Only one sample per type (rent, shortlet, land) — every other listing keeps its normal price.
     const picks = ['rent', 'shortlet', 'land'].map(t => pool.find(l => l.type === t)).filter(Boolean);
     return picks.map((l, i) => {
@@ -23106,6 +23107,7 @@ available in the Post-Lease Hub and this chat thread.`
       if (mtPinLockRemainingMs(id) > 0) { showToast(mtPinLockMessage(id)); resolve(false); return; }
       const wrap = document.createElement('div');
       wrap.className = 'modal-overlay open';
+      wrap.style.zIndex = '100000'; // always above whatever screen or sheet asked for the PIN
       wrap.innerHTML = '<div class="modal-card"><h2 class="modal-title"></h2><p class="modal-sub" style="margin-bottom:14px;"></p>' +
         '<div class="pf-field"><label class="field-label">Wallet PIN</label><input class="field-input" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="6-digit PIN"></div>' +
         '<p class="login-error-msg show" style="display:none;"><span></span></p>' +
