@@ -2603,6 +2603,7 @@
   .msg-pending-bar .vd-btn { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(255,255,255,0.12); color: inherit; }
   .msg-pending-bar .vd-btn.del { color: #f87171; }
   .msg-pending-bar .voice-note-wave { color: #c084fc; }
+  .msg-pending-bar .vd-text { flex: 1; min-width: 0; font-size: 12px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .msg-pending-bar.tray { gap: 8px; overflow-x: auto; padding: 0 4px 6px; }
   .pend-item { position: relative; flex-shrink: 0; height: 56px; min-width: 56px; border-radius: 10px; overflow: hidden; border: 1px solid #334155; background: rgba(15,23,42,0.8); display: flex; align-items: center; gap: 6px; }
   .pend-item img { height: 56px; width: 56px; object-fit: cover; display: block; }
@@ -20990,6 +20991,38 @@ This voucher is auto-generated and serves as proof of settlement.`;
   mtDef('lbl_coo', ["C of O", "C of O", "C of O", "C of O", "C of O", "C of O"]);
   mtDef('lbl_land_fees', ["Land fees", "Land fees", "Owó ilẹ̀", "Ụgwọ ala", "Kuɗin fili", "Frais de terrain"]);
   mtDef('lbl_plans', ["Payment plans", "Payment plans", "Ètò ìsanwó", "Atụmatụ ịkwụ ụgwọ", "Tsarin biya", "Plans de paiement"]);
+  // Role-tailored property replies: landlords and agents never get the buy/rent/shortlet question
+  mtDef('kw_property_host', [
+    "Property. Are you asking about listing a property, sales and payouts, or uploading documents?",
+    "Property. You dey ask about how to list property, sales and payouts, or how to upload documents?",
+    "Ohun ìní. Ṣé ẹ ń béèrè nípa bí a ṣe ń fi ohun ìní sórí ìkéde, títà àti ìsanwó, tàbí bí a ṣe ń gbé àwọn ìwé sókè?",
+    "Ụlọ na ala. Ị na-ajụ banyere otu esi edepụta ụlọ ma ọ bụ ala, ire ahịa na ịkwụ ụgwọ, ma ọ bụ otu esi ebugo akwụkwọ?",
+    "Kadara. Kana tambaya ne game da yadda ake sanya kadara a jeri, tallace-tallace da biyan kuɗi, ko yadda ake ɗora takardu?",
+    "Bien immobilier. Votre question concerne la mise en ligne d'un bien, les ventes et les paiements, ou l'envoi de documents ?"
+  ]);
+  mtDef('kw_land_host', [
+    "Land. Are you asking about listing land for sale, sales and payouts, or uploading title documents?",
+    "Land. You dey ask about how to list land for sale, sales and payouts, or how to upload title documents?",
+    "Ilẹ̀. Ṣé ẹ ń béèrè nípa bí a ṣe ń fi ilẹ̀ sórí ìkéde fún títà, títà àti ìsanwó, tàbí bí a ṣe ń gbé àwọn ìwé ilẹ̀ sókè?",
+    "Ala. Ị na-ajụ banyere otu esi edepụta ala ka e re ya, ire ahịa na ịkwụ ụgwọ, ma ọ bụ otu esi ebugo akwụkwọ ala?",
+    "Fili. Kana tambaya ne game da yadda ake sanya fili a jeri don sayarwa, tallace-tallace da biyan kuɗi, ko yadda ake ɗora takardun fili?",
+    "Terrain. Votre question concerne la mise en vente d'un terrain, les ventes et les paiements, ou l'envoi des documents de titre ?"
+  ]);
+  mtDef('kw_rent_host', [
+    "Rent. Are you asking about listing a rental, how rent payouts work, or uploading documents?",
+    "Rent. You dey ask about how to list rental, how rent payouts dey work, or how to upload documents?",
+    "Rent. Ṣé ẹ ń béèrè nípa bí a ṣe ń fi ilé gbígbé sórí ìkéde, bí a ṣe ń san rent fún yín, tàbí bí a ṣe ń gbé àwọn ìwé sókè?",
+    "Rent. Ị na-ajụ banyere otu esi edepụta ụlọ ụgwọ, otu e si akwụ rent nye gị, ma ọ bụ otu esi ebugo akwụkwọ?",
+    "Haya. Kana tambaya ne game da yadda ake sanya gidan haya a jeri, yadda ake biyan haya a gare ka, ko yadda ake ɗora takardu?",
+    "Loyer. Votre question concerne la mise en ligne d'un logement, le versement des loyers, ou l'envoi de documents ?"
+  ]);
+  mtDef('lbl_list_prop', ["List a property", "List property", "Fi ohun ìní sórí ìkéde", "Depụta ụlọ ma ọ bụ ala", "Sanya kadara a jeri", "Mettre un bien en ligne"]);
+  mtDef('lbl_host_upload', ["Upload documents", "Upload documents", "Gbé àwọn ìwé sókè", "Bulite akwụkwọ", "Ɗora takardu", "Envoyer des documents"]);
+  mtDef('lbl_host_sales', ["Sales and payouts", "Sales and payouts", "Títà àti ìsanwó", "Ire ahịa na ịkwụ ụgwọ", "Tallace-tallace da biya", "Ventes et paiements"]);
+  mtDef('lbl_host_payout', ["Rent payouts", "Rent payouts", "Bí a ṣe ń san rent", "Otu e si akwụ rent", "Yadda ake biyan haya", "Versement des loyers"]);
+  mtDef('lbl_repair', ["Repair issue", "Repair wahala", "Ìṣòro àtúnṣe", "Nsogbu mmezi", "Matsalar gyara", "Problème de réparation"]);
+  mtDef('lbl_open_report', ["Report an issue", "Report an issue", "Ròyìn ìṣòro", "Kọọ nsogbu", "Bayar da rahoton matsala", "Signaler un problème"]);
+  mtDef('lbl_review_repairs', ["Review repair tickets", "Review repair tickets", "Wo àwọn tikẹ́ẹ̀tì àtúnṣe", "Lelee tiketi mmezi", "Duba tikitin gyara", "Voir les demandes de réparation"]);
   mtDef('lbl_buy', ["Buy", "Buy", "Rà", "Zụta", "Saya", "Acheter"]);
   mtDef('lbl_rent', ["Rent", "Rent", "Rent", "Rent", "Haya", "Louer"]);
   mtDef('lbl_shortlet', ["Shortlet", "Shortlet", "Shortlet", "Shortlet", "Shortlet", "Shortlet"]);
@@ -21067,7 +21100,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   const MT_FILLER = /^(a|an|the|my|me|i|to|of|on|for|about|and|or|with|please|pls|plz|abeg|jowo|biko|don|allah|want|need|know|ask|tell|info|information|more|some|regarding|question|what|whats|is|are|how|do|does|can|you|wetin|be|na|menene|quoi|est|ce|que|le|la|les|un|une|des|du|de|sur|je|veux|voudrais|savoir|pour|mon|ma|mes|ina|son|mo|fe|ni|nipa|m|choro|banyere|gbasara|game|da|ko|wan|dey|get)$/;
   const MT_TOPIC_CHIPS = {
     land:       [['land_fees', 'What fees apply to buying land?'], ['title', 'What does preliminary title screening cover?'], ['deed', 'What is a Deed of Assignment?'], ['plans', 'payment plan']],
-    property:   [['buy', 'buy'], ['rent', 'rent'], ['shortlet', 'shortlet']],
+    property:   [['buy', 'buy'], ['rent', 'rent'], ['shortlet', 'shortlet'], ['repair', 'Report a repair issue']],
     rent:       [['rent_fees', 'What are the fees for a rent listing?'], ['plans', 'payment plan'], ['book_insp', 'How do I book an inspection?']],
     shortlet:   [['shortlet_fees', 'shortlet fees'], ['caution', 'shortlet caution deposit']],
     payment:    [['fees', 'fees'], ['wallet', 'wallet'], ['plans', 'payment plan']],
@@ -21089,11 +21122,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (set.size === 2 && set.has('land') && set.has('property')) return 'land';
     return set.size === 1 ? Array.from(set)[0] : null;
   }
+  // Landlords and agents are not buyers or tenants: they get listing, upload and payout questions.
+  const MT_TOPIC_HOST = {
+    property: [['list_prop', 'How do I list a property?'], ['host_upload', 'How do I upload documents?'], ['host_sales', 'How do sales and payouts work?']],
+    land:     [['list_prop', 'How do I list a property?'], ['host_upload', 'How do I upload documents?'], ['host_sales', 'How do sales and payouts work?']],
+    rent:     [['list_prop', 'How do I list a property?'], ['host_upload', 'How do I upload documents?'], ['host_payout', 'How do rent payouts work?']]
+  };
+  function mtHostRole() { const r = (typeof currentUserRole !== 'undefined' && currentUserRole) || 'tenant'; return (r === 'landlord' || r === 'agent') ? r : null; }
+  function mtKwKey(topic) { return (mtHostRole() && MT_TOPIC_HOST[topic]) ? 'kw_' + topic + '_host' : 'kw_' + topic; }
   function mtTopicReply(conv, topic) {
-    const chips = (MT_TOPIC_CHIPS[topic] || []).map(d => d[2]
+    const src = (mtHostRole() && MT_TOPIC_HOST[topic]) ? MT_TOPIC_HOST[topic] : (MT_TOPIC_CHIPS[topic] || []);
+    const chips = src.map(d => d[2]
       ? { l: mtTx(conv, 'lbl_' + d[0]), a: 'go', k: d[2] }
       : { l: mtTx(conv, 'lbl_' + d[0]), a: 'say', t: d[1] });
-    return { text: mtTx(conv, 'kw_' + topic), chips: chips, loc: true };
+    return { text: mtTx(conv, mtKwKey(topic)), chips: chips, loc: true };
   }
   function mtJoke(conv) { const i = conv.jokeIdx || 0; conv.jokeIdx = i + 1; return mtTx(conv, 'joke' + ((i % 3) + 1)); }
 
@@ -21241,6 +21283,36 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (pending) lines.push(pending + ' inspection request' + (pending > 1 ? 's are' : ' is') + ' awaiting approval.');
       return { text: lines.join('\n'), chips: chips.concat([personChip]) };
     }
+    // 6b. Repairs and maintenance (tenant reports, landlord/agent resolves)
+    if (has(/(repair|maintenance|plumb|leak(ing|s)?\b|broken|not working|faulty|artisan|report (an )?issue|damaged|electrician)/)) {
+      const ri = [ { l: mtTx(conv, role === 'tenant' ? 'lbl_open_report' : 'lbl_review_repairs'), a: 'go', k: 'report-issue' }, personChip ];
+      if (role === 'tenant') return { text: "To report a repair, open Report an Issue. Pick the category (Plumbing, Electrical, Locksmith, AC/HVAC, Structural or General Repair), describe the problem and add a photo or video as proof. Choose Standard (24-hour response window) or Emergency for a water leak or power outage (4-hour window). You can have a MainTown vetted artisan sent, or notify your landlord or agent to resolve it. Landlords must address critical repairs within 48 hours.", chips: ri };
+      return { text: "When a tenant reports a repair, you get a Maintenance Alert to review the proof and assign action. Standard issues have a 24-hour response window and emergencies 4 hours. Landlords must address critical repairs within 48 hours, and MainTown may withhold monthly payout releases until critical repairs are resolved.", chips: ri };
+    }
+    // 6c. Landlord and agent questions: listing, documents, sales and payouts
+    if (role === 'landlord' || role === 'agent') {
+      if (has(/(rent|shortlet|short-let).{0,25}payouts?|payouts?.{0,25}(rent|shortlet|short-let)|(rent|shortlet).{0,20}(get paid|paid out)/)) {
+        return { text: role === 'agent'
+          ? "Rent and shortlet payments are split automatically when they are charged. You receive 60% of the 10% commission fee (MainTown keeps 40%), paid at the point of charge alongside the landlord's share. Nothing is held in escrow by MainTown."
+          : "Monthly rent and shortlet payments are split automatically when they are charged, and your share is paid directly to your verified payout account. MainTown never holds it in escrow. Platform commissions and legal or deed processing fees are deducted from the charge.", chips: [personChip] };
+      }
+      if (has(/(upload|submit|send|attach).{0,25}(document|documents|docs|title|deed|papers|c of o|survey|gazette)|documents? (upload|submission)/)) {
+        return { text: (role === 'agent'
+          ? "When you submit a listing for a landlord, they approve it, confirm their payout account and upload the title documents before it enters MainTown's legal review queue. "
+          : "You upload your title documents (such as a C of O, Deed of Assignment, Governor's Consent, Gazette or excision evidence and survey plan) as part of approving your listing, before it enters MainTown's legal review queue. ")
+          + "MainTown runs preliminary verification only: it checks that documents are supplied, complete and consistent. It is not a legal opinion or a Land Registry search, and you remain responsible for the authenticity of every document." + MT_DOC_NOTE, chips: [legalChip, personChip] };
+      }
+      if (has(/(list|add|post|create|publish).{0,20}(a |my |new |another )?(propert|listing|land|plot|house|apartment|flat|rental)/)) {
+        return { text: role === 'agent'
+          ? "Add a listing from your dashboard and submit it. It goes to the landlord or owner, who confirms their payout account, approves it and uploads the title documents. It then enters MainTown's legal review queue and goes live with automated payout protection. Agent commissions are not paid until the landlord has joined and validated ownership."
+          : "Add a listing from your dashboard with the price, details and photos. Before it goes live you confirm your payout account and upload your title documents, then it goes through MainTown's legal review queue. Only then is it published with automated payout protection.", chips: [ { l: mtTx(conv, 'lbl_host_upload'), a: 'say', t: 'How do I upload documents?' }, personChip ] };
+      }
+      if (has(/(sell|selling|sales?\b|payouts?|get paid)/)) {
+        return { text: role === 'agent'
+          ? "For land and property sales, each instalment or outright payment is split automatically when it is charged. The 10% commission is a buyer-paid 5% and a seller-paid 5%: the buyer's 5% goes to MainTown, and the seller's 5% comes to you when you list the property, released alongside the seller's share. The seller countersigns the Contract of Sale within 24 hours of checkout."
+          : "For land and property sales, each instalment or outright payment is split automatically when it is charged, and your share goes straight to your own account. MainTown does not hold or escrow it. After a buyer checks out you countersign the Contract of Sale within 24 hours, with reminders every 5 hours. The Deed of Assignment fee is set by you at 5% or 10% and paid to you with the buyer's first instalment.", chips: [personChip] };
+      }
+    }
     // 7. Documents and title (general information only)
     if (has(/title/) && has(/(screen|verif|check|search)/)) {
       return { text: "Preliminary title screening reviews Certificate of Occupancy and Gazette documents for completeness and consistency. It is preliminary only: not a Land Registry search and not a legal opinion. It is covered by the ₦15,000 land and property purchase fee, together with secure split-payment set-up. Every listing also goes through property title verification before it goes live." + MT_DOC_NOTE, chips: [legalChip] };
@@ -21378,7 +21450,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const cnt = conv.expertReplies;
     const topic = mtTopic(mtNorm(n));
     let text;
-    if (topic) text = mtTx(conv, 'kw_' + topic);
+    if (topic) text = mtTx(conv, mtKwKey(topic));
     else if (cnt === 1) text = mtTx(conv, 'ex_ack') + ' (Prototype: expert replies are simulated.)';
     else text = mtTx(conv, 'ex_summary');
     mtBotSay(conv, text, cnt >= 2 ? [ { l: 'End expert chat', a: 'resume' } ] : null, { by: 'expert', byName: team.name + ' · ' + team.team, delay: 1200 });
@@ -21437,6 +21509,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (chip.k === 'screening') requireScreening(() => showToast('Credit screening already complete'));
       else if (chip.k === 'wallet') openWalletDashboard();
       else if (chip.k === 'inspections') navigateTo('screen-inspections');
+      else if (chip.k === 'report-issue') navigateTo('screen-report-issue');
     }
   }
 
@@ -21450,10 +21523,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     let ov = 'auto'; try { ov = localStorage.getItem('mtr_proto_experts') || 'auto'; } catch (e) {}
     document.querySelectorAll('#mt-picker-modal [data-pk-avail]').forEach(b => b.classList.toggle('active', b.dataset.pkAvail === ov));
     const uid = getCurrentUserId() || 'guest';
-    const existing = conversations.find(c => c.convType === 'support' && c.userId === uid && c.messages.length > 2);
+    const existing = conversations.find(c => c.convType === 'support' && c.userId === uid && (mtPickerFromCard || c.messages.length > 2));
     const r = document.getElementById('pk-resume'); if (r) r.style.display = existing ? 'flex' : 'none';
   }
-  function openMtPicker() {
+  let mtPickerFromCard = false;
+  function openMtPicker(fromCard) {
+    mtPickerFromCard = fromCard === true;
     mtPickerRefresh();
     document.getElementById('mt-picker-modal').classList.add('open');
     if (window.lucide) lucide.createIcons();
@@ -21498,6 +21573,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // ---- END MainTown Assistant PROTOTYPE ----
 
 
+  // One-line preview for the conversation card. Voice notes and files have no text field.
+  function mtThreadPreview(m) {
+    if (!m) return '';
+    if (m.type === 'voice') return 'Voice note' + (m.duration ? ' (' + m.duration + ')' : '');
+    if (m.type === 'file') return m.kind === 'image' ? 'Photo' : 'Document: ' + shortletEsc(m.name || 'file');
+    if (m.type === 'lease-doc') return 'Tenancy agreement';
+    return m.text != null ? String(m.text).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : '';
+  }
   function renderThreadList() {
     document.getElementById('msg-list-view').style.display = 'block';
     document.getElementById('msg-thread-detail').style.display = 'none';
@@ -21560,7 +21643,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="thread-avatar">${avatarInner}</div>
         <div class="thread-text">
           <p class="thread-title">${peer.name}</p>
-          <p class="thread-sub">${lastMsg ? lastMsg.text : ''}</p>
+          <p class="thread-sub">${mtThreadPreview(lastMsg)}</p>
           <span class="thread-context-badge">${peer.label} • ${c.listingTitle}</span>
         </div>
         ${badge}
@@ -21572,7 +21655,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('msg-thread-list').addEventListener('click', (e) => {
     const item = e.target.closest('.thread-item');
     if (!item) return;
-    openThreadDetail(parseInt(item.dataset.id, 10));
+    const tid = parseInt(item.dataset.id, 10);
+    const tconv = conversations.find(c => c.id === tid);
+    // MainTown support card: show the same "Who would you like to speak with?" options
+    // (Continue previous chat is always offered here, since this card IS the previous chat).
+    if (tconv && tconv.convType === 'support') { openMtPicker(true); return; }
+    openThreadDetail(tid);
   });
 
   function renderReceipt(status) {
@@ -21591,7 +21679,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         return `
         <div class="chat-bubble ${m.from === 'me' ? 'me' : 'them'}">
           <div class="voice-note-row">
-            <button type="button" class="voice-note-play-btn" data-audio="${m.audioUrl}"><i data-lucide="play" class="w-3.5 h-3.5"></i></button>
+            ${m.speechOnly ? '<span class="voice-note-play-btn" style="cursor:default;"><i data-lucide="mic" class="w-3.5 h-3.5"></i></span>' : `<button type="button" class="voice-note-play-btn" data-audio="${m.audioUrl}"><i data-lucide="play" class="w-3.5 h-3.5"></i></button>`}
             <div class="voice-note-wave">${Array.from({length: 22}).map(() => `<span style="height:${6 + Math.round(Math.random()*12)}px;"></span>`).join('')}</div>
             <span class="voice-note-duration">${m.duration}</span>
           </div>${m.transcribing ? '<p class="voice-transcript pending">Transcribing…</p>' : (m.transcript ? `<p class="voice-transcript">${shortletEsc(m.transcript)}</p>` : '')}${m.from === 'me' ? renderReceipt(m.status) : ''}
@@ -22056,60 +22144,74 @@ This voucher is auto-generated and serves as proof of settlement.`;
   let voiceChunks = [];
   let voiceRecordStart = 0;
   let isRecordingVoice = false;
-  let voiceRecognizer = null;
-  let voiceTranscriptText = '';
-  let voiceRecognizerDone = null;
-  const MT_TRANSCRIBE_URL = ''; // optional: POST audio blob here, expects { text: "..." }
+  const MT_TRANSCRIBE_URL = ''; // optional server speech-to-text: POST audio blob here, expects { text: "..." }
   const MT_SPEECH_LANG = { en: 'en-NG', pcm: 'en-NG', yo: 'yo-NG', ig: 'ig-NG', ha: 'ha-NG', fr: 'fr-FR' };
+  const MT_SPEECH_ERR = {
+    'not-allowed': 'Microphone is blocked. Allow the microphone for this site in your browser settings, then try again.',
+    'service-not-allowed': 'Speech recognition is blocked on this browser. Allow the microphone for this site, or type instead.',
+    'audio-capture': 'No microphone found, or another app is using it. Close other apps using the mic and try again.',
+    'network': 'Speech recognition needs an internet connection.',
+    'no-speech': "I didn't hear anything. Hold the phone closer and try again.",
+    'start-failed': 'Could not start the microphone. Try again.'
+  };
+  function mtSpeechCtor() { return window.SpeechRecognition || window.webkitSpeechRecognition || null; }
 
-  function mtStartSpeechRecognition(conv, langCode) {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    voiceTranscriptText = '';
-    voiceRecognizer = null;
-    voiceRecognizerDone = Promise.resolve();
-    if (!SR) return;
-    let resolveDone;
-    voiceRecognizerDone = new Promise(r => { resolveDone = r; });
-    let triedFallback = langCode === 'en-NG';
+  // Assistant chat voice notes use the browser's speech recognition ALONE (no MediaRecorder).
+  // On Android Chrome the recorder and the recognizer fight over the one microphone, which is
+  // why the recognizer heard nothing when both ran together. The words are shown live while you
+  // speak and again in the review bar, so you can see you were heard before you tap Send.
+  let mtSpeech = null; // { text, prev, lastError, fatal, stopped, done, resolve, rec }
+  function mtSpeechStart(conv) {
+    const SR = mtSpeechCtor();
+    const st = { text: '', prev: '', lastError: '', fatal: false, stopped: false, switchTo: null, retried: false, rec: null };
+    st.done = new Promise(r => { st.resolve = r; });
+    mtSpeech = st;
+    const first = MT_SPEECH_LANG[mtLang(conv)] || 'en-NG';
+    st.retried = first === 'en-NG';
     const run = (code) => {
-      let finalText = '', interim = '';
-      const rec = new SR();
+      let rec;
+      try { rec = new SR(); } catch (e) { st.lastError = 'start-failed'; st.fatal = true; st.resolve(); return; }
       rec.lang = code; rec.continuous = true; rec.interimResults = true;
+      st.rec = rec;
       rec.onresult = (ev) => {
-        interim = '';
-        for (let i = ev.resultIndex; i < ev.results.length; i++) {
-          const t = ev.results[i][0].transcript;
-          if (ev.results[i].isFinal) finalText += t + ' '; else interim += t;
+        let fin = '', interim = '';
+        for (let i = 0; i < ev.results.length; i++) {
+          const r = ev.results[i];
+          if (r.isFinal) fin += r[0].transcript + ' '; else interim += r[0].transcript;
         }
-        voiceTranscriptText = (finalText + interim).trim();
+        st.text = ((st.prev ? st.prev + ' ' : '') + (fin + interim).trim()).trim();
+        const el = document.getElementById('msg-rec-hint');
+        if (el && isRecordingVoice) el.textContent = st.text ? ('“' + st.text.slice(-70) + '”') : 'Listening… speak now';
       };
       rec.onerror = (ev) => {
-        // Chrome may not support Yorùbá/Igbo/Hausa — retry once in Nigerian English
-        if (!triedFallback && (ev.error === 'language-not-supported' || ev.error === 'service-not-allowed')) {
-          triedFallback = true; rec._retry = true;
-        }
+        st.lastError = ev.error || 'unknown';
+        // Chrome may not support Yorùbá/Igbo/Hausa recognition: retry once in Nigerian English
+        if (ev.error === 'language-not-supported' && !st.retried) { st.retried = true; st.switchTo = 'en-NG'; }
+        else if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed' || ev.error === 'audio-capture' || ev.error === 'network') st.fatal = true;
       };
       rec.onend = () => {
-        if (rec._retry && isRecordingVoice) { run('en-NG'); return; }
-        if (isRecordingVoice && !rec._stopped) { try { rec.start(); return; } catch (e) {} } // Chrome ends sessions on silence — keep listening
-        resolveDone();
+        st.prev = st.text;
+        if (st.switchTo && !st.stopped) { const c = st.switchTo; st.switchTo = null; run(c); return; }
+        if (!st.stopped && !st.fatal) { run(code); return; } // browsers end a session on silence: keep listening
+        st.resolve();
+        if (st.fatal && !st.stopped && mtSpeech === st) {
+          const msg = MT_SPEECH_ERR[st.lastError] || 'Could not use the microphone.';
+          cancelVoiceCapture(); showToast(msg);
+        }
       };
-      voiceRecognizer = rec;
-      try { rec.start(); } catch (e) { resolveDone(); }
+      try { rec.start(); } catch (e) { st.lastError = 'start-failed'; st.fatal = true; st.resolve(); }
     };
-    run(langCode);
+    run(first);
   }
 
   async function mtTranscribeVoice(blob) {
-    if (MT_TRANSCRIBE_URL) {
-      try {
-        const res = await fetch(MT_TRANSCRIBE_URL, { method: 'POST', headers: { 'Content-Type': blob.type || 'audio/webm' }, body: blob });
-        const data = await res.json();
-        if (data && data.text) return String(data.text).trim();
-      } catch (e) { /* fall through to browser transcript */ }
-    }
-    await Promise.race([voiceRecognizerDone, new Promise(r => setTimeout(r, 2500))]);
-    return (voiceTranscriptText || '').trim();
+    if (!MT_TRANSCRIBE_URL || !blob) return '';
+    try {
+      const res = await fetch(MT_TRANSCRIBE_URL, { method: 'POST', headers: { 'Content-Type': blob.type || 'audio/webm' }, body: blob });
+      const data = await res.json();
+      if (data && data.text) return String(data.text).trim();
+    } catch (e) { /* no transcript */ }
+    return '';
   }
 
   async function mtVoiceNoteToBot(conv, msg, textPromise) {
@@ -22146,12 +22248,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (voiceDraft) {
       const playing = voiceDraftAudio && !voiceDraftAudio.paused;
       bar.className = 'msg-pending-bar voice-draft'; bar.style.display = 'flex';
-      bar.innerHTML = `<button type="button" class="vd-btn del" data-act="vd-delete" title="Delete voice note"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+      bar.innerHTML = voiceDraft.speechOnly
+        ? `<button type="button" class="vd-btn del" data-act="vd-delete" title="Delete voice note"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        <i data-lucide="mic" class="w-4 h-4" style="flex-shrink:0;"></i><span class="vd-text">${shortletEsc(voiceDraft.transcript)}</span><span class="voice-note-duration">${voiceDraft.duration}</span>`
+        : `<button type="button" class="vd-btn del" data-act="vd-delete" title="Delete voice note"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
         <button type="button" class="vd-btn" data-act="vd-play" title="Play"><i data-lucide="${playing ? 'pause' : 'play'}" class="w-4 h-4"></i></button>
         <div class="voice-note-wave">${voiceDraft.wave}</div><span class="voice-note-duration">${voiceDraft.duration}</span>`;
     } else if (isRecordingVoice) {
       bar.className = 'msg-pending-bar recording-bar'; bar.style.display = 'flex';
-      bar.innerHTML = `<span class="rec-dot"></span><span id="msg-rec-timer">0:00</span><span class="rec-hint">Recording… tap the square to stop</span><button type="button" class="vd-btn del" data-act="rec-cancel" title="Cancel recording"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
+      bar.innerHTML = `<span class="rec-dot"></span><span id="msg-rec-timer">0:00</span><span class="rec-hint" id="msg-rec-hint">${mtSpeech ? 'Listening… speak now' : 'Recording… tap the square to stop'}</span><button type="button" class="vd-btn del" data-act="rec-cancel" title="Cancel recording"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
     } else if (pendingAttachments.length) {
       bar.className = 'msg-pending-bar tray'; bar.style.display = 'flex';
       bar.innerHTML = pendingAttachments.map(a => a.kind === 'image'
@@ -22167,6 +22272,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const conv = conversations.find(c => c.id === activeThreadId);
     if (!conv) return;
     if (conv.status === 'archived') { showToast('This conversation is closed'); return; }
+    if (conv.convType === 'support' && !MT_TRANSCRIBE_URL) {
+      if (!mtSpeechCtor()) { showToast("This browser can't turn voice into text. Please use Chrome, or type your message."); return; }
+      voiceCancelled = false;
+      isRecordingVoice = true; voiceRecordStart = Date.now();
+      mtSpeechStart(conv);
+      const sb = document.getElementById('msg-voice-note-btn');
+      sb.classList.add('recording'); sb.innerHTML = '<i data-lucide="square" class="w-4 h-4"></i>';
+      mtRenderComposerExtras();
+      voiceTimerInt = setInterval(() => {
+        const sec = Math.round((Date.now() - voiceRecordStart) / 1000);
+        const el = document.getElementById('msg-rec-timer'); if (el) el.textContent = mtFmtDur(sec);
+        if (sec >= MT_VOICE_MAX_SEC) { showToast('Voice notes are limited to 5 minutes'); stopVoiceRecording(); }
+      }, 500);
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       voiceChunks = []; voiceCancelled = false;
@@ -22186,7 +22306,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
       voiceRecorder.start();
       voiceRecordStart = Date.now();
       isRecordingVoice = true;
-      if (conv.convType === 'support') mtStartSpeechRecognition(conv, MT_SPEECH_LANG[mtLang(conv)] || 'en-NG');
       const btn = document.getElementById('msg-voice-note-btn');
       btn.classList.add('recording');
       btn.innerHTML = '<i data-lucide="square" class="w-4 h-4"></i>';
@@ -22205,13 +22324,35 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
 
   function stopVoiceRecording() {
+    const wasSpeech = !!mtSpeech;
     isRecordingVoice = false;
-    if (voiceRecognizer) { voiceRecognizer._stopped = true; try { voiceRecognizer.stop(); } catch (e) {} }
-    if (voiceRecorder && voiceRecorder.state !== 'inactive') voiceRecorder.stop();
+    if (wasSpeech) mtSpeechFinish();
+    else if (voiceRecorder && voiceRecorder.state !== 'inactive') voiceRecorder.stop();
     const btn = document.getElementById('msg-voice-note-btn');
     btn.classList.remove('recording');
     btn.innerHTML = '<i data-lucide="mic" class="w-4 h-4"></i>';
     if (window.lucide) lucide.createIcons();
+    if (wasSpeech) mtRenderComposerExtras();
+  }
+  // Speech-only capture finished: wait briefly for the last words, then make the review draft
+  async function mtSpeechFinish() {
+    const st = mtSpeech; mtSpeech = null;
+    clearInterval(voiceTimerInt);
+    if (!st) return;
+    st.stopped = true;
+    try { if (st.rec) st.rec.stop(); } catch (e) {}
+    const cancelled = voiceCancelled;
+    await Promise.race([st.done, new Promise(r => setTimeout(r, 2000))]);
+    if (cancelled || voiceCancelled) { mtRenderComposerExtras(); return; }
+    const text = (st.text || '').trim();
+    if (!text) {
+      showToast(MT_SPEECH_ERR[st.lastError] || MT_SPEECH_ERR['no-speech']);
+      mtRenderComposerExtras();
+      return;
+    }
+    const elapsed = Math.max(1, Math.round((Date.now() - voiceRecordStart) / 1000));
+    voiceDraft = { audioUrl: '', duration: mtFmtDur(elapsed), blob: null, wave: mtWaveHtml(), simulated: false, speechOnly: true, transcript: text, textPromise: null };
+    mtRenderComposerExtras();
   }
 
   function discardVoiceDraft() {
@@ -22241,13 +22382,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (voiceDraftAudio) { try { voiceDraftAudio.pause(); } catch (e) {} voiceDraftAudio = null; }
     voiceDraft = null;
     const msg = { from: 'me', type: 'voice', audioUrl: d.audioUrl, duration: d.duration, status: 'sent' };
+    if (d.speechOnly) {
+      msg.speechOnly = true;
+      msg.transcript = mtBotSensitive(d.transcript) ? 'Sensitive details hidden for your security' : d.transcript;
+    }
     conv.messages.push(msg);
     saveConversations();
     mtRenderComposerExtras();
     renderChatLog(conv);
     mtBotScroll();
     simulateReceiptProgress(conv, msg);
-    if (conv.convType === 'support') mtVoiceNoteToBot(conv, msg, d.textPromise);
+    if (d.speechOnly) mtBotOnUser(conv, d.transcript);
+    else if (conv.convType === 'support') mtVoiceNoteToBot(conv, msg, d.textPromise);
   }
 
   document.getElementById('msg-voice-note-btn').addEventListener('click', () => {
