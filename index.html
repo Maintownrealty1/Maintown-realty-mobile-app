@@ -2492,6 +2492,43 @@
   .chat-bubble.system { background: rgba(30,41,59,0.7); color: #94a3b8; border: 1px solid #1e293b; margin: 0 auto 10px; text-align: center; font-size: 11.5px; max-width: 100%; }
   .chat-bubble.them { background: rgba(30,41,59,0.7); color: #e2e8f0; border: 1px solid #1e293b; }
   .chat-bubble.me { background: linear-gradient(135deg, #7e22ce, #a855f7); color: #fff; border: none; margin-left: auto; }
+
+  /* ---- MainTown Assistant prototype: bubbles, chips, typing, expert picker ---- */
+  .cb-by { display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:600; color:#94a3b8; margin:0 0 4px; }
+  .cb-by svg { width:12px; height:12px; }
+  .cb-by.expert { color:#6ee7b7; }
+  .chat-bubble.expert { border-color: rgba(52,211,153,0.35); }
+  .chat-bubble.bot, .chat-bubble.expert { max-width: 92%; }
+  .bot-chips { display:flex; flex-wrap:wrap; gap:6px; margin:-2px 0 12px; }
+  .bot-chip { font-size:12px; font-weight:600; color:#c4b5fd; background:rgba(15,23,42,0.8); border:1px solid #334155; border-radius:999px; padding:6px 12px; cursor:pointer; }
+  .bot-chip:hover, .bot-chip:focus-visible { border-color:#a855f7; outline:none; }
+  .bot-chip.primary { background:rgba(147,51,234,0.18); border-color:rgba(168,85,247,0.5); color:#e9d5ff; }
+  .bot-typing { display:inline-flex; gap:4px; padding:4px 2px; }
+  .bot-typing span { width:6px; height:6px; border-radius:999px; background:#94a3b8; animation: botDot 1.2s infinite ease-in-out; }
+  .bot-typing span:nth-child(2) { animation-delay:.15s; }
+  .bot-typing span:nth-child(3) { animation-delay:.3s; }
+  @keyframes botDot { 0%,80%,100% { opacity:.3; transform:translateY(0); } 40% { opacity:1; transform:translateY(-3px); } }
+  @media (prefers-reduced-motion: reduce) { .bot-typing span { animation:none; opacity:.7; } }
+  .pk-opt { display:flex; align-items:flex-start; gap:12px; width:100%; text-align:left; padding:14px; margin-bottom:10px; border:1px solid #1e293b; border-radius:14px; background:rgba(15,23,42,0.6); color:inherit; cursor:pointer; font-family:inherit; }
+  .pk-opt:hover, .pk-opt:focus-visible { border-color:#a855f7; outline:none; }
+  .pk-ico { flex-shrink:0; width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:rgba(139,92,246,0.14); color:#c4b5fd; }
+  .pk-title { font-size:13.5px; font-weight:600; color:#e2e8f0; margin:0 0 3px; }
+  .pk-desc { font-size:12px; color:#94a3b8; line-height:1.45; margin:0 0 6px; }
+  .pk-status { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; }
+  .pk-status::before { content:''; width:7px; height:7px; border-radius:999px; background:#64748b; }
+  .pk-status.on { color:#6ee7b7; } .pk-status.on::before { background:#34d399; }
+  .pk-status.off { color:#94a3b8; }
+  .pk-note { font-size:11.5px; color:#64748b; line-height:1.5; margin:12px 0 8px; }
+  .pk-demo { display:flex; align-items:center; flex-wrap:wrap; gap:6px; font-size:11.5px; color:#64748b; }
+  .pk-demo button { font-size:11.5px; font-weight:600; color:#94a3b8; background:transparent; border:1px solid #334155; border-radius:999px; padding:4px 10px; cursor:pointer; font-family:inherit; }
+  .pk-demo button.active { color:#e9d5ff; border-color:#a855f7; background:rgba(147,51,234,0.18); }
+  body.light-theme .pk-opt { background:#f8fafc; border-color:#e2e8f0; }
+  body.light-theme .pk-title { color:#0f172a; }
+  body.light-theme .pk-desc, body.light-theme .pk-note, body.light-theme .pk-demo { color:#475569; }
+  body.light-theme .bot-chip { background:#ffffff; border-color:#cbd5e1; color:#6d28d9; }
+  body.light-theme .bot-chip.primary { background:#f3e8ff; color:#5b21b6; }
+  body.light-theme .cb-by { color:#475569; }
+  body.light-theme .cb-by.expert { color:#047857; }
   .chat-bubble.call-log { background: rgba(30,41,59,0.5); color: #94a3b8; border: 1px dashed #334155; display: flex; align-items: center; gap: 8px; margin: 0 auto 10px; font-size: 11.5px; }
   .chat-bubble.call-log.me { margin-left: auto; margin-right: 0; }
   .chat-bubble.call-log.them { margin-right: auto; margin-left: 0; }
@@ -6234,6 +6271,9 @@
     <button type="button" id="msg-request-address-btn" class="s5-action-btn" style="display:none; align-items:center; justify-content:center; gap:6px; width:100%; margin: 14px 0;">
       <i data-lucide="map-pin" class="w-4 h-4"></i> Request Full Address
     </button>
+    <button type="button" id="msg-talk-person-btn" class="s5-action-btn" style="display:none; align-items:center; justify-content:center; gap:6px; width:100%; margin: 14px 0;">
+      <i data-lucide="users" class="w-4 h-4"></i> Talk to a person
+    </button>
     <div id="msg-chat-log" style="margin: 18px 0;"></div>
 
     <!-- Text messaging + attachment + Voice note composer -->
@@ -7561,6 +7601,42 @@
       <i data-lucide="x-circle" class="w-4 h-4"></i> Not Satisfied — Request Cancellation
     </button>
     <button type="button" id="id-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
+<!-- ===================== MainTown Assistant: who would you like to speak with (PROTOTYPE) ===================== -->
+<div id="mt-picker-modal" class="sheet-overlay" style="z-index:96;">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div style="min-width:0;">
+        <h2 class="sheet-title" style="margin:0;">Who would you like to speak with?</h2>
+        <p class="sheet-subtitle">Start with our assistant. A live expert can join when you need one.</p>
+      </div>
+      <button type="button" class="sheet-close-btn" id="pk-close" aria-label="Close"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+    </div>
+    <button type="button" class="pk-opt" data-pk="estate">
+      <span class="pk-ico"><i data-lucide="home" class="w-5 h-5"></i></span>
+      <span style="min-width:0;"><p class="pk-title">Real Estate Advisor</p><p class="pk-desc">Fees, payment plans, inspections and what you still need to complete.</p><span class="pk-status off" id="pk-status-estate"></span></span>
+    </button>
+    <button type="button" class="pk-opt" data-pk="legal">
+      <span class="pk-ico"><i data-lucide="scale" class="w-5 h-5"></i></span>
+      <span style="min-width:0;"><p class="pk-title">Legal and Documents</p><p class="pk-desc">Property documents, agreements and how title verification works.</p><span class="pk-status off" id="pk-status-legal"></span></span>
+    </button>
+    <button type="button" class="pk-opt" data-pk="unsure">
+      <span class="pk-ico"><i data-lucide="message-circle" class="w-5 h-5"></i></span>
+      <span style="min-width:0;"><p class="pk-title">Not sure</p><p class="pk-desc">Tell the assistant what you need and it will point you the right way.</p></span>
+    </button>
+    <button type="button" class="pk-opt" id="pk-resume" data-pk="resume" style="display:none;">
+      <span class="pk-ico"><i data-lucide="history" class="w-5 h-5"></i></span>
+      <span style="min-width:0;"><p class="pk-title">Continue previous chat</p><p class="pk-desc" style="margin:0;">Pick up where you left off.</p></span>
+    </button>
+    <p class="pk-note">Prototype: assistant replies are scripted from MainTown's help and fee text, not live AI, and expert replies are simulated.</p>
+    <div class="pk-demo"><span>Demo: experts are</span>
+      <button type="button" data-pk-avail="auto">Auto</button>
+      <button type="button" data-pk-avail="online">Online</button>
+      <button type="button" data-pk-avail="offline">Offline</button>
+    </div>
   </div>
 </div>
 
@@ -20379,6 +20455,355 @@ This voucher is auto-generated and serves as proof of settlement.`;
   let activeThreadId = null;
   let activeThreadHostInfo = null; // set by openThreadDetail when the Tenant is viewing a Host (Agent/Landlord) thread
 
+  // ==================================================================
+  // ---- MainTown Assistant — PROTOTYPE (front-end only) ----
+  // Scripted replies built from the app's own FAQ, policy and fee text.
+  // This is NOT live AI. Expert replies are simulated. The production
+  // version belongs on a server (see the AI Functions SOP, section 6).
+  // ==================================================================
+  const MT_TEAMS = {
+    estate:  { team: 'MainTown Estate team',  name: 'Estate Expert' },
+    legal:   { team: 'MainTown Legal team',   name: 'Legal Expert' },
+    support: { team: 'MainTown support team', name: 'Support Agent' }
+  };
+  const MT_EXPERT_OPEN = {
+    estate:  "Hello, I've read your conversation with the assistant. Which listing are you asking about, and which payment option are you considering?",
+    legal:   "Hello, I've read your conversation with the assistant. Which document or listing is this about, so I can look at the right details?",
+    support: "Hello, I've read your conversation and your ticket. Which listing or payment does this relate to, and roughly when did it happen?"
+  };
+  const MT_DOC_NOTE = '\n\nThis is general information, not legal advice.';
+  let mtBotTypingId = null;
+
+  function mtExpertsOnline() {
+    let ov = 'auto';
+    try { ov = localStorage.getItem('mtr_proto_experts') || 'auto'; } catch (e) {}
+    if (ov === 'online') return true;
+    if (ov === 'offline') return false;
+    const now = new Date(), h = now.getHours(), d = now.getDay();
+    return d !== 0 && h >= 8 && h < 18; // demo hours only: Mon to Sat, 8am to 6pm device time
+  }
+  function mtBotScroll() { const l = document.getElementById('msg-chat-log'); if (l) l.scrollTop = l.scrollHeight; }
+  function mtBotTypingHtml(conv) {
+    return (mtBotTypingId === conv.id) ? '<div class="chat-bubble them"><span class="bot-typing" aria-label="Typing"><span></span><span></span><span></span></span></div>' : '';
+  }
+  function mtBotChipsHtml(chips) {
+    return '<div class="bot-chips">' + chips.map((c, i) => '<button type="button" class="bot-chip' + (c.p ? ' primary' : '') + '" data-bot-chip="' + i + '">' + c.l + '</button>').join('') + '</div>';
+  }
+  function mtBotRefresh(conv) { if (activeThreadId === conv.id) { renderChatLog(conv); mtBotScroll(); } }
+  function mtBotPush(conv, text, chips, by, byName) {
+    conv.messages.push({ from: 'them', type: 'text', by: by || 'bot', byName: byName || '', text: text, chips: chips || null });
+    saveConversations(); mtBotRefresh(conv);
+  }
+  function mtBotSay(conv, text, chips, opts) {
+    opts = opts || {};
+    mtBotTypingId = conv.id; mtBotRefresh(conv);
+    setTimeout(() => {
+      mtBotTypingId = null;
+      mtBotPush(conv, text, chips, opts.by, opts.byName);
+      if (opts.then) opts.then();
+    }, opts.delay || 900);
+  }
+  function mtSystemLine(conv, text) { conv.messages.push({ from: 'system', text: text }); saveConversations(); mtBotRefresh(conv); }
+
+  function mtBotMode(conv) { return conv.mode || 'unsure'; }
+  function mtBotChipsFor(conv) {
+    const m = mtBotMode(conv);
+    if (m === 'legal') return [
+      { l: 'What is a Deed of Assignment?', a: 'say', t: 'What is a Deed of Assignment?' },
+      { l: "Governor's Consent", a: 'say', t: "What is Governor's Consent?" },
+      { l: 'Preliminary title screening', a: 'say', t: 'What does preliminary title screening cover?' },
+      { l: 'Talk to a legal expert', a: 'handoff', k: 'legal', p: true }
+    ];
+    return [
+      { l: 'Explain fees', a: 'assist', k: 'fees' },
+      { l: 'What do I need to complete?', a: 'say', t: 'What do I need to complete?' },
+      { l: 'Inspection status', a: 'say', t: 'What is my inspection status?' },
+      { l: 'Talk to a person', a: 'handoff', k: (m === 'estate' ? 'estate' : 'support'), p: true }
+    ];
+  }
+  function mtBotSensitive(text) {
+    const s = String(text || '').toLowerCase();
+    const digits = s.replace(/[\s-]/g, '');
+    if (/\b(pin|otp|bvn|nin|password|passcode|cvv)\b/.test(s) && /\d{4,}/.test(digits)) return true;
+    if (/\d{13,19}/.test(digits)) return true;
+    return false;
+  }
+
+  // Scripted intent matcher. Every answer below comes from text already in the app
+  // (PROFILE_FAQS, PROFILE_POLICIES, the Ask MainTown fee cards, the document stages).
+  function mtBotIntent(conv, raw) {
+    const t = String(raw || '').toLowerCase().trim();
+    const role = (typeof currentUserRole !== 'undefined' && currentUserRole) || 'tenant';
+    const mode = mtBotMode(conv);
+    const has = (re) => re.test(t);
+    const person = (team, label) => ({ l: label, a: 'handoff', k: team, p: true });
+    const personChip = person(mode === 'legal' ? 'legal' : (mode === 'estate' ? 'estate' : 'support'), 'Talk to a person');
+    const legalChip = person('legal', 'Talk to a legal expert');
+    const menu = mtBotChipsFor(conv);
+    const hasSched = (typeof schedules !== 'undefined');
+
+    // 1. Money, safety and disputes: never answer, always hand off
+    if (has(/(refund|cancel)/) && has(/(shortlet|short-let|stay|booking|guest|night)/)) {
+      return { text: "Cancellation and refund terms for shortlets are still being finalised, so I can't give you amounts or deadlines. I'll pass this to the team with this chat.", handoff: 'support' };
+    }
+    if (has(/(refund|fraud|scam|scammed|stole|stolen|impersonat|dispute|chargeback|charge back|deducted|wrong amount|payment failed|failed payment|not received|threat|police|lawsuit|\bsue\b)/)) {
+      return { text: "I can't confirm payment outcomes, refunds or disputes, and I don't want to give you wrong information. I'll pass this to the team with this chat so you don't have to repeat it.", handoff: 'support' };
+    }
+    // 2. Asking for a person
+    if (has(/(talk|speak|chat|connect|reach)\b.{0,25}\b(person|human|expert|lawyer|advisor|adviser|representative|someone|agent|staff|team)/) || has(/\b(want|need)\b (a |an |to (talk|speak) (to|with) )?(person|human|expert|lawyer|advisor|adviser|representative)/)) {
+      const team = has(/(lawyer|legal|document|title|c of o|deed)/) ? 'legal' : (has(/(estate|property|listing|rent|inspection)/) ? 'estate' : (mode === 'legal' ? 'legal' : (mode === 'estate' ? 'estate' : null)));
+      if (team) return { text: 'Of course.', handoff: team };
+      return { text: 'Who would you like to speak with?', chips: [ { l: 'Real estate expert', a: 'handoff', k: 'estate' }, { l: 'Legal expert', a: 'handoff', k: 'legal' } ] };
+    }
+    // 3. Contact options
+    if (has(/(maintown|your|support|customer).{0,20}(phone|number|call|hotline)|call you|support line|office hours|working hours|opening hours/)) {
+      return { text: "If you can't reach us in chat, call the offline support line on " + formatPhoneDisplay(MAINTOWN_OFFLINE_NUMBERS[0].number) + ". Expert availability is shown before you start a chat. Outside staffed hours, leave your question and the team replies here.", chips: [personChip] };
+    }
+    // 4. Off-platform requests
+    if (has(/(whatsapp|phone number|his number|her number|their number|landlord'?s number|agent'?s number|pay (him|her|them) directly|directly pay|outside (the )?app|bank (account|details)|transfer to)/)) {
+      return { text: "I can't share contact details, and payments made outside MainTown aren't protected. Once your inspection request is accepted, chat with the host unlocks right here, and you can pay safely through the app.", chips: [ { l: 'What do I need to complete?', a: 'say', t: 'What do I need to complete?' } ] };
+    }
+    // 5. Small talk and identity
+    if (t.length < 30 && /^(hi|hello|hey|good (morning|afternoon|evening)|howdy)\b/.test(t)) return { text: 'Hello! How can I help you today?', chips: menu };
+    if (has(/(are you (a )?(bot|human|real|ai|robot)|who are you|am i talking)/)) return { text: "I'm MainTown's automated assistant. I answer from MainTown's approved help content and fee rules, and I can connect you with a live expert at any time.", chips: [personChip] };
+    if (has(/^(thanks|thank you|thx|cool|great|ok thanks)\b/)) return { text: "You're welcome. Is there anything else I can help with?", chips: menu };
+    // 6. Account status (read-only, from app state)
+    if (has(/inspection (status|request)|my inspection|pending inspection/)) {
+      const pending = hasSched ? schedules.filter(s => s.status === 'Pending Approval').length : 0;
+      return { text: pending ? ('You have ' + pending + ' inspection request' + (pending > 1 ? 's' : '') + ' awaiting approval. The landlord or agent has not confirmed yet.') : 'You have no inspection requests waiting for approval. Open Inspection Schedules to see upcoming visits.', chips: [ { l: 'Open inspections', a: 'go', k: 'inspections' } ] };
+    }
+    if (has(/(what do i need|need to complete|to-?do|checklist|can'?t (request|book)|cannot (request|book)|why can'?t i|what('s| is) left)/)) {
+      if (role !== 'tenant') return { text: "Landlords and agents have no credit screening step. Check inspection requests from your dashboard, and keep listings accurate so verification goes smoothly.", chips: [personChip] };
+      const uid = getCurrentUserId();
+      let bal = 0; try { bal = getWalletBalance(uid); } catch (e) {}
+      const lines = [], chips = [];
+      if (!isScreeningCompleted()) { lines.push('Complete the one-time ₦5,000 credit screening. It is needed before you can request an inspection.'); chips.push({ l: 'Start screening', a: 'go', k: 'screening' }); }
+      else lines.push('Your credit screening is complete.');
+      if (!(bal > 0)) { lines.push('Your wallet is empty. Rent and shortlet payments are debited from it.'); chips.push({ l: 'Open wallet', a: 'go', k: 'wallet' }); }
+      else lines.push('Your wallet has a balance available for payments.');
+      const pending = hasSched ? schedules.filter(s => s.status === 'Pending Approval').length : 0;
+      if (pending) lines.push(pending + ' inspection request' + (pending > 1 ? 's are' : ' is') + ' awaiting approval.');
+      return { text: lines.join('\n'), chips: chips.concat([personChip]) };
+    }
+    // 7. Documents and title (general information only)
+    if (has(/title/) && has(/(screen|verif|check|search)/)) {
+      return { text: "Preliminary title screening reviews Certificate of Occupancy and Gazette documents for completeness and consistency. It is preliminary only: not a Land Registry search and not a legal opinion. It is covered by the ₦15,000 land and property purchase fee, together with secure split-payment set-up. Every listing also goes through property title verification before it goes live." + MT_DOC_NOTE, chips: [legalChip] };
+    }
+    if (has(/deed of assignment/) && !has(/\b(fee|fees|charge|cost|percent)\b|%/)) {
+      return { text: "A Deed of Assignment is the document by which a seller transfers their interest in a property to the buyer. On MainTown it is issued after full payment, after physical allocation (the buyer requests, the owner confirms, and the buyer attends on site) and, where the title type requires it, after Governor's Consent." + MT_DOC_NOTE, chips: [ { l: "Governor's Consent", a: 'say', t: "What is Governor's Consent?" }, legalChip ] };
+    }
+    if (has(/(governor|consent)/)) {
+      return { text: "Governor's Consent is the state approval required for certain transfers of land held under a statutory right of occupancy. Whether you need it depends on the title type and the transaction. On MainTown, a Deed of Assignment can only be issued once consent is granted where it is required." + MT_DOC_NOTE, chips: [ { l: 'What is a Deed of Assignment?', a: 'say', t: 'What is a Deed of Assignment?' }, legalChip ] };
+    }
+    if (has(/(c of o|c\.o\.o|certificate of occupancy|\bcofo\b)/)) {
+      return { text: "A Certificate of Occupancy (C of O) is a document issued by the state government that grants a right of occupancy over land, usually for a fixed term. Buyers often ask to see it. MainTown's preliminary title screening checks C of O and Gazette documents for completeness and consistency, but it is not a Land Registry search." + MT_DOC_NOTE, chips: [ { l: "Governor's Consent", a: 'say', t: "What is Governor's Consent?" }, legalChip ] };
+    }
+    if (has(/survey/)) {
+      return { text: "A survey plan is a drawing prepared by a registered surveyor showing a plot's boundaries, size and coordinates. Buyers use it to confirm exactly what land is being sold." + MT_DOC_NOTE, chips: [legalChip] };
+    }
+    if (has(/gazette/)) {
+      return { text: "Gazette documents are official government publications that can bear on the status of land. MainTown's preliminary screening checks them for completeness and consistency. What a specific Gazette means for a particular plot is a question for a legal expert." + MT_DOC_NOTE, chips: [legalChip] };
+    }
+    // 8. Screening and fees
+    if (has(/screening/)) {
+      const c = [];
+      if (role === 'tenant' && !isScreeningCompleted()) c.push({ l: 'Start screening', a: 'go', k: 'screening' });
+      return { text: "The one-time ₦5,000 credit and background screening is paid once, when you first request an inspection or start a purchase. It is not charged again at checkout, and it unlocks flexible payment options. Landlords and agents have no screening step.", chips: c.concat([personChip]) };
+    }
+    if (has(/\b(fees?|charges?|costs?|commission|deposit|caution|service charge|platform fee|legal fee)\b|what am i paying|pay for/)) {
+      if (role !== 'tenant') return { text: "Payments follow the split-payment protection terms agreed on the lease (see Payments and Protection in your profile). Agents' commission terms are in the partnership terms accepted at sign-up. For a specific payout I can connect you with the team.", chips: [personChip] };
+      let txt;
+      if (has(/(shortlet|short-let|nightly|night)/)) txt = "For a shortlet: night 1 is paid when you book, and the remaining nights are debited daily from your wallet until the stay is paid. MainTown charges a 5% platform fee on the nightly rate, instead of a legal fee. Caution deposit and service charge are set by the owner or agent and paid directly to them. Damage claims against the deposit must be raised within 24 hours of checkout, with photo or video proof.";
+      else if (has(/(land|plot|buy|purchase|bungalow|sqm|deed)/)) txt = "For a land or property purchase: the price goes to the seller's own account. The Deed of Assignment fee is set by the owner at 5% or 10% and paid to them with your first installment; MainTown does not collect it. Agency commission is 10%, split in two halves: your 5% goes to MainTown, and the seller's 5% goes to the listing agent, or to MainTown if no agent was involved. A ₦15,000 fee covers preliminary title screening (not legal due diligence) and secure split-payment set-up.";
+      else txt = "For a rent listing: your net rent goes straight to the landlord's own account. Caution deposit and service charge are set by the landlord or agent and paid directly to them; MainTown takes no cut. MainTown collects a legal fee for drafting your tenancy agreement. The one-time ₦5,000 screening fee is paid once and is not charged again at checkout. Payment is split automatically at the point of charge.";
+      return { text: txt + "\n\nTell me if you meant a different listing type, or open the full breakdown.", chips: [ { l: 'Open fee breakdown', a: 'assist', k: 'fees' }, personChip ] };
+    }
+    // 9. Agreements, delivery, address, chat, inspections
+    if (has(/(lease|tenancy|agreement|contract)/)) {
+      if (role !== 'tenant') return { text: "Agreements are shared in the chat with your tenant or buyer, and are also saved under Signed Agreements in your Assets, where you can preview and download them any time.", chips: [personChip] };
+      return { text: "For rent, your tenancy agreement is drafted at checkout and MainTown collects a legal fee for it. Signed agreements appear in your chat with the landlord or agent, and are also saved under Signed Agreements in your Asset Portfolio, where you can preview and download them any time. I can't interpret specific clauses; a legal expert can help with that.", chips: [legalChip] };
+    }
+    if (has(/dispatch|(original|physical).{0,20}(document|title|deed)/)) {
+      return { text: "Once the seller issues your Receipt and Deed, they request a free SmartyHub Logistics dispatch. SmartyHub collects the originals and delivers them to you, with pick-up within 24 to 48 hours.", chips: [personChip] };
+    }
+    if (has(/address/)) return { text: "Open the chat with the host and tap Request Full Address. They will share it there.", chips: [personChip] };
+    if (has(/(chat|message).{0,30}(locked|can'?t|cannot|unlock)|locked.{0,20}chat/)) return { text: "Chat opens after your inspection request is accepted. Until then, use the listing details or message MainTown.", chips: [personChip] };
+    if (has(/(inspect|book a|booking an?|cancel)/)) return { text: "Open a listing and request an inspection. Once the host accepts, chat with them unlocks so you can agree the details. You can cancel from Inspection Schedules before the visit; repeated late cancellations may limit your ability to book.", chips: [ { l: 'Inspection status', a: 'say', t: 'What is my inspection status?' }, personChip ] };
+    if (has(/(install|flex|rent-?to-?own|monthly|payment plan)/)) return { text: "Eligible listings offer flexible rent or installment ownership, with the terms shown on the listing before you commit. Flexible payment options unlock after the one-time ₦5,000 screening. Commercial rentals (shops, offices, warehouses and event halls) are paid annually, in full upfront, with no monthly flex-rent.", chips: [personChip] };
+    if (has(/(wallet|fund|top ?up|withdraw)/)) return { text: "Open your wallet from the dashboard to top up or withdraw. Rent and shortlet payments are debited from it. Never share your wallet PIN with anyone, including in this chat.", chips: [ { l: 'Open wallet', a: 'go', k: 'wallet' } ] };
+    if (has(/(safe|protected|protection|escrow|split)/)) return { text: "Payments made through MainTown are covered by automated split-payment protection. Funds are released according to the terms agreed on the listing or lease. Keep payments and conversations on MainTown; payments made outside the app are not protected.", chips: [personChip] };
+    if (has(/compare/)) return { text: "I can compare up to three rent listings side by side.", chips: [ { l: 'Compare listings', a: 'assist', k: 'compare' } ] };
+    if (has(/(list a property|add a listing|verification|verify|verified)/)) return { text: "Add a listing from your dashboard. Every listing goes through property title verification before it goes live, and photos, price and details must match the property.", chips: [personChip] };
+    return { text: "I don't have an approved answer for that yet. You can rephrase, pick an option below, or I can connect you with a person.", chips: menu, miss: true };
+  }
+
+  function mtBotOnUser(conv, text) {
+    if (conv.status === 'archived') return;
+    if (conv.handoff && conv.handoff.active) { mtExpertSim(conv); return; }
+    if (mtBotSensitive(text)) {
+      mtBotSay(conv, "Please don't share your PIN, OTP, BVN, password or card details in chat. MainTown never asks for them, and I can't cancel or reverse payments. I've hidden what you sent. I can pass this to the team to review.", [ { l: 'Talk to a person', a: 'handoff', k: 'support', p: true } ]);
+      return;
+    }
+    const r = mtBotIntent(conv, text);
+    conv.misses = r.miss ? (conv.misses || 0) + 1 : 0;
+    if (r.miss && conv.misses >= 2) {
+      conv.misses = 0;
+      mtBotSay(conv, "I'm not able to answer that reliably, so I'll bring in a person.", null, { then: () => mtBotHandoff(conv) });
+      return;
+    }
+    mtBotSay(conv, r.text, r.chips || null, { then: r.handoff ? () => mtBotHandoff(conv, r.handoff) : null });
+  }
+
+  function mtBotTicketSummary(conv) {
+    return conv.messages.filter(m => m.from === 'me' && m.type === 'text').slice(-3).map(m => String(m.text || '').replace(/<[^>]*>/g, '')).join(' | ').slice(0, 200);
+  }
+  function mtBotHandoff(conv, teamKey) {
+    const key = MT_TEAMS[teamKey] ? teamKey : (conv.mode === 'legal' ? 'legal' : (conv.mode === 'estate' ? 'estate' : 'support'));
+    const team = MT_TEAMS[key];
+    if (conv.handoff && conv.handoff.active) { showToast('You are already connected to an expert'); return; }
+    const online = mtExpertsOnline();
+    let tickets = [];
+    try { tickets = JSON.parse(localStorage.getItem('mtr_support_tickets')) || []; } catch (e) { tickets = []; }
+    const id = 'MT-TKT-' + Date.now().toString(36).toUpperCase();
+    tickets.unshift({ id: id, convId: conv.id, userId: conv.userId, team: key, mode: conv.mode || null, summary: mtBotTicketSummary(conv), status: online ? 'open' : 'queued', createdAt: new Date().toISOString() });
+    try { localStorage.setItem('mtr_support_tickets', JSON.stringify(tickets.slice(0, 50))); } catch (e) {}
+    conv.expertReplies = 0;
+    if (online) {
+      conv.handoff = { active: true, team: key, ticket: id };
+      saveConversations();
+      mtBotSay(conv, "Connecting you with the " + team.team + ". I've shared this chat and your ticket (" + id + "), so you won't need to repeat yourself.", null, { delay: 800, then: () => {
+        setTimeout(() => {
+          mtSystemLine(conv, team.name + ', ' + team.team + ', has joined (prototype: simulated expert)');
+          setTimeout(() => mtBotSay(conv, MT_EXPERT_OPEN[key], [ { l: 'End expert chat', a: 'resume' } ], { by: 'expert', byName: team.name + ' · ' + team.team, delay: 1100 }), 500);
+        }, 700);
+      } });
+    } else {
+      conv.handoff = { active: false, queued: true, team: key, ticket: id };
+      saveConversations();
+      mtBotSay(conv, "The " + team.team + " is offline right now. I've logged your question with this chat (ticket " + id + "), and they will reply here as soon as they are back online. For anything urgent, call " + formatPhoneDisplay(MAINTOWN_OFFLINE_NUMBERS[0].number) + ".", mtBotChipsFor(conv));
+    }
+  }
+  function mtExpertSim(conv) {
+    const h = conv.handoff || {}; const team = MT_TEAMS[h.team] || MT_TEAMS.support;
+    conv.expertReplies = (conv.expertReplies || 0) + 1;
+    const n = conv.expertReplies;
+    const text = n === 1 ? "Thank you, that helps. I'm reviewing the details and will come back to you here. (Prototype: expert replies are simulated.)"
+                         : "I've added a summary to your ticket. You can end this chat whenever you're ready, and the assistant will be here if you need it.";
+    mtBotSay(conv, text, n >= 2 ? [ { l: 'End expert chat', a: 'resume' } ] : null, { by: 'expert', byName: team.name + ' · ' + team.team, delay: 1200 });
+  }
+  function mtBotResume(conv) {
+    if (conv.handoff) conv.handoff.active = false;
+    mtSystemLine(conv, 'Expert chat ended. You are back with the MainTown Assistant.');
+    mtBotSay(conv, 'Was this helpful?', [ { l: 'Helpful', a: 'rate' }, { l: 'Not helpful', a: 'rate' } ], { delay: 700 });
+  }
+
+  function mtBotGreet(conv, kind) {
+    const label = kind === 'legal' ? 'Legal and Documents' : (kind === 'estate' ? 'Real Estate Advisor' : 'General help');
+    conv.messages.push({ from: 'system', text: label + ' · automated assistant. A live expert can join on request.' });
+    const greet = kind === 'legal'
+      ? "I'm MainTown's automated assistant. I can explain property documents and how MainTown works in general terms. This is not legal advice. For a legal opinion, I can connect you with our legal team."
+      : (kind === 'estate'
+        ? "I'm MainTown's automated assistant. I can explain fees, payment plans, inspections and what you still need to complete. What would you like to know?"
+        : "I'm MainTown's automated assistant. Tell me in a few words what you need help with, for example a payment, a document or a listing, and I'll point you the right way.");
+    const chips = kind === 'unsure'
+      ? [ { l: 'Property or payments', a: 'mode', k: 'estate' }, { l: 'Documents or legal', a: 'mode', k: 'legal' }, { l: 'Talk to a person', a: 'handoff', k: 'support', p: true } ]
+      : mtBotChipsFor(conv);
+    conv.messages.push({ from: 'them', type: 'text', by: 'bot', byName: '', text: greet, chips: chips });
+  }
+  function mtBotStart(kind) {
+    const conv = getOrCreateSupportThread();
+    conv.mode = kind; conv.misses = 0;
+    if (conv.handoff && conv.handoff.active) conv.handoff.active = false;
+    mtBotGreet(conv, kind);
+    saveConversations();
+    document.getElementById('mt-picker-modal').classList.remove('open');
+    navigateTo('screen-messages');
+    openThreadDetail(conv.id);
+    mtBotScroll();
+  }
+  function mtBotChip(conv, msg, chip) {
+    if (chip.a === 'say') {
+      msg.chips = null;
+      const m = { from: 'me', type: 'text', text: chip.t, status: 'sent' };
+      conv.messages.push(m); saveConversations(); renderChatLog(conv); mtBotScroll();
+      simulateReceiptProgress(conv, m);
+      mtBotOnUser(conv, chip.t);
+    } else if (chip.a === 'handoff') {
+      msg.chips = null; saveConversations(); renderChatLog(conv);
+      mtBotHandoff(conv, chip.k);
+    } else if (chip.a === 'mode') {
+      msg.chips = null; conv.mode = chip.k; mtBotGreet(conv, chip.k); saveConversations(); renderChatLog(conv); mtBotScroll();
+    } else if (chip.a === 'resume') {
+      msg.chips = null; saveConversations(); mtBotResume(conv);
+    } else if (chip.a === 'rate') {
+      msg.chips = mtBotChipsFor(conv); saveConversations(); renderChatLog(conv); showToast('Thanks for the feedback');
+    } else if (chip.a === 'assist') {
+      openAssist(chip.k);
+    } else if (chip.a === 'go') {
+      if (chip.k === 'screening') requireScreening(() => showToast('Credit screening already complete'));
+      else if (chip.k === 'wallet') openWalletDashboard();
+      else if (chip.k === 'inspections') navigateTo('screen-inspections');
+    }
+  }
+
+  // ---- Expert picker (opens from "Chat with MainTown") ----
+  function mtPickerRefresh() {
+    const on = mtExpertsOnline();
+    ['estate', 'legal'].forEach(k => {
+      const el = document.getElementById('pk-status-' + k);
+      if (el) { el.className = 'pk-status ' + (on ? 'on' : 'off'); el.textContent = on ? 'Experts online' : 'Experts offline · leave a question'; }
+    });
+    let ov = 'auto'; try { ov = localStorage.getItem('mtr_proto_experts') || 'auto'; } catch (e) {}
+    document.querySelectorAll('#mt-picker-modal [data-pk-avail]').forEach(b => b.classList.toggle('active', b.dataset.pkAvail === ov));
+    const uid = getCurrentUserId() || 'guest';
+    const existing = conversations.find(c => c.convType === 'support' && c.userId === uid && c.messages.length > 2);
+    const r = document.getElementById('pk-resume'); if (r) r.style.display = existing ? 'flex' : 'none';
+  }
+  function openMtPicker() {
+    mtPickerRefresh();
+    document.getElementById('mt-picker-modal').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  (function mtBotWire() {
+    const modal = document.getElementById('mt-picker-modal');
+    if (modal) modal.addEventListener('click', (e) => {
+      if (e.target === modal || e.target.closest('#pk-close')) { modal.classList.remove('open'); return; }
+      const av = e.target.closest('[data-pk-avail]');
+      if (av) { try { localStorage.setItem('mtr_proto_experts', av.dataset.pkAvail); } catch (er) {} mtPickerRefresh(); return; }
+      const opt = e.target.closest('[data-pk]');
+      if (!opt) return;
+      if (opt.dataset.pk === 'resume') {
+        const uid = getCurrentUserId() || 'guest';
+        const conv = conversations.find(c => c.convType === 'support' && c.userId === uid);
+        modal.classList.remove('open');
+        if (conv) { navigateTo('screen-messages'); openThreadDetail(conv.id); mtBotScroll(); }
+        return;
+      }
+      mtBotStart(opt.dataset.pk);
+    });
+    const log = document.getElementById('msg-chat-log');
+    if (log) log.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-bot-chip]');
+      if (!b) return;
+      const conv = conversations.find(c => c.id === activeThreadId);
+      if (!conv) return;
+      const msg = conv.messages[conv.messages.length - 1];
+      if (!msg || !msg.chips) return;
+      const chip = msg.chips[parseInt(b.dataset.botChip, 10)];
+      if (chip) mtBotChip(conv, msg, chip);
+    });
+    const tp = document.getElementById('msg-talk-person-btn');
+    if (tp) tp.addEventListener('click', () => {
+      const conv = conversations.find(c => c.id === activeThreadId);
+      if (!conv || conv.convType !== 'support') return;
+      if (conv.handoff && conv.handoff.active) { showToast('You are already connected to an expert'); return; }
+      mtSystemLine(conv, 'You asked to talk to a person.');
+      mtBotHandoff(conv);
+    });
+  })();
+  // ---- END MainTown Assistant PROTOTYPE ----
+
+
   function renderThreadList() {
     document.getElementById('msg-list-view').style.display = 'block';
     document.getElementById('msg-thread-detail').style.display = 'none';
@@ -20496,8 +20921,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
         </div>`;
       }
       const cls = m.from === 'me' ? 'me' : (m.from === 'system' ? 'system' : 'them');
-      return `<div class="chat-bubble ${cls}">${m.text}${m.from === 'me' ? renderReceipt(m.status) : ''}</div>`;
-    }).join('');
+      const byCls = (m.by === 'bot' || m.by === 'expert') ? ' ' + m.by : '';
+      const byLabel = m.by === 'bot'
+        ? '<p class="cb-by"><i data-lucide="bot"></i>MainTown Assistant · automated</p>'
+        : (m.by === 'expert' ? '<p class="cb-by expert"><i data-lucide="badge-check"></i>' + (m.byName || 'MainTown expert') + '</p>' : '');
+      const body = m.by ? String(m.text).replace(/\n/g, '<br>') : m.text;
+      const chips = (m.chips && idx === conv.messages.length - 1 && conv.status !== 'archived') ? mtBotChipsHtml(m.chips) : '';
+      return `<div class="chat-bubble ${cls}${byCls}">${byLabel}${body}${m.from === 'me' ? renderReceipt(m.status) : ''}</div>${chips}`;
+    }).join('') + mtBotTypingHtml(conv);
     if (window.lucide) lucide.createIcons();
   }
 
@@ -20659,13 +21090,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       activeThreadHostInfo = null;
     }
 
-    document.getElementById('msg-thread-sub').textContent = conv.status === 'archived' ? 'Archived conversation' : (conv.convType === 'support' ? 'Chat with the MainTown team' : conv.convType === 'shortlet' ? 'Stay conversation' : 'Active inspection conversation');
+    document.getElementById('msg-thread-sub').textContent = conv.status === 'archived' ? 'Archived conversation' : (conv.convType === 'support' ? 'MainTown Assistant · Prototype' : conv.convType === 'shortlet' ? 'Stay conversation' : 'Active inspection conversation');
     const isSupportThread = conv.convType === 'support';
     const propPill = document.querySelector('#msg-thread-detail .msg-property-pill');
     if (propPill) propPill.style.display = isSupportThread ? 'none' : '';
     if (isSupportThread) {
       peerStatus.style.display = 'flex';
-      peerStatus.innerHTML = '<i data-lucide="badge-check" class="w-3 h-3"></i>Official support';
+      peerStatus.innerHTML = '<i data-lucide="badge-check" class="w-3 h-3"></i>Automated assistant · live experts on request';
       peerAvatar.innerHTML = '<i data-lucide="life-buoy" class="w-5 h-5"></i>';
     }
     renderChatLog(conv);
@@ -20675,6 +21106,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const addressBtn = document.getElementById('msg-request-address-btn');
     const isTenant = (currentUserRole || 'tenant') === 'tenant';
     addressBtn.style.display = (isTenant && conv.status !== 'archived' && conv.convType !== 'support' && conv.convType !== 'shortlet') ? 'flex' : 'none';
+    const talkBtn = document.getElementById('msg-talk-person-btn');
+    if (talkBtn) talkBtn.style.display = (conv.convType === 'support' && conv.status !== 'archived') ? 'flex' : 'none';
     addressBtn.disabled = !!conv.addressRevealed;
     addressBtn.innerHTML = conv.addressRevealed
       ? `<i data-lucide="check" class="w-4 h-4"></i> Full Address Shared`
@@ -20779,7 +21212,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const leak = mtChatLeakCheck(text);
       if (leak) { showToast('Sharing ' + leak + ' in chat is not allowed. Keep payments and contact on MainTown.'); return; }
     }
-    const msg = { from: 'me', type: 'text', text: shortletEsc(text), status: 'sent' };
+    const sensitive = conv.convType === 'support' && mtBotSensitive(text);
+    const msg = { from: 'me', type: 'text', text: sensitive ? 'Sensitive details hidden for your security' : shortletEsc(text), status: 'sent' };
     conv.messages.push(msg);
     saveConversations();
     if (conv.convType === 'shortlet') {
@@ -20791,19 +21225,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderChatLog(conv);
     document.getElementById('msg-chat-log').scrollTop = document.getElementById('msg-chat-log').scrollHeight;
     simulateReceiptProgress(conv, msg);
-    if (conv.convType === 'support' && !conv.autoReplied) {
-      conv.autoReplied = true;
-      saveConversations();
-      setTimeout(() => {
-        conv.messages.push({ from: 'them', type: 'text', text: 'Thanks for reaching out. A MainTown team member will reply here shortly. If it is urgent, you can also call 0806 661 1017.' });
-        saveConversations();
-        if (activeThreadId === conv.id) {
-          renderChatLog(conv);
-          const log = document.getElementById('msg-chat-log');
-          log.scrollTop = log.scrollHeight;
-        }
-      }, 1400);
-    }
+    if (conv.convType === 'support') mtBotOnUser(conv, text);
   }
   document.getElementById('msg-send-btn').addEventListener('click', sendTextMessage);
   document.getElementById('msg-text-input').addEventListener('keydown', (e) => {
@@ -22842,7 +23264,7 @@ available in the Post-Lease Hub and this chat thread.`
       feeType: 'support',
       status: 'active',
       messages: [
-        { from: 'system', type: 'text', text: 'You are chatting with MainTown. Send a message and the team will reply here.' }
+        { from: 'system', type: 'text', text: 'You are chatting with the MainTown Assistant, an automated assistant. Tap Talk to a person at any time to reach a live expert.' }
       ]
     };
     conversations.unshift(conv);
@@ -22850,9 +23272,7 @@ available in the Post-Lease Hub and this chat thread.`
     return conv;
   }
   function openMainTownChat() {
-    const conv = getOrCreateSupportThread();
-    navigateTo('screen-messages');
-    openThreadDetail(conv.id);
+    openMtPicker();
   }
   document.getElementById('profile-contact-btn').addEventListener('click', openMainTownChat);
 
