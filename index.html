@@ -2544,6 +2544,9 @@
   .voice-note-wave { flex: 1; display: flex; align-items: center; gap: 2px; height: 18px; }
   .voice-note-wave span { width: 2px; background: currentColor; opacity: 0.55; border-radius: 2px; }
   .voice-note-duration { font-size: 10.5px; opacity: 0.85; flex-shrink: 0; }
+  .voice-transcript { margin: 8px 0 0; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.22); font-size: 12.5px; line-height: 1.4; opacity: 0.95; }
+  .voice-transcript.pending { font-style: italic; opacity: 0.7; }
+  .chat-bubble.them .voice-transcript { border-top-color: rgba(168,85,247,0.25); }
 
   /* Chat composer (text messaging + voice note trigger) */
   .msg-composer { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
@@ -2585,6 +2588,45 @@
   .msg-icon-btn:hover { background: rgba(51,65,85,0.9); }
   .msg-icon-btn.send-btn { background: #a855f7; color: #fff; border: none; }
   .msg-icon-btn.send-btn:hover { background: #9333ea; }
+  /* Composer extras: voice review bar, recording bar, attachment tray */
+  .msg-composer { flex-wrap: wrap; }
+  .msg-pending-bar { flex: 1 0 100%; order: -1; display: none; align-items: center; gap: 8px; min-width: 0; }
+  .msg-composer.has-voice-draft #msg-attach-btn,
+  .msg-composer.has-voice-draft #msg-text-input,
+  .msg-composer.has-voice-draft #msg-voice-note-btn { display: none; }
+  .msg-composer.has-voice-draft .msg-pending-bar { flex: 1 1 0; order: 0; }
+  .msg-pending-bar.voice-draft { background: rgba(168,85,247,0.16); border: 1px solid rgba(168,85,247,0.35); border-radius: 999px; padding: 4px 12px 4px 4px; color: #e9d5ff; }
+  body.light-theme .msg-pending-bar.voice-draft { background: #f3e8ff; color: #7e22ce; }
+  .msg-pending-bar.recording-bar { color: #fca5a5; font-size: 12.5px; padding: 0 6px 4px; }
+  .msg-pending-bar.recording-bar .rec-dot { width: 9px; height: 9px; border-radius: 50%; background: #ef4444; animation: pulseRec 1.1s infinite; flex-shrink: 0; }
+  .msg-pending-bar.recording-bar .rec-hint { flex: 1; opacity: 0.8; font-size: 11.5px; }
+  .msg-pending-bar .vd-btn { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(255,255,255,0.12); color: inherit; }
+  .msg-pending-bar .vd-btn.del { color: #f87171; }
+  .msg-pending-bar .voice-note-wave { color: #c084fc; }
+  .msg-pending-bar.tray { gap: 8px; overflow-x: auto; padding: 0 4px 6px; }
+  .pend-item { position: relative; flex-shrink: 0; height: 56px; min-width: 56px; border-radius: 10px; overflow: hidden; border: 1px solid #334155; background: rgba(15,23,42,0.8); display: flex; align-items: center; gap: 6px; }
+  .pend-item img { height: 56px; width: 56px; object-fit: cover; display: block; }
+  .pend-item.doc { padding: 0 26px 0 10px; color: #cbd5e1; font-size: 11px; max-width: 170px; }
+  .pend-item.doc span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pend-x { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; border: none; background: rgba(0,0,0,0.7); color: #fff; font-size: 12px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  /* Chat attachments */
+  .chat-bubble.chat-attach { padding: 6px; width: fit-content; min-width: 190px; }
+  .chat-attach-img { display: block; max-width: 220px; max-height: 260px; width: 100%; border-radius: 10px; cursor: pointer; object-fit: cover; }
+  .chat-attach-gone { display: flex; align-items: center; gap: 6px; font-size: 12px; opacity: 0.8; padding: 8px; }
+  .chat-attach-doc { display: flex; align-items: center; gap: 10px; padding: 6px 8px 4px; }
+  .chat-attach-doc-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .chat-attach-doc-name { font-size: 12.5px; font-weight: 600; margin: 0; word-break: break-all; }
+  .chat-attach-doc-sub { font-size: 10.5px; opacity: 0.8; margin: 2px 0 0; }
+  .chat-attach-open { margin: 4px 8px 4px; }
+  .attach-opt-row { display: flex; gap: 12px; margin: 6px 0 14px; }
+  .attach-opt { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 6px; border-radius: 16px; background: rgba(30,41,59,0.7); border: 1px solid #334155; color: #e2e8f0; font-size: 12px; cursor: pointer; }
+  .attach-opt:hover { border-color: #a855f7; color: #c084fc; }
+  body.light-theme .attach-opt { background: #f8fafc; color: #0f172a; border-color: #e2e8f0; }
+  .attach-notice { font-size: 11.5px; line-height: 1.45; color: #94a3b8; margin: 0 0 6px; }
+  .img-viewer { display: none; position: fixed; inset: 0; z-index: 95; background: rgba(0,0,0,0.94); align-items: center; justify-content: center; }
+  .img-viewer.open { display: flex; }
+  .img-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .img-viewer button { position: absolute; top: 14px; right: 14px; width: 38px; height: 38px; border-radius: 50%; border: none; background: rgba(255,255,255,0.18); color: #fff; font-size: 20px; cursor: pointer; }
   .msg-icon-btn.recording { background: #ef4444; color: #fff; border: none; animation: pulseRec 1.1s infinite; }
   @keyframes pulseRec { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); } 50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); } }
 
@@ -6279,7 +6321,8 @@
     <div id="msg-chat-log" style="margin: 18px 0;"></div>
 
     <!-- Text messaging + attachment + Voice note composer -->
-    <div class="msg-composer">
+    <div class="msg-composer" id="msg-composer">
+      <div id="msg-pending-bar" class="msg-pending-bar"></div>
       <button type="button" id="msg-attach-btn" class="msg-icon-btn" title="Attach media/document">
         <i data-lucide="paperclip" class="w-4 h-4"></i>
       </button>
@@ -7749,6 +7792,31 @@
 
 <!-- ===================== Transaction & Payout History Sheet ===================== -->
 <!-- Host Info Bottom Sheet — Chat header tap (Tenant viewing the Host in a 1-on-1 thread) -->
+<div id="msg-attach-sheet" class="sheet-overlay">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <h2 class="sheet-title"><i data-lucide="paperclip" class="w-4 h-4"></i><span>Attach</span></h2>
+        <p class="sheet-subtitle">Photos, PDF or Word files up to 10 MB</p>
+      </div>
+      <button type="button" class="sheet-close-btn" id="msg-attach-close">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+    <div class="attach-opt-row">
+      <button type="button" class="attach-opt" data-pick="camera"><i data-lucide="camera" class="w-5 h-5"></i>Camera</button>
+      <button type="button" class="attach-opt" data-pick="gallery"><i data-lucide="image" class="w-5 h-5"></i>Photo</button>
+      <button type="button" class="attach-opt" data-pick="doc"><i data-lucide="file-text" class="w-5 h-5"></i>Document</button>
+    </div>
+    <p class="attach-notice" id="msg-attach-notice"></p>
+    <input type="file" id="msg-file-camera" accept="image/*" capture="environment" style="display:none;">
+    <input type="file" id="msg-file-gallery" accept="image/*" multiple style="display:none;">
+    <input type="file" id="msg-file-doc" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple style="display:none;">
+  </div>
+</div>
+<div id="msg-img-viewer" class="img-viewer"><button type="button" id="msg-img-viewer-close" aria-label="Close">&times;</button><img id="msg-img-viewer-img" alt="Attachment"></div>
+
 <div id="host-info-sheet" class="sheet-overlay">
   <div class="sheet-card">
     <div class="sheet-handle"></div>
@@ -8958,7 +9026,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('msg-back-btn').addEventListener('click', () => {
     document.getElementById('call-overlay').classList.remove('open');
     clearInterval(callTimerInterval);
-    if (typeof isRecordingVoice !== 'undefined' && isRecordingVoice) stopVoiceRecording();
+    if (typeof mtComposerReset === 'function') mtComposerReset();
     navigateTo('screen-4');
   });
 
@@ -20452,7 +20520,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const storedConv = JSON.parse(localStorage.getItem('mtr_conversations'));
     conversations = Array.isArray(storedConv) ? storedConv : [];
   } catch (e) { conversations = []; }
-  function saveConversations() { try { localStorage.setItem('mtr_conversations', JSON.stringify(conversations)); } catch (e) {} }
+  // Photos are stored compressed inside the conversation JSON, and localStorage has a small quota.
+  // If a save fails, drop the oldest stored photo (its bubble shows "no longer stored") and retry,
+  // so a photo can never make the whole chat history stop saving.
+  function mtEvictOldestImage() {
+    for (const c of conversations) for (const m of (c.messages || [])) {
+      if (m.type === 'file' && m.dataUrl) { m.dataUrl = ''; m.evicted = true; return true; }
+    }
+    return false;
+  }
+  function saveConversations() {
+    for (let i = 0; i < 80; i++) {
+      try { localStorage.setItem('mtr_conversations', JSON.stringify(conversations)); return; }
+      catch (e) { if (!mtEvictOldestImage()) return; }
+    }
+  }
 
   let activeThreadId = null;
   let activeThreadHostInfo = null; // set by openThreadDetail when the Tenant is viewing a Host (Agent/Landlord) thread
@@ -20528,6 +20610,33 @@ This voucher is auto-generated and serves as proof of settlement.`;
     "Ba zan iya amsa wannan yadda ya kamata ba. Idan kana son mutum ya karɓa, danna Talk to a person a saman wannan tattaunawar.",
     "Je ne peux pas répondre à cela de façon fiable. Si vous souhaitez qu'une personne prenne le relais, touchez Talk to a person en haut de cette discussion."
   ]);
+  mtDef('voice_unclear', [
+    "I couldn't make out that voice note. Please try again in a quiet place, or type your message.",
+    "I no fit hear that voice note well. Abeg try again for quiet place, or type your message.",
+    "Mi ò gbọ́ ohùn yín dáadáa. Ẹ jọ̀wọ́ ẹ tún gbìyànjú ní ibi tó pa rọ́rọ́, tàbí kí ẹ kọ ọ̀rọ̀ yín.",
+    "Enweghị m ike ịnụ ozi olu ahụ nke ọma. Biko nwaa ọzọ n'ebe dị jụụ, ma ọ bụ dee ozi gị.",
+    "Ban iya fahimtar saƙon muryar ba. Don Allah a sake gwadawa a wuri mai shiru, ko ka rubuta saƙonka.",
+    "Je n'ai pas bien compris ce message vocal. Réessayez dans un endroit calme, ou écrivez votre message."
+  ]);
+  mtDef('file_bot', [
+    "I've received your file, but I can't open or read files. Tell me what it's about, or tap Talk to a person at the top and the expert will see it.",
+    "I don receive your file, but I no fit open or read files. Tell me wetin e be about, or tap Talk to a person for the top make the expert see am.",
+    "Mo ti gba fáìlì yín, ṣùgbọ́n mi ò lè ṣí tàbí kà á. Ẹ sọ ohun tó jẹ mọ́ fún mi, tàbí kí ẹ tẹ Talk to a person lókè kí amòye lè rí i.",
+    "Anatala m faịlụ gị, mana enweghị m ike imepe ma ọ bụ ịgụ ya. Gwa m ihe ọ bụ maka ya, ma ọ bụ pịa Talk to a person n'elu ka ọkachamara hụ ya.",
+    "Na karɓi fayil ɗinka, amma ba zan iya buɗewa ko karanta fayiloli ba. Gaya mini abin da ya shafa, ko ka danna Talk to a person a sama don ƙwararre ya gani.",
+    "J'ai bien reçu votre fichier, mais je ne peux ni l'ouvrir ni le lire. Dites-moi de quoi il s'agit, ou touchez Talk to a person en haut pour qu'un expert le voie."
+  ]);
+  mtDef('file_expert', [
+    "Thanks, I've received your file and will look at it.",
+    "Thank you, I don receive your file, I go look am.",
+    "Ẹ ṣé, mo ti gba fáìlì yín, màá wò ó.",
+    "Daalụ, anatala m faịlụ gị, m ga-elele ya.",
+    "Na gode, na karɓi fayil ɗinka, zan duba shi.",
+    "Merci, j'ai bien reçu votre fichier et je vais l'examiner."
+  ]);
+  mtDef('lbl_file_pay', ["Payment issue", "Payment wahala", "Ìṣòro ìsanwó", "Nsogbu ịkwụ ụgwọ", "Matsalar biya", "Problème de paiement"]);
+  mtDef('lbl_file_doc', ["Document question", "Question about document", "Ìbéèrè nípa ìwé", "Ajụjụ banyere akwụkwọ", "Tambaya kan takarda", "Question sur un document"]);
+  mtDef('lbl_file_prop', ["Property issue", "Property wahala", "Ìṣòro ilé tàbí ilẹ̀", "Nsogbu banyere ụlọ ma ọ bụ ala", "Matsalar kadara", "Problème de bien"]);
   mtDef('lang_ask', [
     "Which language would you like me to use?",
     "Which language you wan make I use?",
@@ -21218,7 +21327,24 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
 
   function mtBotTicketSummary(conv) {
-    return conv.messages.filter(m => m.from === 'me' && m.type === 'text').slice(-3).map(m => String(m.text || '').replace(/<[^>]*>/g, '')).join(' | ').slice(0, 200);
+    const files = conv.messages.filter(m => m.from === 'me' && m.type === 'file').length;
+    return conv.messages.filter(m => m.from === 'me' && m.type === 'text').slice(-3).map(m => String(m.text || '').replace(/<[^>]*>/g, '')).join(' | ').slice(0, 200) + (files ? ' [+' + files + ' file' + (files > 1 ? 's' : '') + ']' : '');
+  }
+  // The assistant cannot open files (prototype is scripted, not AI). It says so, asks what the
+  // file is about with tap options, and points to Talk to a person. Experts see the file in the chat.
+  function mtBotOnFiles(conv, n) {
+    if (conv.status === 'archived') return;
+    if (conv.handoff && conv.handoff.active) {
+      const team = MT_TEAMS[conv.handoff.team] || MT_TEAMS.support;
+      mtBotSay(conv, mtTx(conv, 'file_expert') + ' (Prototype: expert replies are simulated.)', null, { by: 'expert', byName: team.name + ' · ' + team.team, delay: 1200 });
+      return;
+    }
+    const chips = [
+      { l: mtTx(conv, 'lbl_file_pay'),  a: 'say', t: 'payment' },
+      { l: mtTx(conv, 'lbl_file_doc'),  a: 'say', t: 'documents' },
+      { l: mtTx(conv, 'lbl_file_prop'), a: 'say', t: 'property' }
+    ];
+    mtBotSay(conv, mtTx(conv, 'file_bot'), chips);
   }
   function mtBotHandoff(conv, teamKey) {
     const key = MT_TEAMS[teamKey] ? teamKey : (conv.mode === 'legal' ? 'legal' : (conv.mode === 'estate' ? 'estate' : 'support'));
@@ -21468,8 +21594,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <button type="button" class="voice-note-play-btn" data-audio="${m.audioUrl}"><i data-lucide="play" class="w-3.5 h-3.5"></i></button>
             <div class="voice-note-wave">${Array.from({length: 22}).map(() => `<span style="height:${6 + Math.round(Math.random()*12)}px;"></span>`).join('')}</div>
             <span class="voice-note-duration">${m.duration}</span>
-          </div>${m.from === 'me' ? renderReceipt(m.status) : ''}
+          </div>${m.transcribing ? '<p class="voice-transcript pending">Transcribing…</p>' : (m.transcript ? `<p class="voice-transcript">${shortletEsc(m.transcript)}</p>` : '')}${m.from === 'me' ? renderReceipt(m.status) : ''}
         </div>`;
+      }
+      if (m.type === 'file') {
+        const mine = m.from === 'me';
+        const ext = (String(m.name || '').split('.').pop() || '').toUpperCase().slice(0, 5);
+        const inner = m.kind === 'image'
+          ? (m.dataUrl
+              ? `<img class="chat-attach-img" data-msg-idx="${idx}" src="${m.dataUrl}" alt="${shortletEsc(m.name)}">`
+              : `<div class="chat-attach-gone"><i data-lucide="image-off" class="w-4 h-4"></i>Photo no longer stored (prototype storage limit)</div>`)
+          : `<div class="chat-attach-doc"><div class="chat-attach-doc-icon"><i data-lucide="file-text" class="w-5 h-5"></i></div><div><p class="chat-attach-doc-name">${shortletEsc(m.name)}</p><p class="chat-attach-doc-sub">${mtFmtSize(m.size)} · ${ext}</p></div></div><button type="button" class="lease-doc-btn preview chat-attach-open" data-action="open-file" data-msg-idx="${idx}"><i data-lucide="eye" class="w-3.5 h-3.5"></i>Open</button>`;
+        return `<div class="chat-bubble chat-attach ${mine ? 'me' : 'them'}">${inner}${mine ? renderReceipt(m.status) : ''}</div>`;
       }
       if (m.type === 'lease-doc') {
         return `
@@ -21683,7 +21819,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
     // Reset the composer/call state when switching threads
     document.getElementById('msg-text-input').value = '';
-    if (isRecordingVoice) stopVoiceRecording();
+    mtComposerReset();
     document.getElementById('call-overlay').classList.remove('open');
     clearInterval(callTimerInterval);
     document.getElementById('msg-call-btn').style.display = conv.status === 'archived' ? 'none' : 'flex';
@@ -21772,14 +21908,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function sendTextMessage() {
     const input = document.getElementById('msg-text-input');
     const text = input.value.trim();
-    if (!text) return;
     const conv = conversations.find(c => c.id === activeThreadId);
     if (!conv) return;
+    // Voice note waiting for review: Send posts it, Delete discards it
+    if (voiceDraft) {
+      if (conv.status === 'archived') { showToast('This conversation is closed'); return; }
+      sendVoiceDraft(conv); return;
+    }
+    if (!text && !pendingAttachments.length) return;
     if (conv.status === 'archived') { showToast('This conversation is closed'); return; }
-    if (conv.convType !== 'support') {
+    if (text && conv.convType !== 'support') {
       const leak = mtChatLeakCheck(text);
       if (leak) { showToast('Sharing ' + leak + ' in chat is not allowed. Keep payments and contact on MainTown.'); return; }
     }
+    if (pendingAttachments.length) sendPendingAttachments(conv);
+    if (!text) return;
     const sensitive = conv.convType === 'support' && mtBotSensitive(text);
     const msg = { from: 'me', type: 'text', text: sensitive ? 'Sensitive details hidden for your security' : shortletEsc(text), status: 'sent' };
     conv.messages.push(msg);
@@ -21803,78 +21946,342 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // ==================================================================
   // ---- Attachment: media/document picker (interactive placeholder) ----
   // ==================================================================
+  // ==================================================================
+  // ---- Attachments: camera / photo / document, staged in a tray, sent with Send ----
+  // Images are compressed (max 1280px) and saved in the chat; documents are kept for the
+  // current session only (prototype). Production should upload to server storage.
+  // ==================================================================
+  let pendingAttachments = [];
+  const MT_ATTACH_MAX_BYTES = 10 * 1024 * 1024;
+  const MT_ATTACH_MAX_PENDING = 5;
+  const mtLiveFileUrls = new Set();
+  function mtFmtSize(b) { b = Number(b) || 0; return b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB'; }
+  function mtFileKind(f) {
+    const n = String(f.name || ''), t = String(f.type || '').toLowerCase();
+    if (/svg/.test(t) || /\.svg$/i.test(n)) return null;
+    if (t.indexOf('image/') === 0 || /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(n)) return 'image';
+    if (/\.(pdf|docx?)$/i.test(n)) return 'doc';
+    return null;
+  }
+  function mtCompressImage(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          let max = 1280, q = 0.8, out = '';
+          for (let i = 0; i < 4; i++) {
+            const sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+            const w = Math.max(1, Math.round(img.naturalWidth * sc)), h = Math.max(1, Math.round(img.naturalHeight * sc));
+            const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+            const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h); cx.drawImage(img, 0, 0, w, h);
+            out = cv.toDataURL('image/jpeg', q);
+            if (out.length <= 300000) break;
+            max = Math.round(max * 0.8); q = Math.max(0.5, q - 0.1);
+          }
+          URL.revokeObjectURL(url); resolve(out);
+        } catch (e) { URL.revokeObjectURL(url); reject(e); }
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode')); };
+      img.src = url;
+    });
+  }
+  async function mtAddFiles(files) {
+    for (const f of files) {
+      if (pendingAttachments.length >= MT_ATTACH_MAX_PENDING) { showToast('You can attach up to ' + MT_ATTACH_MAX_PENDING + ' files at a time'); break; }
+      const kind = mtFileKind(f);
+      if (!kind) { showToast('Only photos, PDF and Word files can be sent'); continue; }
+      if (f.size > MT_ATTACH_MAX_BYTES) { showToast((f.name || 'File') + ' is larger than 10 MB'); continue; }
+      const item = { id: 'att' + Date.now() + Math.random().toString(36).slice(2, 6), kind: kind, name: f.name || (kind === 'image' ? 'photo.jpg' : 'file'), size: f.size, mime: f.type || '' };
+      if (kind === 'image') {
+        try { item.dataUrl = await mtCompressImage(f); item.size = Math.round(item.dataUrl.length * 0.75); }
+        catch (e) { showToast('Could not read that photo. Try a JPG or PNG.'); continue; }
+      } else {
+        item.fileUrl = URL.createObjectURL(f); mtLiveFileUrls.add(item.fileUrl);
+      }
+      pendingAttachments.push(item);
+    }
+    mtRenderComposerExtras();
+  }
+  function sendPendingAttachments(conv) {
+    const files = pendingAttachments.splice(0);
+    files.forEach(f => {
+      const msg = { from: 'me', type: 'file', kind: f.kind, name: f.name, size: f.size, mime: f.mime, dataUrl: f.dataUrl || '', fileUrl: f.fileUrl || '', status: 'sent' };
+      conv.messages.push(msg);
+      simulateReceiptProgress(conv, msg);
+    });
+    saveConversations(); mtRenderComposerExtras(); renderChatLog(conv); mtBotScroll();
+    if (conv.convType === 'support') mtBotOnFiles(conv, files.length);
+  }
+  function mtComposerReset() {
+    cancelVoiceCapture();
+    pendingAttachments.forEach(a => { if (a.fileUrl) { try { URL.revokeObjectURL(a.fileUrl); } catch (e) {} mtLiveFileUrls.delete(a.fileUrl); } });
+    pendingAttachments = [];
+    mtRenderComposerExtras();
+  }
+
   document.getElementById('msg-attach-btn').addEventListener('click', () => {
     if (!activeThreadId) return;
-    showToast('Opening attachment picker...');
+    const conv = conversations.find(c => c.id === activeThreadId);
+    if (!conv) return;
+    if (conv.status === 'archived') { showToast('This conversation is closed'); return; }
+    if (isRecordingVoice || voiceDraft) { showToast('Finish or delete your voice note first'); return; }
+    document.getElementById('msg-attach-notice').textContent = conv.convType === 'support'
+      ? "The assistant can't open files. Attach one so a live expert can see it. Never share your PIN, OTP, BVN or card details."
+      : "Don't share phone numbers, emails or bank details in photos or files. Keep payments and contact on MainTown. Never share your PIN, OTP or BVN.";
+    document.getElementById('msg-attach-sheet').classList.add('open');
+    if (window.lucide) lucide.createIcons();
   });
+  document.getElementById('msg-attach-close').addEventListener('click', () => document.getElementById('msg-attach-sheet').classList.remove('open'));
+  document.getElementById('msg-attach-sheet').addEventListener('click', (e) => {
+    if (e.target.id === 'msg-attach-sheet') { e.target.classList.remove('open'); return; }
+    const opt = e.target.closest('[data-pick]');
+    if (!opt) return;
+    document.getElementById('msg-attach-sheet').classList.remove('open');
+    document.getElementById({ camera: 'msg-file-camera', gallery: 'msg-file-gallery', doc: 'msg-file-doc' }[opt.dataset.pick]).click();
+  });
+  ['msg-file-camera', 'msg-file-gallery', 'msg-file-doc'].forEach(id => {
+    document.getElementById(id).addEventListener('change', (e) => { const f = Array.from(e.target.files || []); e.target.value = ''; if (f.length) mtAddFiles(f); });
+  });
+  document.getElementById('msg-img-viewer').addEventListener('click', () => document.getElementById('msg-img-viewer').classList.remove('open'));
 
   // ==================================================================
   // ---- Voice Note: real microphone recording via MediaRecorder ----
+  // In the MainTown Assistant chat the voice note is also transcribed to text
+  // (browser speech recognition, PROTOTYPE) and the transcript goes through the same
+  // reply path as a typed message. Production should send the audio blob to a
+  // server-side speech-to-text service (set MT_TRANSCRIBE_URL) — see the AI SOP.
   // ==================================================================
   let voiceRecorder = null;
   let voiceChunks = [];
   let voiceRecordStart = 0;
   let isRecordingVoice = false;
+  let voiceRecognizer = null;
+  let voiceTranscriptText = '';
+  let voiceRecognizerDone = null;
+  const MT_TRANSCRIBE_URL = ''; // optional: POST audio blob here, expects { text: "..." }
+  const MT_SPEECH_LANG = { en: 'en-NG', pcm: 'en-NG', yo: 'yo-NG', ig: 'ig-NG', ha: 'ha-NG', fr: 'fr-FR' };
+
+  function mtStartSpeechRecognition(conv, langCode) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    voiceTranscriptText = '';
+    voiceRecognizer = null;
+    voiceRecognizerDone = Promise.resolve();
+    if (!SR) return;
+    let resolveDone;
+    voiceRecognizerDone = new Promise(r => { resolveDone = r; });
+    let triedFallback = langCode === 'en-NG';
+    const run = (code) => {
+      let finalText = '', interim = '';
+      const rec = new SR();
+      rec.lang = code; rec.continuous = true; rec.interimResults = true;
+      rec.onresult = (ev) => {
+        interim = '';
+        for (let i = ev.resultIndex; i < ev.results.length; i++) {
+          const t = ev.results[i][0].transcript;
+          if (ev.results[i].isFinal) finalText += t + ' '; else interim += t;
+        }
+        voiceTranscriptText = (finalText + interim).trim();
+      };
+      rec.onerror = (ev) => {
+        // Chrome may not support Yorùbá/Igbo/Hausa — retry once in Nigerian English
+        if (!triedFallback && (ev.error === 'language-not-supported' || ev.error === 'service-not-allowed')) {
+          triedFallback = true; rec._retry = true;
+        }
+      };
+      rec.onend = () => {
+        if (rec._retry && isRecordingVoice) { run('en-NG'); return; }
+        if (isRecordingVoice && !rec._stopped) { try { rec.start(); return; } catch (e) {} } // Chrome ends sessions on silence — keep listening
+        resolveDone();
+      };
+      voiceRecognizer = rec;
+      try { rec.start(); } catch (e) { resolveDone(); }
+    };
+    run(langCode);
+  }
+
+  async function mtTranscribeVoice(blob) {
+    if (MT_TRANSCRIBE_URL) {
+      try {
+        const res = await fetch(MT_TRANSCRIBE_URL, { method: 'POST', headers: { 'Content-Type': blob.type || 'audio/webm' }, body: blob });
+        const data = await res.json();
+        if (data && data.text) return String(data.text).trim();
+      } catch (e) { /* fall through to browser transcript */ }
+    }
+    await Promise.race([voiceRecognizerDone, new Promise(r => setTimeout(r, 2500))]);
+    return (voiceTranscriptText || '').trim();
+  }
+
+  async function mtVoiceNoteToBot(conv, msg, textPromise) {
+    msg.transcribing = true; saveConversations(); mtBotRefresh(conv);
+    let text = '';
+    try { text = await (textPromise || Promise.resolve('')); } catch (e) { text = ''; }
+    msg.transcribing = false;
+    if (!text) {
+      msg.transcript = '';
+      saveConversations(); mtBotRefresh(conv);
+      mtBotSay(conv, mtTx(conv, 'voice_unclear'), mtBotChipsFor(conv));
+      return;
+    }
+    // Same privacy rule as typed text: never display sensitive details
+    msg.transcript = mtBotSensitive(text) ? 'Sensitive details hidden for your security' : text;
+    saveConversations(); mtBotRefresh(conv);
+    mtBotOnUser(conv, text);
+  }
+
+  // Review-before-send (WhatsApp style): stopping a recording makes a draft in the composer.
+  // Nothing is posted, and the assistant is not called, until the person taps Send.
+  let voiceDraft = null;        // { audioUrl, duration, blob, textPromise, wave, simulated }
+  let voiceCancelled = false;
+  let voiceTimerInt = null;
+  let voiceDraftAudio = null;
+  const MT_VOICE_MAX_SEC = 300;
+  function mtFmtDur(sec) { return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
+  function mtWaveHtml() { return Array.from({ length: 22 }).map(() => `<span style="height:${6 + Math.round(Math.random() * 12)}px;"></span>`).join(''); }
+
+  function mtRenderComposerExtras() {
+    const comp = document.getElementById('msg-composer'), bar = document.getElementById('msg-pending-bar');
+    if (!comp || !bar) return;
+    comp.classList.toggle('has-voice-draft', !!voiceDraft);
+    if (voiceDraft) {
+      const playing = voiceDraftAudio && !voiceDraftAudio.paused;
+      bar.className = 'msg-pending-bar voice-draft'; bar.style.display = 'flex';
+      bar.innerHTML = `<button type="button" class="vd-btn del" data-act="vd-delete" title="Delete voice note"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        <button type="button" class="vd-btn" data-act="vd-play" title="Play"><i data-lucide="${playing ? 'pause' : 'play'}" class="w-4 h-4"></i></button>
+        <div class="voice-note-wave">${voiceDraft.wave}</div><span class="voice-note-duration">${voiceDraft.duration}</span>`;
+    } else if (isRecordingVoice) {
+      bar.className = 'msg-pending-bar recording-bar'; bar.style.display = 'flex';
+      bar.innerHTML = `<span class="rec-dot"></span><span id="msg-rec-timer">0:00</span><span class="rec-hint">Recording… tap the square to stop</span><button type="button" class="vd-btn del" data-act="rec-cancel" title="Cancel recording"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
+    } else if (pendingAttachments.length) {
+      bar.className = 'msg-pending-bar tray'; bar.style.display = 'flex';
+      bar.innerHTML = pendingAttachments.map(a => a.kind === 'image'
+        ? `<div class="pend-item"><img src="${a.dataUrl}" alt=""><button type="button" class="pend-x" data-act="pend-remove" data-id="${a.id}" title="Remove">&times;</button></div>`
+        : `<div class="pend-item doc"><i data-lucide="file-text" class="w-4 h-4"></i><span>${shortletEsc(a.name)}</span><button type="button" class="pend-x" data-act="pend-remove" data-id="${a.id}" title="Remove">&times;</button></div>`).join('');
+    } else {
+      bar.className = 'msg-pending-bar'; bar.style.display = 'none'; bar.innerHTML = '';
+    }
+    if (window.lucide) lucide.createIcons();
+  }
 
   async function startVoiceRecording() {
+    const conv = conversations.find(c => c.id === activeThreadId);
+    if (!conv) return;
+    if (conv.status === 'archived') { showToast('This conversation is closed'); return; }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      voiceChunks = [];
+      voiceChunks = []; voiceCancelled = false;
       voiceRecorder = new MediaRecorder(stream);
       voiceRecorder.ondataavailable = (e) => { if (e.data.size > 0) voiceChunks.push(e.data); };
       voiceRecorder.onstop = () => {
         stream.getTracks().forEach(t => t.stop());
+        clearInterval(voiceTimerInt);
+        if (voiceCancelled) { voiceChunks = []; mtRenderComposerExtras(); return; }
         const elapsed = Math.max(1, Math.round((Date.now() - voiceRecordStart) / 1000));
         const blob = new Blob(voiceChunks, { type: 'audio/webm' });
-        const audioUrl = URL.createObjectURL(blob);
-        const conv = conversations.find(c => c.id === activeThreadId);
-        if (conv) {
-          const msg = { from: 'me', type: 'voice', audioUrl, duration: `0:${String(elapsed).padStart(2, '0')}`, status: 'sent' };
-          conv.messages.push(msg);
-          saveConversations();
-          renderChatLog(conv);
-          simulateReceiptProgress(conv, msg);
-        }
+        const c = conversations.find(x => x.id === activeThreadId);
+        voiceDraft = { audioUrl: URL.createObjectURL(blob), duration: mtFmtDur(elapsed), blob: blob, wave: mtWaveHtml(), simulated: false,
+          textPromise: (c && c.convType === 'support') ? mtTranscribeVoice(blob) : null };
+        mtRenderComposerExtras();
       };
       voiceRecorder.start();
       voiceRecordStart = Date.now();
       isRecordingVoice = true;
+      if (conv.convType === 'support') mtStartSpeechRecognition(conv, MT_SPEECH_LANG[mtLang(conv)] || 'en-NG');
       const btn = document.getElementById('msg-voice-note-btn');
       btn.classList.add('recording');
       btn.innerHTML = '<i data-lucide="square" class="w-4 h-4"></i>';
-      if (window.lucide) lucide.createIcons();
+      mtRenderComposerExtras();
+      voiceTimerInt = setInterval(() => {
+        const sec = Math.round((Date.now() - voiceRecordStart) / 1000);
+        const el = document.getElementById('msg-rec-timer'); if (el) el.textContent = mtFmtDur(sec);
+        if (sec >= MT_VOICE_MAX_SEC) { showToast('Voice notes are limited to 5 minutes'); stopVoiceRecording(); }
+      }, 500);
     } catch (err) {
-      // Microphone access denied/unavailable — fall back to a simulated voice note
-      // so the interaction still works end-to-end in this demo environment.
-      const conv = conversations.find(c => c.id === activeThreadId);
-      if (conv) {
-        const msg = { from: 'me', type: 'voice', audioUrl: '', duration: '0:04', status: 'sent' };
-        conv.messages.push(msg);
-        saveConversations();
-        renderChatLog(conv);
-        simulateReceiptProgress(conv, msg);
-      }
-      showToast('Microphone unavailable — added a simulated voice note');
+      // Microphone access denied/unavailable — offer a simulated draft so the flow still works in this demo.
+      voiceDraft = { audioUrl: '', duration: '0:04', blob: null, wave: mtWaveHtml(), simulated: true, textPromise: null };
+      mtRenderComposerExtras();
+      showToast('Microphone unavailable — simulated voice note ready to review');
     }
   }
 
   function stopVoiceRecording() {
-    if (voiceRecorder && voiceRecorder.state !== 'inactive') voiceRecorder.stop();
     isRecordingVoice = false;
+    if (voiceRecognizer) { voiceRecognizer._stopped = true; try { voiceRecognizer.stop(); } catch (e) {} }
+    if (voiceRecorder && voiceRecorder.state !== 'inactive') voiceRecorder.stop();
     const btn = document.getElementById('msg-voice-note-btn');
     btn.classList.remove('recording');
     btn.innerHTML = '<i data-lucide="mic" class="w-4 h-4"></i>';
     if (window.lucide) lucide.createIcons();
   }
 
+  function discardVoiceDraft() {
+    if (voiceDraftAudio) { try { voiceDraftAudio.pause(); } catch (e) {} voiceDraftAudio = null; }
+    if (voiceDraft && voiceDraft.audioUrl) { try { URL.revokeObjectURL(voiceDraft.audioUrl); } catch (e) {} }
+    voiceDraft = null;
+    mtRenderComposerExtras();
+  }
+  // Discard anything in progress: a live recording or an unsent draft
+  function cancelVoiceCapture() {
+    if (isRecordingVoice) { voiceCancelled = true; stopVoiceRecording(); }
+    clearInterval(voiceTimerInt);
+    if (voiceDraft) discardVoiceDraft();
+  }
+
+  function toggleDraftPlayback() {
+    if (!voiceDraft) return;
+    if (!voiceDraft.audioUrl) { showToast('Playing simulated voice note'); return; }
+    if (voiceDraftAudio && !voiceDraftAudio.paused) { voiceDraftAudio.pause(); mtRenderComposerExtras(); return; }
+    voiceDraftAudio = new Audio(voiceDraft.audioUrl);
+    voiceDraftAudio.onended = () => mtRenderComposerExtras();
+    voiceDraftAudio.play().then(mtRenderComposerExtras).catch(() => showToast('Unable to play voice note'));
+  }
+
+  function sendVoiceDraft(conv) {
+    const d = voiceDraft; if (!d) return;
+    if (voiceDraftAudio) { try { voiceDraftAudio.pause(); } catch (e) {} voiceDraftAudio = null; }
+    voiceDraft = null;
+    const msg = { from: 'me', type: 'voice', audioUrl: d.audioUrl, duration: d.duration, status: 'sent' };
+    conv.messages.push(msg);
+    saveConversations();
+    mtRenderComposerExtras();
+    renderChatLog(conv);
+    mtBotScroll();
+    simulateReceiptProgress(conv, msg);
+    if (conv.convType === 'support') mtVoiceNoteToBot(conv, msg, d.textPromise);
+  }
+
   document.getElementById('msg-voice-note-btn').addEventListener('click', () => {
     if (!activeThreadId) return;
-    if (isRecordingVoice) stopVoiceRecording();
-    else startVoiceRecording();
+    if (isRecordingVoice) { stopVoiceRecording(); return; }
+    if (pendingAttachments.length) { showToast('Send or remove the attachments first'); return; }
+    startVoiceRecording();
+  });
+  document.getElementById('msg-pending-bar').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const act = b.dataset.act;
+    if (act === 'vd-delete') discardVoiceDraft();
+    else if (act === 'vd-play') toggleDraftPlayback();
+    else if (act === 'rec-cancel') cancelVoiceCapture();
+    else if (act === 'pend-remove') {
+      const i = pendingAttachments.findIndex(a => a.id === b.dataset.id);
+      if (i >= 0) { const a = pendingAttachments.splice(i, 1)[0]; if (a.fileUrl) { try { URL.revokeObjectURL(a.fileUrl); } catch (er) {} mtLiveFileUrls.delete(a.fileUrl); } }
+      mtRenderComposerExtras();
+    }
   });
 
   // Voice note playback (event delegation on the chat log)
   document.getElementById('msg-chat-log').addEventListener('click', (e) => {
+    const attImg = e.target.closest('.chat-attach-img');
+    if (attImg) { document.getElementById('msg-img-viewer-img').src = attImg.src; document.getElementById('msg-img-viewer').classList.add('open'); return; }
+    const openFileBtn = e.target.closest('[data-action="open-file"]');
+    if (openFileBtn) {
+      const conv0 = conversations.find(c => c.id === activeThreadId);
+      const fm = conv0 && conv0.messages[parseInt(openFileBtn.dataset.msgIdx, 10)];
+      if (!fm || !fm.fileUrl || !mtLiveFileUrls.has(fm.fileUrl)) { showToast('This file is only available in the session it was sent (prototype)'); return; }
+      if (/\.pdf$/i.test(fm.name)) window.open(fm.fileUrl, '_blank');
+      else { const a = document.createElement('a'); a.href = fm.fileUrl; a.download = fm.name; document.body.appendChild(a); a.click(); a.remove(); }
+      return;
+    }
     const playBtn = e.target.closest('.voice-note-play-btn');
     if (playBtn) {
       const url = playBtn.dataset.audio;
@@ -23980,7 +24387,7 @@ available in the Post-Lease Hub and this chat thread.`
     // localStorage keys and is untouched by logout.
     document.getElementById('call-overlay').classList.remove('open');
     if (typeof callTimerInterval !== 'undefined') clearInterval(callTimerInterval);
-    if (typeof isRecordingVoice !== 'undefined' && isRecordingVoice) stopVoiceRecording();
+    if (typeof mtComposerReset === 'function') mtComposerReset();
     document.querySelectorAll('.modal-overlay.open, .sheet-overlay.open').forEach(m => m.classList.remove('open'));
     saveLastActiveRole(currentUserRole);
     currentUserRole = null;
