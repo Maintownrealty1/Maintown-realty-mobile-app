@@ -2562,10 +2562,12 @@
      pinned composer, like a real chat window, instead of growing the
      whole page. */
   #msg-thread-detail #msg-chat-log {
-    max-height: calc(100vh - 330px);
-    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    /* No inner scroll box: it clipped messages and left a gap above the composer.
+       The screen scrolls instead, and new messages are scrolled into view. */
+    max-height: none; overflow: visible;
     padding-bottom: 8px;
   }
+  #msg-thread-detail #msg-chat-log > * { scroll-margin-bottom: 170px; }
   /* Clear space at the bottom of the thread-detail screen so the fixed
      composer never overlaps the last message or the nav bar. */
   #msg-thread-detail { padding-bottom: 150px; }
@@ -20474,6 +20476,547 @@ This voucher is auto-generated and serves as proof of settlement.`;
   const MT_DOC_NOTE = '\n\nThis is general information, not legal advice.';
   let mtBotTypingId = null;
 
+  // ==================================================================
+  // ---- Assistant language + personality layer (PROTOTYPE) ----
+  // Languages: English, Nigerian Pidgin, Yoruba, Igbo, Hausa, French.
+  // Conversational text is translated; long fee/legal answers stay in English
+  // (with a short lead-in) so figures stay exact. Native-speaker review is
+  // needed before production.
+  // ==================================================================
+  const MT_LANG_ORDER = ['en', 'pcm', 'yo', 'ig', 'ha', 'fr'];
+  const MT_LANG_NAMES = { en: 'English', pcm: 'Pidgin', yo: 'Yorùbá', ig: 'Igbo', ha: 'Hausa', fr: 'Français' };
+  const MT_TX = {};
+  function mtDef(k, a) { MT_TX[k] = { en: a[0], pcm: a[1], yo: a[2], ig: a[3], ha: a[4], fr: a[5] }; }
+  function mtLang(conv) { return (conv && MT_LANG_NAMES[conv.lang]) ? conv.lang : 'en'; }
+  function mtTx(conv, key, vars) {
+    const e = MT_TX[key]; if (!e) return key;
+    let s = e[mtLang(conv)] || e.en;
+    if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] != null ? vars[k] : m));
+    return s;
+  }
+
+  // ---- Conversation lines ----
+  mtDef('hello', [
+    "Hello! What would you like help with today? Type a word like land, rent or fees, and I'll ask what you want to know.",
+    "Hello! Wetin I fit help you with today? Just type one word like land, rent or fees, I go ask wetin you wan know.",
+    "Ẹ káàbọ̀! Kí ni mo lè ràn yín lọ́wọ́ pẹ̀lú lónìí? Ẹ kọ ọ̀rọ̀ kan bíi land, rent tàbí fees, màá sì bi yín ohun tí ẹ fẹ́ mọ̀.",
+    "Ndewo! Gịnị ka m ga-enyere gị aka taa? Dee otu okwu dị ka land, rent ma ọ bụ fees, m ga-ajụkwa gị ihe ị chọrọ ịma.",
+    "Sannu! Me zan taimaka maka da shi yau? Rubuta kalma ɗaya kamar land, rent ko fees, zan tambaye ka abin da kake so ka sani.",
+    "Bonjour ! En quoi puis-je vous aider aujourd'hui ? Écrivez un mot comme terrain, loyer ou frais, et je vous demanderai ce que vous souhaitez savoir."
+  ]);
+  mtDef('thanks', [
+    "You're welcome! Anything else I can help with?",
+    "No wahala! Anything else wey I fit help you with?",
+    "Kò sí wàhálà! Ǹjẹ́ ohun míì wà tí mo lè ràn yín lọ́wọ́ pẹ̀lú?",
+    "Ọ dịghị nsogbu! Ọ nwere ihe ọzọ m nwere ike inyere gị aka?",
+    "Ba komai! Akwai wani abu kuma da zan iya taimaka maka?",
+    "Avec plaisir ! Puis-je vous aider pour autre chose ?"
+  ]);
+  mtDef('fallback', [
+    "I don't have an approved answer for that yet. Try one keyword (like land, rent, fees or wallet) and I'll ask what you'd like to know, or pick an option below.",
+    "I never get correct answer for that one yet. Try type one word (like land, rent, fees or wallet) and I go ask wetin you wan know, or pick one for below.",
+    "Mi ò tíì ní ìdáhùn tó péye sí ìyẹn. Ẹ gbìyànjú ọ̀rọ̀ kan (bíi land, rent, fees tàbí wallet), màá sì bi yín ohun tí ẹ fẹ́ mọ̀, tàbí kí ẹ yan ọ̀kan nísàlẹ̀.",
+    "Enweghị m azịza kwesịrị ekwesị maka nke ahụ ugbu a. Gbalịa dee otu okwu (dị ka land, rent, fees ma ọ bụ wallet), m ga-ajụkwa gị ihe ị chọrọ ịma, ma ọ bụ họrọ otu n'okpuru.",
+    "Ban da amsa tabbatacciya kan wannan tukuna ba. Gwada rubuta kalma ɗaya (kamar land, rent, fees ko wallet), zan tambaye ka abin da kake so ka sani, ko ka zaɓi ɗaya a ƙasa.",
+    "Je n'ai pas encore de réponse validée pour cela. Essayez un seul mot (comme terrain, loyer, frais ou wallet) et je vous demanderai ce que vous voulez savoir, ou choisissez une option ci-dessous."
+  ]);
+  mtDef('miss2', [
+    "I'm not able to answer that reliably. If you'd like a person to take over, tap Talk to a person at the top of this chat.",
+    "I no fit answer that one well. If you wan make person take over, tap Talk to a person for the top of this chat.",
+    "Mi ò lè dáhùn ìyẹn dáadáa. Tí ẹ bá fẹ́ kí ènìyàn gba ọ̀rọ̀ yìí, ẹ tẹ Talk to a person lókè ìfọ̀rọ̀ránṣẹ́ yìí.",
+    "Enweghị m ike ịza nke ahụ nke ọma. Ọ bụrụ na ịchọrọ ka mmadụ were ya, pịa Talk to a person n'elu mkparịta ụka a.",
+    "Ba zan iya amsa wannan yadda ya kamata ba. Idan kana son mutum ya karɓa, danna Talk to a person a saman wannan tattaunawar.",
+    "Je ne peux pas répondre à cela de façon fiable. Si vous souhaitez qu'une personne prenne le relais, touchez Talk to a person en haut de cette discussion."
+  ]);
+  mtDef('lang_ask', [
+    "Which language would you like me to use?",
+    "Which language you wan make I use?",
+    "Èdè wo ni ẹ fẹ́ kí n lò?",
+    "Asụsụ kedu ka ị chọrọ ka m jiri?",
+    "Wane harshe kake so in yi amfani da shi?",
+    "Dans quelle langue souhaitez-vous que je réponde ?"
+  ]);
+  mtDef('lang_set', [
+    "Alright, I'll reply in English from now on.",
+    "Ok, I go dey reply you for Pidgin from now.",
+    "Ó dára, màá máa fi èdè Yorùbá dá yín lóhùn láti ìsinsìnyí lọ. Tí ohunkóhun bá yà yín lẹ́nu tàbí tí kò yé yín, ẹ kọ 'English', màá sì ṣàlàyé rẹ̀ ní èdè Gẹ̀ẹ́sì.",
+    "Ọ dị mma, m ga-eji asụsụ Igbo zaa gị site ugbu a. Ọ bụrụ na ihe ọ bụla dị gị ka ihe adịghị mma, dee 'English', m ga-akọwa ya n'asụsụ Bekee.",
+    "To, zan riƙa amsa maka da Hausa daga yanzu. Idan wani abu bai bayyana maka a fili ba, rubuta 'English' zan bayyana maka shi da Turanci.",
+    "D'accord, je répondrai en français désormais."
+  ]);
+  mtDef('english_detail', [
+    "",
+    "Make I give you the full details for English so the figures go correct:",
+    "Màá fi èdè Gẹ̀ẹ́sì ṣàlàyé kíkún kí àwọn nọ́ńbà lè péye:",
+    "M ga-enye gị nkọwa zuru ezu n'asụsụ Bekee ka ọnụọgụgụ ghara ịgbagwoju anya:",
+    "Zan ba ka cikakken bayani da Turanci domin lambobin su kasance daidai:",
+    "Voici les détails complets en anglais afin que les chiffres restent exacts :"
+  ]);
+  mtDef('back', [
+    "Anyway, shall we get back to your property matters?",
+    "Anyway, make we return to your property matter?",
+    "Ṣùgbọ́n, ẹ jẹ́ kí a padà sí ọ̀rọ̀ ilé àti ilẹ̀ yín?",
+    "Ma ọ bụghị nke ahụ, ka anyị laghachi n'okwu ụlọ na ala gị?",
+    "To, mu koma kan batun gida da fili naka?",
+    "Bref, si on revenait à vos affaires immobilières ?"
+  ]);
+  mtDef('ofcourse', ["Of course.", "No wahala.", "Dájúdájú.", "Ee, ọ dị mma.", "To, sannu.", "Bien sûr."]);
+  mtDef('who', [
+    "Who would you like to speak with?",
+    "Who you wan talk to?",
+    "Ta ni ẹ fẹ́ bá sọ̀rọ̀?",
+    "Onye ka ị chọrọ ịkparịta ụka na ya?",
+    "Da wa kake so ka yi magana?",
+    "Avec qui souhaitez-vous parler ?"
+  ]);
+  mtDef('helpful_q', ["Was this helpful?", "E help you?", "Ǹjẹ́ èyí ràn yín lọ́wọ́?", "Ọ nyeere gị aka?", "Ya taimaka maka?", "Cela vous a-t-il aidé ?"]);
+
+  // ---- Greetings ----
+  mtDef('greet_unsure', [
+    "I'm MainTown's automated assistant. Type a word like land, rent or fees and I'll ask what you'd like to know. I can also reply in Pidgin, Yorùbá, Igbo, Hausa or French.",
+    "I be MainTown automated assistant. Type one word like land, rent or fees, I go ask wetin you wan know. I fit also reply for Pidgin, Yorùbá, Igbo, Hausa or French.",
+    "Olùrànlọ́wọ́ aládàáṣe ti MainTown ni mí. Ẹ kọ ọ̀rọ̀ kan bíi land, rent tàbí fees, màá sì bi yín ohun tí ẹ fẹ́ mọ̀. Mo tún lè dáhùn ní Pidgin, Yorùbá, Igbo, Hausa tàbí Faransé.",
+    "Abụ m onye enyemaka MainTown na-arụ ọrụ n'onwe ya. Dee otu okwu dị ka land, rent ma ọ bụ fees, m ga-ajụkwa gị ihe ị chọrọ ịma. Enwere m ike iji Pidgin, Yorùbá, Igbo, Hausa ma ọ bụ French za.",
+    "Mataimakin MainTown ne na atomatik. Rubuta kalma kamar land, rent ko fees, zan tambaye ka abin da kake so ka sani. Zan iya amsawa da Pidgin, Yorùbá, Igbo, Hausa ko Faransanci.",
+    "Je suis l'assistant automatisé de MainTown. Écrivez un mot comme terrain, loyer ou frais et je vous demanderai ce que vous souhaitez savoir. Je peux aussi répondre en pidgin, yoruba, igbo, haoussa ou anglais."
+  ]);
+  mtDef('greet_legal', [
+    "I'm MainTown's automated assistant. I can explain property documents and how MainTown works in general terms. This is general information, not legal advice.",
+    "I be MainTown automated assistant. I fit explain property documents and how MainTown dey work for general terms. Na general information be this, no be legal advice.",
+    "Olùrànlọ́wọ́ aládàáṣe ti MainTown ni mí. Mo lè ṣàlàyé àwọn ìwé ilé àti ilẹ̀ àti bí MainTown ṣe ń ṣiṣẹ́ ní ṣókí. Ìwífún gbogbogbò ni èyí, kì í ṣe ìmọ̀ràn òfin.",
+    "Abụ m onye enyemaka MainTown na-arụ ọrụ n'onwe ya. Enwere m ike ịkọwa akwụkwọ ụlọ na ala na otú MainTown si arụ ọrụ n'ụzọ izugbe. Nke a bụ ozi izugbe, ọ bụghị ndụmọdụ iwu.",
+    "Mataimakin MainTown ne na atomatik. Zan iya bayyana takardun gidaje da yadda MainTown ke aiki a taƙaice. Wannan bayani ne na gaba ɗaya, ba shawarar doka ba ce.",
+    "Je suis l'assistant automatisé de MainTown. Je peux expliquer les documents immobiliers et le fonctionnement de MainTown en termes généraux. Il s'agit d'informations générales, pas d'un avis juridique."
+  ]);
+  mtDef('identity', [
+    "I'm MainTown's automated assistant. I answer from MainTown's approved help content and fee rules, and I can connect you with a live expert if you ask.",
+    "I be MainTown automated assistant. I dey answer from MainTown approved help content and fee rules, and I fit connect you to live expert if you ask.",
+    "Olùrànlọ́wọ́ aládàáṣe ti MainTown ni mí. Mo ń dáhùn láti inú àkóónú ìrànlọ́wọ́ àti òfin owó tí MainTown fọwọ́ sí, mo sì lè so yín pọ̀ mọ́ amòye tó wà láàyè tí ẹ bá béèrè.",
+    "Abụ m onye enyemaka MainTown na-arụ ọrụ n'onwe ya. Ana m aza site na ọdịnaya enyemaka na iwu ụgwọ MainTown kwadoro, enwere m ike ijikọ gị na ọkachamara dị ndụ ma ọ bụrụ na ị rịọ.",
+    "Mataimakin MainTown ne na atomatik. Ina amsawa daga abubuwan taimako da dokokin kuɗin MainTown da aka amince da su, kuma zan iya haɗa ka da ƙwararren mutum idan ka nema.",
+    "Je suis l'assistant automatisé de MainTown. Je réponds à partir du contenu d'aide et des règles tarifaires approuvés de MainTown, et je peux vous mettre en relation avec un expert si vous le demandez."
+  ]);
+
+  // ---- Humor ----
+  mtDef('joke1', [
+    "Why did the landlord bring a ladder to the meeting? He heard the rent was going up. 😄",
+    "Why landlord carry ladder go meeting? Dem tell am say rent don dey go up. 😄",
+    "Kí ló dé tí onílé fi gbé àkàbà wá sí ìpàdé? Ó gbọ́ pé owó ilé ń lọ sókè. 😄",
+    "Gịnị mere onye nwe ụlọ ji bute ihe ịrị elu n'ọgbakọ? Ọ nụrụ na ụgwọ ụlọ na-arị elu. 😄",
+    "Me ya sa mai gida ya kawo tsani taro? Ya ji cewa kuɗin haya yana hawa sama. 😄",
+    "Pourquoi le propriétaire est-il venu avec une échelle à la réunion ? On lui a dit que le loyer montait. 😄"
+  ]);
+  mtDef('joke2', [
+    "My favourite kind of exercise? Moving house. Zero gym fees, full workout. 😄",
+    "My favourite exercise? To move house. No gym fee, but body go tire well well. 😄",
+    "Eré ìmárale tí mo fẹ́ jù? Kí n kó ilé. Kò sí owó ilé-ìdárayá, ṣùgbọ́n ara á rẹ̀ ọ́ dáadáa. 😄",
+    "Mgbatị ahụ m kacha masị? Ịkwaga n'ụlọ ọhụrụ. Enweghị ụgwọ gym, mana ahụ ga-ada ike nke ọma. 😄",
+    "Motsa jiki da na fi so? Ƙaura zuwa sabon gida. Babu kuɗin gym, amma jiki zai gaji sosai. 😄",
+    "Mon sport préféré ? Déménager. Pas d'abonnement à la salle, mais courbatures garanties. 😄"
+  ]);
+  mtDef('joke3', [
+    "A wallet at the end of the month and a landlord at the start of the month have never once agreed. 😄",
+    "Wallet for end of month and landlord for start of month never ever agree. 😄",
+    "Àpamọ́wọ́ ní òpin oṣù àti onílé ní ìbẹ̀rẹ̀ oṣù kò tíì jọ fohùn ṣọ̀kan rí. 😄",
+    "Akpa ego n'ọgwụgwụ ọnwa na onye nwe ụlọ n'ọnwa mbido ekwerịtụghị ma ọlị. 😄",
+    "Jakar kuɗi a ƙarshen wata da mai gida a farkon wata ba su taɓa yarda da juna ba. 😄",
+    "Un portefeuille en fin de mois et un propriétaire en début de mois ne sont jamais d'accord. 😄"
+  ]);
+  mtDef('playful', [
+    "I'm MainTown's assistant, so I'm happily committed to property questions only. 😄 But I'm flattered!",
+    "Na MainTown assistant I be, so my heart belong to property matter only. 😄 But I dey flattered o!",
+    "Olùrànlọ́wọ́ MainTown ni mí, nítorí náà ọkàn mi wà fún ọ̀rọ̀ ilé àti ilẹ̀ nìkan. 😄 Ṣùgbọ́n ẹ ṣé o, ó dùn mọ́ mi!",
+    "Abụ m onye enyemaka MainTown, ya mere obi m dị naanị n'ajụjụ gbasara ụlọ na ala. 😄 Ma daalụ, ọ masịrị m!",
+    "Mataimakin MainTown ne ni, don haka zuciyata tana kan tambayoyin gida da fili ne kawai. 😄 Amma na gode, na ji daɗi!",
+    "Je suis l'assistant MainTown : mon cœur n'appartient qu'aux questions immobilières. 😄 Mais je suis flatté !"
+  ]);
+  mtDef('laugh', [
+    "😄 Glad that made you smile. Ask me anything about land, rent or fees, or ask for another joke.",
+    "😄 I glad say e make you laugh. Ask me anything about land, rent or fees, or ask make I tell you another joke.",
+    "😄 Inú mi dùn pé ó mú yín rẹ́rìn-ín. Ẹ bi mí nípa ilẹ̀, rent tàbí fees, tàbí kí ẹ ní kí n sọ àwàdà mìíràn.",
+    "😄 Obi dị m ụtọ na ọ mere gị ọchị. Jụọ m banyere land, rent ma ọ bụ fees, ma ọ bụ rịọ m ka m kọọ ọchị ọzọ.",
+    "😄 Na yi farin ciki da ya sa ka yi dariya. Ka tambaye ni game da land, rent ko fees, ko ka nemi wani barkwanci.",
+    "😄 Content que ça vous ait fait sourire. Posez-moi vos questions sur le terrain, le loyer ou les frais, ou demandez une autre blague."
+  ]);
+
+  // ---- Keyword follow-up questions ----
+  mtDef('kw_land', [
+    "Land and property purchases. What would you like to know?",
+    "Land and property purchase. Wetin you wan know?",
+    "Rírà ilẹ̀ àti ilé. Kí ni ẹ fẹ́ mọ̀?",
+    "Ịzụta ala na ụlọ. Gịnị ka ị chọrọ ịmata?",
+    "Sayen fili da gida. Me kake so ka sani?",
+    "Achat de terrain et de bien. Que souhaitez-vous savoir ?"
+  ]);
+  mtDef('kw_property', [
+    "Property. Are you looking to buy, rent, or book a shortlet?",
+    "Property. You wan buy, rent, or book shortlet?",
+    "Ilé tàbí ilẹ̀ ni? Ṣé ẹ fẹ́ rà, gba rent, tàbí ṣe ìwé shortlet?",
+    "Ụlọ ma ọ bụ ala. Ị chọrọ ịzụta, ịgbazinye ụlọ (rent), ka ịhazi shortlet?",
+    "Gida ko fili. Kana so ka saya, ka yi haya, ko ka yi shortlet?",
+    "Un bien immobilier. Souhaitez-vous acheter, louer, ou réserver un shortlet ?"
+  ]);
+  mtDef('kw_rent', [
+    "Rent. What would you like to know: the fees, how payment works, or how to book an inspection?",
+    "Rent. Wetin you wan know: the fees, how payment dey work, or how to book inspection?",
+    "Rent. Kí ni ẹ fẹ́ mọ̀: àwọn owó tó wà níbẹ̀, bí ìsanwó ṣe ń ṣiṣẹ́, tàbí bí a ṣe ń béèrè fún ayẹ̀wò ilé?",
+    "Rent. Gịnị ka ị chọrọ ịmata: ụgwọ ndị dị na ya, otú ịkwụ ụgwọ si arụ ọrụ, ka otú e si ahazi nyocha ụlọ?",
+    "Haya. Me kake so ka sani: kuɗaɗen da ake biya, yadda biyan kuɗi yake, ko yadda ake neman dubawa?",
+    "Loyer. Que souhaitez-vous savoir : les frais, le fonctionnement du paiement, ou comment réserver une visite ?"
+  ]);
+  mtDef('kw_shortlet', [
+    "Shortlet. Would you like to know about fees and payment, or the caution deposit?",
+    "Shortlet. You wan know about fees and payment, or the caution deposit?",
+    "Shortlet. Ṣé ẹ fẹ́ mọ̀ nípa owó àti ìsanwó, tàbí caution deposit?",
+    "Shortlet. Ị chọrọ ịmata maka ụgwọ na ịkwụ ụgwọ, ka caution deposit?",
+    "Shortlet. Kana so ka san kuɗaɗe da biyan kuɗi, ko caution deposit?",
+    "Shortlet. Voulez-vous des informations sur les frais et le paiement, ou sur la caution ?"
+  ]);
+  mtDef('kw_payment', [
+    "Payments. Is it about fees, your wallet, or payment plans? If something went wrong with a payment, tell me and I'll flag it to the team.",
+    "Payments. E concern fees, your wallet, or payment plans? If something go wrong with payment, tell me, I go flag am to the team.",
+    "Ìsanwó. Ṣé nípa owó ìdíyelé, wallet yín, tàbí ètò ìsanwó ni? Tí ìṣòro bá wà pẹ̀lú ìsanwó kan, ẹ sọ fún mi, màá fi tó ẹgbẹ́ náà létí.",
+    "Ịkwụ ụgwọ. Ọ bụ maka ụgwọ ndị a na-akwụ, wallet gị, ka atụmatụ ịkwụ ụgwọ? Ọ bụrụ na nsogbu dapụtara na ịkwụ ụgwọ, gwa m, m ga-ejiri ya mara otu ndị otu.",
+    "Biyan kuɗi. Game da kuɗaɗe ne, wallet ɗinka, ko tsarin biya? Idan an samu matsala da biyan kuɗi, ka gaya mini in sanar da ƙungiyar.",
+    "Paiements. Est-ce au sujet des frais, de votre portefeuille ou des plans de paiement ? Si un paiement a posé problème, dites-le-moi et je le signalerai à l'équipe."
+  ]);
+  mtDef('kw_fees', [
+    "Fees. Which type of listing: rent, shortlet, or land and property purchase?",
+    "Fees. Which kind listing: rent, shortlet, or land and property purchase?",
+    "Owó ìdíyelé. Irú ìkéde wo: rent, shortlet, tàbí rírà ilẹ̀ àti ilé?",
+    "Ụgwọ. Ụdị ndepụta kedu: rent, shortlet, ka ịzụta ala na ụlọ?",
+    "Kuɗaɗe. Wane nau'i ne: haya, shortlet, ko sayen fili da gida?",
+    "Frais. Quel type d'annonce : loyer, shortlet, ou achat de terrain et de bien ?"
+  ]);
+  mtDef('kw_document', [
+    "Documents. Which one: Deed of Assignment, Governor's Consent, C of O, or the tenancy agreement?",
+    "Documents. Which one: Deed of Assignment, Governor's Consent, C of O, or tenancy agreement?",
+    "Àwọn ìwé. Èwo ni: Deed of Assignment, Governor's Consent, C of O, tàbí ìwé àdéhùn ilé gbígbé (tenancy agreement)?",
+    "Akwụkwọ. Kedu otu: Deed of Assignment, Governor's Consent, C of O, ka akwụkwọ nkwekọrịta ụlọ (tenancy agreement)?",
+    "Takardu. Wacce: Deed of Assignment, Governor's Consent, C of O, ko yarjejeniyar haya (tenancy agreement)?",
+    "Documents. Lequel : Deed of Assignment, Governor's Consent, C of O, ou le contrat de location ?"
+  ]);
+  mtDef('kw_wallet', [
+    "Wallet. Do you want to top up or withdraw, or understand how payments are protected?",
+    "Wallet. You wan top up or withdraw, or you wan sabi how dem dey protect payment?",
+    "Wallet. Ṣé ẹ fẹ́ fi owó sí i tàbí yọ owó, tàbí kí ẹ mọ bí a ṣe ń dáàbò bo ìsanwó?",
+    "Wallet. Ị chọrọ itinye ego ma ọ bụ iwepụ ya, ka ịmata otú a si echebe ịkwụ ụgwọ?",
+    "Wallet. Kana so ka saka kuɗi ko ka cire, ko ka fahimci yadda ake kare biyan kuɗi?",
+    "Portefeuille. Souhaitez-vous le recharger, retirer de l'argent, ou comprendre comment les paiements sont protégés ?"
+  ]);
+  mtDef('kw_inspection', [
+    "Inspection. Do you want to book one, check your request status, or cancel?",
+    "Inspection. You wan book one, check your request status, or cancel?",
+    "Ayẹ̀wò ilé. Ṣé ẹ fẹ́ ṣe ìwé ọ̀kan, ṣàyẹ̀wò ipò ìbéèrè yín, tàbí fagilé?",
+    "Nyocha ụlọ. Ị chọrọ ịhazi otu, lelee ọnọdụ arịrịọ gị, ka ịkagbu?",
+    "Dubawa. Kana so ka nemi ɗaya, ka duba matsayin buƙatarka, ko ka soke?",
+    "Visite. Souhaitez-vous en réserver une, vérifier l'état de votre demande, ou annuler ?"
+  ]);
+  mtDef('kw_host', [
+    "Are you trying to reach a landlord or agent, or are you a host asking about listings and payouts?",
+    "You dey try reach landlord or agent, or you be host wey dey ask about listings and payouts?",
+    "Ṣé ẹ ń gbìyànjú láti kàn sí onílé tàbí aṣojú, tàbí ẹ jẹ́ olùgbàlejò tó ń béèrè nípa àwọn ìkéde àti ìsanwó?",
+    "Ị chọrọ ịkpọtụrụ onye nwe ụlọ ma ọ bụ onye nnọchite anya, ka ị bụ host na-ajụ maka ndepụta na ịkwụ ụgwọ?",
+    "Kana ƙoƙarin tuntuɓar mai gida ko wakili ne, ko kai mai masauki (host) ne da ke tambaya game da jerin gidaje da biyan kuɗi?",
+    "Cherchez-vous à joindre un propriétaire ou un agent, ou êtes-vous un hôte avec des questions sur les annonces et les paiements ?"
+  ]);
+  mtDef('kw_listing', [
+    "Listings. Do you want to add one, understand verification, or compare listings?",
+    "Listings. You wan add one, sabi how verification dey go, or compare listings?",
+    "Àwọn ìkéde. Ṣé ẹ fẹ́ fi ọ̀kan kún, mọ bí ìfọwọ́sí ṣe ń lọ, tàbí fi àwọn ìkéde wéra?",
+    "Ndepụta. Ị chọrọ itinye otu, ịmata otú nnyocha si aga, ka ịtụnyere ndepụta?",
+    "Jerin gidaje. Kana so ka ƙara ɗaya, ka fahimci tabbatarwa, ko ka kwatanta jerin?",
+    "Annonces. Voulez-vous en ajouter une, comprendre la vérification, ou comparer des annonces ?"
+  ]);
+
+  // ---- Fully translated short answers (safe, non-financial detail) ----
+  mtDef('ans_wallet', [
+    "Open your wallet from the dashboard to top up or withdraw. Rent and shortlet payments are debited from it. Never share your wallet PIN with anyone, including in this chat.",
+    "Open your wallet from the dashboard to top up or withdraw. Rent and shortlet payments dey comot from am. Never share your wallet PIN with anybody, even for this chat.",
+    "Ẹ ṣí wallet yín láti inú dashboard láti fi owó sí i tàbí yọ owó. Wọ́n ń yọ owó rent àti shortlet láti inú rẹ̀. Ẹ má ṣe pín PIN wallet yín fún ẹnikẹ́ni, pẹ̀lú nínú ìfọ̀rọ̀ránṣẹ́ yìí.",
+    "Meghee wallet gị site na dashboard iji tinye ma ọ bụ wepụ ego. A na-ewepụ ụgwọ rent na shortlet na ya. Ekekwala PIN wallet gị nye onye ọ bụla, ọbụna n'ime mkparịta ụka a.",
+    "Buɗe wallet ɗinka daga dashboard domin saka ko cire kuɗi. Ana cire kuɗin haya da shortlet daga cikinsa. Kada ka bayar da PIN ɗin wallet ɗinka ga kowa, har ma a wannan tattaunawar.",
+    "Ouvrez votre portefeuille depuis le tableau de bord pour le recharger ou retirer de l'argent. Les paiements de loyer et de shortlet y sont débités. Ne partagez jamais le PIN de votre portefeuille, même dans ce chat."
+  ]);
+  mtDef('ans_protection', [
+    "Payments made through MainTown are covered by automated split-payment protection. Funds are released according to the terms agreed on the listing or lease. Keep payments and conversations on MainTown; payments made outside the app are not protected.",
+    "Payment wey you make through MainTown get automatic split-payment protection. Dem go release the money based on the terms wey dem agree for the listing or lease. Make you keep payment and conversation for MainTown; payment wey you make outside the app no get protection.",
+    "Ìsanwó tí a bá ṣe nípasẹ̀ MainTown ní ààbò ìpín-ìsanwó aládàáṣe. A máa tú owó sílẹ̀ gẹ́gẹ́ bí àdéhùn tí a ṣe lórí ìkéde tàbí lease náà. Ẹ máa ṣe ìsanwó àti ìfọ̀rọ̀wérọ̀ yín lórí MainTown; ìsanwó tí a bá ṣe ní ìta app kò ní ààbò.",
+    "Ịkwụ ụgwọ ị na-akwụ site na MainTown nwere nchekwa nkewa-ịkwụ ụgwọ n'onwe ya. A na-ahapụ ego dị ka ọnọdụ e kwenyere na ndepụta ma ọ bụ lease. Debe ịkwụ ụgwọ na mkparịta ụka gị na MainTown; ịkwụ ụgwọ n'èzí app enweghị nchekwa.",
+    "Biyan kuɗin da aka yi ta MainTown yana da kariyar rarraba biyan kuɗi ta atomatik. Ana sakin kuɗi bisa sharuɗɗan da aka amince da su a kan jeri ko yarjejeniyar haya. Ka bar biyan kuɗi da tattaunawa a MainTown; biyan kuɗin da aka yi a wajen manhajar ba shi da kariya.",
+    "Les paiements effectués via MainTown sont couverts par une protection automatique de paiement fractionné. Les fonds sont libérés selon les conditions convenues dans l'annonce ou le bail. Gardez vos paiements et vos échanges sur MainTown ; les paiements hors de l'application ne sont pas protégés."
+  ]);
+  mtDef('ans_inspect', [
+    "Open a listing and request an inspection. Once the host accepts, chat with them unlocks so you can agree the details. You can cancel from Inspection Schedules before the visit; repeated late cancellations may limit your ability to book.",
+    "Open one listing and request inspection. Once the host accept, chat with dem go open so una fit agree the details. You fit cancel from Inspection Schedules before the visit; if you dey cancel late again and again, e fit limit your ability to book.",
+    "Ṣí ìkéde kan kí ẹ sì béèrè fún ayẹ̀wò. Nígbà tí olùgbàlejò bá gbà, ìfọ̀rọ̀wérọ̀ pẹ̀lú wọn yóò ṣí kí ẹ lè jíròrò àwọn àlàyé. Ẹ lè fagilé láti Inspection Schedules kí ìbẹ̀wò tó wáyé; fífagilé pẹ́ léraléra lè dín agbára yín láti ṣe ìwé kù.",
+    "Meghee ndepụta ma rịọ maka nyocha. Ozugbo onye ọbịa (host) nabatara ya, mkparịta ụka na ya ga-emeghe ka unu kwenye na nkọwa. Ị nwere ike ịkagbu site na Inspection Schedules tupu nleta; ịkagbu n'oge gafere ugboro ugboro nwere ike igbochi gị ịhazi ọzọ.",
+    "Buɗe jeri ka ka nemi dubawa. Da zarar mai masaukin ya amince, tattaunawa da shi za ta buɗe domin ku yarda kan cikakkun bayanai. Kana iya soke daga Inspection Schedules kafin ziyarar; soke-soke a ƙarshen lokaci akai-akai na iya hana ka yin ajiya.",
+    "Ouvrez une annonce et demandez une visite. Dès que l'hôte accepte, la discussion avec lui se débloque pour convenir des détails. Vous pouvez annuler depuis Inspection Schedules avant la visite ; des annulations tardives répétées peuvent limiter vos réservations."
+  ]);
+  mtDef('ans_screening', [
+    "The one-time ₦5,000 credit and background screening is paid once, when you first request an inspection or start a purchase. It is not charged again at checkout, and it unlocks flexible payment options. Landlords and agents have no screening step.",
+    "The ₦5,000 credit and background screening na one-time payment, you go pay am once when you first request inspection or start purchase. Dem no go charge you again for checkout, and e dey open flexible payment options. Landlords and agents no get screening step.",
+    "₦5,000 àyẹ̀wò ìgbèsè àti ìtàn ẹni jẹ́ ìsanwó ẹ̀ẹ̀kan ṣoṣo, tí a ń san nígbà àkọ́kọ́ tí ẹ bá béèrè fún ayẹ̀wò tàbí bẹ̀rẹ̀ ríra. A kì í tún gbà á ní checkout, ó sì ń ṣí àwọn ọ̀nà ìsanwó tó rọrùn. Àwọn onílé àti aṣojú kò ní ìgbésẹ̀ screening.",
+    "Nyocha kredit na ndabere nke ₦5,000 bụ ịkwụ ụgwọ otu oge, a na-akwụ ya otu ugboro mgbe ị rịọrọ nyocha ụlọ ma ọ bụ malite ịzụta nke mbụ. A naghị akwụ ya ọzọ na checkout, ọ na-emeghekwa nhọrọ ịkwụ ụgwọ dị mfe. Ndị nwe ụlọ na ndị nnọchite anya enweghị nzọụkwụ screening.",
+    "Binciken bashi da tarihi na ₦5,000 biya ne sau ɗaya, ana biya lokacin da ka fara neman dubawa ko ka fara sayayya. Ba a sake cajin sa a checkout, kuma yana buɗe zaɓuɓɓukan biya masu sauƙi. Masu gida da wakilai ba su da matakin screening.",
+    "Le contrôle de crédit et d'antécédents de 5 000 ₦ est payé une seule fois, lors de votre première demande de visite ou de votre premier achat. Il n'est pas facturé de nouveau au paiement final et il débloque les options de paiement flexibles. Les propriétaires et agents n'ont pas d'étape de contrôle."
+  ]);
+  mtDef('ans_address', [
+    "Open the chat with the host and tap Request Full Address. They will share it there.",
+    "Open the chat with the host and tap Request Full Address. Dem go share am for there.",
+    "Ṣí ìfọ̀rọ̀wérọ̀ pẹ̀lú olùgbàlejò kí ẹ tẹ Request Full Address. Wọn yóò pín in níbẹ̀.",
+    "Meghee mkparịta ụka na onye ọbịa ma pịa Request Full Address. Ha ga-ekesa ya ebe ahụ.",
+    "Buɗe tattaunawa da mai masaukin ka danna Request Full Address. Zai raba shi a can.",
+    "Ouvrez la discussion avec l'hôte et touchez Request Full Address. Il la partagera là."
+  ]);
+  mtDef('ans_locked', [
+    "Chat opens after your inspection request is accepted. Until then, use the listing details or message MainTown.",
+    "Chat go open after dem accept your inspection request. Until then, use the listing details or message MainTown.",
+    "Ìfọ̀rọ̀wérọ̀ yóò ṣí lẹ́yìn tí a bá gba ìbéèrè ayẹ̀wò yín. Títí di ìgbà náà, ẹ lo àlàyé ìkéde náà tàbí kí ẹ kọ̀wé sí MainTown.",
+    "Mkparịta ụka ga-emeghe mgbe e nabatara arịrịọ nyocha gị. Ruo mgbe ahụ, jiri nkọwa ndepụta ma ọ bụ degara MainTown ozi.",
+    "Tattaunawa za ta buɗe bayan an amince da buƙatar dubawarka. Har zuwa lokacin, yi amfani da bayanan jeri ko ka aika saƙo ga MainTown.",
+    "La discussion s'ouvre une fois votre demande de visite acceptée. D'ici là, utilisez les détails de l'annonce ou écrivez à MainTown."
+  ]);
+  mtDef('offplatform', [
+    "I can't share contact details, and payments made outside MainTown aren't protected. Once your inspection request is accepted, chat with the host unlocks right here, and you can pay safely through the app.",
+    "I no fit share contact details, and payment wey you make outside MainTown no get protection. Once dem accept your inspection request, chat with the host go open right here, and you fit pay safely through the app.",
+    "Mi ò lè pín ìwífún ìkànsí, ìsanwó tí a bá ṣe ní ìta MainTown kò sì ní ààbò. Nígbà tí a bá gba ìbéèrè ayẹ̀wò yín, ìfọ̀rọ̀wérọ̀ pẹ̀lú olùgbàlejò yóò ṣí níbí yìí gan-an, ẹ sì lè sanwó ní àìléwu nípasẹ̀ app náà.",
+    "Enweghị m ike ịkesa nkọwa mkpọtụrụ, ịkwụ ụgwọ n'èzí MainTown enweghịkwa nchekwa. Ozugbo e nabatara arịrịọ nyocha gị, mkparịta ụka na onye ọbịa ga-emeghe ebe a, ị nwekwara ike ịkwụ ụgwọ n'enweghị egwu site na app ahụ.",
+    "Ba zan iya raba bayanan tuntuɓa ba, kuma biyan kuɗin da aka yi a wajen MainTown ba shi da kariya. Da zarar an amince da buƙatar dubawarka, tattaunawa da mai masaukin za ta buɗe a nan, kuma za ka iya biya lafiya ta manhajar.",
+    "Je ne peux pas partager de coordonnées, et les paiements hors de MainTown ne sont pas protégés. Une fois votre demande de visite acceptée, la discussion avec l'hôte se débloque ici et vous pouvez payer en toute sécurité via l'application."
+  ]);
+  mtDef('contact', [
+    "If you can't reach us in chat, call the offline support line on {phone}. Expert availability is shown before you start a chat. Outside staffed hours, leave your question and the team replies here.",
+    "If you no fit reach us for chat, call the offline support line for {phone}. Dem dey show expert availability before you start chat. Outside working hours, leave your question and the team go reply for here.",
+    "Tí ẹ kò bá lè kàn sí wa nínú ìfọ̀rọ̀ránṣẹ́, ẹ pe ìlà ìrànlọ́wọ́ aláìsí-lórí-íntánẹ́ẹ̀tì ní {phone}. A máa ń fi ìgbà tí àwọn amòye wà hàn kí ẹ tó bẹ̀rẹ̀ ìfọ̀rọ̀ránṣẹ́. Lẹ́yìn wákàtí iṣẹ́, ẹ fi ìbéèrè yín sílẹ̀, ẹgbẹ́ náà yóò dáhùn níbí.",
+    "Ọ bụrụ na ị enweghị ike iru anyị n'ime mkparịta ụka, kpọọ ahịrị enyemaka offline na {phone}. A na-egosi mgbe ndị ọkachamara nọ tupu ịmalite mkparịta ụka. N'èzí oge ọrụ, hapụ ajụjụ gị, otu ndị ọrụ ga-aza ebe a.",
+    "Idan ba ka iya samun mu a tattaunawa ba, kira layin tallafi na offline a {phone}. Ana nuna samuwar ƙwararru kafin ka fara tattaunawa. A wajen lokutan aiki, bar tambayarka, ƙungiyar za ta amsa a nan.",
+    "Si vous ne parvenez pas à nous joindre par chat, appelez la ligne d'assistance hors ligne au {phone}. La disponibilité des experts s'affiche avant de commencer un chat. En dehors des heures d'ouverture, laissez votre question et l'équipe répondra ici."
+  ]);
+
+  // ---- Safety, disputes and hand-off ----
+  mtDef('sensitive', [
+    "Please don't share your PIN, OTP, BVN, password or card details in chat. MainTown never asks for them, and I can't cancel or reverse payments. I've hidden what you sent.",
+    "Abeg no share your PIN, OTP, BVN, password or card details for chat. MainTown no dey ever ask for dem, and I no fit cancel or reverse payment. I don hide wetin you send.",
+    "Ẹ jọ̀wọ́ ẹ má ṣe pín PIN, OTP, BVN, ọ̀rọ̀ aṣínà tàbí ìwífún káàdì yín nínú ìfọ̀rọ̀ránṣẹ́. MainTown kì í béèrè wọn, mi ò sì lè fagilé tàbí dá ìsanwó padà. Mo ti fi ohun tí ẹ fi ránṣẹ́ pamọ́.",
+    "Biko, ekekwala PIN, OTP, BVN, paswọọdụ ma ọ bụ nkọwa kaadị gị n'ime mkparịta ụka. MainTown anaghị arịọ ha, enweghịkwa m ike ikagbu ma ọ bụ ịtụgharị ịkwụ ụgwọ. Ezoola m ihe ị zipụrụ.",
+    "Don Allah kada ka bayar da PIN, OTP, BVN, kalmar sirri ko bayanan katin ka a cikin tattaunawa. MainTown ba ta taɓa tambayar su ba, kuma ba zan iya soke ko mayar da biya ba. Na ɓoye abin da ka aika.",
+    "Veuillez ne pas partager votre PIN, OTP, BVN, mot de passe ou données de carte dans le chat. MainTown ne les demande jamais, et je ne peux ni annuler ni inverser des paiements. J'ai masqué ce que vous avez envoyé."
+  ]);
+  mtDef('dispute', [
+    "I can't confirm payment outcomes, refunds or disputes, and I don't want to give you wrong information. I'll pass this to the team with this chat so you don't have to repeat it.",
+    "I no fit confirm payment result, refund or dispute, and I no wan give you wrong info. I go pass am give the team with this chat so you no go repeat yourself.",
+    "Mi ò lè jẹ́rìí sí àbájáde ìsanwó, ìdápadà owó tàbí àríyànjiyàn, mi ò sì fẹ́ fún yín ní ìwífún tí kò tọ́. Màá fi èyí ránṣẹ́ sí ẹgbẹ́ náà pẹ̀lú ìfọ̀rọ̀ránṣẹ́ yìí kí ẹ má bàa tún sọ̀rọ̀ náà.",
+    "Enweghị m ike ikwenye na nsonaazụ ịkwụ ụgwọ, mgbazinye ego ma ọ bụ esemokwu, achọghịkwa m inye gị ozi na-ezighi ezi. M ga-ebufe nke a nye otu ndị otu ya na mkparịta ụka a ka ị ghara ịkọghachi ya.",
+    "Ba zan iya tabbatar da sakamakon biyan kuɗi, mayar da kuɗi ko jayayya ba, kuma ba na son in ba ka bayanin da ba daidai ba. Zan miƙa wannan ga ƙungiyar tare da wannan tattaunawar don kada ka sake maimaitawa.",
+    "Je ne peux pas confirmer l'issue d'un paiement, un remboursement ou un litige, et je ne veux pas vous donner de fausses informations. Je transmets cela à l'équipe avec cette discussion pour que vous n'ayez pas à vous répéter."
+  ]);
+  mtDef('shortlet_cancel', [
+    "Cancellation and refund terms for shortlets are still being finalised, so I can't give you amounts or deadlines. I'll pass this to the team with this chat.",
+    "Cancellation and refund terms for shortlets never finish yet, so I no fit give you amounts or deadlines. I go pass am give the team with this chat.",
+    "A ṣì ń parí àwọn òfin ìfagilé àti ìdápadà owó fún shortlet, nítorí náà mi ò lè fún yín ní iye tàbí ọjọ́ ìkẹyìn. Màá fi èyí ránṣẹ́ sí ẹgbẹ́ náà pẹ̀lú ìfọ̀rọ̀ránṣẹ́ yìí.",
+    "A ka na-emecha usoro ịkagbu na ịtụghachi ego maka shortlet, ya mere enweghị m ike inye gị ọnụọgụgụ ma ọ bụ ụbọchị njedebe. M ga-ebufe nke a nye otu ndị otu ya na mkparịta ụka a.",
+    "Ana ci gaba da kammala ka'idojin sokewa da mayar da kuɗi na shortlet, don haka ba zan iya ba ka adadi ko wa'adi ba. Zan miƙa wannan ga ƙungiyar tare da wannan tattaunawar.",
+    "Les conditions d'annulation et de remboursement des shortlets sont encore en cours de finalisation, je ne peux donc pas vous donner de montants ni de délais. Je transmets cela à l'équipe avec cette discussion."
+  ]);
+  mtDef('connecting', [
+    "Connecting you with the {team}. I've shared this chat and your ticket ({id}), so you won't need to repeat yourself.",
+    "I dey connect you with the {team}. I don share this chat and your ticket ({id}), so you no go need repeat yourself.",
+    "Mo ń so yín pọ̀ mọ́ {team}. Mo ti pín ìfọ̀rọ̀ránṣẹ́ yìí àti tikẹ́ẹ̀tì yín ({id}), nítorí náà ẹ kò ní nílò láti tún sọ̀rọ̀ náà.",
+    "Ana m ejikọ gị na {team}. Ekekọtara m mkparịta ụka a na tiketi gị ({id}), ya mere ịghaghị ikwughachi ya.",
+    "Ina haɗa ka da {team}. Na raba wannan tattaunawar da tikitinka ({id}), don haka ba sai ka sake maimaitawa ba.",
+    "Je vous mets en relation avec {team}. J'ai partagé ce chat et votre ticket ({id}), vous n'aurez donc pas à vous répéter."
+  ]);
+  mtDef('offline', [
+    "The {team} is offline right now. I've logged your question with this chat (ticket {id}), and they will reply here as soon as they are back online. For anything urgent, call {phone}.",
+    "The {team} no dey online now. I don log your question with this chat (ticket {id}), and dem go reply for here as soon as dem come back online. If e urgent, call {phone}.",
+    "{team} kò sí lórí íntánẹ́ẹ̀tì báyìí. Mo ti kọ ìbéèrè yín sílẹ̀ pẹ̀lú ìfọ̀rọ̀ránṣẹ́ yìí (tikẹ́ẹ̀tì {id}), wọn yóò sì dáhùn níbí bí wọ́n bá ti padà. Tí ó bá jẹ́ kánjúkánjú, ẹ pe {phone}.",
+    "{team} anọghị n'ịntanetị ugbu a. Edeela m ajụjụ gị na mkparịta ụka a (tiketi {id}), ha ga-azakwa ebe a ozugbo ha laghachiri. Ọ bụrụ na ọ dị ọsọ, kpọọ {phone}.",
+    "{team} ba ta kan layi yanzu. Na rubuta tambayarka tare da wannan tattaunawar (tikiti {id}), kuma za su amsa a nan da zarar sun dawo. Idan abin gaggawa ne, kira {phone}.",
+    "{team} est hors ligne pour le moment. J'ai enregistré votre question avec ce chat (ticket {id}) et l'équipe répondra ici dès son retour. En cas d'urgence, appelez le {phone}."
+  ]);
+  mtDef('ex_open', [
+    "Hello, I've read your conversation and ticket. Which listing or payment is this about, and roughly when did it happen?",
+    "Hello, I don read your conversation and ticket. Which listing or payment e concern, and roughly when e happen?",
+    "Ẹ káàbọ̀, mo ti ka ìfọ̀rọ̀ránṣẹ́ àti tikẹ́ẹ̀tì yín. Ìkéde tàbí ìsanwó wo ni èyí jẹ mọ́, ìgbà wo sì ni ó ṣẹlẹ̀ ní àpapọ̀?",
+    "Ndewo, agụọla m mkparịta ụka na tiketi gị. Ndepụta ma ọ bụ ịkwụ ụgwọ kedu ka nke a gbasara, ma ihe dị ka mgbe ọ mere?",
+    "Sannu, na karanta tattaunawarka da tikitinka. Wane jeri ko biyan kuɗi ne wannan ya shafa, kuma a kusan wane lokaci ya faru?",
+    "Bonjour, j'ai lu votre conversation et votre ticket. De quelle annonce ou de quel paiement s'agit-il, et à peu près quand cela s'est-il produit ?"
+  ]);
+  mtDef('ex_ack', [
+    "Thank you, that helps. I'm reviewing the details and will come back to you here.",
+    "Thank you, that one help. I dey review the details and I go come back to you for here.",
+    "Ẹ ṣé, ìyẹn ràn mí lọ́wọ́. Mo ń ṣàyẹ̀wò àwọn àlàyé náà, màá sì padà wá bá yín níbí.",
+    "Daalụ, nke ahụ nyeere m aka. Ana m elele nkọwa ndị ahụ, m ga-alaghachikwute gị ebe a.",
+    "Na gode, hakan ya taimaka. Ina duba bayanan kuma zan dawo gare ka a nan.",
+    "Merci, c'est utile. J'examine les détails et je reviens vers vous ici."
+  ]);
+  mtDef('ex_summary', [
+    "I've added a summary to your ticket. You can end this chat whenever you're ready, and the assistant will be here if you need it.",
+    "I don add summary to your ticket. You fit end this chat anytime you ready, and the assistant go dey here if you need am.",
+    "Mo ti fi àkópọ̀ kún tikẹ́ẹ̀tì yín. Ẹ lè parí ìfọ̀rọ̀ránṣẹ́ yìí nígbàkigbà tí ẹ bá ṣetán, olùrànlọ́wọ́ náà yóò sì wà níbí tí ẹ bá nílò rẹ̀.",
+    "Etinyela m nchịkọta na tiketi gị. Ị nwere ike ịkwụsị mkparịta ụka a mgbe ọ bụla ị dị njikere, onye enyemaka ga-anọkwa ebe a ma ọ bụrụ na ịchọrọ ya.",
+    "Na ƙara taƙaitaccen bayani a tikitinka. Za ka iya kawo ƙarshen wannan tattaunawar a duk lokacin da ka shirya, kuma mataimakin zai kasance a nan idan kana buƙatarsa.",
+    "J'ai ajouté un résumé à votre ticket. Vous pouvez mettre fin à ce chat quand vous le souhaitez, et l'assistant sera là si besoin."
+  ]);
+
+  // ---- Chip labels (English text must match the labels used in the code) ----
+  mtDef('lbl_explain_fees', ["Explain fees", "Explain fees", "Ṣàlàyé owó", "Kọwaa ụgwọ", "Bayyana kuɗaɗe", "Expliquer les frais"]);
+  mtDef('lbl_todo', ["What do I need to complete?", "Wetin I still need do?", "Kí ni mo ṣì nílò láti parí?", "Gịnị ka m ka kwesịrị imecha?", "Me ya rage min in kammala?", "Que dois-je compléter ?"]);
+  mtDef('lbl_insp_status', ["Inspection status", "Inspection status", "Ipò ayẹ̀wò", "Ọnọdụ nyocha", "Matsayin dubawa", "État de la visite"]);
+  mtDef('lbl_open_inspections', ["Open inspections", "Open inspections", "Ṣí àwọn ayẹ̀wò", "Meghee nyocha", "Buɗe dubawa", "Ouvrir les visites"]);
+  mtDef('lbl_start_screening', ["Start screening", "Start screening", "Bẹ̀rẹ̀ screening", "Malite screening", "Fara screening", "Démarrer le contrôle"]);
+  mtDef('lbl_open_wallet', ["Open wallet", "Open wallet", "Ṣí wallet", "Meghee wallet", "Buɗe wallet", "Ouvrir le portefeuille"]);
+  mtDef('lbl_open_breakdown', ["Open fee breakdown", "Open fee breakdown", "Ṣí àlàyé owó", "Meghee nkọwa ụgwọ", "Buɗe cikakken kuɗaɗe", "Voir le détail des frais"]);
+  mtDef('lbl_compare', ["Compare listings", "Compare listings", "Fi àwọn ìkéde wéra", "Tụnyere ndepụta", "Kwatanta jeri", "Comparer les annonces"]);
+  mtDef('lbl_end_expert', ["End expert chat", "End expert chat", "Parí ìfọ̀rọ̀ránṣẹ́ amòye", "Kwụsị mkparịta ụka ọkachamara", "Kawo ƙarshen tattaunawa", "Terminer le chat expert"]);
+  mtDef('lbl_helpful', ["Helpful", "E help", "Ó ràn mí lọ́wọ́", "O nyeere m aka", "Ya taimaka", "Utile"]);
+  mtDef('lbl_not_helpful', ["Not helpful", "E no help", "Kò ràn mí lọ́wọ́", "O nyeghị m aka", "Bai taimaka ba", "Pas utile"]);
+  mtDef('lbl_estate_expert', ["Real estate expert", "Real estate expert", "Amòye ilé àti ilẹ̀", "Ọkachamara ụlọ na ala", "Ƙwararren gidaje", "Expert immobilier"]);
+  mtDef('lbl_legal_expert', ["Legal expert", "Legal expert", "Amòye òfin", "Ọkachamara iwu", "Ƙwararren shari'a", "Expert juridique"]);
+  mtDef('lbl_deed', ["What is a Deed of Assignment?", "Wetin be Deed of Assignment?", "Kí ni Deed of Assignment?", "Gịnị bụ Deed of Assignment?", "Menene Deed of Assignment?", "Qu'est-ce qu'un Deed of Assignment ?"]);
+  mtDef('lbl_consent', ["Governor's Consent", "Governor's Consent", "Governor's Consent", "Governor's Consent", "Governor's Consent", "Governor's Consent"]);
+  mtDef('lbl_title', ["Preliminary title screening", "Title screening", "Àyẹ̀wò ìwé ilẹ̀", "Nyocha akwụkwọ ala", "Duba takardar fili", "Vérification du titre"]);
+  mtDef('lbl_coo', ["C of O", "C of O", "C of O", "C of O", "C of O", "C of O"]);
+  mtDef('lbl_land_fees', ["Land fees", "Land fees", "Owó ilẹ̀", "Ụgwọ ala", "Kuɗin fili", "Frais de terrain"]);
+  mtDef('lbl_plans', ["Payment plans", "Payment plans", "Ètò ìsanwó", "Atụmatụ ịkwụ ụgwọ", "Tsarin biya", "Plans de paiement"]);
+  mtDef('lbl_buy', ["Buy", "Buy", "Rà", "Zụta", "Saya", "Acheter"]);
+  mtDef('lbl_rent', ["Rent", "Rent", "Rent", "Rent", "Haya", "Louer"]);
+  mtDef('lbl_shortlet', ["Shortlet", "Shortlet", "Shortlet", "Shortlet", "Shortlet", "Shortlet"]);
+  mtDef('lbl_rent_fees', ["Rent fees", "Rent fees", "Owó rent", "Ụgwọ rent", "Kuɗin haya", "Frais de loyer"]);
+  mtDef('lbl_book_insp', ["Book inspection", "Book inspection", "Ṣe ìwé ayẹ̀wò", "Hazie nyocha", "Nemi dubawa", "Réserver une visite"]);
+  mtDef('lbl_insp_cancel', ["Cancel inspection", "Cancel inspection", "Fagilé ayẹ̀wò", "Kagbuo nyocha", "Soke dubawa", "Annuler la visite"]);
+  mtDef('lbl_shortlet_fees', ["Fees and payment", "Fees and payment", "Owó àti ìsanwó", "Ụgwọ na ịkwụ ụgwọ", "Kuɗaɗe da biya", "Frais et paiement"]);
+  mtDef('lbl_caution', ["Caution deposit", "Caution deposit", "Caution deposit", "Caution deposit", "Caution deposit", "Caution"]);
+  mtDef('lbl_fees', ["Fees", "Fees", "Owó ìdíyelé", "Ụgwọ", "Kuɗaɗe", "Frais"]);
+  mtDef('lbl_wallet', ["Wallet", "Wallet", "Wallet", "Wallet", "Wallet", "Portefeuille"]);
+  mtDef('lbl_protection', ["Payment protection", "Payment protection", "Ààbò ìsanwó", "Nchekwa ịkwụ ụgwọ", "Kariyar biyan kuɗi", "Protection des paiements"]);
+  mtDef('lbl_tenancy', ["Tenancy agreement", "Tenancy agreement", "Ìwé àdéhùn ilé", "Nkwekọrịta ụlọ", "Yarjejeniyar haya", "Contrat de location"]);
+  mtDef('lbl_land_purchase', ["Land purchase", "Land purchase", "Rírà ilẹ̀", "Ịzụta ala", "Sayen fili", "Achat de terrain"]);
+  mtDef('lbl_chat_locked', ["Chat locked", "Chat dey locked", "Ìfọ̀rọ̀wérọ̀ ti tì", "Mkparịta ụka mechiri", "Tattaunawa a kulle", "Discussion verrouillée"]);
+  mtDef('lbl_full_address', ["Full address", "Full address", "Àdírẹ́ẹ̀sì kíkún", "Adreesị zuru ezu", "Cikakken adireshi", "Adresse complète"]);
+  mtDef('lbl_add_listing', ["Add a listing", "Add a listing", "Fi ìkéde kún", "Tinye ndepụta", "Ƙara jeri", "Ajouter une annonce"]);
+  mtDef('lbl_verification', ["Verification", "Verification", "Ìfọwọ́sí", "Nnyocha", "Tabbatarwa", "Vérification"]);
+  mtDef('lbl_prop_pay', ["Property or payments", "Property or payments", "Ilé tàbí ìsanwó", "Ụlọ ma ọ bụ ịkwụ ụgwọ", "Gida ko biya", "Bien ou paiements"]);
+  mtDef('lbl_docs_legal', ["Documents or legal", "Documents or legal", "Àwọn ìwé tàbí òfin", "Akwụkwọ ma ọ bụ iwu", "Takardu ko shari'a", "Documents ou juridique"]);
+  mtDef('lbl_language', ["Language", "Language", "Èdè", "Asụsụ", "Harshe", "Langue"]);
+  mtDef('lbl_another_joke', ["Another joke", "Another joke", "Àwàdà míì", "Ọchị ọzọ", "Wani barkwanci", "Une autre blague"]);
+
+  // English chip label -> label key, so chips built anywhere get translated
+  const MT_EN_LBL = {};
+  Object.keys(MT_TX).forEach(k => { if (k.indexOf('lbl_') === 0) MT_EN_LBL[MT_TX[k].en] = k; });
+  function mtLocChips(conv, chips) {
+    const lang = mtLang(conv);
+    if (lang === 'en' || !chips) return chips;
+    return chips.map(c => { const k = MT_EN_LBL[c.l]; return k ? Object.assign({}, c, { l: MT_TX[k][lang] || c.l }) : c; });
+  }
+  function mtLangChips() { return MT_LANG_ORDER.map(k => ({ l: MT_LANG_NAMES[k], a: 'setlang', k: k })); }
+
+  // ---- Normalising and language detection ----
+  function mtNorm(s) {
+    return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/ɗ/g, 'd').replace(/ɓ/g, 'b').replace(/ƙ/g, 'k').replace(/ƴ/g, 'y').replace(/ɛ/g, 'e').replace(/ɔ/g, 'o')
+      .replace(/[’‘`]/g, "'").replace(/short[\s-]?let/g, 'shortlet')
+      .replace(/[^a-z0-9'\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  function mtLangCommand(n) {
+    const tokens = n.split(' ').filter(Boolean);
+    if (!tokens.length || tokens.length > 5) return null;
+    if (/^(language|languages|langue|langues|lang|harshe|harsuna|ede|asusu)$/.test(n)) return { ask: true };
+    if (/\b(broken english|pidgin|pijin|naija)\b/.test(n)) return { lang: 'pcm' };
+    if (/\byoruba\b/.test(n)) return { lang: 'yo' };
+    if (/\bigbo\b/.test(n)) return { lang: 'ig' };
+    if (/\bhausa\b/.test(n)) return { lang: 'ha' };
+    if (/\b(french|francais|faransanci|faranse|farase)\b/.test(n)) return { lang: 'fr' };
+    if (/\b(english|anglais|turanci|bekee|geesi|oyinbo)\b/.test(n)) return { lang: 'en' };
+    return null;
+  }
+  function mtDetectLang(n) {
+    if (/\b(abeg|wetin|wahala|dey|una|wey|oga|sabi|how far|i wan|make i)\b/.test(n)) return 'pcm';
+    if (/\b(bawo|e kaaro|e kaasan|e kaale|e kaabo|jowo|mo fe|mo nilo|kini|nibo|ki lo|e se o|e ku)\b/.test(n)) return 'yo';
+    if (/\b(kedu|biko|ndewo|daalu|nnoo|achoro|gini|m choro|ana m)\b/.test(n)) return 'ig';
+    if (/\b(sannu|ina kwana|ina wuni|barka|don allah|ina son|nagode|na gode|yaya|menene|zan iya)\b/.test(n)) return 'ha';
+    if (/\b(bonjour|bonsoir|salut|merci|svp|je veux|je voudrais|combien|aidez|pouvez|s'il vous plait)\b/.test(n)) return 'fr';
+    return null;
+  }
+
+  // ---- Keyword topics: one word in, a follow-up question out ----
+  const MT_TOPICS = [
+    ['shortlet', /^(shortlets?|airbnb)$/],
+    ['land', /^(lands?|plots?|buy|buying|purchase|purchases|bungalow|terrain|terrains|parcelle|achat|acheter|achete|ala|kasa|fili|filaye|saya|zuta|ra)$/],
+    ['property', /^(propert(y|ies)|house|houses|home|homes|apartment|apartments|flat|flats|maison|appartement|bien|biens|immobilier|ile|ulo|gida|gidaje)$/],
+    ['rent', /^(rents?|renting|rented|tenancy|haya|loyer|loyers|louer)$/],
+    ['fees', /^(fees?|charges?|costs?|commission|frais|cout|couts|tarif|tarifs|ugwo)$/],
+    ['payment', /^(payments?|pay|paying|paid|money|moni|owo|ego|kudi|kudin|paiement|paiements|payer|argent|installments?|instalments?)$/],
+    ['document', /^(documents?|docs?|papers?|paperwork|agreements?|contracts?|leases?|dokument|takarda|takardu|iwe|akwukwo|papiers|dossier|contrat|contrats|bail)$/],
+    ['wallet', /^(wallets?|portefeuille|apamowo)$/],
+    ['inspection', /^(inspections?|inspect|visits?|viewing|viewings|visite|visites|ayewo|nyocha|dubawa)$/],
+    ['host', /^(agents?|landlords?|owners?|hosts?|proprietaire|proprietaires|bailleur|onile)$/],
+    ['listing', /^(listings?|list|verification|verify|verified|annonce|annonces|verifier)$/]
+  ];
+  const MT_FILLER = /^(a|an|the|my|me|i|to|of|on|for|about|and|or|with|please|pls|plz|abeg|jowo|biko|don|allah|want|need|know|ask|tell|info|information|more|some|regarding|question|what|whats|is|are|how|do|does|can|you|wetin|be|na|menene|quoi|est|ce|que|le|la|les|un|une|des|du|de|sur|je|veux|voudrais|savoir|pour|mon|ma|mes|ina|son|mo|fe|ni|nipa|m|choro|banyere|gbasara|game|da|ko|wan|dey|get)$/;
+  const MT_TOPIC_CHIPS = {
+    land:       [['land_fees', 'What fees apply to buying land?'], ['title', 'What does preliminary title screening cover?'], ['deed', 'What is a Deed of Assignment?'], ['plans', 'payment plan']],
+    property:   [['buy', 'buy'], ['rent', 'rent'], ['shortlet', 'shortlet']],
+    rent:       [['rent_fees', 'What are the fees for a rent listing?'], ['plans', 'payment plan'], ['book_insp', 'How do I book an inspection?']],
+    shortlet:   [['shortlet_fees', 'shortlet fees'], ['caution', 'shortlet caution deposit']],
+    payment:    [['fees', 'fees'], ['wallet', 'wallet'], ['plans', 'payment plan']],
+    fees:       [['rent', 'What are the fees for a rent listing?'], ['shortlet', 'shortlet fees'], ['land_purchase', 'land purchase fees']],
+    document:   [['deed', 'What is a Deed of Assignment?'], ['consent', "What is Governor's Consent?"], ['coo', 'What is a C of O?'], ['tenancy', 'tenancy agreement']],
+    wallet:     [['open_wallet', null, 'wallet'], ['protection', 'Are my payments protected?']],
+    inspection: [['book_insp', 'How do I book an inspection?'], ['insp_status', 'What is my inspection status?'], ['insp_cancel', 'How do I cancel an inspection?']],
+    host:       [['chat_locked', 'Why is my chat locked?'], ['full_address', 'address'], ['add_listing', 'How do I list a property?']],
+    listing:    [['add_listing', 'How do I list a property?'], ['verification', 'How does verification work?'], ['compare', 'compare']]
+  };
+  function mtTokenTopic(t) { for (const e of MT_TOPICS) { if (e[1].test(t)) return e[0]; } return null; }
+  function mtTopic(n) {
+    const tokens = String(n || '').split(' ').filter(Boolean);
+    if (!tokens.length || tokens.length > 6) return null;
+    const core = tokens.filter(t => !MT_FILLER.test(t));
+    if (!core.length || core.length > 2) return null;
+    const set = new Set();
+    for (const t of core) { const k = mtTokenTopic(t); if (!k) return null; set.add(k); }
+    if (set.size === 2 && set.has('land') && set.has('property')) return 'land';
+    return set.size === 1 ? Array.from(set)[0] : null;
+  }
+  function mtTopicReply(conv, topic) {
+    const chips = (MT_TOPIC_CHIPS[topic] || []).map(d => d[2]
+      ? { l: mtTx(conv, 'lbl_' + d[0]), a: 'go', k: d[2] }
+      : { l: mtTx(conv, 'lbl_' + d[0]), a: 'say', t: d[1] });
+    return { text: mtTx(conv, 'kw_' + topic), chips: chips, loc: true };
+  }
+  function mtJoke(conv) { const i = conv.jokeIdx || 0; conv.jokeIdx = i + 1; return mtTx(conv, 'joke' + ((i % 3) + 1)); }
+
+  // Menu, humour and keyword follow-ups. Returns a reply object or null.
+  function mtBotSpecial(conv, raw) {
+    const n = mtNorm(raw);
+    const lc = String(raw || '').toLowerCase();
+    if (/^(help|menu|start|options?|aide|taimako|iranlowo|enyemaka|assist)$/.test(n)) return { text: mtTx(conv, 'hello'), chips: mtBotChipsFor(conv), loc: true };
+    if (!/\b(not|no|never) funny\b/.test(n)) {
+      const back = '\n\n' + mtTx(conv, 'back');
+      const jokeChip = { l: mtTx(conv, 'lbl_another_joke'), a: 'say', t: 'tell me another joke' };
+      const chips = [jokeChip].concat(mtBotChipsFor(conv).slice(0, 2));
+      if (/\b(jokes?|blagues?|barkwanci|awada|ochi|funny|comedian|comedy|drole|rigoler)\b|make me laugh|something funny/.test(n))
+        return { text: mtJoke(conv) + back, chips: chips, loc: true };
+      if (/love you|marry me|are you single|your name|your age|how old are you|do you (eat|sleep|dance|sing)|you fine|you dey craze|you dey mad/.test(n))
+        return { text: mtTx(conv, 'playful') + back, chips: chips, loc: true };
+      if (/\b(lol|lmao|lmfao|rofl|mdr|ptdr|hehe+|hihi+)\b|\b(ha){2,}h?\b|\bha ha\b/.test(n) || /[😂🤣😆😹]/u.test(lc))
+        return { text: mtTx(conv, 'laugh'), chips: chips, loc: true };
+    }
+    const topic = mtTopic(n);
+    if (topic) return mtTopicReply(conv, topic);
+    return null;
+  }
+  // English-only answers get a short lead-in when the person chose another language
+  function mtBotLocalize(conv, r) {
+    if (mtLang(conv) === 'en' || r.loc) return r;
+    r.text = mtTx(conv, 'english_detail') + '\n\n' + r.text;
+    return r;
+  }
+  function mtExpertOpen(conv, key) { return mtLang(conv) === 'en' ? MT_EXPERT_OPEN[key] : mtTx(conv, 'ex_open'); }
+  // ---- END language + personality layer ----
+
   function mtExpertsOnline() {
     let ov = 'auto';
     try { ov = localStorage.getItem('mtr_proto_experts') || 'auto'; } catch (e) {}
@@ -20482,7 +21025,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const now = new Date(), h = now.getHours(), d = now.getDay();
     return d !== 0 && h >= 8 && h < 18; // demo hours only: Mon to Sat, 8am to 6pm device time
   }
-  function mtBotScroll() { const l = document.getElementById('msg-chat-log'); if (l) l.scrollTop = l.scrollHeight; }
+  function mtBotScroll() { const l = document.getElementById('msg-chat-log'); if (!l) return; const last = l.lastElementChild; if (last && last.scrollIntoView) last.scrollIntoView({ block: 'end' }); }
   function mtBotTypingHtml(conv) {
     return (mtBotTypingId === conv.id) ? '<div class="chat-bubble them"><span class="bot-typing" aria-label="Typing"><span></span><span></span><span></span></span></div>' : '';
   }
@@ -20491,7 +21034,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
   function mtBotRefresh(conv) { if (activeThreadId === conv.id) { renderChatLog(conv); mtBotScroll(); } }
   function mtBotPush(conv, text, chips, by, byName) {
-    conv.messages.push({ from: 'them', type: 'text', by: by || 'bot', byName: byName || '', text: text, chips: chips || null });
+    conv.messages.push({ from: 'them', type: 'text', by: by || 'bot', byName: byName || '', text: text, chips: mtLocChips(conv, chips) || null });
     saveConversations(); mtBotRefresh(conv);
   }
   function mtBotSay(conv, text, chips, opts) {
@@ -20508,18 +21051,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function mtBotMode(conv) { return conv.mode || 'unsure'; }
   function mtBotChipsFor(conv) {
     const m = mtBotMode(conv);
-    if (m === 'legal') return [
-      { l: 'What is a Deed of Assignment?', a: 'say', t: 'What is a Deed of Assignment?' },
-      { l: "Governor's Consent", a: 'say', t: "What is Governor's Consent?" },
-      { l: 'Preliminary title screening', a: 'say', t: 'What does preliminary title screening cover?' },
-      { l: 'Talk to a legal expert', a: 'handoff', k: 'legal', p: true }
+    const c = (k, x) => Object.assign({ l: mtTx(conv, 'lbl_' + k) }, x);
+    let out;
+    if (m === 'legal') out = [
+      c('deed', { a: 'say', t: 'What is a Deed of Assignment?' }),
+      c('consent', { a: 'say', t: "What is Governor's Consent?" }),
+      c('title', { a: 'say', t: 'What does preliminary title screening cover?' })
     ];
-    return [
-      { l: 'Explain fees', a: 'assist', k: 'fees' },
-      { l: 'What do I need to complete?', a: 'say', t: 'What do I need to complete?' },
-      { l: 'Inspection status', a: 'say', t: 'What is my inspection status?' },
-      { l: 'Talk to a person', a: 'handoff', k: (m === 'estate' ? 'estate' : 'support'), p: true }
+    else out = [
+      c('explain_fees', { a: 'assist', k: 'fees' }),
+      c('todo', { a: 'say', t: 'What do I need to complete?' }),
+      c('insp_status', { a: 'say', t: 'What is my inspection status?' })
     ];
+    out.push(c('language', { a: 'lang' }));
+    return out;
   }
   function mtBotSensitive(text) {
     const s = String(text || '').toLowerCase();
@@ -20533,6 +21078,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // (PROFILE_FAQS, PROFILE_POLICIES, the Ask MainTown fee cards, the document stages).
   function mtBotIntent(conv, raw) {
     const t = String(raw || '').toLowerCase().trim();
+    const n = mtNorm(raw);
     const role = (typeof currentUserRole !== 'undefined' && currentUserRole) || 'tenant';
     const mode = mtBotMode(conv);
     const has = (re) => re.test(t);
@@ -20544,29 +21090,30 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
     // 1. Money, safety and disputes: never answer, always hand off
     if (has(/(refund|cancel)/) && has(/(shortlet|short-let|stay|booking|guest|night)/)) {
-      return { text: "Cancellation and refund terms for shortlets are still being finalised, so I can't give you amounts or deadlines. I'll pass this to the team with this chat.", handoff: 'support' };
+      return { text: mtTx(conv, 'shortlet_cancel'), handoff: 'support', loc: true };
     }
     if (has(/(refund|fraud|scam|scammed|stole|stolen|impersonat|dispute|chargeback|charge back|deducted|wrong amount|payment failed|failed payment|not received|threat|police|lawsuit|\bsue\b)/)) {
-      return { text: "I can't confirm payment outcomes, refunds or disputes, and I don't want to give you wrong information. I'll pass this to the team with this chat so you don't have to repeat it.", handoff: 'support' };
+      return { text: mtTx(conv, 'dispute'), handoff: 'support', loc: true };
     }
     // 2. Asking for a person
     if (has(/(talk|speak|chat|connect|reach)\b.{0,25}\b(person|human|expert|lawyer|advisor|adviser|representative|someone|agent|staff|team)/) || has(/\b(want|need)\b (a |an |to (talk|speak) (to|with) )?(person|human|expert|lawyer|advisor|adviser|representative)/)) {
       const team = has(/(lawyer|legal|document|title|c of o|deed)/) ? 'legal' : (has(/(estate|property|listing|rent|inspection)/) ? 'estate' : (mode === 'legal' ? 'legal' : (mode === 'estate' ? 'estate' : null)));
-      if (team) return { text: 'Of course.', handoff: team };
-      return { text: 'Who would you like to speak with?', chips: [ { l: 'Real estate expert', a: 'handoff', k: 'estate' }, { l: 'Legal expert', a: 'handoff', k: 'legal' } ] };
+      if (team) return { text: mtTx(conv, 'ofcourse'), handoff: team, loc: true };
+      return { text: mtTx(conv, 'who'), loc: true, keepHandoff: true, chips: [ { l: 'Real estate expert', a: 'handoff', k: 'estate' }, { l: 'Legal expert', a: 'handoff', k: 'legal' } ] };
     }
+    const sp = mtBotSpecial(conv, raw); if (sp) return sp;
     // 3. Contact options
     if (has(/(maintown|your|support|customer).{0,20}(phone|number|call|hotline)|call you|support line|office hours|working hours|opening hours/)) {
-      return { text: "If you can't reach us in chat, call the offline support line on " + formatPhoneDisplay(MAINTOWN_OFFLINE_NUMBERS[0].number) + ". Expert availability is shown before you start a chat. Outside staffed hours, leave your question and the team replies here.", chips: [personChip] };
+      return { text: mtTx(conv, 'contact', { phone: formatPhoneDisplay(MAINTOWN_OFFLINE_NUMBERS[0].number) }), loc: true };
     }
     // 4. Off-platform requests
     if (has(/(whatsapp|phone number|his number|her number|their number|landlord'?s number|agent'?s number|pay (him|her|them) directly|directly pay|outside (the )?app|bank (account|details)|transfer to)/)) {
-      return { text: "I can't share contact details, and payments made outside MainTown aren't protected. Once your inspection request is accepted, chat with the host unlocks right here, and you can pay safely through the app.", chips: [ { l: 'What do I need to complete?', a: 'say', t: 'What do I need to complete?' } ] };
+      return { text: mtTx(conv, 'offplatform'), loc: true, chips: [ { l: 'What do I need to complete?', a: 'say', t: 'What do I need to complete?' } ] };
     }
     // 5. Small talk and identity
-    if (t.length < 30 && /^(hi|hello|hey|good (morning|afternoon|evening)|howdy)\b/.test(t)) return { text: 'Hello! How can I help you today?', chips: menu };
-    if (has(/(are you (a )?(bot|human|real|ai|robot)|who are you|am i talking)/)) return { text: "I'm MainTown's automated assistant. I answer from MainTown's approved help content and fee rules, and I can connect you with a live expert at any time.", chips: [personChip] };
-    if (has(/^(thanks|thank you|thx|cool|great|ok thanks)\b/)) return { text: "You're welcome. Is there anything else I can help with?", chips: menu };
+    if (t.length < 40 && /^(hi|hello|hey|howdy|good (morning|afternoon|evening)|bonjour|bonsoir|salut|sannu|ndewo|kedu|e kaaro|e kaasan|e kaale|how far|bawo)\b/.test(n)) return { text: mtTx(conv, 'hello'), chips: menu, loc: true };
+    if (has(/(are you (a )?(bot|human|real|ai|robot)|who are you|am i talking)/)) return { text: mtTx(conv, 'identity'), loc: true };
+    if (/^(thanks|thank you|thx|cool|great|ok thanks|merci|nagode|na gode|daalu|e se|e seun)\b/.test(n)) return { text: mtTx(conv, 'thanks'), chips: menu, loc: true };
     // 6. Account status (read-only, from app state)
     if (has(/inspection (status|request)|my inspection|pending inspection/)) {
       const pending = hasSched ? schedules.filter(s => s.status === 'Pending Approval').length : 0;
@@ -20608,7 +21155,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (has(/screening/)) {
       const c = [];
       if (role === 'tenant' && !isScreeningCompleted()) c.push({ l: 'Start screening', a: 'go', k: 'screening' });
-      return { text: "The one-time ₦5,000 credit and background screening is paid once, when you first request an inspection or start a purchase. It is not charged again at checkout, and it unlocks flexible payment options. Landlords and agents have no screening step.", chips: c.concat([personChip]) };
+      return { text: mtTx(conv, 'ans_screening'), loc: true, chips: c };
     }
     if (has(/\b(fees?|charges?|costs?|commission|deposit|caution|service charge|platform fee|legal fee)\b|what am i paying|pay for/)) {
       if (role !== 'tenant') return { text: "Payments follow the split-payment protection terms agreed on the lease (see Payments and Protection in your profile). Agents' commission terms are in the partnership terms accepted at sign-up. For a specific payout I can connect you with the team.", chips: [personChip] };
@@ -20626,32 +21173,48 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (has(/dispatch|(original|physical).{0,20}(document|title|deed)/)) {
       return { text: "Once the seller issues your Receipt and Deed, they request a free SmartyHub Logistics dispatch. SmartyHub collects the originals and delivers them to you, with pick-up within 24 to 48 hours.", chips: [personChip] };
     }
-    if (has(/address/)) return { text: "Open the chat with the host and tap Request Full Address. They will share it there.", chips: [personChip] };
-    if (has(/(chat|message).{0,30}(locked|can'?t|cannot|unlock)|locked.{0,20}chat/)) return { text: "Chat opens after your inspection request is accepted. Until then, use the listing details or message MainTown.", chips: [personChip] };
-    if (has(/(inspect|book a|booking an?|cancel)/)) return { text: "Open a listing and request an inspection. Once the host accepts, chat with them unlocks so you can agree the details. You can cancel from Inspection Schedules before the visit; repeated late cancellations may limit your ability to book.", chips: [ { l: 'Inspection status', a: 'say', t: 'What is my inspection status?' }, personChip ] };
+    if (has(/address/)) return { text: mtTx(conv, 'ans_address'), loc: true };
+    if (has(/(chat|message).{0,30}(locked|can'?t|cannot|unlock)|locked.{0,20}chat/)) return { text: mtTx(conv, 'ans_locked'), loc: true };
+    if (has(/(inspect|book a|booking an?|cancel)/)) return { text: mtTx(conv, 'ans_inspect'), loc: true, chips: [ { l: 'Inspection status', a: 'say', t: 'What is my inspection status?' } ] };
     if (has(/(install|flex|rent-?to-?own|monthly|payment plan)/)) return { text: "Eligible listings offer flexible rent or installment ownership, with the terms shown on the listing before you commit. Flexible payment options unlock after the one-time ₦5,000 screening. Commercial rentals (shops, offices, warehouses and event halls) are paid annually, in full upfront, with no monthly flex-rent.", chips: [personChip] };
-    if (has(/(wallet|fund|top ?up|withdraw)/)) return { text: "Open your wallet from the dashboard to top up or withdraw. Rent and shortlet payments are debited from it. Never share your wallet PIN with anyone, including in this chat.", chips: [ { l: 'Open wallet', a: 'go', k: 'wallet' } ] };
-    if (has(/(safe|protected|protection|escrow|split)/)) return { text: "Payments made through MainTown are covered by automated split-payment protection. Funds are released according to the terms agreed on the listing or lease. Keep payments and conversations on MainTown; payments made outside the app are not protected.", chips: [personChip] };
+    if (has(/(wallet|fund|top ?up|withdraw)/)) return { text: mtTx(conv, 'ans_wallet'), loc: true, chips: [ { l: 'Open wallet', a: 'go', k: 'wallet' } ] };
+    if (has(/(safe|protected|protection|escrow|split)/)) return { text: mtTx(conv, 'ans_protection'), loc: true };
     if (has(/compare/)) return { text: "I can compare up to three rent listings side by side.", chips: [ { l: 'Compare listings', a: 'assist', k: 'compare' } ] };
     if (has(/(list a property|add a listing|verification|verify|verified)/)) return { text: "Add a listing from your dashboard. Every listing goes through property title verification before it goes live, and photos, price and details must match the property.", chips: [personChip] };
-    return { text: "I don't have an approved answer for that yet. You can rephrase, pick an option below, or I can connect you with a person.", chips: menu, miss: true };
+    return { text: mtTx(conv, 'fallback'), chips: menu, miss: true, loc: true };
   }
 
   function mtBotOnUser(conv, text) {
     if (conv.status === 'archived') return;
-    if (conv.handoff && conv.handoff.active) { mtExpertSim(conv); return; }
+    const n = mtNorm(text);
+    const inHand = !!(conv.handoff && conv.handoff.active);
+    // Language: an explicit request wins, otherwise follow what the person writes in
+    const lc = mtLangCommand(n);
+    if (lc && lc.lang) {
+      conv.lang = lc.lang; conv.langLocked = true; saveConversations();
+      if (!inHand) { mtBotSay(conv, mtTx(conv, 'lang_set'), mtBotChipsFor(conv)); return; }
+    } else if (lc && lc.ask && !inHand) {
+      mtBotSay(conv, mtTx(conv, 'lang_ask'), mtLangChips()); return;
+    } else if (!conv.langLocked) {
+      const d = mtDetectLang(n);
+      if (d && d !== mtLang(conv)) { conv.lang = d; saveConversations(); }
+    }
+    if (inHand) { mtExpertSim(conv, n); return; }
     if (mtBotSensitive(text)) {
-      mtBotSay(conv, "Please don't share your PIN, OTP, BVN, password or card details in chat. MainTown never asks for them, and I can't cancel or reverse payments. I've hidden what you sent. I can pass this to the team to review.", [ { l: 'Talk to a person', a: 'handoff', k: 'support', p: true } ]);
+      mtBotSay(conv, mtTx(conv, 'sensitive'), null);
       return;
     }
-    const r = mtBotIntent(conv, text);
+    const r = mtBotLocalize(conv, mtBotIntent(conv, text));
+    // The assistant never offers a hand-off on its own. People use the Talk to a person button.
+    let chips = r.chips ? r.chips.filter(c => c.a !== 'handoff' || r.keepHandoff) : null;
+    if (chips && !chips.length) chips = null;
     conv.misses = r.miss ? (conv.misses || 0) + 1 : 0;
     if (r.miss && conv.misses >= 2) {
       conv.misses = 0;
-      mtBotSay(conv, "I'm not able to answer that reliably, so I'll bring in a person.", null, { then: () => mtBotHandoff(conv) });
+      mtBotSay(conv, mtTx(conv, 'miss2'), mtBotChipsFor(conv));
       return;
     }
-    mtBotSay(conv, r.text, r.chips || null, { then: r.handoff ? () => mtBotHandoff(conv, r.handoff) : null });
+    mtBotSay(conv, r.text, chips, { then: r.handoff ? () => mtBotHandoff(conv, r.handoff) : null });
   }
 
   function mtBotTicketSummary(conv) {
@@ -20671,42 +21234,41 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (online) {
       conv.handoff = { active: true, team: key, ticket: id };
       saveConversations();
-      mtBotSay(conv, "Connecting you with the " + team.team + ". I've shared this chat and your ticket (" + id + "), so you won't need to repeat yourself.", null, { delay: 800, then: () => {
+      mtBotSay(conv, mtTx(conv, 'connecting', { team: team.team, id: id }), null, { delay: 800, then: () => {
         setTimeout(() => {
           mtSystemLine(conv, team.name + ', ' + team.team + ', has joined (prototype: simulated expert)');
-          setTimeout(() => mtBotSay(conv, MT_EXPERT_OPEN[key], [ { l: 'End expert chat', a: 'resume' } ], { by: 'expert', byName: team.name + ' · ' + team.team, delay: 1100 }), 500);
+          setTimeout(() => mtBotSay(conv, mtExpertOpen(conv, key), [ { l: 'End expert chat', a: 'resume' } ], { by: 'expert', byName: team.name + ' · ' + team.team, delay: 1100 }), 500);
         }, 700);
       } });
     } else {
       conv.handoff = { active: false, queued: true, team: key, ticket: id };
       saveConversations();
-      mtBotSay(conv, "The " + team.team + " is offline right now. I've logged your question with this chat (ticket " + id + "), and they will reply here as soon as they are back online. For anything urgent, call " + formatPhoneDisplay(MAINTOWN_OFFLINE_NUMBERS[0].number) + ".", mtBotChipsFor(conv));
+      mtBotSay(conv, mtTx(conv, 'offline', { team: team.team, id: id, phone: formatPhoneDisplay(MAINTOWN_OFFLINE_NUMBERS[0].number) }), mtBotChipsFor(conv));
     }
   }
-  function mtExpertSim(conv) {
+  function mtExpertSim(conv, n) {
     const h = conv.handoff || {}; const team = MT_TEAMS[h.team] || MT_TEAMS.support;
     conv.expertReplies = (conv.expertReplies || 0) + 1;
-    const n = conv.expertReplies;
-    const text = n === 1 ? "Thank you, that helps. I'm reviewing the details and will come back to you here. (Prototype: expert replies are simulated.)"
-                         : "I've added a summary to your ticket. You can end this chat whenever you're ready, and the assistant will be here if you need it.";
-    mtBotSay(conv, text, n >= 2 ? [ { l: 'End expert chat', a: 'resume' } ] : null, { by: 'expert', byName: team.name + ' · ' + team.team, delay: 1200 });
+    const cnt = conv.expertReplies;
+    const topic = mtTopic(mtNorm(n));
+    let text;
+    if (topic) text = mtTx(conv, 'kw_' + topic);
+    else if (cnt === 1) text = mtTx(conv, 'ex_ack') + ' (Prototype: expert replies are simulated.)';
+    else text = mtTx(conv, 'ex_summary');
+    mtBotSay(conv, text, cnt >= 2 ? [ { l: 'End expert chat', a: 'resume' } ] : null, { by: 'expert', byName: team.name + ' · ' + team.team, delay: 1200 });
   }
   function mtBotResume(conv) {
     if (conv.handoff) conv.handoff.active = false;
     mtSystemLine(conv, 'Expert chat ended. You are back with the MainTown Assistant.');
-    mtBotSay(conv, 'Was this helpful?', [ { l: 'Helpful', a: 'rate' }, { l: 'Not helpful', a: 'rate' } ], { delay: 700 });
+    mtBotSay(conv, mtTx(conv, 'helpful_q'), [ { l: 'Helpful', a: 'rate' }, { l: 'Not helpful', a: 'rate' } ], { delay: 700 });
   }
 
   function mtBotGreet(conv, kind) {
     const label = kind === 'legal' ? 'Legal and Documents' : (kind === 'estate' ? 'Real Estate Advisor' : 'General help');
     conv.messages.push({ from: 'system', text: label + ' · automated assistant. A live expert can join on request.' });
-    const greet = kind === 'legal'
-      ? "I'm MainTown's automated assistant. I can explain property documents and how MainTown works in general terms. This is not legal advice. For a legal opinion, I can connect you with our legal team."
-      : (kind === 'estate'
-        ? "I'm MainTown's automated assistant. I can explain fees, payment plans, inspections and what you still need to complete. What would you like to know?"
-        : "I'm MainTown's automated assistant. Tell me in a few words what you need help with, for example a payment, a document or a listing, and I'll point you the right way.");
+    const greet = kind === 'legal' ? mtTx(conv, 'greet_legal') : mtTx(conv, 'greet_unsure');
     const chips = kind === 'unsure'
-      ? [ { l: 'Property or payments', a: 'mode', k: 'estate' }, { l: 'Documents or legal', a: 'mode', k: 'legal' }, { l: 'Talk to a person', a: 'handoff', k: 'support', p: true } ]
+      ? [ { l: mtTx(conv, 'lbl_prop_pay'), a: 'mode', k: 'estate' }, { l: mtTx(conv, 'lbl_docs_legal'), a: 'mode', k: 'legal' }, { l: mtTx(conv, 'lbl_language'), a: 'lang' } ]
       : mtBotChipsFor(conv);
     conv.messages.push({ from: 'them', type: 'text', by: 'bot', byName: '', text: greet, chips: chips });
   }
@@ -20724,7 +21286,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function mtBotChip(conv, msg, chip) {
     if (chip.a === 'say') {
       msg.chips = null;
-      const m = { from: 'me', type: 'text', text: chip.t, status: 'sent' };
+      const m = { from: 'me', type: 'text', text: (mtLang(conv) === 'en' ? chip.t : chip.l), status: 'sent' };
       conv.messages.push(m); saveConversations(); renderChatLog(conv); mtBotScroll();
       simulateReceiptProgress(conv, m);
       mtBotOnUser(conv, chip.t);
@@ -20737,6 +21299,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       msg.chips = null; saveConversations(); mtBotResume(conv);
     } else if (chip.a === 'rate') {
       msg.chips = mtBotChipsFor(conv); saveConversations(); renderChatLog(conv); showToast('Thanks for the feedback');
+    } else if (chip.a === 'lang') {
+      msg.chips = null; saveConversations(); renderChatLog(conv);
+      mtBotSay(conv, mtTx(conv, 'lang_ask'), mtLangChips(), { delay: 500 });
+    } else if (chip.a === 'setlang') {
+      msg.chips = null; conv.lang = chip.k; conv.langLocked = true; saveConversations(); renderChatLog(conv);
+      mtBotSay(conv, mtTx(conv, 'lang_set'), mtBotChipsFor(conv), { delay: 500 });
     } else if (chip.a === 'assist') {
       openAssist(chip.k);
     } else if (chip.a === 'go') {
@@ -21223,7 +21791,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     input.value = '';
     renderChatLog(conv);
-    document.getElementById('msg-chat-log').scrollTop = document.getElementById('msg-chat-log').scrollHeight;
+    mtBotScroll();
     simulateReceiptProgress(conv, msg);
     if (conv.convType === 'support') mtBotOnUser(conv, text);
   }
