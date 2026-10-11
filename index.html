@@ -2743,6 +2743,8 @@
   .stage-track { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
   .stage-item { display: flex; align-items: flex-start; gap: 12px; padding: 13px 14px; border-radius: 14px; border: 1px solid #1e293b; background: rgba(15,23,42,0.8); opacity: 0.4; transition: all .2s ease; }
   .stage-item.active-stage { opacity: 1; }
+  .stage-day-note { font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: #94a3b8; margin: -2px 2px 10px; }
+  body.light-theme .stage-day-note { color: #475569; }
   .stage-dot { width: 12px; height: 12px; border-radius: 999px; margin-top: 3px; flex-shrink: 0; background: #475569; }
   .stage-item.stage-green.active-stage { border-color: rgba(16,185,129,0.5); background: rgba(16,185,129,0.08); }
   .stage-item.stage-green.active-stage .stage-dot { background: #10b981; }
@@ -3280,6 +3282,13 @@
   }
   .ent-access-card .ent-access-icon svg { width: 21px; height: 21px; }
   .ent-access-card .ent-access-title { margin: 0; padding: 0; font-size: 11.5px; font-weight: 600; line-height: 1.2; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Staff home shortcut cards (Sales / Finance / Legal): same count badge as the CEO home */
+  .ent-quick-card .ent-quick-card-icon { position: relative; }
+  .ent-quick-badge {
+    position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+    background: #ec4899; color: #fff; font-size: 10.5px; font-weight: 800; line-height: 18px; text-align: center; border: 2px solid #0B0F19;
+  }
+  body.light-theme .ent-quick-badge { border-color: #fff; }
   .ent-access-badge {
     position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
     background: #ec4899; color: #fff; font-size: 10.5px; font-weight: 800; line-height: 18px; text-align: center; border: 2px solid #0B0F19;
@@ -5858,33 +5867,27 @@
 
   <!-- Section 8 Default & Grace Period Tracker -->
   <p class="s5-section-label"><i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>Section 8: Default &amp; Grace Period Tracker</p>
+  <p class="stage-day-note" id="s7-day-note">Payment up to date</p>
   <div class="stage-track" id="s7-stage-track">
     <div class="stage-item stage-green" id="s7-stage-0">
       <div class="stage-dot"></div>
       <div>
         <p class="stage-title">Stage 1 — Grace Period (Days 1–3)</p>
-        <p class="stage-sub">Payment is late but within the grace window. Reminders only — no charge is applied.</p>
+        <p class="stage-sub">Payment is late but within the grace window. Automated system reminders and payment links are sent via email, SMS, and in-app notifications. No late fee applied.</p>
       </div>
     </div>
     <div class="stage-item stage-yellow" id="s7-stage-1">
       <div class="stage-dot"></div>
       <div>
-        <p class="stage-title">Stage 2 — Late Notice (Days 4–7)</p>
-        <p class="stage-sub">A formal late notice is issued. A single fixed Late Administration Fee, disclosed in your Payment Schedule, may apply. No interest or daily percentage penalty accrues.</p>
+        <p class="stage-title">Stage 2 — Finance Follow-Up &amp; Late Notice (Days 4–7)</p>
+        <p class="stage-sub">MainTown Finance Officer contacts the tenant directly to resolve gateway errors, issue manual payment links, or apply a fixed Late Administration Fee. App privileges paused.</p>
       </div>
     </div>
-    <div class="stage-item stage-orange" id="s7-stage-2">
+    <div class="stage-item stage-red" id="s7-stage-2">
       <div class="stage-dot"></div>
       <div>
-        <p class="stage-title">Stage 3 — Formal Demand (Days 8–14)</p>
-        <p class="stage-sub">A written Demand for Payment is issued and a default flag is recorded. New bookings are paused and the 14-day mediation period opens.</p>
-      </div>
-    </div>
-    <div class="stage-item stage-red" id="s7-stage-3">
-      <div class="stage-dot"></div>
-      <div>
-        <p class="stage-title">Stage 4 — Statutory Recovery (Day 15+)</p>
-        <p class="stage-sub">If arrears remain unpaid, the Landlord may serve the statutory notices and apply to court under the Recovery of Premises Law of Lagos State. No eviction takes place without due process.</p>
+        <p class="stage-title">Stage 3 — Legal Escalation &amp; Recovery (Day 8+)</p>
+        <p class="stage-sub">Case file, transaction history, and communications are transferred to MainTown Legal Counsel (Tiwalola Odesola). Formal Demand for Payment is issued under Lagos State tenancy regulations.</p>
       </div>
     </div>
   </div>
@@ -9065,7 +9068,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const TERRITORIAL_SCOPE_TEXT = "MainTown's structured payment plans of up to 12 months are available only for land and property located within the Federal Republic of Nigeria. Buyers who live abroad may purchase Nigerian property subject to identity verification. Each instalment is a scheduled part-payment of the agreed purchase price, and no interest or finance charge is added.";
 
-  const RENT_DEFAULT_SCHEDULE_TEXT = "Missed monthly rent instalments follow a four-stage schedule. Stage 1, Grace (Days 1-3 after the due date): reminders only, no charge. Stage 2, Late Notice (Days 4-7): a formal late notice is issued and a single fixed Late Administration Fee, disclosed in your Payment Schedule, may apply; no interest and no daily percentage penalty accrues. Stage 3, Formal Demand (Days 8-14): a written Demand for Payment is issued, a default flag is recorded on the platform ledger, new bookings are paused, and the 14-day mediation period under the Dispute Resolution clause opens. Stage 4, Statutory Recovery (from Day 15 if arrears remain unpaid): the Landlord may serve the notices required by the Tenancy Law of Lagos State and apply to court under the Recovery of Premises Law of Lagos State. No eviction takes place without due process.";
+  const RENT_DEFAULT_SCHEDULE_TEXT = "Missed monthly rent instalments follow a three-stage schedule over eight days. Stage 1, Grace Period (Days 1-3 after the due date): automated reminders and payment links are sent by email, SMS and in-app notification, and no late fee applies. Stage 2, Finance Follow-Up and Late Notice (Days 4-7): a MainTown Finance Officer contacts the tenant directly to resolve gateway errors, issue manual payment links, or apply a single fixed Late Administration Fee disclosed in your Payment Schedule, and app privileges are paused; no interest and no daily percentage penalty accrues. Stage 3, Legal Escalation and Recovery (from Day 8 if arrears remain unpaid): the case file, transaction history and communications are transferred to MainTown Legal Counsel, a formal Demand for Payment is issued under Lagos State tenancy regulations, and the Landlord may take the steps available under the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State. No eviction takes place without due process.";
+  // Plain-language versions of the same eight-day, three-stage schedule, shown wherever people should
+  // see the default stages: consent screen, policy page, FAQs, lease screen and the assistant.
+  const RENT_DEFAULT_ONE_LINE = "Days 1–3: grace period with automated reminders and payment links, and no late fee. Days 4–7: a MainTown Finance Officer contacts you directly, a single fixed Late Administration Fee may apply, and app privileges are paused. Day 8 onward: your case moves to MainTown Legal Counsel and a formal Demand for Payment is issued under Lagos State tenancy regulations. No eviction takes place without due process.";
+  const RENT_DEFAULT_HOST_LINE = "Days 1–3: grace period with automated reminders and payment links, and no late fee. Days 4–7: a MainTown Finance Officer contacts the tenant directly, a single fixed Late Administration Fee may apply, and the tenant's app privileges are paused. Day 8 onward: the case moves to MainTown Legal Counsel and a formal Demand for Payment is issued under Lagos State tenancy regulations. Possession is only recovered through the process the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State require.";
+  function rentDefaultStagesHtml() {
+    return [
+      ['Days 1–3 · Grace Period', 'Automated reminders and payment links are sent by email, SMS and in-app notification. No late fee applies.'],
+      ['Days 4–7 · Finance Follow-Up &amp; Late Notice', 'A MainTown Finance Officer contacts you directly to resolve gateway errors or issue a manual payment link. A single fixed Late Administration Fee may apply, and app privileges are paused.'],
+      ['Day 8+ · Legal Escalation &amp; Recovery', 'Your case file is transferred to MainTown Legal Counsel and a formal Demand for Payment is issued under Lagos State tenancy regulations. No eviction takes place without due process.']
+    ].map(r => `<div class="clause-block"><h4><i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-400"></i>${r[0]}</h4><p>${r[1]}</p></div>`).join('');
+  }
 
   // ---- Legal terms content per role ----
   const legalContent = {
@@ -9080,7 +9094,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 5: Subletting & Unauthorized Occupants', body: 'Strict ban on unauthorized third-party subletting.' },
         { title: 'Section 6: Dispute Resolution — Mediation & Arbitration', body: ADR_CLAUSE_TEXT },
         { title: 'Section 7: In-App Communication Compliance', body: 'Obligation to keep all lease interactions inside the app.' },
-        { title: 'Section 8: Payment Default, Statutory Recovery & Access Suspension', body: RENT_DEFAULT_SCHEDULE_TEXT + ' Where a court orders recovery of possession, or the tenancy is lawfully terminated for default, your profile converts to DEFAULTED / EVICTED. Upon conversion: (a) all active chat, voice, and video lines with the landlord/agent for that tenancy are locked; (b) digital property access keys/tokens are revoked; (c) profile access to property search, viewing, and rental bookings is suspended and may be reinstated on review once arrears are cleared; (d) a record of the default is stored on the platform ledger. You may dispute the record through the Dispute Centre and request correction of inaccurate personal data.', critical: true },
+        { title: 'Section 8: Payment Default, Legal Escalation & Access Suspension', body: RENT_DEFAULT_SCHEDULE_TEXT + ' Where a court orders recovery of possession, or the tenancy is lawfully terminated for default, your profile converts to DEFAULTED / EVICTED. Upon conversion: (a) all active chat, voice, and video lines with the landlord/agent for that tenancy are locked; (b) digital property access keys/tokens are revoked; (c) profile access to property search, viewing, and rental bookings is suspended and may be reinstated on review once arrears are cleared; (d) a record of the default is stored on the platform ledger. You may dispute the record through the Dispute Centre and request correction of inaccurate personal data.', critical: true },
         { title: 'Section 9: Fee Transparency', body: 'The Legal Fee for drafting your tenancy agreement is collected by MainTown directly, not your Landlord or Agent, for full transparency. Any Caution Deposit and Service Charge shown on a rental or shortlet listing are set by the Landlord/Agent and paid directly to them alongside your rent or shortlet payments. Shortlet stays carry a MainTown Platform Fee (5% of the nightly rate) in place of a Legal Fee.' },
         { title: 'Section 10: Site Visit Safety Waiver & Indemnity', body: SITE_WAIVER_TEXT },
         { title: 'Section 11: Title Verification & Due Diligence Notice', body: TITLE_DISCLAIMER_TEXT }
@@ -9094,7 +9108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 2: Automated Non-Custodial Payment Disbursement', body: 'Monthly Rentals &amp; Shortlets — each payment is split automatically at the point of charge, with the Landlord\'s share paid directly to their own account. Land &amp; Property Sales — each instalment (or outright payment) is split automatically at the point of charge, with the Seller/Developer\'s share paid directly to their own account. Payments are never held in escrow by MainTown; each charge is routed directly to your verified payout account, minus platform commissions and legal/deed processing fees. Physical allocation and Deed of Assignment execution follow the payment schedule set out in the listing.' },
         { title: 'Section 3: Contract Countersignature Timing (Land & Property)', body: "Upon a buyer's checkout on a Land &amp; Property sale, you agree to digitally countersign the generated Contract of Sale within 24 hours. Automated platform reminders will trigger every 5 hours until executed.", critical: true },
         { title: 'Section 4: Habitability Standards & Repair SLAs', body: 'Obligation to maintain functional power, water, structural integrity, and estate amenities. Landlords must address critical repairs within 48 hours. MainTown reserves the right to withhold monthly payout releases until critical repairs are resolved.', critical: true },
-        { title: 'Section 5: Default, Restructuring, Deed Execution & Physical Delivery', body: "Agreement to MainTown's default policies: Land & Property installment buyers follow a 30-day grace period and a 60-day default threshold, preceded by written notice of default and a 14-day cure period; monthly renters follow the four-stage schedule in the Tenant terms (Grace, Late Notice, Formal Demand, Statutory Recovery). Statutory notices are issued by or on behalf of the Landlord, and possession is only recovered through the process required by the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State; MainTown provides notice templates and delivery records. Authorizes MainTown to restructure or re-list defaulted inventory. Upon 100% completion of buyer payments for a Land &amp; Property sale, you agree to upload the executed Deed of Assignment and surrender original physical title instruments exclusively to SmartyHub Logistics, MainTown's delivery partner, for secure buyer delivery. Dispatch is free: request it in the app with pick-up and delivery locations and contact numbers, and pick-up happens within 24 to 48 hours. Off-platform physical document transfers are strictly prohibited.", critical: true },
+        { title: 'Section 5: Default, Restructuring, Deed Execution & Physical Delivery', body: "Agreement to MainTown's default policies: Land & Property installment buyers follow a 30-day grace period and a 60-day default threshold, preceded by written notice of default and a 14-day cure period; monthly renters follow the three-stage, eight-day schedule in the Tenant terms (Grace Period on Days 1-3, Finance Follow-Up and Late Notice on Days 4-7, and Legal Escalation and Recovery from Day 8). Statutory notices are issued by or on behalf of the Landlord, and possession is only recovered through the process required by the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State; MainTown provides notice templates and delivery records. Authorizes MainTown to restructure or re-list defaulted inventory. Upon 100% completion of buyer payments for a Land &amp; Property sale, you agree to upload the executed Deed of Assignment and surrender original physical title instruments exclusively to SmartyHub Logistics, MainTown's delivery partner, for secure buyer delivery. Dispatch is free: request it in the app with pick-up and delivery locations and contact numbers, and pick-up happens within 24 to 48 hours. Off-platform physical document transfers are strictly prohibited.", critical: true },
         { title: 'Section 6: Shortlet Calendar Accuracy & Caution Deposit Rules', body: 'Requirement to maintain accurate shortlet availability. Double-booking results in owner-funded guest relocation fees. Damage claims against caution deposits must be submitted within 24 hours of checkout with photo/video proof. If you cancel a confirmed booking before check-in, the guest is refunded in full from the held payment (your payout is released only at check-in) and repeated host cancellations can lead to penalties or removal of your shortlet listings.' },
         { title: 'Section 7: Fraud, Dual-Leasing & Zero Tolerance', body: 'Immediate account termination, forfeiture of pending payouts, listing removal, and referral to law enforcement for fake listings, fraudulent titles, or executing side-deals/double-leases.', critical: true },
         { title: 'Section 8: Verification Walkthroughs & Inspection Access', body: "Agreement to allow scheduled virtual or physical walkthrough inspections by authorized MainTown verification agents prior to and during listing activation. This includes facilitating buyer inspections at checkout — for Land &amp; Property sales, buyer checkout remains locked until the buyer logs an in-app Satisfied status. " + SITE_SAFETY_WARRANTY_TEXT },
@@ -9147,6 +9161,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <i data-lucide="credit-card" class="w-4 h-4 text-purple-400"></i>
           <p>By accepting these terms, you authorize MainTown Realty to securely bind and tokenize your debit/credit card via PCI-DSS compliant gateways for scheduled monthly flex-rent auto-debits.</p>
         </div>
+        <h3><i data-lucide="alert-triangle" class="text-amber-400"></i>If a Monthly Payment Is Missed</h3>
+        ${rentDefaultStagesHtml()}
         <h3><i data-lucide="calendar-check" class="text-purple-400"></i>Inspection Fee Policy</h3>
         <div class="clause-block">
           <h4><i data-lucide="briefcase" class="w-3.5 h-3.5 text-purple-400"></i>Agent Listings</h4>
@@ -21283,6 +21299,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (pending) lines.push(pending + ' inspection request' + (pending > 1 ? 's are' : ' is') + ' awaiting approval.');
       return { text: lines.join('\n'), chips: chips.concat([personChip]) };
     }
+    // 6a. Late or missed payments: eight-day rent schedule, or the separate land / shortlet rules
+    const lateStrong = has(/(grace period|demand for payment|late (fee|payment)|arrears|overdue|can.?t pay|cannot pay|unable to pay)/);
+    const lateSoft = has(/\b(late|miss(es|ed|ing)?|skipped|skips?|default(ed|s)?|penalty|behind)\b/) && has(/(rent|payment|pay|instal|debit|tenant|night|stay|plot|land)/);
+    if (lateStrong || lateSoft) {
+      if (has(/(land|plot|installment|instalment|property purchase)/)) {
+        return { text: "For land and property installment purchases, a 30-day grace period applies, after which a written notice of default is issued with a 14-day cure period. Defaults exceeding 60 days that are not cured can trigger contract restructuring or forfeiture, subject to administrative fees. Please check your purchase agreement for the exact terms.", chips: [legalChip, personChip] };
+      }
+      if (has(/(shortlet|short-let|night|stay|booking)/)) {
+        return { text: "For shortlets, if a night's auto-debit fails the guest has 24 hours to fund it. After that the stay ends and the Caution Fee covers the missed night, up to the nightly rate.", chips: [personChip] };
+      }
+      return { text: role === 'tenant'
+        ? "Monthly rent follows an eight-day schedule. " + RENT_DEFAULT_ONE_LINE + " You can follow where you are under the Default & Grace Period Tracker on your lease screen."
+        : "The same eight-day schedule applies to monthly rent. " + RENT_DEFAULT_HOST_LINE, chips: [legalChip, personChip] };
+    }
     // 6b. Repairs and maintenance (tenant reports, landlord/agent resolves)
     if (has(/(repair|maintenance|plumb|leak(ing|s)?\b|broken|not working|faulty|artisan|report (an )?issue|damaged|electrician)/)) {
       const ri = [ { l: mtTx(conv, role === 'tenant' ? 'lbl_open_report' : 'lbl_review_repairs'), a: 'go', k: 'report-issue' }, personChip ];
@@ -22974,7 +23004,10 @@ available in the Post-Lease Hub and this chat thread.`
   // ---- SCREEN 7: Post-Lease Management & Default Enforcement Hub ----
   // ==================================================================
   let activeLease = null;
-  let defaultStage = 0; // 0 = grace, 1 = late notice, 2 = formal demand, 3 = statutory recovery
+  // Escalation timeline: 8 days, 3 stages. defaultDay = days past the due date (0 = payment up to date).
+  let defaultDay = 0;
+  const DEFAULT_SIM_DAYS = [0, 1, 4, 8]; // simulator: up to date -> Day 1 -> Day 4 -> Day 8 -> payment recorded
+  function defaultStageForDay(day) { return day >= 8 ? 2 : (day >= 4 ? 1 : 0); } // 0 = Days 1-3 (and up to date), 1 = Days 4-7, 2 = Day 8+
   let tickets = [];
   try {
     const storedTickets = JSON.parse(localStorage.getItem('mtr_tickets'));
@@ -22982,23 +23015,27 @@ available in the Post-Lease Hub and this chat thread.`
   } catch (e) { tickets = []; }
 
   function renderStageTracker() {
-    ['s7-stage-0', 's7-stage-1', 's7-stage-2', 's7-stage-3'].forEach((id, idx) => {
-      document.getElementById(id).classList.toggle('active-stage', idx === defaultStage);
+    const stage = defaultStageForDay(defaultDay);
+    ['s7-stage-0', 's7-stage-1', 's7-stage-2'].forEach((id, idx) => {
+      document.getElementById(id).classList.toggle('active-stage', idx === stage);
     });
+    const noteEl = document.getElementById('s7-day-note');
+    if (noteEl) noteEl.textContent = defaultDay > 0 ? 'Day ' + defaultDay + ' past due' : 'Payment up to date';
     const statusEl = document.getElementById('s7-lease-status');
-    if (defaultStage === 0) { statusEl.textContent = 'Active'; statusEl.style.color = '#34d399'; }
-    else if (defaultStage === 1) { statusEl.textContent = 'Late Notice — Admin Fee May Apply'; statusEl.style.color = '#fbbf24'; }
-    else if (defaultStage === 2) { statusEl.textContent = 'Formal Demand — Mediation Open'; statusEl.style.color = '#fb923c'; }
-    else { statusEl.textContent = 'Statutory Recovery — Court Process'; statusEl.style.color = '#f87171'; }
+    if (defaultDay === 0) { statusEl.textContent = 'Active'; statusEl.style.color = '#34d399'; }
+    else if (stage === 0) { statusEl.textContent = 'Grace Period — Reminders Sent'; statusEl.style.color = '#34d399'; }
+    else if (stage === 1) { statusEl.textContent = 'Finance Follow-Up — Late Notice'; statusEl.style.color = '#fbbf24'; }
+    else { statusEl.textContent = 'Legal Escalation — Demand Issued'; statusEl.style.color = '#f87171'; }
   }
 
   document.getElementById('s7-simulate-default-btn').addEventListener('click', () => {
-    defaultStage = (defaultStage + 1) % 4;
+    const i = DEFAULT_SIM_DAYS.indexOf(defaultDay);
+    defaultDay = DEFAULT_SIM_DAYS[(i + 1) % DEFAULT_SIM_DAYS.length];
     renderStageTracker();
-    if (defaultStage === 0) showToast('Payment recorded — grace period reset (Stage 1)');
-    else if (defaultStage === 1) showToast('Day 4 reached — formal late notice issued (Stage 2)');
-    else if (defaultStage === 2) showToast('Day 8 reached — written Demand for Payment issued, 14-day mediation opens (Stage 3)');
-    else showToast('Day 15 reached — Landlord may begin statutory recovery through the courts (Stage 4)');
+    if (defaultDay === 0) showToast('Payment recorded — default tracker reset');
+    else if (defaultDay === 1) showToast('Day 1 — payment is late: grace period started and automated reminders sent (Stage 1)');
+    else if (defaultDay === 4) showToast('Day 4 — Finance Officer follow-up begins and late notice issued (Stage 2)');
+    else showToast('Day 8 — case transferred to MainTown Legal Counsel and Formal Demand for Payment issued (Stage 3)');
   });
 
   document.getElementById('s7-ticket-upload').addEventListener('click', () => document.getElementById('s7-ticket-file').click());
@@ -23127,7 +23164,8 @@ available in the Post-Lease Hub and this chat thread.`
       <p class="s5-section-label"><i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>Auto-Debit Schedule (Remaining ${activeLease.autoDebitSchedule.length} Months)</p>
       <div class="s5-hold-preview">
         ${activeLease.autoDebitSchedule.map(s => `<div class="s5-hold-row"><span>Month ${s.month} — ${s.dateLabel}</span><strong>${formatMoney(s.amount, 'ngn')}</strong></div>`).join('')}
-      </div>`;
+      </div>
+      <p class="stage-day-note" style="margin:10px 2px 0; font-weight:500; line-height:1.45;">Missed a payment? Days 1–3: grace period, no late fee. Days 4–7: Finance follow-up. Day 8+: legal escalation. See Section 8 below.</p>`;
     if (window.lucide) lucide.createIcons();
   }
 
@@ -24187,7 +24225,8 @@ available in the Post-Lease Hub and this chat thread.`
       ['Can I cancel an inspection?', 'Yes. Open Inspection Schedules and cancel before the visit. See the Inspection & Cancellation policy below.'],
       ['Where do I find my signed lease or purchase agreement?', 'Signed agreements appear in your chat with the landlord or agent, and are also saved under Signed Agreements in your Asset Portfolio, where you can preview and download them any time.'],
       ['How do I get the original physical title documents?', 'Once the seller issues your Receipt and Deed, they request a free SmartyHub Logistics dispatch. SmartyHub collects the originals and delivers them to you, with pick-up within 24 to 48 hours.'],
-      ['Can I pay in installments?', 'Eligible listings offer flexible rent or installment ownership. The terms are shown on the listing before you commit.']
+      ['Can I pay in installments?', 'Eligible listings offer flexible rent or installment ownership. The terms are shown on the listing before you commit.'],
+      ['What happens if I miss a monthly rent payment?', RENT_DEFAULT_ONE_LINE + ' You can follow where you are under the Default & Grace Period Tracker on your lease screen.']
     ],
     landlord: [
       ['How do I list a property?', 'Add a listing from your dashboard. Every listing goes through property title verification before it goes live.'],
@@ -24197,7 +24236,8 @@ available in the Post-Lease Hub and this chat thread.`
       ['How do I send the original title documents to a buyer?', 'After you issue the Receipt and Deed, tap Request Dispatch on the sold asset. Enter the pick-up and delivery locations and a phone number for each. SmartyHub Logistics collects the documents free of charge, with pick-up within 24 to 48 hours.'],
       ['Where do I see shortlet guests and paid clients?', 'Open Bookings for shortlet stays and Tenants & Buyers for people who have paid for your listings. Both update as soon as a client pays.'],
       ['Why can I not delete a listing?', 'You can delete a listing only while it is live. Once a client has paid for it, MainTown removes it from the feed automatically and it shows as Sold, Rented or Booked.'],
-      ['When do I get paid?', 'Payments follow the split-payment protection terms agreed on the lease. See the Payments & Protection policy.']
+      ['When do I get paid?', 'Payments follow the split-payment protection terms agreed on the lease. See the Payments & Protection policy.'],
+      ['What happens if my tenant misses rent?', RENT_DEFAULT_HOST_LINE]
     ],
     agent: [
       ['How do I list on behalf of an owner?', 'Add the listing from your dashboard. It shows you as the host, and it goes through property title verification before going live.'],
@@ -24235,7 +24275,8 @@ available in the Post-Lease Hub and this chat thread.`
     payments: { icon: 'wallet', title: 'Payments & Protection', sub: 'Split-payment protection and disputes', sections: [
       ['Split-payment protection', 'Payments made through MainTown are covered by automated split-payment protection, so funds are released according to the terms agreed on the listing or lease.'],
       ['Pay inside the app', 'Keep payments and conversations on MainTown. Payments made outside the app are not protected.'],
-      ['Disputes', 'If something goes wrong, message MainTown with the listing and payment details so the team can review it.']
+      ['Disputes', 'If something goes wrong, message MainTown with the listing and payment details so the team can review it.'],
+      ['If a monthly rent payment is missed', RENT_DEFAULT_ONE_LINE]
     ]},
     tenant: { icon: 'calendar-x', title: 'Inspection & Cancellation', sub: 'Booking, cancelling and address sharing', sections: [
       ['Booking', 'Request an inspection from a listing. Chat with the host unlocks once they accept.'],
@@ -26690,6 +26731,14 @@ available in the Post-Lease Hub and this chat thread.`
     const staffName = (uid && appState.users[uid] && appState.users[uid].name) || 'Staff';
     document.getElementById('ent-sales-staff-name').textContent = staffName;
   }
+  // Count badge on a staff shortcut card (same look as the CEO home). 0 removes it.
+  function setQuickCardBadge(cardId, n) {
+    const icon = document.querySelector('#' + cardId + ' .ent-quick-card-icon');
+    if (!icon) return;
+    const old = icon.querySelector('.ent-quick-badge'); if (old) old.remove();
+    n = Number(n) || 0;
+    if (n > 0) icon.insertAdjacentHTML('beforeend', `<span class="ent-quick-badge">${n > 99 ? '99+' : n}</span>`);
+  }
   function renderSalesHome() {
     const mine = myEnterpriseListings();
     const totalValue = mine.reduce((sum, l) => sum + (l.annualPrice || l.totalPrice || 0), 0);
@@ -26705,6 +26754,13 @@ available in the Post-Lease Hub and this chat thread.`
       ? `${clientCount} paid client${clientCount === 1 ? '' : 's'} across your listings` : 'Buyers and tenants who paid for your listings';
     document.getElementById('ent-sales-guests-sub').textContent = guestCount
       ? `${guestCount} shortlet booking${guestCount === 1 ? '' : 's'} at your listings` : 'Shortlet stays at your listings';
+    // Number badges on the shortcut cards. Inspections counts requests waiting for a response.
+    const sUid = getCurrentUserId();
+    const pendingInsp = (typeof schedules !== 'undefined') ? schedules.filter(x => x.sales_staff_id === sUid && x.status === 'Pending Approval').length : 0;
+    setQuickCardBadge('ent-sales-allocation-card', pendingAlloc);
+    setQuickCardBadge('ent-sales-clients-card', clientCount);
+    setQuickCardBadge('ent-sales-guests-card', guestCount);
+    setQuickCardBadge('ent-sales-inspections-card', pendingInsp);
   }
   function renderSalesListings() {
     const mine = myEnterpriseListings();
@@ -26915,6 +26971,9 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('ent-finance-stat-received-sub').textContent = formatMoney(receivedTotal, 'ngn');
     document.getElementById('ent-finance-stat-withdrawals-count').textContent = String(withdrawals.length);
     document.getElementById('ent-finance-stat-withdrawals-sub').textContent = formatMoney(withdrawalsTotal, 'ngn');
+    // Payments waiting for confirmation (same figure the CEO Ledger badge shows)
+    const finCid = getEnterpriseCompanyId();
+    setQuickCardBadge('ent-finance-view-report-card', (loadAppState().transactions || []).filter(t => t.meta && t.meta.companyId === finCid && t.meta.needsCompanyConfirmation && !t.meta.confirmed).length);
   }
   // Payment done by a client on an Enterprise listing sits with
   // needsCompanyConfirmation: true until EITHER the CEO or a Finance staff
@@ -27000,6 +27059,7 @@ available in the Post-Lease Hub and this chat thread.`
     const awaitingReview = companyLegalDocuments().filter(d => d.kind === 'COUNTERSIGN' && d.status === 'PENDING_COUNTERSIGN' && !d.legalReviewedAt);
     const readyDeeds = companyDeedRequests().filter(r => { const a = (appState.assets || []).find(x => x.id === r.assetId); return assetDeedStage(a) === 'READY' && !companyDeedDoc(r.assetId); });
     document.getElementById('ent-legal-stat-pending').textContent = String(pending.length + awaitingReview.length + readyDeeds.length);
+    setQuickCardBadge('ent-legal-view-docs-card', pending.length + awaitingReview.length + readyDeeds.length);
     renderLegalDeedRequests();
     renderLegalDispatch();
     renderLegalCountersignQueue();
