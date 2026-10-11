@@ -5823,6 +5823,9 @@
     <div class="s5-hold-row"><span>Status</span><strong id="s7-lease-status" style="color:#34d399;">Active</strong></div>
   </div>
 
+  <!-- Commercial lease renewal (filled in by renderCommercialRenewalCards) -->
+  <div id="s7-renewal-wrap" style="display:none;"></div>
+
   <!-- Assigned Agent & Landlord — Full Name & Profile Photo ONLY, for this listing -->
   <p class="s5-section-label"><i data-lucide="users" class="w-4 h-4 text-purple-400"></i>Assigned to Your Property</p>
   <div class="assigned-people-row">
@@ -5880,14 +5883,14 @@
       <div class="stage-dot"></div>
       <div>
         <p class="stage-title">Stage 2 — Finance Follow-Up &amp; Late Notice (Days 4–7)</p>
-        <p class="stage-sub">MainTown Finance Officer contacts the tenant directly to resolve gateway errors, issue manual payment links, or apply a fixed Late Administration Fee. App privileges paused.</p>
+        <p class="stage-sub">MainTown Finance Officer contacts the tenant directly to resolve gateway errors or issue manual payment links. App privileges paused. No late fee.</p>
       </div>
     </div>
     <div class="stage-item stage-red" id="s7-stage-2">
       <div class="stage-dot"></div>
       <div>
         <p class="stage-title">Stage 3 — Legal Escalation &amp; Recovery (Day 8+)</p>
-        <p class="stage-sub">Case file, transaction history, and communications are transferred to MainTown Legal Counsel (Tiwalola Odesola). Formal Demand for Payment is issued under Lagos State tenancy regulations.</p>
+        <p class="stage-sub">Case file, transaction history, and communications are transferred to MainTown Legal Counsel (Tiwalola Odesola). Formal Demand for Payment is issued under Lagos State tenancy regulations. If a Caution Deposit was paid, the Landlord may apply it toward the unpaid rent.</p>
       </div>
     </div>
   </div>
@@ -7796,6 +7799,40 @@
 
 <!-- ===================== Transaction & Payout History Sheet ===================== -->
 <!-- Host Info Bottom Sheet — Chat header tap (Tenant viewing the Host in a 1-on-1 thread) -->
+<div id="rent-review-sheet" class="sheet-overlay">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <h2 class="sheet-title"><i data-lucide="trending-up" class="w-4 h-4"></i><span>Annual Rent Review</span></h2>
+        <p class="sheet-subtitle" id="rr-listing-title">Commercial listing</p>
+      </div>
+      <button type="button" class="sheet-close-btn" id="rr-close"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+    </div>
+    <p class="attach-notice" id="rr-current"></p>
+    <div class="field">
+      <label class="field-label" for="rr-new-rent">New annual rent (&#8358;)</label>
+      <input class="field-input" id="rr-new-rent" type="number" min="1" step="1" inputmode="numeric" placeholder="e.g. 3500000">
+    </div>
+    <p class="attach-notice" id="rr-explain"></p>
+    <p class="attach-notice" id="rr-status" style="color:#fbbf24;"></p>
+    <button type="button" id="rr-confirm" class="btn-primary" style="margin-top:6px; display:flex; align-items:center; justify-content:center; gap:6px;"><i data-lucide="send" class="w-4 h-4"></i> Update rent &amp; notify tenant</button>
+  </div>
+</div>
+<div id="renewal-sheet" class="sheet-overlay">
+  <div class="sheet-card">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <h2 class="sheet-title"><i data-lucide="refresh-cw" class="w-4 h-4"></i><span>Renew your lease</span></h2>
+        <p class="sheet-subtitle" id="rn-listing-title">Commercial lease</p>
+      </div>
+      <button type="button" class="sheet-close-btn" id="rn-close"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+    </div>
+    <div id="rn-body"></div>
+    <button type="button" id="rn-confirm" class="btn-primary" style="margin-top:6px; display:flex; align-items:center; justify-content:center; gap:6px;"><i data-lucide="lock" class="w-4 h-4"></i> <span id="rn-confirm-label">Pay renewal rent</span></button>
+  </div>
+</div>
 <div id="msg-attach-sheet" class="sheet-overlay">
   <div class="sheet-card">
     <div class="sheet-handle"></div>
@@ -8181,6 +8218,15 @@
 </div>
 
 <script>
+// Commercial leases (confirm both numbers with legal counsel): the annual rent may be revised once per
+// COMMERCIAL_RENT_REVIEW_MONTHS, and an existing tenant must get written notice in the app at least
+// COMMERCIAL_RENT_NOTICE_DAYS before the renewal date at which the new rent applies.
+const COMMERCIAL_RENT_REVIEW_MONTHS = 12;
+const COMMERCIAL_RENT_NOTICE_DAYS = 90;
+// Renewal checkout (confirm with legal counsel): a commercial tenant can renew from this many days before the
+// term ends, up to and including the renewal date itself.
+const COMMERCIAL_RENEWAL_WINDOW_DAYS = 60;
+
 // ---- One-time fresh start ----
 // Removes every SOLD / RENTED listing and wipes old payment history so the app
 // restarts clean. Runs once per browser (guarded by a version flag) and must run
@@ -8714,7 +8760,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { label: 'Land & Property Sales', body: "A 10% Agency Commission applies, charged as two 5% halves. The Buyer's 5% always goes to MainTown. The Seller's 5% comes to you whenever you list the property." },
         { label: 'Payout timing', body: 'Your share is split and paid to your account automatically the moment the tenant/buyer pays — never held or delayed by MainTown.' },
         { label: "Fees you never collect", body: "The tenancy Legal Fee always goes to MainTown. Caution Deposit, Service Charge, and the Deed of Assignment fee always go to the Landlord/Owner, not to you." },
-        { label: 'Commercial listings', body: 'Commercial rentals are paid annually, in full upfront, with no monthly flex-rent. Commercial leases use their own agreement.' }
+        { label: 'Commercial listings', body: `Commercial rentals are paid annually, in full upfront, with no monthly flex-rent and no instalment default schedule. The landlord may revise the annual rent once every ${COMMERCIAL_RENT_REVIEW_MONTHS} months: a revised rent applies only from the tenant's next renewal, never during a term already paid, and MainTown sends the tenant written notice in the app at least ${COMMERCIAL_RENT_NOTICE_DAYS} days before renewal. Commercial leases use their own agreement.` }
       ]
     },
     landlord: {
@@ -8729,7 +8775,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { label: 'Land & Property Sales', body: "The Deed of Assignment fee (5% or 10%, your choice) is paid to you with the buyer's first installment. Separately, a 10% Agency Commission applies: the Buyer's 5% always goes to MainTown; the Seller's 5% goes to your listing Agent if one is involved, or also to MainTown if you list directly." },
         { label: 'Payout timing', body: 'Your share is paid directly to your verified payout account the moment a payment is made — never held or delayed.' },
         { label: 'What MainTown always collects', body: 'Only the tenancy Legal Fee and its share of the Agency Commission — never your Caution Deposit, Service Charge, or Deed of Assignment fee.' },
-        { label: 'Commercial listings', body: 'Commercial rentals are paid annually, in full upfront, with no monthly flex-rent. Commercial leases use their own agreement.' }
+        { label: 'Commercial listings', body: `Commercial rentals are paid annually, in full upfront, with no monthly flex-rent and no instalment default schedule. You can revise the annual rent once every ${COMMERCIAL_RENT_REVIEW_MONTHS} months using Update rent on your property card. A revised rent applies only from the tenant's next renewal, never during a term already paid, and MainTown sends the tenant written notice in the app at least ${COMMERCIAL_RENT_NOTICE_DAYS} days before renewal. Commercial leases use their own agreement.` }
       ]
     }
   };
@@ -8898,6 +8944,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (screenId === 'screen-messages') {
       renderThreadList();
     }
+
+    if (screenId === 'screen-requests') mktRenderRequests();
+    if (screenId === 'screen-offers') mktRenderOffers();
+    { const b = document.getElementById('mkt-s5-banner'); if (b) b.style.display = (screenId === 'screen-5' && (currentUserRole || 'tenant') === 'tenant') ? '' : 'none'; }
 
     if (screenId === 'screen-notifications') {
       renderNotificationCenter();
@@ -9068,16 +9118,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const TERRITORIAL_SCOPE_TEXT = "MainTown's structured payment plans of up to 12 months are available only for land and property located within the Federal Republic of Nigeria. Buyers who live abroad may purchase Nigerian property subject to identity verification. Each instalment is a scheduled part-payment of the agreed purchase price, and no interest or finance charge is added.";
 
-  const RENT_DEFAULT_SCHEDULE_TEXT = "Missed monthly rent instalments follow a three-stage schedule over eight days. Stage 1, Grace Period (Days 1-3 after the due date): automated reminders and payment links are sent by email, SMS and in-app notification, and no late fee applies. Stage 2, Finance Follow-Up and Late Notice (Days 4-7): a MainTown Finance Officer contacts the tenant directly to resolve gateway errors, issue manual payment links, or apply a single fixed Late Administration Fee disclosed in your Payment Schedule, and app privileges are paused; no interest and no daily percentage penalty accrues. Stage 3, Legal Escalation and Recovery (from Day 8 if arrears remain unpaid): the case file, transaction history and communications are transferred to MainTown Legal Counsel, a formal Demand for Payment is issued under Lagos State tenancy regulations, and the Landlord may take the steps available under the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State. No eviction takes place without due process.";
+  // ONE source for the monthly-rent default schedule (8 days, 3 stages): the tenant terms (Section 8) and the
+  // tenancy agreement (Clause 5) are both built from these items so they can never drift apart.
+  const RENT_DEFAULT_STAGE_ITEMS = [
+    ['Stage 1, Grace Period (Days 1-3 after the due date)', 'automated reminders and payment links are sent by email, SMS and in-app notification, and no late fee applies.'],
+    ['Stage 2, Finance Follow-Up and Late Notice (Days 4-7)', 'a MainTown Finance Officer contacts the tenant directly to resolve gateway errors or issue manual payment links, and app privileges are paused; no late fee, no interest and no daily percentage penalty accrues.'],
+    ['Stage 3, Legal Escalation and Recovery (from Day 8 if arrears remain unpaid)', 'the case file, transaction history and communications are transferred to MainTown Legal Counsel, a formal Demand for Payment is issued under Lagos State tenancy regulations, and the Landlord may take the steps available under the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State. Where the tenant paid a Caution Deposit to the Landlord, the Landlord may apply it toward the unpaid rent from Day 8 (MainTown does not hold it), and MainTown will notify the tenant in the app when this happens. Any shortfall remains payable, and no other penalty is added.']
+  ];
+  const RENT_DEFAULT_CLOSING = 'No eviction takes place without due process.';
+  const RENT_DEFAULT_SCHEDULE_TEXT = 'Missed monthly rent instalments follow a three-stage schedule over eight days. ' + RENT_DEFAULT_STAGE_ITEMS.map(i => i[0] + ': ' + i[1]).join(' ') + ' ' + RENT_DEFAULT_CLOSING;
   // Plain-language versions of the same eight-day, three-stage schedule, shown wherever people should
   // see the default stages: consent screen, policy page, FAQs, lease screen and the assistant.
-  const RENT_DEFAULT_ONE_LINE = "Days 1–3: grace period with automated reminders and payment links, and no late fee. Days 4–7: a MainTown Finance Officer contacts you directly, a single fixed Late Administration Fee may apply, and app privileges are paused. Day 8 onward: your case moves to MainTown Legal Counsel and a formal Demand for Payment is issued under Lagos State tenancy regulations. No eviction takes place without due process.";
-  const RENT_DEFAULT_HOST_LINE = "Days 1–3: grace period with automated reminders and payment links, and no late fee. Days 4–7: a MainTown Finance Officer contacts the tenant directly, a single fixed Late Administration Fee may apply, and the tenant's app privileges are paused. Day 8 onward: the case moves to MainTown Legal Counsel and a formal Demand for Payment is issued under Lagos State tenancy regulations. Possession is only recovered through the process the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State require.";
+  const RENT_DEFAULT_ONE_LINE = "Days 1–3: grace period with automated reminders and payment links, and no late fee. Days 4–7: a MainTown Finance Officer contacts you directly and app privileges are paused. Day 8 onward: your case moves to MainTown Legal Counsel and a formal Demand for Payment is issued under Lagos State tenancy regulations, and if you paid a Caution Deposit, your Landlord may apply it toward the unpaid rent. No eviction takes place without due process.";
+  const RENT_DEFAULT_HOST_LINE = "Days 1–3: grace period with automated reminders and payment links, and no late fee. Days 4–7: a MainTown Finance Officer contacts the tenant directly and the tenant's app privileges are paused. Day 8 onward: the case moves to MainTown Legal Counsel and a formal Demand for Payment is issued under Lagos State tenancy regulations, and you may apply any Caution Deposit you collected toward the unpaid rent. Possession is only recovered through the process the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State require.";
   function rentDefaultStagesHtml() {
     return [
       ['Days 1–3 · Grace Period', 'Automated reminders and payment links are sent by email, SMS and in-app notification. No late fee applies.'],
-      ['Days 4–7 · Finance Follow-Up &amp; Late Notice', 'A MainTown Finance Officer contacts you directly to resolve gateway errors or issue a manual payment link. A single fixed Late Administration Fee may apply, and app privileges are paused.'],
-      ['Day 8+ · Legal Escalation &amp; Recovery', 'Your case file is transferred to MainTown Legal Counsel and a formal Demand for Payment is issued under Lagos State tenancy regulations. No eviction takes place without due process.']
+      ['Days 4–7 · Finance Follow-Up &amp; Late Notice', 'A MainTown Finance Officer contacts you directly to resolve gateway errors or issue a manual payment link, and app privileges are paused. No late fee applies.'],
+      ['Day 8+ · Legal Escalation &amp; Recovery', 'Your case file is transferred to MainTown Legal Counsel and a formal Demand for Payment is issued under Lagos State tenancy regulations. If you paid a Caution Deposit, your Landlord may apply it toward the unpaid rent (MainTown does not hold it) and you will be told in the app. No eviction takes place without due process.']
     ].map(r => `<div class="clause-block"><h4><i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-400"></i>${r[0]}</h4><p>${r[1]}</p></div>`).join('');
   }
 
@@ -9108,7 +9166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 2: Automated Non-Custodial Payment Disbursement', body: 'Monthly Rentals &amp; Shortlets — each payment is split automatically at the point of charge, with the Landlord\'s share paid directly to their own account. Land &amp; Property Sales — each instalment (or outright payment) is split automatically at the point of charge, with the Seller/Developer\'s share paid directly to their own account. Payments are never held in escrow by MainTown; each charge is routed directly to your verified payout account, minus platform commissions and legal/deed processing fees. Physical allocation and Deed of Assignment execution follow the payment schedule set out in the listing.' },
         { title: 'Section 3: Contract Countersignature Timing (Land & Property)', body: "Upon a buyer's checkout on a Land &amp; Property sale, you agree to digitally countersign the generated Contract of Sale within 24 hours. Automated platform reminders will trigger every 5 hours until executed.", critical: true },
         { title: 'Section 4: Habitability Standards & Repair SLAs', body: 'Obligation to maintain functional power, water, structural integrity, and estate amenities. Landlords must address critical repairs within 48 hours. MainTown reserves the right to withhold monthly payout releases until critical repairs are resolved.', critical: true },
-        { title: 'Section 5: Default, Restructuring, Deed Execution & Physical Delivery', body: "Agreement to MainTown's default policies: Land & Property installment buyers follow a 30-day grace period and a 60-day default threshold, preceded by written notice of default and a 14-day cure period; monthly renters follow the three-stage, eight-day schedule in the Tenant terms (Grace Period on Days 1-3, Finance Follow-Up and Late Notice on Days 4-7, and Legal Escalation and Recovery from Day 8). Statutory notices are issued by or on behalf of the Landlord, and possession is only recovered through the process required by the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State; MainTown provides notice templates and delivery records. Authorizes MainTown to restructure or re-list defaulted inventory. Upon 100% completion of buyer payments for a Land &amp; Property sale, you agree to upload the executed Deed of Assignment and surrender original physical title instruments exclusively to SmartyHub Logistics, MainTown's delivery partner, for secure buyer delivery. Dispatch is free: request it in the app with pick-up and delivery locations and contact numbers, and pick-up happens within 24 to 48 hours. Off-platform physical document transfers are strictly prohibited.", critical: true },
+        { title: 'Section 5: Default, Restructuring, Deed Execution & Physical Delivery', body: "Agreement to MainTown's default policies: Land & Property installment buyers follow a 30-day grace period and a 60-day default threshold, preceded by written notice of default and a 14-day cure period; monthly renters follow the three-stage, eight-day schedule in the Tenant terms (Grace Period on Days 1-3, Finance Follow-Up and Late Notice on Days 4-7, and Legal Escalation and Recovery from Day 8); from Day 8 you may apply any Caution Deposit you collected toward the unpaid rent. Statutory notices are issued by or on behalf of the Landlord, and possession is only recovered through the process required by the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State; MainTown provides notice templates and delivery records. Authorizes MainTown to restructure or re-list defaulted inventory. Upon 100% completion of buyer payments for a Land &amp; Property sale, you agree to upload the executed Deed of Assignment and surrender original physical title instruments exclusively to SmartyHub Logistics, MainTown's delivery partner, for secure buyer delivery. Dispatch is free: request it in the app with pick-up and delivery locations and contact numbers, and pick-up happens within 24 to 48 hours. Off-platform physical document transfers are strictly prohibited.", critical: true },
         { title: 'Section 6: Shortlet Calendar Accuracy & Caution Deposit Rules', body: 'Requirement to maintain accurate shortlet availability. Double-booking results in owner-funded guest relocation fees. Damage claims against caution deposits must be submitted within 24 hours of checkout with photo/video proof. If you cancel a confirmed booking before check-in, the guest is refunded in full from the held payment (your payout is released only at check-in) and repeated host cancellations can lead to penalties or removal of your shortlet listings.' },
         { title: 'Section 7: Fraud, Dual-Leasing & Zero Tolerance', body: 'Immediate account termination, forfeiture of pending payouts, listing removal, and referral to law enforcement for fake listings, fraudulent titles, or executing side-deals/double-leases.', critical: true },
         { title: 'Section 8: Verification Walkthroughs & Inspection Access', body: "Agreement to allow scheduled virtual or physical walkthrough inspections by authorized MainTown verification agents prior to and during listing activation. This includes facilitating buyer inspections at checkout — for Land &amp; Property sales, buyer checkout remains locked until the buyer logs an in-app Satisfied status. " + SITE_SAFETY_WARRANTY_TEXT },
@@ -11208,6 +11266,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       openWalletDashboard();
     } else if (tile.dataset.action === 'ownerAssets') {
       navigateTo('screen-owner-assets');
+    } else if (tile.dataset.action === 'requests') {
+      navigateTo('screen-requests');
+    } else if (tile.dataset.action === 'offers') {
+      navigateTo('screen-offers');
     } else if (tile.dataset.action === 'assetHub') {
       const owned = myAssets();
       activeAssetId = owned.length ? owned[0].id : null;
@@ -12492,7 +12554,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // the shared mtr_listings store, and syncs every active screen/role.
   function markListingUnavailableAfterCheckout(listing) {
     if (!listing) return;
-    listing.status = listing.type === 'land' ? 'SOLD' : 'RENTED';
+    const realL = listings.find(x => String(x.id) === String(listing.id)) || listing;
+    realL.status = realL.type === 'land' ? 'SOLD' : 'RENTED';
+    listing.status = realL.status;
+    if (typeof mktOnPurchase === 'function') mktOnPurchase(listing);
     saveListings();
     window.dispatchEvent(new Event('maintown_state_updated'));
   }
@@ -12971,6 +13036,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (photos.length > 1) chips.push(`<span class="li-chip"><i data-lucide="images"></i>${photos.length} photos</span>`);
     if (isShortlet) chips.push('<span class="li-chip"><i data-lucide="calendar-days"></i>Shortlet</span>');
     if (isLand && p.titleTypeLabel) chips.push(`<span class="li-chip"><i data-lucide="scroll-text"></i>${liEsc(p.titleTypeLabel)}</span>`);
+    if (mktOfferKind(p) && !unavailable) chips.push('<span class="li-chip"><i data-lucide="handshake"></i>Price offers accepted</span>');
+    if (mktLockFor(p)) chips.push('<span class="li-chip"><i data-lucide="lock"></i>Under offer</span>');
     if (isLand && p.requiresConsent) chips.push("<span class=\"li-chip\"><i data-lucide=\"alert-triangle\"></i>Governor's Consent required</span>");
 
     const row = (k, v) => `<div class="li-row"><span>${k}</span><strong>${v}</strong></div>`;
@@ -13026,6 +13093,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ${preview ? `<p class="li-preview-note"><i data-lucide="eye"></i><span>${liEsc(opts.statusLabel || 'Preview')}. This is exactly how tenants see your listing; the buttons below are inactive in preview.</span></p>` : ''}
       ${sl ? (sl.offers + sl.ratings + sl.about) : `<details class="li-section li-drawer" open><summary class="li-h">About this listing</summary><p class="li-story">${liEsc(liStory(p))}</p></details>`}
       <details class="li-section li-drawer" open><summary class="li-h">Property details</summary><div class="li-rows">${details.join('')}</div></details>
+      ${isLand ? mktDocChecklistHtml(p) : ''}
       <details class="li-section li-drawer"><summary class="li-h">Agent, legal and other fees</summary><div class="li-rows">${fees.join('')}</div>
         <p class="li-note">Final amounts are confirmed and itemised before any payment.</p></details>
       ${isShortlet ? '' : amenHtml}
@@ -13043,7 +13111,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         : '';
       document.getElementById('li-actions').innerHTML = `${pvVideo}<button type="button" class="s5-action-btn primary" disabled style="opacity:.5; cursor:not-allowed;"><i data-lucide="${primaryIcon}" class="w-4 h-4"></i>${primaryLabel}</button>`;
     } else {
-      document.getElementById('li-actions').innerHTML = `${secondary}<button type="button" class="s5-action-btn primary" data-li-proxy="${primarySel}" ${unavailable ? 'disabled' : ''}><i data-lucide="${primaryIcon}" class="w-4 h-4"></i>${primaryLabel}</button>`;
+      const offerBtn = (mktOfferKind(p) && !unavailable && mktRole() === 'tenant') ? '<button type="button" class="s5-action-btn" data-li-offer><i data-lucide="handshake" class="w-4 h-4"></i>Offer a price</button>' : '';
+      document.getElementById('li-actions').innerHTML = `${secondary}${offerBtn}<button type="button" class="s5-action-btn primary" data-li-proxy="${primarySel}" ${unavailable ? 'disabled' : ''}><i data-lucide="${primaryIcon}" class="w-4 h-4"></i>${primaryLabel}</button>`;
     }
 
     const sheet = document.getElementById('listing-info-sheet');
@@ -13060,6 +13129,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('li-prev').addEventListener('click', () => liShowPhoto(liPhotoIdx - 1));
     document.getElementById('li-next').addEventListener('click', () => liShowPhoto(liPhotoIdx + 1));
     document.getElementById('li-actions').addEventListener('click', (e) => {
+      const offBtn = e.target.closest('[data-li-offer]');
+      if (offBtn) { const id = sheet.dataset.listingId; close(); mktOpenOffer(id); return; }
       const pv = e.target.closest('[data-li-preview-video]');
       if (pv) {
         const p = liPreviewListing;
@@ -14986,6 +15057,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function openCheckout(listing, landPayment) {
     dxApplyDeals(); // an ended deal must never price a new checkout
+    if (typeof mktBlockedByLock === 'function' && mktBlockedByLock(listing)) return;
+    listing = mktApplyAgreed(listing);
     // Safety guard: never let an already-SOLD/RENTED listing re-enter checkout
     // (e.g. via a stale cart/inspection reference from another open screen).
     if (isListingUnavailable(listing)) {
@@ -15389,12 +15462,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const partyLabel = commercial ? 'Landlord/Lessor' : 'Landlord/Owner';
     const termAndRentHtml = commercial ? `
       <p>The Tenant agrees to lease the Property for a term of one (1) year for ${escHtmlLite(commercialType || 'commercial')} use, at an annual rent of <strong>${monthlyRent}</strong>, paid in full in a single payment at checkout and split automatically at the point of charge — ${escHtmlLite(landlordName)}'s share is paid directly to its own account, with MainTown's platform fee deducted at the same time. MainTown does not hold Tenant funds at any point.</p>
-      <p>Commercial rent is an outright annual payment: no monthly instalments or auto-debits apply. No interest, finance charge or credit fee is charged, the rent payable does not exceed the annual rent stated in this Agreement, and this Agreement is a lease — it is not a loan or credit facility.</p>` : `
+      <p>Commercial rent is an outright annual payment: no monthly instalments or auto-debits apply. No interest, finance charge or credit fee is charged, the rent payable does not exceed the annual rent stated in this Agreement, and this Agreement is a lease — it is not a loan or credit facility.</p>
+      <p>Annual rent review: the Landlord may revise the annual rent for this Property once in any ${COMMERCIAL_RENT_REVIEW_MONTHS}-month period. A revised rent applies to this Agreement only from the next renewal, never during a term that has already been paid. MainTown will send the Tenant written notice in the app of any revised rent, stating the new amount and the date it takes effect, at least ${COMMERCIAL_RENT_NOTICE_DAYS} days before the renewal date. The Tenant is free not to renew.</p>` : `
       <p>The Tenant agrees to occupy the Property for the agreed lease term at a monthly rent of <strong>${monthlyRent}</strong>, auto-debited from the Tenant and split automatically at the point of charge — the Landlord's share is paid directly to the Landlord's own account, with MainTown's platform fee deducted at the same time. MainTown does not hold Tenant funds at any point.</p>
       <p>Rent is payable in monthly instalments under the Payment Schedule attached to this Agreement. Each instalment is a scheduled lease payment of rent. No interest, finance charge or credit fee is charged on any instalment, the total rent payable does not exceed the rent stated in this Agreement, and this Agreement is a lease — it is not a loan or credit facility.</p>`;
+    // Shown BEFORE the tenant signs: the clause that matters most for transparency, up front.
+    const keyTermHtml = commercial
+      ? `<div style="border-left:3px solid #a855f7; padding:8px 12px; margin:10px 0; background:rgba(168,85,247,0.10); border-radius:6px;"><p style="margin:0;"><strong>Key term — annual rent and rent review (Clause 1):</strong> rent is paid once a year, in full. The Landlord may revise it once every ${COMMERCIAL_RENT_REVIEW_MONTHS} months; a revised rent applies only from your next renewal, and you will get at least ${COMMERCIAL_RENT_NOTICE_DAYS} days' written notice in the app.</p></div>`
+      : `<div style="border-left:3px solid #fbbf24; padding:8px 12px; margin:10px 0; background:rgba(251,191,36,0.10); border-radius:6px;"><p style="margin:0;"><strong>Key term — if a monthly payment is missed (Clause 5):</strong> Days 1–3 grace period with reminders and no late fee; Days 4–7 Finance Officer follow-up and late notice; Day 8 onward legal escalation to MainTown Legal Counsel, and your Landlord may apply any Caution Deposit you paid toward the unpaid rent. No eviction takes place without due process.</p></div>`;
+    const defaultClauseHtml = commercial
+      ? `<p>The annual rent is paid in full at checkout, so no instalment default schedule applies to this Agreement. Renewal rent, if the Tenant chooses to renew, falls due on or before the renewal date, and a revised rent under Clause 1 applies only from that renewal. Where an amount due under this Agreement is not paid, the Landlord's remedies are those available under the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State. ${RENT_DEFAULT_CLOSING}</p>`
+      : `<p>Missed monthly rent instalments follow a three-stage schedule over eight days:</p>\n      <ul>\n${RENT_DEFAULT_STAGE_ITEMS.map(i => `        <li><strong>${i[0]}:</strong> ${i[1]}</li>`).join('\n')}\n      </ul>\n      <p>${RENT_DEFAULT_CLOSING}</p>`;
     return `
       <h1>${docTitle}</h1>
       <p>This ${docTitle} ("Agreement") is made on <strong>${today}</strong> between <strong>${companyPartyLabel(landlordName, partyAddress)}</strong> ("${partyLabel}") and <strong>${tenantName}</strong> ("Tenant"), covering the property located at <strong>${propertyAddress}</strong> ("the Property"), facilitated through MainTown Realty.</p>
+
+      ${keyTermHtml}
 
       <h1>1. Term &amp; Rent</h1>${termAndRentHtml}
 
@@ -15408,7 +15491,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <h1>3. Tenant Obligations</h1>
       <ul>
         <li>Keep the Property in good condition and report damages promptly.</li>
-        <li>${commercial ? 'Pay the annual rent in full at checkout, and any renewal rent on or before its due date.' : 'Pay rent on or before each due date to avoid late fees or default flags.'}</li>
+        <li>${commercial ? 'Pay the annual rent in full at checkout, and any renewal rent on or before its due date.' : 'Pay rent on or before each due date to avoid the default stages in Clause 5.'}</li>
         <li>${commercial ? `Use the Property strictly for lawful ${escHtmlLite((commercialType || 'commercial').toLowerCase())} purposes.` : 'Use the Property strictly for lawful residential purposes.'}</li>
       </ul>
 
@@ -15420,7 +15503,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       </ul>
 
       <h1>5. Default &amp; Termination</h1>
-      <p>${RENT_DEFAULT_SCHEDULE_TEXT}</p>
+      ${defaultClauseHtml}
       <p>Either party may terminate early per the notice period stated in the lease terms shared at booking.</p>
 
       <h1>6. Platform Role</h1>
@@ -15434,7 +15517,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <p>${ADR_CLAUSE_TEXT}</p>
 
       <h1>9. Signature</h1>
-      <p>By signing below and confirming with the verification code sent to your phone, both parties acknowledge they have read, understood and agree to be bound by the terms of this Agreement, including the Dispute Resolution clause in Clause 8. Electronic signatures and the computer-generated records of this Agreement and its execution are intended to be admissible in evidence in line with Section 84 of the Evidence Act 2011.</p>${signatoryName ? `
+      <p>By signing below and confirming with the verification code sent to your phone, both parties acknowledge they have read, understood and agree to be bound by the terms of this Agreement, including ${commercial ? `the annual rent review terms in Clause 1` : `the payment default stages in Clause 5`} and the Dispute Resolution clause in Clause 8. Electronic signatures and the computer-generated records of this Agreement and its execution are intended to be admissible in evidence in line with Section 84 of the Evidence Act 2011.</p>${signatoryName ? `
       <p>Countersigned for and on behalf of <strong>${landlordName}</strong> by its Chief Executive Officer, <strong>${signatoryName}</strong>.</p>` : ''}
     `;
   }
@@ -17144,7 +17227,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <div class="s5-list-text">
             <p class="s5-list-title">${p.title}</p>
             <p class="s5-list-sub">${p.address}</p>
-            ${previewHtml}
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">${previewHtml}${(previewListing && previewListing.type === 'rent' && previewListing.usage === 'commercial' && previewListing.ownerId === getCurrentUserId()) ? `<button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="rentReview" data-listing-id="${previewListing.id}"><i data-lucide="trending-up" class="w-3 h-3"></i>Update rent</button>` : ''}</div>
           </div>
           <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
             ${rightHtml}
@@ -17568,7 +17651,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const currentUserName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Landlord';
     const feeFields = getFeeFieldsFromForm('tv');
     const baseFields = {
-      id: newId, title, location: composeListingLocation(address, cityId, areaId), city: cityId, area: areaId, listedBy: 'landlord', status: isPublished ? 'live' : 'draft',
+      id: newId, listedAt: Date.now(), title, location: composeListingLocation(address, cityId, areaId), city: cityId, area: areaId, listedBy: 'landlord', status: isPublished ? 'live' : 'draft',
       hasPhotos: tvPendingPhotoCount > 0, hasVideo: tvPendingHasVideo,
       photos: tvPendingPhotoUrls.slice(), videoUrl: tvPendingVideoUrl,
       photoKeys: tvPendingPhotoKeys.slice(), videoKey: tvPendingVideoKey,
@@ -18044,6 +18127,269 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!ht || !ht.value) return 'Please select the house type (e.g. Bungalow, Duplex)';
     return null;
   }
+  // ==================================================================
+  // ---- Commercial annual rent review ----
+  // The host may revise a commercial listing's annual rent once per COMMERCIAL_RENT_REVIEW_MONTHS.
+  // New tenants see the new rent straight away. A current tenant keeps the term they already paid
+  // for and gets written notice in the app; the new rent reaches them at their next renewal that is
+  // at least COMMERCIAL_RENT_NOTICE_DAYS away. The renewal checkout further down reads listing.annualPrice.
+  // ==================================================================
+  function mtFmtLongDate(ts) { return new Date(ts).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }
+  function commercialReviewStatus(l) {
+    const last = (l.rentReview && l.rentReview.lastAt) || l.listedAt || 0;
+    let next = 0;
+    if (last) { const d = new Date(last); d.setMonth(d.getMonth() + COMMERCIAL_RENT_REVIEW_MONTHS); next = d.getTime(); }
+    return { last: last, next: next, eligible: !next || Date.now() >= next };
+  }
+  function commercialLeaseTermEnd(lease) {
+    if (lease && lease.paidThroughAt) return lease.paidThroughAt; // set when the tenant renews
+    if (!lease || !lease.moveInDate) return null;
+    const d = new Date(lease.moveInDate); if (isNaN(d.getTime())) return null;
+    d.setFullYear(d.getFullYear() + 1);
+    return d.getTime();
+  }
+  function rentReviewEffectiveDate(lease, now) {
+    let end = commercialLeaseTermEnd(lease); if (end == null) return null;
+    const need = (now || Date.now()) + COMMERCIAL_RENT_NOTICE_DAYS * 86400000;
+    for (let i = 0; end < need && i < 50; i++) { const d = new Date(end); d.setFullYear(d.getFullYear() + 1); end = d.getTime(); }
+    return end;
+  }
+  function commercialLeasesFor(listing) {
+    appState = loadAppState();
+    return (appState.leases || []).filter(x => String(x.listingId) === String(listing.id) && x.tenantId);
+  }
+  function applyCommercialRentReview(listingId, newAnnualRaw) {
+    const l = listings.find(x => String(x.id) === String(listingId));
+    if (!l || l.type !== 'rent' || l.usage !== 'commercial') return { ok: false, error: 'Only commercial rentals can be reviewed here.' };
+    if (l.ownerId !== getCurrentUserId()) return { ok: false, error: 'Only the listing owner can change the rent.' };
+    const newAnnual = Math.round(Number(newAnnualRaw));
+    if (!(newAnnual > 0)) return { ok: false, error: 'Enter a valid annual rent.' };
+    const oldAnnual = Math.round(Number(l.annualPrice) || 0);
+    if (newAnnual === oldAnnual) return { ok: false, error: 'The new rent is the same as the current rent.' };
+    const st = commercialReviewStatus(l);
+    if (!st.eligible) return { ok: false, error: 'You can revise this rent again on ' + mtFmtLongDate(st.next) + '.' };
+    l.annualPrice = newAnnual;
+    l.ngn = formatMoney(newAnnual, 'ngn') + ' / yr';
+    l.usd = '$' + Math.round(newAnnual / 1600) + ' / yr';
+    const now = Date.now();
+    l.rentReview = { lastAt: now, history: ((l.rentReview && l.rentReview.history) || []).concat([{ from: oldAnnual, to: newAnnual, at: now }]).slice(-12) };
+    saveListings();
+    const pct = oldAnnual ? Math.round((newAnnual - oldAnnual) / oldAnnual * 1000) / 10 : null;
+    const pctLabel = pct == null ? '' : ' (' + (pct > 0 ? '+' : '') + pct + '%)';
+    let notified = 0;
+    commercialLeasesFor(l).forEach(lease => {
+      const eff = rentReviewEffectiveDate(lease, now);
+      lease.pendingRentReview = { from: oldAnnual, to: newAnnual, effectiveAt: eff, noticedAt: now };
+      const when = eff ? 'from your renewal on ' + mtFmtLongDate(eff) : 'from your next renewal (we will confirm the date)';
+      pushPlatformNotification('tenant', 'message', 'Rent Review Notice',
+        `The landlord of ${l.title} has revised the annual rent from ${formatMoney(oldAnnual, 'ngn')} to ${formatMoney(newAnnual, 'ngn')}${pctLabel}. Your current paid term is not affected. The new rent applies ${when}, and you are free not to renew.`,
+        { screen: 'screen-post-lease' }, 'COMMERCIAL_RENT_REVIEW', null, lease.tenantId);
+      notified++;
+    });
+    saveAppState(appState);
+    window.dispatchEvent(new Event('maintown_state_updated'));
+    return { ok: true, notified: notified, oldAnnual: oldAnnual, newAnnual: newAnnual, pct: pct };
+  }
+
+  let rrListingId = null;
+  function openRentReview(listingId) {
+    const l = listings.find(x => String(x.id) === String(listingId));
+    if (!l) return;
+    rrListingId = l.id;
+    const st = commercialReviewStatus(l);
+    const tenants = commercialLeasesFor(l).length;
+    document.getElementById('rr-listing-title').textContent = l.title;
+    document.getElementById('rr-current').textContent = 'Current annual rent: ' + formatMoney(Number(l.annualPrice) || 0, 'ngn');
+    document.getElementById('rr-new-rent').value = '';
+    document.getElementById('rr-explain').textContent = 'New tenants see the new rent straight away. A current tenant keeps the term they have already paid and is told in writing, in the app, at least ' + COMMERCIAL_RENT_NOTICE_DAYS + ' days before the renewal at which the new rent applies. You can revise the rent once every ' + COMMERCIAL_RENT_REVIEW_MONTHS + ' months. ' + (tenants ? tenants + ' current tenant' + (tenants === 1 ? '' : 's') + ' will be notified.' : 'No current tenant is on record for this listing.');
+    const statusEl = document.getElementById('rr-status'), btn = document.getElementById('rr-confirm');
+    if (st.eligible) { statusEl.textContent = (l.rentReview && l.rentReview.lastAt) ? 'Last revised on ' + mtFmtLongDate(l.rentReview.lastAt) + '.' : ''; btn.disabled = false; btn.style.opacity = ''; }
+    else { statusEl.textContent = 'You can revise this rent again on ' + mtFmtLongDate(st.next) + '.'; btn.disabled = true; btn.style.opacity = '0.5'; }
+    document.getElementById('rent-review-sheet').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-action="rentReview"]');
+    if (b) openRentReview(b.dataset.listingId);
+  });
+  document.getElementById('rr-close').addEventListener('click', () => document.getElementById('rent-review-sheet').classList.remove('open'));
+  document.getElementById('rent-review-sheet').addEventListener('click', (e) => { if (e.target.id === 'rent-review-sheet') e.target.classList.remove('open'); });
+  document.getElementById('rr-confirm').addEventListener('click', () => {
+    const res = applyCommercialRentReview(rrListingId, document.getElementById('rr-new-rent').value);
+    if (!res.ok) { showToast(res.error); return; }
+    document.getElementById('rent-review-sheet').classList.remove('open');
+    showToast(res.notified ? 'Rent updated. ' + res.notified + ' tenant' + (res.notified === 1 ? '' : 's') + ' notified' : 'Rent updated. No current tenant to notify');
+    renderLandlordList();
+  });
+
+  // ==================================================================
+  // ---- Commercial renewal checkout ----
+  // A commercial tenant pays the annual rent in full, so there is no instalment schedule to renew. From
+  // COMMERCIAL_RENEWAL_WINDOW_DAYS before the term ends (up to the renewal date) the Manage Your Tenancy screen
+  // shows a Renew button. The rent is read from the listing's CURRENT annual rent, except that an increase the
+  // tenant was told about only applies from the renewal date in their notice (see applyCommercialRentReview).
+  // Renewal carries no agency commission and no legal fee (same as computeRenewalBreakdown); the landlord
+  // receives the whole rent at the point of charge, and the Caution Deposit is not charged again.
+  // ==================================================================
+  function commercialRenewalQuote(lease, listing, now) {
+    now = now || Date.now();
+    const renewalDate = commercialLeaseTermEnd(lease);
+    if (renewalDate == null || !listing) return null;
+    const listingAnnual = Math.round(Number(listing.annualPrice) || 0);
+    const pr = lease.pendingRentReview || null;
+    let annual = listingAnnual, previous = null, deferredTo = null;
+    if (pr && !(pr.effectiveAt && renewalDate >= pr.effectiveAt)) {
+      // The notice came too late for this renewal: the tenant pays the old rent now.
+      annual = Math.round(Number(pr.from) || 0) || listingAnnual;
+      deferredTo = pr.effectiveAt || null;
+    } else if (pr) {
+      previous = Math.round(Number(pr.from) || 0) || null;
+    }
+    const newEnd = new Date(renewalDate); newEnd.setFullYear(newEnd.getFullYear() + 1);
+    const opensAt = renewalDate - COMMERCIAL_RENEWAL_WINDOW_DAYS * 86400000;
+    const state = now < opensAt ? 'early' : (now >= renewalDate + 86400000 ? 'ended' : 'open');
+    return { renewalDate, newEnd: newEnd.getTime(), opensAt, state, annual, previous, deferredTo, pending: pr, listingAnnual };
+  }
+  function commercialTenantLeases() {
+    appState = loadAppState();
+    const uid = currentDemoUserId();
+    if (!uid) return [];
+    return (appState.leases || []).filter(l => l.commercial && l.tenantId === uid && l.moveInDate);
+  }
+  function rnMoney(n) { return formatMoney(n * (currentCurrency === 'usd' ? 1 / 1600 : 1), currentCurrency); }
+  function rnRow(label, value, strong) { return '<div class="s5-hold-row"><span>' + label + '</span><strong' + (strong ? ' style="color:#fff;"' : '') + '>' + value + '</strong></div>'; }
+  function rnPct(from, to) { const p = from ? Math.round((to - from) / from * 1000) / 10 : null; return p == null ? '' : ' (' + (p > 0 ? '+' : '') + p + '%)'; }
+
+  function renderCommercialRenewalCards() {
+    const wrap = document.getElementById('s7-renewal-wrap');
+    if (!wrap) return;
+    const items = commercialTenantLeases().map(lease => {
+      const listing = listings.find(x => String(x.id) === String(lease.listingId));
+      const q = commercialRenewalQuote(lease, listing);
+      return q ? { lease, listing, q } : null;
+    }).filter(Boolean);
+    if (!items.length) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+    wrap.style.display = 'block';
+    wrap.innerHTML = '<p class="s5-section-label"><i data-lucide="refresh-cw" class="w-4 h-4 text-purple-400"></i>Lease Renewal</p>' + items.map(({ listing, q }) => {
+      let sub, btn = '';
+      if (q.state === 'open') sub = 'Renewal due by ' + mtFmtLongDate(q.renewalDate);
+      else if (q.state === 'early') sub = 'Term ends ' + mtFmtLongDate(q.renewalDate) + ' · renewal opens ' + mtFmtLongDate(q.opensAt);
+      else sub = 'Term ended on ' + mtFmtLongDate(q.renewalDate) + '. Contact your landlord or MainTown support to renew.';
+      if (q.state === 'open') btn = '<button type="button" class="btn-primary" data-action="renewLease" data-listing-id="' + escHtmlLite(String(listing.id)) + '" style="margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px;"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Renew lease · ' + rnMoney(q.annual) + ' / yr</button>';
+      let notice = '';
+      if (q.previous) notice = '<p class="attach-notice">Your landlord revised the annual rent from ' + rnMoney(q.previous) + ' to ' + rnMoney(q.annual) + rnPct(q.previous, q.annual) + '. You are free not to renew.</p>';
+      else if (q.deferredTo && q.pending) notice = '<p class="attach-notice">Your landlord revised the annual rent to ' + rnMoney(q.pending.to) + rnPct(q.pending.from, q.pending.to) + ', which applies from your renewal on ' + mtFmtLongDate(q.deferredTo) + ', not this one.</p>';
+      return '<div class="dash-card"><p class="dash-card-label">' + escHtmlLite(listing.title || 'Commercial lease') + '</p><p class="dash-card-value">' + rnMoney(q.annual) + ' / yr</p><p class="dash-card-sub">' + sub + '</p></div>' + notice + btn;
+    }).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  let rnListingId = null, rnBusy = false;
+  function rnFindLease(listingId) { return commercialTenantLeases().find(l => String(l.listingId) === String(listingId)) || null; }
+  function openRenewalSheet(listingId) {
+    const listing = listings.find(x => String(x.id) === String(listingId));
+    const lease = rnFindLease(listingId);
+    const q = lease && listing ? commercialRenewalQuote(lease, listing) : null;
+    if (!q) { showToast('We could not find this lease.'); return; }
+    if (q.state !== 'open') { showToast(q.state === 'early' ? 'Renewal opens on ' + mtFmtLongDate(q.opensAt) + '.' : 'This lease term has ended.'); return; }
+    rnListingId = listing.id;
+    document.getElementById('rn-listing-title').textContent = listing.title || 'Commercial lease';
+    const bal = getWalletBalance(currentDemoUserId());
+    const short = bal < q.annual;
+    let notice = '';
+    if (q.previous) notice = '<p class="attach-notice">The annual rent was revised from ' + rnMoney(q.previous) + ' to ' + rnMoney(q.annual) + rnPct(q.previous, q.annual) + '. You were given written notice in the app.</p>';
+    else if (q.deferredTo && q.pending) notice = '<p class="attach-notice">A rent increase to ' + rnMoney(q.pending.to) + ' applies from your renewal on ' + mtFmtLongDate(q.deferredTo) + ', not this one.</p>';
+    document.getElementById('rn-body').innerHTML =
+      '<div class="s5-hold-preview">' +
+        rnRow('Current term ends', mtFmtLongDate(q.renewalDate)) +
+        rnRow('New term', mtFmtLongDate(q.renewalDate) + ' to ' + mtFmtLongDate(q.newEnd)) +
+        rnRow('Annual rent (paid in full)', rnMoney(q.annual)) +
+        rnRow('Commission and legal fee', 'None on renewal') +
+        rnRow('Total due now', rnMoney(q.annual), true) +
+        rnRow('Pay from', 'MainTown wallet · ' + rnMoney(bal)) +
+      '</div>' + notice +
+      '<p class="attach-notice">Your landlord receives the rent directly. MainTown does not hold your funds, and your Caution Deposit is not charged again. Your renewal continues under the Tenancy Agreement you already signed.</p>' +
+      (short ? '<p class="attach-notice" style="color:#fbbf24;">Your wallet balance is ' + rnMoney(q.annual - bal) + ' short of the renewal rent. Add funds to your wallet, then come back to renew.</p>' : '');
+    const btn = document.getElementById('rn-confirm');
+    btn.style.display = 'flex'; btn.disabled = short; btn.style.opacity = short ? '0.5' : '';
+    document.getElementById('rn-confirm-label').textContent = 'Pay ' + rnMoney(q.annual) + ' & renew';
+    document.getElementById('renewal-sheet').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  async function payCommercialRenewal() {
+    if (rnBusy) return;
+    const uid = currentDemoUserId();
+    const listing = listings.find(x => String(x.id) === String(rnListingId));
+    let lease = rnFindLease(rnListingId);
+    const q = lease && listing ? commercialRenewalQuote(lease, listing) : null;
+    if (!uid || !q || q.state !== 'open' || !(q.annual > 0)) { showToast('This renewal is not available right now.'); return; }
+    if (getWalletBalance(uid) < q.annual) { showToast('Your wallet balance is below the renewal rent.'); return; }
+    rnBusy = true;
+    try {
+      const pinOk = await mtAskPin('Confirm lease renewal', 'Enter your 6-digit PIN to pay ' + formatMoney(q.annual, 'ngn') + ' and renew until ' + mtFmtLongDate(q.newEnd) + '.');
+      if (!pinOk) return;
+      // The rent or the lease could have changed while the PIN box was open: price it again before taking money.
+      lease = rnFindLease(rnListingId);
+      const q2 = lease ? commercialRenewalQuote(lease, listing) : null;
+      if (!q2 || q2.state !== 'open' || q2.annual !== q.annual || q2.renewalDate !== q.renewalDate) { showToast('The renewal details changed. Please review them and try again.'); document.getElementById('renewal-sheet').classList.remove('open'); renderCommercialRenewalCards(); return; }
+      if (!debitWallet(uid, q.annual)) { showToast('Insufficient wallet balance — payment could not be authorized'); return; }
+      const isEnt = isEnterpriseListing(listing);
+      const txn = recordTransaction({
+        userId: uid, direction: 'debit', category: 'RENT_PAYMENT',
+        title: 'Lease Renewal - ' + listing.title, amount: q.annual, status: 'SUCCESSFUL',
+        meta: {
+          sender: 'You', recipient: 'Landlord (paid directly)', propertyName: listing.title,
+          feeType: 'Annual Rent Renewal', escrowStatus: 'Split at point of charge',
+          companyId: isEnt ? listing.companyId : undefined,
+          needsCompanyConfirmation: isEnt ? true : undefined,
+          confirmed: isEnt ? false : undefined,
+          salesStaffId: isEnt ? listing.listedByStaffId : undefined
+        }
+      });
+      creditPartyWallet(listing.ownerId, q.annual, {
+        title: 'Landlord Payout (Renewal) - ' + (listing.title || 'Property'),
+        category: 'LANDLORD_PAYOUT', propertyName: listing.title,
+        feeType: 'Annual Rent Renewal (no commission or legal fee)',
+        companyMeta: isSalesListedEnterpriseListing(listing) ? { companyId: listing.companyId || listing.ownerId, salesStaffId: listing.listedByStaffId } : undefined
+      });
+      appState = loadAppState();
+      const live = (appState.leases || []).find(l => String(l.listingId) === String(rnListingId) && l.tenantId === uid);
+      const ref = txn ? txn.id : generateTxnRef();
+      if (live) {
+        live.paidThroughAt = q.newEnd;
+        live.paidAnnual = q.annual;
+        live.renewalCount = (live.renewalCount || 0) + 1;
+        live.renewals = (live.renewals || []).concat([{ at: Date.now(), termStart: q.renewalDate, termEnd: q.newEnd, annual: q.annual, ref: ref }]).slice(-20);
+        if (live.pendingRentReview && live.pendingRentReview.effectiveAt && q.renewalDate >= live.pendingRentReview.effectiveAt) delete live.pendingRentReview;
+        live.updatedAt = Date.now();
+      }
+      saveAppState(appState);
+      window.dispatchEvent(new Event('maintown_state_updated'));
+      const untilTxt = mtFmtLongDate(q.newEnd);
+      pushPlatformNotification('tenant', 'payment', 'Lease Renewed', 'Your lease for ' + listing.title + ' is renewed until ' + untilTxt + '. You paid ' + formatMoney(q.annual, 'ngn') + '.', { screen: 'screen-post-lease' }, 'COMMERCIAL_LEASE_RENEWED', null, uid);
+      const tenantName = (live && live.tenantName) || 'Your tenant';
+      if (listing.ownerId) pushPlatformNotification('landlord', 'payment', 'Lease Renewed', tenantName + ' renewed the lease for ' + listing.title + ' until ' + untilTxt + '. ' + formatMoney(q.annual, 'ngn') + ' was paid to your wallet.', null, 'COMMERCIAL_LEASE_RENEWED', null, listing.ownerId);
+      if (listing.agentId && listing.agentId !== listing.ownerId) pushPlatformNotification('agent', 'payment', 'Lease Renewed', tenantName + ' renewed the lease for ' + listing.title + ' until ' + untilTxt + '.', null, 'COMMERCIAL_LEASE_RENEWED', null, listing.agentId);
+      document.getElementById('rn-body').innerHTML =
+        '<div class="s5-hold-preview">' + rnRow('Status', 'Renewed', true) + rnRow('Paid', rnMoney(q.annual)) + rnRow('New term', mtFmtLongDate(q.renewalDate) + ' to ' + untilTxt) + rnRow('Reference', escHtmlLite(String(ref))) + '</div>' +
+        '<p class="attach-notice">Your payment went straight to your landlord. You can find this payment in your wallet history.</p>';
+      document.getElementById('rn-confirm').style.display = 'none';
+      renderCommercialRenewalCards();
+    } finally { rnBusy = false; }
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-action="renewLease"]');
+    if (b) openRenewalSheet(b.dataset.listingId);
+  });
+  document.getElementById('rn-close').addEventListener('click', () => document.getElementById('renewal-sheet').classList.remove('open'));
+  document.getElementById('renewal-sheet').addEventListener('click', (e) => { if (e.target.id === 'renewal-sheet') e.target.classList.remove('open'); });
+  document.getElementById('rn-confirm').addEventListener('click', payCommercialRenewal);
+  window.addEventListener('maintown_state_updated', () => {
+    const scr = document.getElementById('screen-post-lease');
+    if (scr && !scr.classList.contains('hidden')) { try { renderCommercialRenewalCards(); } catch (e) {} }
+  });
+
+
   // ---- Commercial rentals (shop / office / warehouse / event hall) ----
   function commercialIsOn(prefix) { const u = document.getElementById(`${prefix}-usage`); const t = document.getElementById(`${prefix}-listing-type`); return !!u && u.value === 'commercial' && (!t || t.value === 'rent'); }
   function applyCommercialUI(prefix, type, annual) {
@@ -18765,14 +19111,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // brand-new listing appear pre-satisfied with no inspection ever booked.
   function hasSatisfiedInspectionForListing(listing) {
     if (!listing) return false;
+    if (typeof mktInspectionOverride === 'function' && mktInspectionOverride(listing)) return true;
     return inspections.some(i => i.status === 'completed' && (
       i.listingId != null ? i.listingId === listing.id : i.listingTitle === listing.title
     ));
   }
 
-  function dxOutrightOnly(l) { return !!(l && l.type === 'land' && l._deal && l._deal.dealType === 'distress' && l._deal.endsAt > Date.now()); }
+  function dxOutrightOnly(l) { return !!(l && l._agreedOfferId) || !!(l && l.type === 'land' && l._deal && l._deal.dealType === 'distress' && l._deal.endsAt > Date.now()); }
   function openLandPaymentModal(listing) {
     dxApplyDeals();
+    if (mktBlockedByLock(listing)) return;
+    listing = mktApplyAgreed(listing);
     landModalListing = listing;
     landModalMode = 'outright';
     (function () {
@@ -18780,7 +19129,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       document.getElementById('lp-mode-installment').style.display = only ? 'none' : '';
       let n = document.getElementById('lp-distress-note');
       if (!n) { n = document.createElement('p'); n.id = 'lp-distress-note'; n.className = 'dealx-note'; n.style.margin = '0 0 10px'; document.getElementById('lp-mode-outright').parentNode.insertAdjacentElement('afterend', n); }
-      n.textContent = 'Distress sale: this property is sold on outright payment only. Installments are not available.';
+      n.textContent = listing._agreedOfferId ? 'Agreed price from your accepted offer. Outright payment only.' : 'Distress sale: this property is sold on outright payment only. Installments are not available.';
       n.style.display = only ? '' : 'none';
     })();
     landModalFreq = 'monthly';
@@ -18825,7 +19174,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('lp-installment-panel').style.display = 'none';
   });
   document.getElementById('lp-mode-installment').addEventListener('click', () => {
-    if (dxOutrightOnly(landModalListing)) { showToast('Distress sales are outright payment only'); return; }
+    if (dxOutrightOnly(landModalListing)) { showToast(landModalListing._agreedOfferId ? 'Your agreed price is for outright payment' : 'Distress sales are outright payment only'); return; }
     landModalMode = 'installment';
     document.getElementById('lp-mode-installment').classList.add('active');
     document.getElementById('lp-mode-outright').classList.remove('active');
@@ -19271,6 +19620,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ctaBtn.onclick = () => {
         notificationDetailModal.classList.remove('open');
         if (notif.route.docId) openCountersignForDoc(notif.route.docId); else openHandoverReviewModal();
+      };
+    } else if (notif.route && (notif.route.screen === 'mktOffers' || notif.route.screen === 'mktRequests')) {
+      ctaLabel.textContent = notif.route.screen === 'mktOffers' ? 'Open Price Offers' : 'Open Requests';
+      ctaBtn.style.display = 'flex';
+      ctaBtn.onclick = () => {
+        notificationDetailModal.classList.remove('open');
+        navigateTo(notif.route.screen === 'mktOffers' ? 'screen-offers' : 'screen-requests');
       };
     } else if (notif.route && notif.route.screen === 'salesAllocations') {
       ctaLabel.textContent = notif.route.cta || 'Open Allocations';
@@ -21609,6 +21965,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (m.type === 'voice') return 'Voice note' + (m.duration ? ' (' + m.duration + ')' : '');
     if (m.type === 'file') return m.kind === 'image' ? 'Photo' : 'Document: ' + shortletEsc(m.name || 'file');
     if (m.type === 'lease-doc') return 'Tenancy agreement';
+    if (m.type === 'pitch') return 'Pitched ' + ((m.listings || []).length || 1) + ' propert' + (((m.listings || []).length || 1) > 1 ? 'ies' : 'y');
     return m.text != null ? String(m.text).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : '';
   }
   function renderThreadList() {
@@ -21631,7 +21988,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         (c.convType === 'staff-ceo' && c.staffId === uid) ||
         (c.convType === 'staff-staff' && Array.isArray(c.participantIds) && c.participantIds.includes(uid)) ||
         (staffRole === 'sales' && c.salesStaffId === uid) ||
-        (c.convType === 'shortlet' && Array.isArray(c.participantIds) && c.participantIds.includes(uid))
+        (c.convType === 'shortlet' && Array.isArray(c.participantIds) && c.participantIds.includes(uid)) ||
+        (c.convType === 'pair' && Array.isArray(c.participantIds) && c.participantIds.includes(uid))
       );
     } else if (typeof isEnterpriseCeo === 'function' && isEnterpriseCeo(uid)) {
       // Privacy: the CEO can message staff directly (staff-ceo) and message a
@@ -21647,6 +22005,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     visibleConversations = visibleConversations.filter(c => c.convType !== 'support' || c.userId === (uid || 'guest'));
     // A stay chat belongs only to the guest and the host on that booking.
     visibleConversations = visibleConversations.filter(c => c.convType !== 'shortlet' || (Array.isArray(c.participantIds) && c.participantIds.includes(uid)));
+    visibleConversations = visibleConversations.filter(c => c.convType !== 'pair' || (Array.isArray(c.participantIds) && c.participantIds.includes(uid)));
 
     if (!visibleConversations.length) {
       list.innerHTML = '';
@@ -21700,7 +22059,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
 
   function renderChatLog(conv) {
-    document.getElementById('msg-chat-log').innerHTML = conv.messages.map((m, idx) => {
+    document.getElementById('msg-chat-log').innerHTML = conv.messages.map((m0, idx) => {
+      const m = mktPairView(conv, m0);
+      if (m.type === 'pitch') {
+        const mine = m.from === 'me';
+        return `<div class="chat-bubble ${mine ? 'me' : 'them'}" style="max-width:92%;">${m.text ? '<p style="margin:0 0 8px;">' + m.text + '</p>' : ''}${(m.listings || []).map(x => `<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid rgba(148,163,184,.25);"><img src="${mktEsc(x.img)}" alt="" style="width:54px;height:54px;border-radius:10px;object-fit:cover;" onerror="this.style.display='none'"><div style="flex:1;min-width:0;"><p style="margin:0;font-weight:700;font-size:13px;">${mktEsc(x.title)}</p><p style="margin:0;font-size:11.5px;opacity:.75;">${mktEsc(x.location || '')} · ${mktEsc(x.price || '')}</p></div><button type="button" class="dealx-prev-btn" data-mkt-view="${mktEsc(x.id)}">View</button></div>`).join('')}</div>`;
+      }
       if (m.type === 'call-log') {
         const icon = m.callType === 'video' ? 'video' : 'phone';
         return `<div class="chat-bubble call-log ${m.from === 'me' ? 'me' : 'them'}"><i data-lucide="${icon}" class="w-3.5 h-3.5"></i>${m.text}</div>`;
@@ -21826,6 +22190,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const iAmGuest = me === conv.tenantId;
       const otherId = iAmGuest ? conv.hostId : conv.tenantId;
       return { name: resolveUserName(otherId), photo: null, label: iAmGuest ? 'Host' : 'Guest' };
+    }
+    if (conv.convType === 'pair') {
+      const me = getCurrentUserId();
+      const iAmBuyer = me === conv.buyerId;
+      const otherId = iAmBuyer ? conv.hostId : conv.buyerId;
+      const lab = iAmBuyer ? (conv.hostRole === 'agent' ? 'Agent' : (conv.hostRole === 'enterprise_staff' ? 'Sales Manager' : 'Landlord')) : (conv.pairKind === 'request' ? 'Requester' : 'Buyer');
+      return { name: iAmBuyer ? resolveUserName(otherId) : mktFirstName(otherId), photo: null, label: lab };
     }
     // MainTown support line (opened from Profile > Contact MainTown)
     if (conv.convType === 'support') return { name: 'MainTown', photo: null, label: 'Support' };
@@ -22043,8 +22414,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!text) return;
     const sensitive = conv.convType === 'support' && mtBotSensitive(text);
     const msg = { from: 'me', type: 'text', text: sensitive ? 'Sensitive details hidden for your security' : shortletEsc(text), status: 'sent' };
+    if (conv.convType === 'pair') msg.senderId = getCurrentUserId();
     conv.messages.push(msg);
     saveConversations();
+    if (conv.convType === 'pair') {
+      const meId = getCurrentUserId(), toId = meId === conv.buyerId ? conv.hostId : conv.buyerId;
+      mktNotify(toId, 'New message', `${resolveUserName(meId)}: ${text.length > 80 ? text.slice(0, 80) + '...' : text}`, { screen: 'screen-messages', convId: conv.id });
+    }
     if (conv.convType === 'shortlet') {
       const me = getCurrentUserId(), toGuest = me !== conv.tenantId;
       pushPlatformNotification(toGuest ? 'tenant' : (conv.hostRole || 'landlord'), 'booking', 'New message about your stay',
@@ -23165,7 +23541,7 @@ available in the Post-Lease Hub and this chat thread.`
       <div class="s5-hold-preview">
         ${activeLease.autoDebitSchedule.map(s => `<div class="s5-hold-row"><span>Month ${s.month} — ${s.dateLabel}</span><strong>${formatMoney(s.amount, 'ngn')}</strong></div>`).join('')}
       </div>
-      <p class="stage-day-note" style="margin:10px 2px 0; font-weight:500; line-height:1.45;">Missed a payment? Days 1–3: grace period, no late fee. Days 4–7: Finance follow-up. Day 8+: legal escalation. See Section 8 below.</p>`;
+      <p class="stage-day-note" style="margin:10px 2px 0; font-weight:500; line-height:1.45;">Missed a payment? Days 1–3: grace period, no late fee. Days 4–7: Finance follow-up. Day 8+: legal escalation, and the Landlord may apply your Caution Deposit to the unpaid rent. See Section 8 below.</p>`;
     if (window.lucide) lucide.createIcons();
   }
 
@@ -23232,6 +23608,7 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('s7-movein-time-start').value = '';
     document.getElementById('s7-movein-time-end').value = '';
     document.getElementById('s7-movein-confirmed').style.display = 'none';
+    try { renderCommercialRenewalCards(); } catch (e) { console.error(e); }
     renderAutoDebitSchedule();
     renderStageTracker();
     renderTicketList();
@@ -25670,6 +26047,8 @@ available in the Post-Lease Hub and this chat thread.`
       agentId: listing.agentId || null,
       listedByRole: listing.listedByRole || (listing.listedBy === 'agent' ? 'AGENT' : 'LANDLORD'),
       tenantName: tenantName || 'Tenant',
+      tenantId: (typeof currentDemoUserId === 'function' && currentDemoUserId()) || lease.tenantId || null,
+      commercial: listing.usage === 'commercial',
       moveInDate: moveInDate,
       moveInDateLabel: moveInDateLabel,
       moveInStatus: 'SCHEDULED',
@@ -28347,6 +28726,642 @@ available in the Post-Lease Hub and this chat thread.`
     }
   }
 
+
+  // ==================================================================
+  // ---- Property Requests, Price Offers and the Legal & Title Documents
+  //      checklist. Stored in localStorage key `mtr_market` for this
+  //      prototype. A real backend maps these to the tables:
+  //      property_requests, pitched_properties, offers (+ offer_events).
+  //      MainTown never holds funds: an agreed offer only fixes the price
+  //      used at the normal, inspection-gated checkout. ----
+  // ==================================================================
+  const MKT_KEY = 'mtr_requests_offers';
+  const MKT_DAY = 86400000;
+  const MKT_PITCH_CAP = 5;
+  const MKT_MAX_PROPOSALS = 4; // opening offer + up to 3 counters
+  const MKT_HOLD_MS = 72 * 3600000;
+  const MKT_CATS = { rent: 'Rent (monthly)', sale: 'Buy a house', land: 'Buy land', shortlet: 'Short-let', commercial: 'Commercial' };
+  const MKT_AREAS = ['Lekki', 'Ajah', 'Ikeja', 'Yaba', 'Surulere', 'Victoria Island', 'Ikoyi', 'Ikorodu', 'Badagry', 'Epe', 'Ibeju-Lekki', 'Magodo', 'Gbagada', 'Maryland'];
+  let mkt = { requests: [], offers: [] };
+  try { const s = JSON.parse(localStorage.getItem(MKT_KEY)); if (s && typeof s === 'object') mkt = Object.assign(mkt, s); } catch (e) {}
+  if (!Array.isArray(mkt.requests)) mkt.requests = [];
+  if (!Array.isArray(mkt.offers)) mkt.offers = [];
+  function mktSave() { try { localStorage.setItem(MKT_KEY, JSON.stringify(mkt)); } catch (e) {} }
+  function mktEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+  function mktMoney(n) { return formatMoney(Number(n) || 0, 'ngn'); }
+  function mktRole() { return currentUserRole || 'tenant'; }
+  function mktIsHostRole() { const r = mktRole(); return r === 'landlord' || r === 'agent' || (r === 'enterprise_staff' && getEnterpriseStaffRole() === 'sales'); }
+  function mktHome() { return mktRole() === 'enterprise_staff' ? 'screen-ent-sales' : 'screen-4'; }
+  function mktFirstName(uid) { return String(resolveUserName(uid) || 'Client').trim().split(/\s+/)[0]; }
+  function mktTimeLeft(ts) {
+    const ms = ts - Date.now();
+    if (ms <= 0) return 'expired';
+    const h = Math.floor(ms / 3600000);
+    if (h >= 48) return Math.floor(h / 24) + ' days left';
+    if (h >= 1) return h + 'h left';
+    return Math.max(1, Math.floor(ms / 60000)) + 'm left';
+  }
+
+  // ---- Ownership / routing: who handles a listing ----
+  function mktHostOf(l) {
+    if (!l) return null;
+    if (l.listedByRole === 'ENTERPRISE' && l.listedByStaffId) return { id: l.listedByStaffId, role: 'enterprise_staff' };
+    if (l.agentId) return { id: l.agentId, role: 'agent' };
+    if (l.ownerId) return { id: l.ownerId, role: 'landlord' };
+    return null;
+  }
+  function mktMyLiveListings() {
+    const me = getCurrentUserId();
+    return listings.filter(l => l.status !== 'draft' && !isListingUnavailable(l) && (mktHostOf(l) || {}).id === me);
+  }
+  function mktListingCat(l) {
+    if (l.type === 'shortlet') return 'shortlet';
+    if (l.usage === 'commercial' || l.landUse === 'Commercial' || l.houseType === 'Commercial Building') return 'commercial';
+    if (l.type === 'rent') return 'rent';
+    return l.propertyKind === 'house' ? 'sale' : 'land';
+  }
+  function mktOfferKind(l) {
+    if (!l) return null;
+    if (l.type === 'rent' && l.usage === 'commercial') return 'commercial';
+    if (l.type === 'land') return 'land';
+    return null;
+  }
+  function mktAskingPrice(l) {
+    if (l.type === 'land') return Number(l.totalPrice) || 0;
+    if (l.annualPrice) return Number(l.annualPrice);
+    const m = String(l.ngn || '').replace(/[^\d]/g, '');
+    return Number(m) || 0;
+  }
+
+  // ---- Lazy expiry (no server timers in the prototype) ----
+  function mktTick() {
+    const now = Date.now();
+    let ch = false;
+    mkt.offers.forEach(o => {
+      if ((o.status === 'pending' || o.status === 'countered') && o.expiresAt < now) {
+        o.status = 'expired'; ch = true;
+        mktOfferSys(o, 'This offer expired with no response.');
+        mktNotify(o.buyerId, 'Offer expired', `Your offer on ${o.listingTitle} expired.`, { screen: 'mktOffers' });
+        mktNotify(o.hostId, 'Offer expired', `The offer on ${o.listingTitle} expired.`, { screen: 'mktOffers' });
+      } else if (o.status === 'accepted' && o.agreedUntil < now) {
+        o.status = 'lapsed'; ch = true;
+      }
+    });
+    mkt.requests.forEach(r => { if (r.status === 'active' && r.expiresAt < now) { r.status = 'expired'; ch = true; } });
+    if (ch) mktSave();
+  }
+  function mktNotify(uid, title, body, route) {
+    if (!uid) return;
+    try { pushPlatformNotification(null, 'message', title, body, route || null, 'market', null, uid); } catch (e) {}
+  }
+
+  // ---- Pair chat threads (request pitches and offers) ----
+  function mktPairThread(kind, refId, listingTitle, buyerId, hostId, hostRole) {
+    let conv = conversations.find(c => c.convType === 'pair' && c.pairKind === kind && c.refId === refId && c.hostId === hostId);
+    if (conv) return conv;
+    conv = {
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      convType: 'pair', pairKind: kind, refId, listingTitle,
+      feeType: 'market', fee: 0, status: 'active',
+      tenantId: buyerId, buyerId, hostId, hostRole: hostRole || 'landlord',
+      participantIds: [buyerId, hostId], messages: []
+    };
+    conversations.unshift(conv);
+    saveConversations();
+    return conv;
+  }
+  function mktPairView(conv, m) {
+    if (conv && conv.convType === 'pair' && m.senderId && m.from !== 'system') {
+      return Object.assign({}, m, { from: m.senderId === getCurrentUserId() ? 'me' : 'them' });
+    }
+    return m;
+  }
+  function mktOfferSys(o, text) {
+    const conv = conversations.find(c => c.convType === 'pair' && c.pairKind === 'offer' && c.refId === o.id);
+    if (!conv) return;
+    conv.messages.push({ from: 'system', type: 'text', text: mktEsc(text) });
+    saveConversations();
+  }
+
+  // ---- Legal & Title Documents checklist (land / property sale listings) ----
+  function mktDocChecklistHtml(p) {
+    const raw = Array.isArray(p.titleDocuments) ? p.titleDocuments : [];
+    const keys = raw.map(d => String(typeof d === 'string' ? d : (d.id || d.label || '')).toLowerCase());
+    const labels = raw.map(d => String(typeof d === 'string' ? d : (d.label || '')).toLowerCase());
+    const has = (t) => keys.includes(t.id.toLowerCase()) || labels.includes(t.label.toLowerCase());
+    const rows = TITLE_DOC_TYPES.map(t => {
+      const ok = has(t);
+      return `<div class="li-row"><span>${mktEsc(t.label)}</span><strong style="color:${ok ? '#34d399' : '#94a3b8'};">${ok ? 'Supplied' : 'Not supplied'}</strong></div>`;
+    });
+    const known = new Set(TITLE_DOC_TYPES.flatMap(t => [t.id.toLowerCase(), t.label.toLowerCase()]));
+    raw.forEach(d => {
+      const lab = typeof d === 'string' ? d : (d.label || d.id || '');
+      if (lab && !known.has(String(lab).toLowerCase()) && !(typeof d === 'object' && known.has(String(d.id || '').toLowerCase()))) {
+        rows.push(`<div class="li-row"><span>${mktEsc(lab)}</span><strong style="color:#34d399;">Supplied</strong></div>`);
+      }
+    });
+    const supplied = TITLE_DOC_TYPES.filter(has).length;
+    return `<details class="li-section li-drawer" open><summary class="li-h">Legal &amp; title documents</summary>
+      <p class="li-note" style="margin:0 0 8px;">${supplied} of ${TITLE_DOC_TYPES.length} common title documents supplied by the seller.</p>
+      <div class="li-rows">${rows.join('')}</div>
+      <p class="li-note">Shown as supplied by the seller and given a preliminary screening by MainTown. This is not legal due diligence and not a guarantee of title. Have your own lawyer verify the documents and run a Land Registry search before you pay.</p></details>`;
+  }
+
+  // ---- Generic bottom-sheet modal ----
+  function mktModal(title, bodyHtml, confirmLabel, onConfirm, opts) {
+    opts = opts || {};
+    document.getElementById('mkt-modal')?.remove();
+    const el = document.createElement('div');
+    el.id = 'mkt-modal';
+    el.className = 'dealx-modal';
+    el.innerHTML = `<div class="dealx-modal-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px 0;">
+        <h2 style="font-size:17px;font-weight:700;margin:0;">${mktEsc(title)}</h2>
+        <button type="button" data-mkt-close style="background:none;border:0;color:inherit;opacity:.7;font-size:22px;line-height:1;">&times;</button>
+      </div>
+      <div class="dealx-modal-body">${bodyHtml}
+        <p class="mkt-err" style="color:#f87171;font-size:12px;margin:10px 0 0;display:none;"></p>
+        ${confirmLabel ? `<button type="button" class="dealx-btn" data-mkt-confirm style="margin-top:14px;">${mktEsc(confirmLabel)}</button>` : ''}
+      </div></div>`;
+    document.body.appendChild(el);
+    const err = (m) => { const p = el.querySelector('.mkt-err'); p.textContent = m; p.style.display = m ? 'block' : 'none'; };
+    el.addEventListener('click', (e) => {
+      if (e.target === el || e.target.closest('[data-mkt-close]')) { el.remove(); return; }
+      if (e.target.closest('[data-mkt-confirm]')) {
+        const res = onConfirm ? onConfirm(el, err) : true;
+        if (res !== false) el.remove();
+      }
+    });
+    if (opts.onOpen) opts.onOpen(el);
+    if (window.lucide) lucide.createIcons();
+    return el;
+  }
+  const MKT_INPUT = 'class="field-input" style="width:100%;margin-bottom:10px;"';
+
+  // ==================================================================
+  // PROPERTY REQUESTS
+  // ==================================================================
+  function mktOpenRequestForm() {
+    mktTick();
+    const me = getCurrentUserId();
+    if (mktRole() !== 'tenant') { showToast('Property requests are made from a Tenant / Buyer account'); return; }
+    if (mkt.requests.filter(r => r.requesterId === me && r.status === 'active').length >= 3) { showToast('You can have up to 3 active requests. Close one to add another.'); return; }
+    const chips = MKT_AREAS.map(a => `<button type="button" class="dealx-chip" data-area="${mktEsc(a)}">${mktEsc(a)}</button>`).join('');
+    mktModal('Request a property', `
+      <p class="dealx-sub" style="margin-top:10px;">Tell us what you want. Agents, landlords and company sales teams with matching live listings can pitch you. Your phone number is never shared.</p>
+      <label class="field-label">What are you looking for?</label>
+      <select id="mk-cat" ${MKT_INPUT}>${Object.keys(MKT_CATS).map(k => `<option value="${k}">${MKT_CATS[k]}</option>`).join('')}</select>
+      <label class="field-label">Areas (pick one or more)</label>
+      <div class="dealx-chips" id="mk-areas" style="flex-wrap:wrap;overflow:visible;">${chips}</div>
+      <input id="mk-area-other" ${MKT_INPUT} placeholder="Other area (optional)">
+      <label class="field-label">Budget (₦)</label>
+      <div style="display:flex;gap:8px;"><input id="mk-min" type="number" inputmode="numeric" min="0" ${MKT_INPUT} placeholder="Min"><input id="mk-max" type="number" inputmode="numeric" min="0" ${MKT_INPUT} placeholder="Max"></div>
+      <div id="mk-beds-wrap"><label class="field-label">Bedrooms</label>
+      <select id="mk-beds" ${MKT_INPUT}><option value="">Any</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5+</option></select></div>
+      <label class="field-label" id="mk-when-label">Target move-in date</label>
+      <input id="mk-when" type="date" ${MKT_INPUT}>
+      <label class="field-label">Special requirements (optional)</label>
+      <textarea id="mk-notes" ${MKT_INPUT} rows="3" maxlength="400" placeholder="e.g. gated estate, good road, 24h power"></textarea>
+      <p class="dealx-note">Your request stays open for 30 days. Up to ${MKT_PITCH_CAP} hosts can pitch, and every pitch arrives in your MainTown Messages.</p>`,
+      'Post request', (el, err) => {
+        const q = (id) => el.querySelector(id);
+        const cat = q('#mk-cat').value;
+        const areas = Array.from(el.querySelectorAll('#mk-areas .active')).map(b => b.dataset.area);
+        const other = q('#mk-area-other').value.trim();
+        if (other) areas.push(other);
+        const min = Number(q('#mk-min').value) || 0, max = Number(q('#mk-max').value) || 0;
+        const notes = q('#mk-notes').value.trim();
+        if (!areas.length) { err('Pick at least one area.'); return false; }
+        if (!max) { err('Enter your maximum budget.'); return false; }
+        if (min && min > max) { err('Minimum budget cannot be above your maximum.'); return false; }
+        const leak = notes && mtChatLeakCheck(notes);
+        if (leak) { err('Please do not put ' + leak + ' in your request. Hosts reply inside MainTown.'); return false; }
+        const req = {
+          id: 'rq' + Date.now(), requesterId: me, requesterFirst: mktFirstName(me), category: cat, areas,
+          budgetMin: min, budgetMax: max, bedrooms: cat === 'land' ? '' : q('#mk-beds').value,
+          when: q('#mk-when').value || '', notes, status: 'active', createdAt: Date.now(), expiresAt: Date.now() + 30 * MKT_DAY, pitches: []
+        };
+        mkt.requests.unshift(req); mktSave();
+        mktNotifyMatchingHosts(req);
+        showToast('Request posted. Pitches will arrive in your Messages.');
+        if (!document.getElementById('screen-requests').classList.contains('hidden')) mktRenderRequests();
+      }, { onOpen: (el) => {
+        el.querySelector('#mk-areas').addEventListener('click', (e) => { const b = e.target.closest('.dealx-chip'); if (b) b.classList.toggle('active'); });
+        el.querySelector('#mk-cat').addEventListener('change', (e) => {
+          const c = e.target.value;
+          el.querySelector('#mk-beds-wrap').style.display = c === 'land' ? 'none' : '';
+          el.querySelector('#mk-when-label').textContent = (c === 'rent' || c === 'shortlet') ? 'Target move-in date' : 'When do you want to buy / start?';
+        });
+      } });
+  }
+  function mktAreaMatches(l, areas) {
+    const loc = String(l.location || '').toLowerCase();
+    return (areas || []).some(a => loc.includes(String(a).toLowerCase()));
+  }
+  function mktNotifyMatchingHosts(req) {
+    const seen = new Set();
+    listings.forEach(l => {
+      if (l.status === 'draft' || isListingUnavailable(l)) return;
+      const h = mktHostOf(l);
+      if (!h || seen.has(h.id) || h.id === req.requesterId) return;
+      if (mktListingCat(l) !== req.category) return;
+      seen.add(h.id);
+      mktNotify(h.id, 'New property request', `${req.requesterFirst} wants ${MKT_CATS[req.category]} in ${req.areas.slice(0, 2).join(', ')}, up to ${mktMoney(req.budgetMax)}.`, { screen: 'mktRequests' });
+    });
+  }
+  let mktReqFilter = { cat: 'all', area: '' };
+  function mktRenderRequests() {
+    mktTick();
+    const wrap = document.getElementById('mkt-req-body');
+    if (!wrap) return;
+    const me = getCurrentUserId();
+    const host = mktIsHostRole();
+    document.getElementById('mkt-req-title').textContent = host ? 'Property Requests' : 'My Requests';
+    document.getElementById('mkt-req-sub').textContent = host
+      ? 'Real people looking for a property. Pitch 1 to 3 of your live listings straight into their chat.'
+      : 'Describe what you want and let hosts come to you.';
+    if (!host) {
+      const mine = mkt.requests.filter(r => r.requesterId === me);
+      wrap.innerHTML = `<button type="button" class="dealx-btn" id="mkt-new-req" style="margin-bottom:14px;"><i data-lucide="plus" class="w-4 h-4"></i>New request</button>` +
+        (mine.length ? mine.map(r => mktMyRequestCard(r)).join('') : `<div class="dealx-empty">No requests yet. Post one and hosts with matching listings can pitch you.</div>`);
+    } else {
+      const chips = ['all'].concat(Object.keys(MKT_CATS)).map(k => `<button type="button" class="dealx-chip${mktReqFilter.cat === k ? ' active' : ''}" data-rcat="${k}">${k === 'all' ? 'All' : MKT_CATS[k]}</button>`).join('');
+      let items = mkt.requests.filter(r => r.status === 'active' && r.requesterId !== me);
+      if (mktReqFilter.cat !== 'all') items = items.filter(r => r.category === mktReqFilter.cat);
+      const q = mktReqFilter.area.trim().toLowerCase();
+      if (q) items = items.filter(r => r.areas.some(a => String(a).toLowerCase().includes(q)));
+      wrap.innerHTML = `<div class="dealx-chips">${chips}</div>
+        <input id="mkt-area-filter" class="field-input" style="width:100%;margin-bottom:12px;" placeholder="Filter by area, e.g. Lekki" value="${mktEsc(mktReqFilter.area)}">` +
+        (items.length ? items.map(r => mktHostRequestCard(r, me)).join('') : `<div class="dealx-empty">No open requests match right now.</div>`);
+    }
+    if (window.lucide) lucide.createIcons();
+  }
+  function mktReqSummary(r) {
+    const bits = [MKT_CATS[r.category], r.areas.join(', ')];
+    const budget = r.budgetMin ? `${mktMoney(r.budgetMin)} to ${mktMoney(r.budgetMax)}` : `up to ${mktMoney(r.budgetMax)}`;
+    return { head: bits.join(' in '), budget };
+  }
+  function mktHostRequestCard(r, me) {
+    const s = mktReqSummary(r);
+    const mine = r.pitches.find(p => p.hostId === me);
+    const full = r.pitches.length >= MKT_PITCH_CAP;
+    const btn = mine ? `<button type="button" class="dealx-btn" disabled style="opacity:.55;margin-top:10px;">Pitched</button>`
+      : (full ? `<button type="button" class="dealx-btn" disabled style="opacity:.55;margin-top:10px;">Pitch limit reached</button>`
+        : `<button type="button" class="dealx-btn" data-rpitch="${r.id}" style="margin-top:10px;"><i data-lucide="send" class="w-4 h-4"></i>Pitch property</button>`);
+    return `<div class="dealx-mine-row" style="display:block;">
+      <p style="font-weight:700;font-size:14px;margin:0 0 4px;">${mktEsc(s.head)}</p>
+      <p class="dealx-sub" style="margin:0;">${mktEsc(r.requesterFirst)} · ${mktEsc(s.budget)}${r.bedrooms ? ' · ' + mktEsc(r.bedrooms) + ' bed' : ''}${r.when ? ' · ' + mktEsc(r.when) : ''}</p>
+      ${r.notes ? `<p class="dealx-note" style="margin:6px 0 0;">“${mktEsc(r.notes)}”</p>` : ''}
+      <p class="dealx-note" style="margin:6px 0 0;">${r.pitches.length}/${MKT_PITCH_CAP} pitches · ${mktTimeLeft(r.expiresAt)}</p>${btn}</div>`;
+  }
+  function mktMyRequestCard(r) {
+    const s = mktReqSummary(r);
+    const open = r.status === 'active';
+    const pitches = r.pitches.map(p => `<div class="dealx-detail-row"><span>${mktEsc(p.hostName)} <small style="opacity:.6;">(${mktEsc(p.hostRole === 'enterprise_staff' ? 'Sales manager' : p.hostRole)})</small> · ${p.listingIds.length} listing${p.listingIds.length > 1 ? 's' : ''}</span><button type="button" class="dealx-prev-btn" data-rchat="${p.convId}">Open chat</button></div>`).join('');
+    return `<div class="dealx-mine-row" style="display:block;">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;"><p style="font-weight:700;font-size:14px;margin:0 0 4px;">${mktEsc(s.head)}</p><span class="dealx-status">${open ? 'Open' : mktEsc(r.status)}</span></div>
+      <p class="dealx-sub" style="margin:0;">${mktEsc(s.budget)}${r.bedrooms ? ' · ' + mktEsc(r.bedrooms) + ' bed' : ''}</p>
+      <p class="dealx-note" style="margin:6px 0;">${r.pitches.length}/${MKT_PITCH_CAP} pitches${open ? ' · ' + mktTimeLeft(r.expiresAt) : ''}</p>
+      ${pitches || '<p class="dealx-note" style="margin:0;">No pitches yet.</p>'}
+      ${open ? `<button type="button" class="dealx-del-btn" data-rclose="${r.id}" style="margin-top:10px;">Close request</button>` : ''}</div>`;
+  }
+  function mktOpenPitch(reqId) {
+    mktTick();
+    const r = mkt.requests.find(x => x.id === reqId);
+    const me = getCurrentUserId();
+    if (!r || r.status !== 'active') { showToast('This request is no longer open'); mktRenderRequests(); return; }
+    if (r.pitches.some(p => p.hostId === me)) { showToast('You already pitched this request'); return; }
+    if (r.pitches.length >= MKT_PITCH_CAP) { showToast('This request already has the maximum number of pitches'); mktRenderRequests(); return; }
+    const mine = mktMyLiveListings();
+    if (!mine.length) { showToast('You need at least one live listing to pitch'); return; }
+    mine.sort((a, b) => (mktListingCat(b) === r.category) - (mktListingCat(a) === r.category) || (mktAreaMatches(b, r.areas) - mktAreaMatches(a, r.areas)));
+    const rows = mine.map(l => {
+      const match = mktListingCat(l) === r.category;
+      return `<label class="dealx-check" style="padding:8px 0;border-bottom:1px solid rgba(148,163,184,.18);"><input type="checkbox" class="mk-pick" value="${l.id}"><span><strong>${mktEsc(l.title)}</strong><br><small style="opacity:.65;">${mktEsc(l.location || '')}${match ? ' · matches category' : ''}</small></span></label>`;
+    }).join('');
+    mktModal('Pitch a property', `
+      <p class="dealx-sub" style="margin-top:10px;">${mktEsc(r.requesterFirst)} wants ${mktEsc(MKT_CATS[r.category])} in ${mktEsc(r.areas.join(', '))}. Pick 1 to 3 of your live listings.</p>
+      <div class="dealx-checks" style="margin:0 0 10px;">${rows}</div>
+      <label class="field-label">Short message (optional)</label>
+      <textarea id="mk-pitch-msg" ${MKT_INPUT} rows="2" maxlength="300" placeholder="Why these fit"></textarea>
+      <p class="dealx-note">Only live MainTown listings can be pitched. Keep contact and payment inside MainTown.</p>`,
+      'Send pitch', (el, err) => {
+        const ids = Array.from(el.querySelectorAll('.mk-pick:checked')).map(c => c.value);
+        if (ids.length < 1 || ids.length > 3) { err('Select between 1 and 3 listings.'); return false; }
+        const msg = el.querySelector('#mk-pitch-msg').value.trim();
+        const leak = msg && mtChatLeakCheck(msg);
+        if (leak) { err('Sharing ' + leak + ' is not allowed. Keep it inside MainTown.'); return false; }
+        const fresh = mkt.requests.find(x => x.id === reqId);
+        if (!fresh || fresh.status !== 'active' || fresh.pitches.length >= MKT_PITCH_CAP) { err('This request just closed or filled up.'); return false; }
+        const snaps = ids.map(id => listings.find(l => String(l.id) === String(id))).filter(Boolean).map(l => ({
+          id: l.id, title: l.title, location: l.location, img: (l.photos && l.photos[0]) || l.img,
+          price: l.type === 'land' ? mktMoney(l.totalPrice) : String(l.ngn || '')
+        }));
+        const conv = mktPairThread('request', fresh.id, snaps[0].title, fresh.requesterId, me, mktRole());
+        conv.messages.push({ from: 'system', type: 'text', text: mktEsc(`Pitch for the request: ${MKT_CATS[fresh.category]} in ${fresh.areas.join(', ')}.`) });
+        conv.messages.push({ from: 'them', senderId: me, type: 'pitch', listings: snaps, text: mktEsc(msg) });
+        saveConversations();
+        fresh.pitches.push({ id: 'pt' + Date.now(), hostId: me, hostRole: mktRole(), hostName: resolveUserName(me), listingIds: ids, at: Date.now(), convId: conv.id });
+        mktSave();
+        mktNotify(fresh.requesterId, 'New property pitch', `${resolveUserName(me)} pitched ${snaps.length} ${snaps.length > 1 ? 'properties' : 'property'} for your request.`, { screen: 'screen-messages', convId: conv.id });
+        showToast('Pitch sent to ' + fresh.requesterFirst);
+        mktRenderRequests();
+      });
+  }
+
+  // ==================================================================
+  // PRICE OFFERS
+  // ==================================================================
+  function mktLockFor(l) {
+    if (!l) return null;
+    mktTick();
+    return mkt.offers.find(o => String(o.listingId) === String(l.id) && o.status === 'accepted' && o.agreedUntil > Date.now()) || null;
+  }
+  function mktAgreedFor(l) {
+    const me = getCurrentUserId();
+    const lock = mktLockFor(l);
+    return (lock && lock.buyerId === me) ? lock : null;
+  }
+  function mktApplyAgreed(l) {
+    if (!l || l._agreedOfferId) return l;
+    const o = mktAgreedFor(l);
+    if (!o) return l;
+    const c = Object.assign({}, l, { _agreedOfferId: o.id, _askingPrice: o.askingPrice });
+    if (o.kind === 'land') c.totalPrice = o.agreedPrice;
+    else { c.annualPrice = o.agreedPrice; c.ngn = mktMoney(o.agreedPrice) + ' / yr'; c.usd = '$' + Math.round(o.agreedPrice / 1600) + ' / yr'; }
+    return c;
+  }
+  function mktInspectionOverride(l) {
+    const o = l && mktAgreedFor(l);
+    return !!(o && o.inspectionConfirmed);
+  }
+  function mktBlockedByLock(l) {
+    const lock = mktLockFor(l);
+    if (lock && lock.buyerId !== getCurrentUserId()) { showToast('This property is under offer. Check back if the offer lapses.'); return true; }
+    return false;
+  }
+  function mktOnPurchase(listing) {
+    if (!listing) return;
+    let ch = false;
+    mkt.offers.forEach(o => {
+      if (String(o.listingId) !== String(listing.id)) return;
+      if (o.id === listing._agreedOfferId) { o.status = 'completed'; ch = true; mktOfferSys(o, 'Purchase completed at the agreed price.'); }
+      else if (['pending', 'countered', 'accepted'].includes(o.status)) { o.status = 'closed'; ch = true; mktNotify(o.buyerId, 'Listing no longer available', `${o.listingTitle} has been taken.`, { screen: 'mktOffers' }); }
+    });
+    if (ch) mktSave();
+  }
+
+  function mktOpenOffer(listingId) {
+    mktTick();
+    const l = listings.find(x => String(x.id) === String(listingId));
+    if (!l) return;
+    const kind = mktOfferKind(l);
+    if (!kind) { showToast('Price offers are not available on this type of listing'); return; }
+    if (mktRole() !== 'tenant') { showToast('Offers are made from a Tenant / Buyer account'); return; }
+    if (isListingUnavailable(l)) { showToast('This property is no longer available'); return; }
+    if (mktBlockedByLock(l)) return;
+    const me = getCurrentUserId();
+    const live = mkt.offers.find(o => String(o.listingId) === String(l.id) && o.buyerId === me && ['pending', 'countered', 'accepted'].includes(o.status));
+    if (live) { showToast('You already have a live offer on this property'); navigateTo('screen-offers'); return; }
+    const asking = mktAskingPrice(l);
+    const inspected = hasSatisfiedInspectionForListing(l);
+    const inspBlock = inspected
+      ? `<p class="dealx-note" style="color:#34d399;opacity:1;">Inspection done. You can make an offer.</p>`
+      : `<div class="dealx-terms"><strong>Inspect first, then offer.</strong> Book a site inspection, or if you are abroad, confirm one of the options below.
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
+            <label class="dealx-check"><input type="radio" name="mk-insp" value="video"><span>I have done a live video inspection of this property</span></label>
+            <label class="dealx-check"><input type="radio" name="mk-insp" value="representative"><span>A representative inspected it and sent me photos and video</span></label>
+          </div>
+          <button type="button" class="dealx-prev-btn" id="mk-book-insp" style="margin-top:10px;">Book an inspection instead</button></div>`;
+    mktModal('Offer a price', `
+      <p style="font-weight:700;margin:10px 0 2px;">${mktEsc(l.title)}</p>
+      <p class="dealx-sub">Asking ${mktMoney(asking)}${kind === 'commercial' ? ' per year' : ''}. ${kind === 'land' ? 'Offers apply to outright payment. Installment prices stay fixed.' : 'Commercial rent is paid annually upfront.'}</p>
+      ${inspBlock}
+      <label class="field-label" style="margin-top:12px;">Your offer (₦)</label>
+      <input id="mk-offer" type="number" inputmode="numeric" min="0" ${MKT_INPUT} placeholder="e.g. ${Math.round(asking * 0.9)}">
+      <label class="field-label">Offer valid for</label>
+      <select id="mk-exp" ${MKT_INPUT}><option value="24">24 hours</option><option value="48" selected>48 hours</option><option value="168">7 days</option></select>
+      <label class="field-label">Note to the host (optional)</label>
+      <textarea id="mk-note" ${MKT_INPUT} rows="2" maxlength="300"></textarea>
+      <label class="dealx-check"><input type="checkbox" id="mk-ack"><span>I understand this offer is not binding until I pay. MainTown does not hold my money. If accepted, the agreed price is used at checkout.</span></label>`,
+      'Send offer', (el, err) => {
+        const price = Number(el.querySelector('#mk-offer').value);
+        const insp = inspected ? 'done' : ((el.querySelector('input[name=mk-insp]:checked') || {}).value || '');
+        const note = el.querySelector('#mk-note').value.trim();
+        if (!inspected && !insp) { err('Inspect first: book an inspection, or confirm a video or representative inspection.'); return false; }
+        if (!price || price <= 0) { err('Enter your offer.'); return false; }
+        if (price >= asking) { err('Your offer should be below the asking price. To pay the full price, use Buy / Rent now.'); return false; }
+        if (price < asking * 0.5) { err('That is under half the asking price. Please make a serious offer.'); return false; }
+        if (!el.querySelector('#mk-ack').checked) { err('Please confirm you understand the offer is not binding.'); return false; }
+        const leak = note && mtChatLeakCheck(note);
+        if (leak) { err('Sharing ' + leak + ' is not allowed. Keep it inside MainTown.'); return false; }
+        mktCreateOffer(l, kind, asking, price, Number(el.querySelector('#mk-exp').value), insp, note);
+      }, { onOpen: (el) => {
+        const b = el.querySelector('#mk-book-insp');
+        if (b) b.addEventListener('click', () => { el.remove(); requireScreening(() => openInspectionModal(l)); });
+      } });
+  }
+  function mktCreateOffer(l, kind, asking, price, hours, insp, note) {
+    const me = getCurrentUserId();
+    const h = mktHostOf(l);
+    if (!h) { showToast('This listing has no host to receive offers'); return; }
+    const o = {
+      id: 'of' + Date.now(), listingId: l.id, listingTitle: l.title, kind, buyerId: me, buyerName: resolveUserName(me),
+      hostId: h.id, hostRole: h.role, askingPrice: asking, price, lastBy: 'buyer', round: 1, status: 'pending',
+      windowMs: hours * 3600000, expiresAt: Date.now() + hours * 3600000, createdAt: Date.now(),
+      inspected: insp === 'done', remoteInspection: insp === 'done' ? 'none' : insp, inspectionConfirmed: insp === 'done',
+      history: [{ by: 'buyer', price, note, at: Date.now() }]
+    };
+    mkt.offers.unshift(o); mktSave();
+    const conv = mktPairThread('offer', o.id, l.title, me, h.id, h.role);
+    conv.messages.push({ from: 'system', type: 'text', text: mktEsc(`Price offer on ${l.title}. Asking ${mktMoney(asking)}. Offer ${mktMoney(price)}. Not binding until payment.`) });
+    if (note) conv.messages.push({ from: 'them', senderId: me, type: 'text', text: mktEsc(note) });
+    saveConversations();
+    mktNotify(h.id, 'New price offer', `${mktFirstName(me)} offered ${mktMoney(price)} on ${l.title} (asking ${mktMoney(asking)}).`, { screen: 'mktOffers' });
+    showToast('Offer sent. You will be notified when the host responds.');
+    navigateTo('screen-offers');
+  }
+  function mktOfferAct(id, act) {
+    mktTick();
+    const o = mkt.offers.find(x => x.id === id);
+    if (!o) return;
+    const me = getCurrentUserId();
+    const iAmBuyer = o.buyerId === me;
+    const myTurn = iAmBuyer ? o.status === 'countered' : o.status === 'pending';
+    const l = listings.find(x => String(x.id) === String(o.listingId));
+    const other = iAmBuyer ? o.hostId : o.buyerId;
+    const done = (title, body, sys) => { mktSave(); mktOfferSys(o, sys || body); mktNotify(other, title, body, { screen: 'mktOffers' }); mktRenderOffers(); };
+    if (act === 'chat') {
+      const conv = mktPairThread('offer', o.id, o.listingTitle, o.buyerId, o.hostId, o.hostRole);
+      navigateTo('screen-messages'); renderThreadList(); openThreadDetail(conv.id); return;
+    }
+    if (act === 'view') { if (l) openListingInfoFor(l, {}); return; }
+    if (act === 'checkout') {
+      if (!l || o.status !== 'accepted') return;
+      if (o.kind === 'land') requireScreening(() => openLandPaymentModal(l));
+      else openPaymentOptionsModal(l);
+      return;
+    }
+    if (act === 'withdraw') {
+      if (!['pending', 'countered'].includes(o.status) || !iAmBuyer) return;
+      o.status = 'withdrawn';
+      done('Offer withdrawn', `${mktFirstName(me)} withdrew the offer on ${o.listingTitle}.`); return;
+    }
+    if (!myTurn && act !== 'cancelAgreed') { showToast('Waiting for the other side'); return; }
+    if (act === 'decline') {
+      mktModal('Decline this offer?', `<p class="dealx-sub" style="margin-top:10px;">This closes the negotiation.</p>`, 'Decline', () => {
+        o.status = 'declined';
+        done('Offer declined', `The offer on ${o.listingTitle} was declined.`);
+      }); return;
+    }
+    if (act === 'accept') {
+      const needsConfirm = !iAmBuyer && !o.inspected && !o.inspectionConfirmed;
+      const body = `<p class="dealx-sub" style="margin-top:10px;">Agree ${mktMoney(o.price)} for ${mktEsc(o.listingTitle)}. The property is held for this buyer for 72 hours. The buyer then pays through normal MainTown checkout at this price. MainTown does not hold funds.</p>
+        ${needsConfirm ? `<label class="dealx-check"><input type="checkbox" id="mk-conf-insp"><span>I confirm the buyer inspected this property by live video or through a representative.</span></label>` : ''}`;
+      mktModal('Accept this price?', body, 'Accept', (el, err) => {
+        if (needsConfirm && !el.querySelector('#mk-conf-insp').checked) { err('Please confirm the inspection to continue.'); return false; }
+        const lk = mktLockFor(l); if (lk && lk.id !== o.id) { err('Another offer on this property is already agreed.'); return false; }
+        if (needsConfirm) o.inspectionConfirmed = true;
+        o.status = 'accepted'; o.agreedPrice = o.price; o.agreedUntil = Date.now() + MKT_HOLD_MS;
+        mkt.offers.forEach(x => {
+          if (x !== o && String(x.listingId) === String(o.listingId) && ['pending', 'countered'].includes(x.status)) {
+            x.status = 'closed'; mktOfferSys(x, 'Another offer was accepted on this property.');
+            mktNotify(x.buyerId, 'Property under offer', `${x.listingTitle} is now under offer to another buyer.`, { screen: 'mktOffers' });
+          }
+        });
+        done('Price agreed', `${mktMoney(o.agreedPrice)} agreed on ${o.listingTitle}. ${iAmBuyer ? 'The host will see your checkout.' : 'Complete checkout within 72 hours.'}`,
+          `Price agreed at ${mktMoney(o.agreedPrice)}. Held for the buyer for 72 hours. Payment and the sales agreement are completed at normal MainTown checkout.`);
+      }); return;
+    }
+    if (act === 'counter') {
+      if (o.round >= MKT_MAX_PROPOSALS) { showToast('Counter limit reached. Accept or decline.'); return; }
+      const lo = iAmBuyer ? o.history.filter(h => h.by === 'buyer').slice(-1)[0].price : o.price;
+      const hint = iAmBuyer ? `Between ${mktMoney(lo)} and ${mktMoney(o.price)}.` : `Between ${mktMoney(o.price)} and ${mktMoney(o.askingPrice)}.`;
+      const cNeedsConfirm = !iAmBuyer && !o.inspected && !o.inspectionConfirmed;
+      mktModal('Counter offer', `<p class="dealx-sub" style="margin-top:10px;">${hint} Round ${o.round} of ${MKT_MAX_PROPOSALS}.</p>
+        <label class="field-label">Your figure (₦)</label><input id="mk-counter" type="number" inputmode="numeric" ${MKT_INPUT}>
+        <label class="field-label">Note (optional)</label><textarea id="mk-cnote" ${MKT_INPUT} rows="2" maxlength="300"></textarea>
+        ${cNeedsConfirm ? `<label class="dealx-check"><input type="checkbox" id="mk-conf-insp"><span>I confirm the buyer inspected this property by live video or through a representative.</span></label>` : ''}`, 'Send counter', (el, err) => {
+        const v = Number(el.querySelector('#mk-counter').value);
+        const note = el.querySelector('#mk-cnote').value.trim();
+        const min = iAmBuyer ? lo : o.price, max = iAmBuyer ? o.price : o.askingPrice;
+        if (cNeedsConfirm && !el.querySelector('#mk-conf-insp').checked) { err('Please confirm the buyer\'s inspection to continue.'); return false; }
+        if (cNeedsConfirm) o.inspectionConfirmed = true;
+        if (!v || v < min || v > max || v === o.price) { err('Enter a figure ' + hint.toLowerCase().replace('.', '') + ', different from the current one.'); return false; }
+        const leak = note && mtChatLeakCheck(note);
+        if (leak) { err('Sharing ' + leak + ' is not allowed.'); return false; }
+        o.price = v; o.round += 1; o.lastBy = iAmBuyer ? 'buyer' : 'host';
+        o.status = iAmBuyer ? 'pending' : 'countered'; o.expiresAt = Date.now() + (o.windowMs || 48 * 3600000);
+        o.history.push({ by: o.lastBy, price: v, note, at: Date.now() });
+        const conv = mktPairThread('offer', o.id, o.listingTitle, o.buyerId, o.hostId, o.hostRole);
+        if (note) conv.messages.push({ from: 'them', senderId: me, type: 'text', text: mktEsc(note) });
+        done('Counter offer', `${iAmBuyer ? mktFirstName(me) : resolveUserName(me)} countered with ${mktMoney(v)} on ${o.listingTitle}.`, `${iAmBuyer ? 'Buyer' : 'Host'} countered: ${mktMoney(v)}.`);
+      });
+    }
+  }
+  const MKT_STATUS = { pending: 'Awaiting host', countered: 'Awaiting buyer', accepted: 'Agreed', declined: 'Declined', withdrawn: 'Withdrawn', expired: 'Expired', lapsed: 'Hold ended', closed: 'Closed', completed: 'Completed' };
+  function mktOfferCard(o, me) {
+    const iAmBuyer = o.buyerId === me;
+    const myTurn = iAmBuyer ? o.status === 'countered' : o.status === 'pending';
+    const live = ['pending', 'countered'].includes(o.status);
+    const btn = (a, label, cls) => `<button type="button" class="${cls || 'dealx-prev-btn'}" data-oa="${a}" data-id="${o.id}">${label}</button>`;
+    let actions = '';
+    if (o.status === 'accepted') {
+      actions = iAmBuyer ? btn('checkout', 'Continue to checkout', 'dealx-prev-btn') : '';
+      actions += btn('chat', 'Chat');
+    } else if (live) {
+      actions = (myTurn ? btn('accept', 'Accept') + (o.round < MKT_MAX_PROPOSALS ? btn('counter', 'Counter') : '') + btn('decline', 'Decline', 'dealx-del-btn') : '')
+        + (iAmBuyer ? btn('withdraw', 'Withdraw', 'dealx-del-btn') : '') + btn('chat', 'Chat');
+    } else actions = btn('chat', 'Chat');
+    const insp = o.inspected ? 'Inspected' : (o.inspectionConfirmed ? 'Remote inspection confirmed' : `Remote inspection (${o.remoteInspection}) pending host confirmation`);
+    return `<div class="dealx-mine-row" style="display:block;">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;"><p style="font-weight:700;font-size:14px;margin:0 0 4px;">${mktEsc(o.listingTitle)}</p><span class="dealx-status">${MKT_STATUS[o.status] || o.status}</span></div>
+      <p class="dealx-sub" style="margin:0;">${iAmBuyer ? '' : mktEsc(mktFirstName(o.buyerId)) + ' · '}Asking ${mktMoney(o.askingPrice)} · ${o.status === 'accepted' ? 'Agreed' : 'Latest'} <strong>${mktMoney(o.status === 'accepted' ? o.agreedPrice : o.price)}</strong></p>
+      <p class="dealx-note" style="margin:4px 0 0;">${mktEsc(insp)} · Round ${o.round} of ${MKT_MAX_PROPOSALS}${live ? ' · ' + mktTimeLeft(o.expiresAt) : ''}${o.status === 'accepted' ? ' · held ' + mktTimeLeft(o.agreedUntil) : ''}</p>
+      ${live && myTurn ? '<p class="dealx-note" style="margin:4px 0 0;color:#fbbf24;opacity:1;">Your move</p>' : ''}
+      <div class="dealx-review-actions" style="flex-wrap:wrap;">${actions}</div></div>`;
+  }
+  function mktRenderOffers() {
+    mktTick();
+    const body = document.getElementById('mkt-off-body');
+    if (!body) return;
+    const me = getCurrentUserId();
+    const host = mktIsHostRole();
+    document.getElementById('mkt-off-title').textContent = host ? 'Price Offers' : 'My Offers';
+    document.getElementById('mkt-off-sub').textContent = host ? 'Offers on your commercial and land listings. Offers are not binding until the buyer pays.' : 'Offers you have made. Not binding until you pay. MainTown never holds your money.';
+    const mine = mkt.offers.filter(o => host ? o.hostId === me : o.buyerId === me);
+    body.innerHTML = mine.length ? mine.map(o => mktOfferCard(o, me)).join('') : `<div class="dealx-empty">${host ? 'No offers yet.' : 'No offers yet. Open a commercial or land listing and tap Offer a price after your inspection.'}</div>`;
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // ---- Screens, entry points and delegated events ----
+  (function mktInit() {
+    const tpl = (id, title, sub, idBase) => `
+      <div id="${id}" class="screen-view hidden pb-24">
+        <div class="s5-topbar"><button type="button" class="s5-back-btn" data-mkt-back><i data-lucide="arrow-left" class="w-4 h-4"></i></button></div>
+        <h1 class="s5-role-title" id="${idBase}-title" style="margin-bottom:4px;">${title}</h1>
+        <p class="dealx-sub" id="${idBase}-sub">${sub}</p>
+        <div id="${idBase}-body"></div>
+      </div>`;
+    document.getElementById('screen-deals').insertAdjacentHTML('afterend',
+      tpl('screen-requests', 'Property Requests', '', 'mkt-req') + tpl('screen-offers', 'Price Offers', '', 'mkt-off'));
+    ['screen-requests', 'screen-offers'].forEach(id => {
+      document.getElementById(id).addEventListener('click', (e) => {
+        if (e.target.closest('[data-mkt-back]')) { navigateTo(mktHome()); return; }
+      });
+    });
+    const rq = document.getElementById('screen-requests');
+    rq.addEventListener('click', (e) => {
+      if (e.target.closest('#mkt-new-req')) { mktOpenRequestForm(); return; }
+      const c = e.target.closest('[data-rcat]');
+      if (c) { mktReqFilter.cat = c.dataset.rcat; mktRenderRequests(); return; }
+      const p = e.target.closest('[data-rpitch]');
+      if (p) { mktOpenPitch(p.dataset.rpitch); return; }
+      const ch = e.target.closest('[data-rchat]');
+      if (ch) { navigateTo('screen-messages'); renderThreadList(); openThreadDetail(Number(ch.dataset.rchat)); return; }
+      const cl = e.target.closest('[data-rclose]');
+      if (cl) {
+        const r = mkt.requests.find(x => x.id === cl.dataset.rclose);
+        if (r) { r.status = 'closed'; mktSave(); mktRenderRequests(); }
+      }
+    });
+    rq.addEventListener('input', (e) => {
+      if (e.target.id === 'mkt-area-filter') {
+        mktReqFilter.area = e.target.value;
+        const pos = e.target.selectionStart;
+        mktRenderRequests();
+        const f = document.getElementById('mkt-area-filter'); f.focus(); f.setSelectionRange(pos, pos);
+      }
+    });
+    document.getElementById('screen-offers').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-oa]');
+      if (b) mktOfferAct(b.dataset.id, b.dataset.oa);
+    });
+    // Pitch cards in chat: open the pitched listing
+    document.getElementById('msg-chat-log').addEventListener('click', (e) => {
+      const v = e.target.closest('[data-mkt-view]');
+      if (!v) return;
+      const l = listings.find(x => String(x.id) === String(v.dataset.mktView));
+      if (l) openListingInfoFor(l, {});
+      else showToast('This listing is no longer live');
+    });
+    // Tenant search banner
+    const feed = document.getElementById('s5-listing-feed');
+    if (feed) feed.insertAdjacentHTML('beforebegin', `<button type="button" id="mkt-s5-banner" class="dealx-details-btn" style="display:none;margin:0 0 12px;"><i data-lucide="search-check" class="w-4 h-4" style="display:inline;vertical-align:-3px;"></i> Can't find it? Request a property</button>`);
+    document.getElementById('mkt-s5-banner')?.addEventListener('click', () => { navigateTo('screen-requests'); mktOpenRequestForm(); });
+    // Enterprise sales dashboard cards
+    const alloc = document.getElementById('ent-sales-allocation-card');
+    if (alloc) {
+      const mk = (id, icon, t, s) => `<button type="button" class="ent-quick-card" id="${id}"><div class="ent-quick-card-icon"><i data-lucide="${icon}" class="w-5 h-5"></i></div><div class="ent-quick-card-text"><p class="ent-quick-card-title">${t}</p><p class="ent-quick-card-sub">${s}</p></div><i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i></button>`;
+      alloc.insertAdjacentHTML('beforebegin', mk('ent-sales-requests-card', 'search-check', 'Property Requests', 'Pitch your listings to people looking') + mk('ent-sales-offers-card', 'handshake', 'Price Offers', 'Offers on your commercial and land listings'));
+      document.getElementById('ent-sales-requests-card').addEventListener('click', () => navigateTo('screen-requests'));
+      document.getElementById('ent-sales-offers-card').addEventListener('click', () => navigateTo('screen-offers'));
+    }
+    // Dashboard tiles
+    const tileRequests = { icon: 'search-check', label: 'Requests', bg: 'bg-sky-500/10', color: 'text-sky-400', action: 'requests' };
+    const tileOffers = { icon: 'handshake', label: 'Offers', bg: 'bg-orange-500/10', color: 'text-orange-400', action: 'offers' };
+    ['tenant', 'landlord', 'agent'].forEach(r => { dashboardContent[r].actions.push(tileRequests, tileOffers); });
+  })();
 
   // ---- Boot: auto-relogin into a saved demo session, else the Welcome screen shows as-is ----
   checkAutoRelogin();
