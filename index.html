@@ -1386,6 +1386,10 @@
     background: rgba(11,15,25,0.78); color: #fff; font-size: 10.5px; font-weight: 600;
     padding: 4px 8px; border-radius: 999px; backdrop-filter: blur(4px);
   }
+  .dl-kind {
+    position: absolute; left: 8px; bottom: 8px; background: #7c3aed; color: #fff; font-size: 10px; font-weight: 800;
+    letter-spacing: .03em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px;
+  }
   .dl-price { font-size: 17px; font-weight: 800; color: #fff; margin: 10px 0 2px; letter-spacing: -0.01em; }
   .dl-title-line, .dl-loc {
     font-size: 12.5px; color: #94a3b8; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -4503,6 +4507,7 @@
 
   <div id="s5-tenant-pin-controls">
     <div class="toggle-pill-row">
+      <button type="button" class="toggle-pill" id="s5-tab-all" data-listing-type="all" style="flex:0 0 auto; padding:9px 16px;">All</button>
       <button type="button" class="toggle-pill active" id="s5-tab-rent" data-listing-type="rent">For Rent</button>
       <button type="button" class="toggle-pill" id="s5-tab-land" data-listing-type="land">Buy Land &amp; Properties</button>
     </div>
@@ -10730,17 +10735,28 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (role !== 'tenant') { wrap.innerHTML = ''; return; }
     // Only complete listings get a card, so an incomplete record can never leave a stray label on Home.
     const available = rentListings().filter(p => !isListingUnavailable(p) && inCurrentMarket(p) && p.title && (p.ngn || p.usd));
-    const rents = available.filter(p => p.type === 'rent' && p.usage !== 'commercial').slice(0, 8);
+    // "Properties" row: residential rentals, commercial leases and land / houses for sale, interleaved so the slide shows variety.
+    const rentPool = available.filter(p => p.type === 'rent');
+    const salePool = landListingsList().filter(p => !isListingUnavailable(p) && inCurrentMarket(p) && p.title && Number(p.totalPrice) > 0);
+    const rents = [];
+    for (let i = 0; i < Math.max(rentPool.length, salePool.length) && rents.length < 10; i++) {
+      if (rentPool[i]) rents.push(rentPool[i]);
+      if (salePool[i] && rents.length < 10) rents.push(salePool[i]);
+    }
     const shorts = available.filter(p => p.type === 'shortlet').slice(0, 8);
     const favOn = (id) => { try { return cart.some(c => String(c.listingId) === String(id)); } catch (e) { return false; } };
     const card = (p) => {
       const isShortlet = p.type === 'shortlet';
-      const price = currentCurrency === 'usd' ? p.usd : p.ngn;
+      const isSale = p.type === 'land';
+      const price = isSale ? formatMoney(p.totalPrice, 'ngn') : (currentCurrency === 'usd' ? p.usd : p.ngn);
+      const kind = isSale ? (p.propertyKind === 'house' ? 'For sale \u00b7 House' : 'For sale \u00b7 Land')
+        : (isShortlet ? '' : (p.usage === 'commercial' ? 'Commercial lease' : 'For rent'));
       return `
       <div class="dl-card" data-listing-id="${p.id}">
         <div class="dl-img-wrap">
           <img src="${p.img}" alt="${liEsc(p.title)}" loading="lazy" onerror="handleImgError(this,'${isShortlet ? 'shortlet' : 'rent'}')">
           ${isShortlet ? '<span class="dl-badge"><i data-lucide="calendar-days" class="w-3 h-3"></i>Shortlet</span>' : '<span class="dl-badge"><i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i>Preliminary Verification</span>'}
+          ${kind ? `<span class="dl-kind">${kind}</span>` : ''}
           ${mtlFavBtn(p)}
         </div>
         <p class="dl-price">${price}</p>
@@ -10748,8 +10764,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <p class="dl-loc">${liEsc(p.location)}</p>
       </div>`;
     };
-    const section = (title, linkText, items) => items.length ? `
-      <div class="dl-section">
+    const section = (title, linkText, items, kind) => items.length ? `
+      <div class="dl-section" data-kind="${kind || 'properties'}">
         <p class="dl-title">${title}</p>
         <button type="button" class="dl-viewall">${linkText}<i data-lucide="arrow-right" class="w-4 h-4"></i></button>
         <div class="dl-row">${items.map(card).join('')}</div>
@@ -10761,8 +10777,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
     wrap.innerHTML = marketBarHTML() + '<button type="button" class="as-link" data-assist="todo"><i data-lucide="list-checks" class="w-3.5 h-3.5"></i>What do I need to complete?</button>'
-                   + section('Homes for rent in ' + currentMarket().name, 'View all homes to rent', rents)
-                   + section('Shortlets, stay by the night', 'View all shortlets', shorts);
+                   + section('Properties in ' + currentMarket().name, 'View all properties', rents)
+                   + section('Shortlets, stay by the night', 'View all shortlets', shorts, 'shortlet');
     if (window.lucide) lucide.createIcons();
     startDashListingSlides();
   }
@@ -10801,7 +10817,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('dash-listings-wrap').addEventListener('click', (e) => {
     if (e.target.closest('.dl-viewall')) {
       currentListingType = 'rent';
+      // Shortlets have their own row; the Properties row opens the All tab.
+      s5AllMode = !e.target.closest('.dl-section[data-kind="shortlet"]');
       navigateTo('screen-5');
+      setTimeout(() => { s5SyncTabs(); updateS5RoleHeaderForListingType(); rerenderS5Feed(); }, 0);
       return;
     }
     const card = e.target.closest('.dl-card');
@@ -11438,6 +11457,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   let currentCurrency = 'ngn';
   let currentListingType = 'rent'; // 'rent' | 'land'
+  let s5AllMode = false;           // true while the "All" tab is showing rentals, commercial leases and land / houses together
+  function s5SyncTabs() {
+    const pick = s5AllMode ? 's5-tab-all' : (currentListingType === 'land' ? 's5-tab-land' : 's5-tab-rent');
+    ['s5-tab-all', 's5-tab-rent', 's5-tab-land'].forEach(id => { const b = document.getElementById(id); if (b) b.classList.toggle('active', id === pick); });
+    const cur = document.getElementById('s5-currency-toggle-wrap');
+    if (cur) cur.style.display = (!s5AllMode && currentListingType === 'rent') ? 'flex' : 'none';
+  }
 
   // ==================================================================
   // ---- Dynamic Persona Rebranding: Tenant -> Client / Buyer ----
@@ -11456,7 +11482,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Land/Property feed — without needing a full populateScreen5() re-render.
   function updateS5RoleHeaderForListingType() {
     if ((currentUserRole || 'tenant') !== 'tenant') return;
-    const cfg = currentListingType === 'land'
+    const cfg = s5AllMode
+      ? { icon: 'building-2', eyebrow: 'Property Search', title: 'Find your next property', sub: 'Rentals, commercial leases, land and houses for sale, all in one place.' }
+      : currentListingType === 'land'
       ? { icon: 'landmark', eyebrow: 'Buyer / Client Search', title: 'Find land & property to buy', sub: 'Verified titles, secure payment protection, and site inspections on request.' }
       : roleHeaderConfig.tenant;
     const eyebrowEl = document.getElementById('s5-role-eyebrow');
@@ -12299,12 +12327,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function fltStates() { const out = []; MARKETS.forEach(m => { const st = STATE_OF[m.id]; if (st && !out.includes(st)) out.push(st); }); return out; }
   function fltCitiesIn(state) { return MARKETS.filter(m => STATE_OF[m.id] === state); }
   function fltBaseFor(cityId) {
-    const src = currentListingType === 'rent' ? rentListings() : landListingsList();
+    const src = s5AllMode ? rentListings().filter(l => l.type === 'rent').concat(landListingsList())
+      : (currentListingType === 'rent' ? rentListings() : landListingsList());
     return src.filter(l => !isListingUnavailable(l) && listingMarketId(l) === cityId);
   }
   function fltResultCount() {
     const d = fltDraft, kind = currentListingType === 'rent' ? 'rent' : 'land';
-    return applyS5Filters(fltBaseFor(d.city), kind, Object.assign({}, d, { q: s5Filters.q }), d.city).length;
+    const dd = Object.assign({}, d, { q: s5Filters.q });
+    if (s5AllMode) {
+      const base = fltBaseFor(d.city);
+      return applyS5Filters(base.filter(l => l.type === 'rent'), 'rent', dd, d.city).length + applyS5Filters(base.filter(l => l.type === 'land'), 'land', dd, d.city).length;
+    }
+    return applyS5Filters(fltBaseFor(d.city), kind, dd, d.city).length;
   }
   function updateFltFooter() {
     const btn = document.getElementById('flt-apply');
@@ -12326,7 +12360,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function renderFilterSheet() {
     const pane = document.getElementById('flt-pane');
     if (!pane || !fltDraft) return;
-    const d = fltDraft, isRent = currentListingType === 'rent';
+    const d = fltDraft, isAll = s5AllMode, isRent = currentListingType === 'rent' && !isAll;
     const state = STATE_OF[d.city] || '';
     const areas = marketAreaList(d.city), counts = {};
     fltBaseFor(d.city).forEach(l => { const id = listingAreaId(l); if (id) counts[id] = (counts[id] || 0) + 1; });
@@ -12337,7 +12371,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const opt = (attr, val, label, on) => `<button type="button" class="flt-opt${on ? ' on' : ''}" ${attr}="${val}">${label}</button>`;
     pane.innerHTML = `
       <div class="mkt-sheet-head">
-        <div><p class="mkt-sheet-title">Filters</p><p class="mkt-sheet-sub">${isRent ? 'For rent' : 'Buy land & properties'}</p></div>
+        <div><p class="mkt-sheet-title">Filters</p><p class="mkt-sheet-sub">${isAll ? 'All properties' : (isRent ? 'For rent' : 'Buy land & properties')}</p></div>
         <button type="button" class="sheet-close-btn" data-flt-close aria-label="Close">${MKT_SVG.close}</button>
       </div>
       <div class="flt-body">
@@ -12358,7 +12392,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <input class="field-input" id="flt-max" type="text" inputmode="numeric" placeholder="Max" value="${d.maxPrice || ''}">
           </div>
         </div>
-        ${!isRent ? `<div class="flt-sec"><p class="flt-h">Property type</p><div class="flt-wrap">${[['all', 'All'], ['land', 'Land only'], ['house', 'Any house'], ['Bungalow', 'Bungalow'], ['Duplex', 'Duplex'], ['Detached Duplex', 'Detached Duplex'], ['Semi-Detached Duplex', 'Semi-Detached'], ['Terrace', 'Terrace'], ['Block of Flats', 'Block of Flats'], ['Mansion', 'Mansion'], ['Commercial Building', 'Commercial']].map(x => opt('data-flt-ptype', x[0], x[1], (d.propType || 'all') === x[0])).join('')}</div></div>` : ''}
+        ${(!isRent && !isAll) ? `<div class="flt-sec"><p class="flt-h">Property type</p><div class="flt-wrap">${[['all', 'All'], ['land', 'Land only'], ['house', 'Any house'], ['Bungalow', 'Bungalow'], ['Duplex', 'Duplex'], ['Detached Duplex', 'Detached Duplex'], ['Semi-Detached Duplex', 'Semi-Detached'], ['Terrace', 'Terrace'], ['Block of Flats', 'Block of Flats'], ['Mansion', 'Mansion'], ['Commercial Building', 'Commercial']].map(x => opt('data-flt-ptype', x[0], x[1], (d.propType || 'all') === x[0])).join('')}</div></div>` : ''}
         ${isRent ? `<div class="flt-sec"><p class="flt-h">Residential or Commercial</p><div class="flt-wrap">${opt('data-flt-usage', 'all', 'All', (d.usage || 'all') === 'all')}${opt('data-flt-usage', 'residential', 'Residential', d.usage === 'residential')}${opt('data-flt-usage', 'commercial', 'Commercial', d.usage === 'commercial')}</div></div><div class="flt-sec"><p class="flt-h">Property type</p><div class="flt-wrap">${opt('data-flt-rtype', 'all', 'All', d.rentType === 'all')}${opt('data-flt-rtype', 'rent', 'Rent', d.rentType === 'rent')}${opt('data-flt-rtype', 'shortlet', 'Shortlet', d.rentType === 'shortlet')}</div></div>` : ''}
         <div class="flt-sec"><p class="flt-h">Extras</p><div class="flt-wrap">${opt('data-flt-video', '1', 'Has walkthrough video', d.hasVideo)}</div></div>
         <div class="flt-sec"><p class="flt-h">Sort by</p><div class="flt-wrap">${FLT_SORTS.map(x => opt('data-flt-sort', x[0], x[1], d.sort === x[0])).join('')}</div></div>
@@ -12821,7 +12855,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     s5Filters.q = '';
 
     if (role === 'tenant') {
-      document.getElementById('s5-currency-toggle-wrap').style.display = currentListingType === 'rent' ? 'flex' : 'none';
+      s5SyncTabs();
       updateS5RoleHeaderForListingType();
       if (currentListingType === 'rent') renderTenantFeed(currentCurrency); else renderLandFeed();
     } else if (role === 'landlord') {
@@ -12850,18 +12884,32 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('s5-tab-rent').addEventListener('click', () => {
     clearS5Filters(true);
     currentListingType = 'rent';
-    document.getElementById('s5-tab-rent').classList.add('active');
-    document.getElementById('s5-tab-land').classList.remove('active');
-    document.getElementById('s5-currency-toggle-wrap').style.display = 'flex';
+    s5AllMode = false;
+    s5SyncTabs();
     updateS5RoleHeaderForListingType();
     renderTenantFeed(currentCurrency);
   });
+  document.getElementById('s5-tab-all').addEventListener('click', () => {
+    clearS5Filters(true);
+    currentListingType = 'rent';   // guests are still "tenants" until they open a land card
+    s5AllMode = true;
+    s5SyncTabs();
+    updateS5RoleHeaderForListingType();
+    renderAllFeed();
+  });
+  // In the All feed, tapping a card sets Tenant vs Client / Buyer wording for that listing.
+  document.getElementById('s5-listing-feed').addEventListener('click', (e) => {
+    if (!s5AllMode) return;
+    const el = e.target.closest('[data-listing-id]');
+    if (!el) return;
+    const l = listings.find(x => String(x.id) === String(el.dataset.listingId));
+    if (l) currentListingType = l.type === 'land' ? 'land' : 'rent';
+  }, true);
   document.getElementById('s5-tab-land').addEventListener('click', () => {
     clearS5Filters(true);
     currentListingType = 'land';
-    document.getElementById('s5-tab-land').classList.add('active');
-    document.getElementById('s5-tab-rent').classList.remove('active');
-    document.getElementById('s5-currency-toggle-wrap').style.display = 'none';
+    s5AllMode = false;
+    s5SyncTabs();
     updateS5RoleHeaderForListingType();
     renderLandFeed();
   });
@@ -12876,7 +12924,32 @@ This voucher is auto-generated and serves as proof of settlement.`;
     });
   });
 
+  // "All" tab: rentals + commercial leases + land / houses for sale in one feed, interleaved.
+  function renderAllFeed() {
+    const feed = document.getElementById('s5-listing-feed');
+    const cmpLink = document.getElementById('s5-compare-link'); if (cmpLink) cmpLink.style.display = 'none';
+    renderMarketBars();
+    renderS5FilterChips();
+    if (!marketIsLive()) { feed.innerHTML = marketComingSoonHTML(currentMarket(), 'page'); if (window.lucide) lucide.createIcons(); startMarketHeroes(); return; }
+    dxApplyDeals();
+    const baseRent = rentListings().filter(l => l.type === 'rent' && !isListingUnavailable(l) && inCurrentMarket(l));
+    const baseLand = landListingsList().filter(l => !isListingUnavailable(l) && inCurrentMarket(l));
+    const rents = applyS5Filters(baseRent, 'rent');
+    const lands = applyS5Filters(baseLand, 'land');
+    const total = baseRent.length + baseLand.length;
+    let merged = [];
+    if (s5Filters.sort === 'price-asc' || s5Filters.sort === 'price-desc') {
+      merged = rents.concat(lands).sort((a, b) => (s5Filters.sort === 'price-asc' ? 1 : -1) * (listingPriceNgn(a) - listingPriceNgn(b)));
+    } else {
+      for (let i = 0; i < Math.max(rents.length, lands.length); i++) { if (rents[i]) merged.push(rents[i]); if (lands[i]) merged.push(lands[i]); }
+    }
+    setS5ResultCount(merged.length, total);
+    if (!merged.length && total) { feed.innerHTML = s5NoMatchHTML(); return; }
+    feed.innerHTML = merged.map(p => p.type === 'land' ? s5LandCardHtml(p) : s5RentCardHtml(p, currentCurrency)).join('');
+    if (window.lucide) lucide.createIcons();
+  }
   function renderTenantFeed(currency) {
+    if (s5AllMode) { renderAllFeed(); return; }
     const feed = document.getElementById('s5-listing-feed');
     const cmpLink = document.getElementById('s5-compare-link'); if (cmpLink) cmpLink.style.display = 'inline-flex';
     renderMarketBars();
@@ -12931,6 +13004,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
 
   function renderLandFeed() {
+    if (s5AllMode) { renderAllFeed(); return; }
     const feed = document.getElementById('s5-listing-feed');
     const cmpLink = document.getElementById('s5-compare-link'); if (cmpLink) cmpLink.style.display = 'none';
     renderMarketBars();
