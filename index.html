@@ -3647,6 +3647,13 @@
   .reel-loc svg { width: 13px; height: 13px; flex-shrink: 0; }
   .reel-price { color: #fff; font-size: 20px; font-weight: 800; margin: 0; }
   .reel-price span { color: #cbd5e1; font-size: 12px; font-weight: 600; margin-left: 4px; }
+  .reel-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 0; }
+  .reel-price .reel-details-link {
+    margin-left: 10px; padding: 0; border: none; background: none; cursor: pointer; font: inherit;
+    font-size: 12.5px; font-weight: 700; color: #d8b4fe; text-decoration: underline; text-underline-offset: 3px;
+    display: inline-flex; align-items: center; gap: 2px; white-space: nowrap;
+  }
+  .reel-price .reel-details-link svg { width: 13px; height: 13px; }
   .reel-rail { display: flex; flex-direction: column; align-items: center; gap: 14px; }
   .reel-act { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 64px; }
   .reel-rail .reel-act-btn, .reel-rail .s5-fav-btn {
@@ -11843,9 +11850,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Inspection Manager / Post-Lease views filter correctly by whoever is
   // actually logged in, instead of always showing Frank Hood's data.
   const DEFAULT_LISTINGS = [
-    { id: 1, type: 'rent', title: '2-Bed Flat, Lekki Phase 1', location: 'Lekki Phase 1, Lagos', ngn: '₦180,000 / mo', usd: '$220 / mo', img: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=240&fit=crop&q=80', listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', availability: sampleAvailability() },
-    { id: 2, type: 'rent', title: 'Studio Apartment, Yaba', location: 'Yaba, Lagos', ngn: '₦95,000 / mo', usd: '$115 / mo', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=240&fit=crop&q=80', listedBy: 'landlord', listedByRole: 'LANDLORD', ownerId: 'frank', availability: sampleAvailability() },
-    { id: 3, type: 'rent', title: '3-Bed Duplex, Ikeja GRA', location: 'Ikeja GRA, Lagos', ngn: '₦350,000 / mo', usd: '$430 / mo', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=240&fit=crop&q=80', listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', availability: sampleAvailability() },
+    { id: 1, type: 'rent', title: '2-Bed Flat, Lekki Phase 1', location: 'Lekki Phase 1, Lagos', ngn: '₦180,000 / mo', usd: '$220 / mo', img: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=240&fit=crop&q=80', listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', availability: sampleAvailability() },
+    { id: 2, type: 'rent', title: 'Studio Apartment, Yaba', location: 'Yaba, Lagos', ngn: '₦95,000 / mo', usd: '$115 / mo', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=240&fit=crop&q=80', listedBy: 'landlord', listedByRole: 'LANDLORD', ownerId: 'frank', hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', availability: sampleAvailability() },
+    { id: 3, type: 'rent', title: '3-Bed Duplex, Ikeja GRA', location: 'Ikeja GRA, Lagos', ngn: '₦350,000 / mo', usd: '$430 / mo', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=240&fit=crop&q=80', listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', availability: sampleAvailability() },
     { id: 4, type: 'land', propertyKind: 'land', landUse: 'Residential', title: '450sqm Land, Ibeju-Lekki', location: 'Ibeju-Lekki, Lagos', totalPrice: 8500000, img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=240&fit=crop&q=80', photos: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1500534623283-312aade485b7?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1501183638710-841dd1904471?w=400&h=240&fit=crop&q=80'], listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', availability: sampleAvailability(), hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
     { id: 5, type: 'land', propertyKind: 'house', houseType: 'Bungalow', bedrooms: 3, title: '3-Bed Bungalow, Epe (Outright/Installment)', location: 'Epe, Lagos', totalPrice: 22000000, img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=240&fit=crop&q=80', photos: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=240&fit=crop&q=80'], listedBy: 'landlord', listedByRole: 'LANDLORD', ownerId: 'frank', availability: sampleAvailability(), hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' }
   ];
@@ -13052,14 +13059,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const isLand = p.type === 'land', isShortlet = p.type === 'shortlet';
     const price = isLand ? formatMoney(p.totalPrice, 'ngn') : (currentCurrency === 'usd' ? p.usd : p.ngn);
     const unit = isLand ? 'total price' : (isShortlet ? 'shortlet' : (p.usage === 'commercial' ? String(p.commercialType || 'commercial').toLowerCase() : 'rent'));
-    const ctaLabel = isLand ? 'Buy Now' : (isShortlet ? 'Book Now' : 'Rent Now');
-    const ctaIcon = isLand ? 'shopping-bag' : (isShortlet ? 'calendar-days' : 'key');
+    const isCommercial = !isLand && !isShortlet && p.usage === 'commercial';
+    const ctaLabel = isLand ? 'Buy Now' : (isShortlet ? 'Reserve Stay' : (isCommercial ? 'Lease Now' : 'Rent Now'));
+    const ctaIcon = isLand ? 'shopping-bag' : (isShortlet ? 'calendar-days' : (isCommercial ? 'building-2' : 'key'));
+    const galleryLabel = isLand ? 'View Details' : (isShortlet ? 'View Photos' : 'View Gallery');
     let offerBtn = '';
     if (mktOfferKind(p) && mktRole() === 'tenant') {
       const live = mktLiveOffer(p);
       offerBtn = live
         ? `<button type="button" class="reel-cta secondary" data-reel-act="offer-view">${live.status === 'accepted' ? 'Agreed price' : 'My offer'}</button>`
         : `<button type="button" class="reel-cta secondary" data-reel-act="offer">Make an Offer</button>`;
+    } else {
+      // Rentals, shortlets and commercial spaces: a secondary button that opens the full detail sheet / gallery.
+      offerBtn = `<button type="button" class="reel-cta secondary" data-reel-act="details"><i data-lucide="images"></i>${galleryLabel}</button>`;
     }
     // Short-let stays don't use inspection scheduling anywhere else in the app, so no Set Inspection here either.
     const inspectBtn = isShortlet ? '' : `
@@ -13073,7 +13085,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <div class="reel-info">
             <p class="reel-title">${liEsc(p.title)}</p>
             <p class="reel-loc"><i data-lucide="map-pin"></i>${liEsc(p.location)}</p>
-            <p class="reel-price">${liEsc(price)}<span>${liEsc(unit)}</span></p>
+            <p class="reel-price">${liEsc(price)}<span>${liEsc(unit)}</span><button type="button" class="reel-details-link" data-reel-act="details">View details<i data-lucide="chevron-right"></i></button></p>
           </div>
           <div class="reel-rail">
             <div class="reel-act">${mtlFavBtn(p)}<span>Save</span></div>${inspectBtn}
@@ -13181,6 +13193,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (isListingUnavailable(p)) { showToast('This property is no longer available'); return; }
     switch (actBtn.dataset.reelAct) {
       case 'share': reelShare(p); break;
+      case 'details': {
+        const v = slide.querySelector('video');
+        if (v && !v.paused) { v.pause(); slide.classList.add('is-paused'); }
+        openListingInfo(p.id);
+        break;
+      }
       case 'inspect': requireScreening(() => openInspectionModal(p)); break;
       case 'offer': mktOpenOffer(p.id); break;
       case 'offer-view': navigateTo('screen-offers'); break;
@@ -22332,6 +22350,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // A stay chat belongs only to the guest and the host on that booking.
     visibleConversations = visibleConversations.filter(c => c.convType !== 'shortlet' || (Array.isArray(c.participantIds) && c.participantIds.includes(uid)));
     visibleConversations = visibleConversations.filter(c => c.convType !== 'pair' || (Array.isArray(c.participantIds) && c.participantIds.includes(uid)));
+    // Property-request pitches are not chats: Messages only holds conversations that start after a confirmed inspection.
+    visibleConversations = visibleConversations.filter(c => !(c.convType === 'pair' && c.pairKind === 'request'));
 
     if (!visibleConversations.length) {
       list.innerHTML = '';
@@ -29355,7 +29375,21 @@ available in the Post-Lease Hub and this chat thread.`
   function mktMyRequestCard(r) {
     const s = mktReqSummary(r);
     const open = r.status === 'active';
-    const pitches = r.pitches.map(p => `<div class="dealx-detail-row"><span>${mktEsc(p.hostName)} <small style="opacity:.6;">(${mktEsc(p.hostRole === 'enterprise_staff' ? 'Sales manager' : p.hostRole)})</small> · ${p.listingIds.length} listing${p.listingIds.length > 1 ? 's' : ''}</span><button type="button" class="dealx-prev-btn" data-rchat="${p.convId}">Open chat</button></div>`).join('');
+    const pitches = r.pitches.map(p => {
+      const role = mktEsc(p.hostRole === 'enterprise_staff' ? 'Sales manager' : p.hostRole);
+      const rows = (p.listingIds || []).map(id => {
+        const l = listings.find(x => String(x.id) === String(id));
+        const t = l ? l.title : 'Listing';
+        // Land / property sales (and commercial rent) also take a price offer, straight from the card.
+        let offerB = '';
+        if (l && mktOfferKind(l) && mktRole() === 'tenant' && !isListingUnavailable(l)) {
+          const live = mktLiveOffer(l);
+          offerB = `<button type="button" class="dealx-prev-btn" data-roffer="${mktEsc(id)}" data-roffer-live="${live ? '1' : ''}">${live ? 'My offer' : 'Make an offer'}</button>`;
+        }
+        return `<div class="dealx-detail-row"><span>${mktEsc(t)}</span><span style="display:flex;gap:6px;flex-shrink:0;"><button type="button" class="dealx-prev-btn" data-rdetails="${mktEsc(id)}">View details</button>${offerB}</span></div>`;
+      }).join('');
+      return `<p class="dealx-note" style="margin:8px 0 2px;">${mktEsc(p.hostName)} <small style="opacity:.6;">(${role})</small> pitched ${p.listingIds.length} listing${p.listingIds.length > 1 ? 's' : ''}</p>${rows}`;
+    }).join('');
     return `<div class="dealx-mine-row" style="display:block;">
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;"><p style="font-weight:700;font-size:14px;margin:0 0 4px;">${mktEsc(s.head)}</p><span class="dealx-status">${open ? 'Open' : mktEsc(r.status)}</span></div>
       <p class="dealx-sub" style="margin:0;">${mktEsc(s.budget)}${r.bedrooms ? ' · ' + mktEsc(r.bedrooms) + ' bed' : ''}</p>
@@ -29401,7 +29435,7 @@ available in the Post-Lease Hub and this chat thread.`
         saveConversations();
         fresh.pitches.push({ id: 'pt' + Date.now(), hostId: me, hostRole: mktRole(), hostName: resolveUserName(me), listingIds: ids, at: Date.now(), convId: conv.id });
         mktSave();
-        mktNotify(fresh.requesterId, 'New property pitch', `${resolveUserName(me)} pitched ${snaps.length} ${snaps.length > 1 ? 'properties' : 'property'} for your request.`, { screen: 'screen-messages', convId: conv.id });
+        mktNotify(fresh.requesterId, 'New property pitch', `${resolveUserName(me)} pitched ${snaps.length} ${snaps.length > 1 ? 'properties' : 'property'} for your request.`, { screen: 'mktRequests' });
         showToast('Pitch sent to ' + fresh.requesterFirst);
         mktRenderRequests();
       });
@@ -29851,8 +29885,12 @@ available in the Post-Lease Hub and this chat thread.`
       if (c) { mktReqFilter.cat = c.dataset.rcat; mktRenderRequests(); return; }
       const p = e.target.closest('[data-rpitch]');
       if (p) { mktOpenPitch(p.dataset.rpitch); return; }
-      const ch = e.target.closest('[data-rchat]');
-      if (ch) { navigateTo('screen-messages'); renderThreadList(); openThreadDetail(Number(ch.dataset.rchat)); return; }
+      // Request pitches never open a chat. Chat only opens after an inspection is confirmed,
+      // so "View details" opens the listing sheet and the normal Rent / Book / Buy flow takes over.
+      const vd = e.target.closest('[data-rdetails]');
+      if (vd) { openListingInfo(vd.dataset.rdetails); return; }
+      const of = e.target.closest('[data-roffer]');
+      if (of) { if (of.dataset.rofferLive) navigateTo('screen-offers'); else mktOpenOffer(of.dataset.roffer); return; }
       const cl = e.target.closest('[data-rclose]');
       if (cl) {
         const r = mkt.requests.find(x => x.id === cl.dataset.rclose);
