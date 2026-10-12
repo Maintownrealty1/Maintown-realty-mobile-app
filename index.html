@@ -3423,6 +3423,11 @@
   .dealx-poster { opacity: .7; display: inline-flex; align-items: center; gap: 4px; }
   .dealx-poster svg { width: 13px; height: 13px; color: #16a34a; }
   .dealx-empty { text-align: center; padding: 40px 10px; opacity: .65; font-size: 13px; }
+  .dealx-empty strong { display: block; font-size: 14.5px; margin-bottom: 4px; }
+  .dash-start-card { margin: 0 0 16px; padding: 16px; border-radius: 20px; border: 1px dashed rgba(167,139,250,.45); background: rgba(124,58,237,.1); }
+  .dash-start-card h3 { margin: 0 0 4px; font-size: 15px; font-weight: 800; }
+  .dash-start-card p { margin: 0 0 12px; font-size: 12.5px; opacity: .75; line-height: 1.45; }
+  .dash-start-card button { padding: 10px 16px; border-radius: 12px; border: none; background: #7c3aed; color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; }
   .dealx-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 14px; border-radius: 14px; border: 0; background: #7c3aed; color: #fff; font-size: 14px; font-weight: 700; margin-top: 8px; }
   .dealx-btn.ghost { background: transparent; border: 1px solid rgba(148,163,184,0.35); color: inherit; }
   .dealx-post-btn { position: fixed; left: 20px; right: 20px; bottom: 104px; width: auto; z-index: 30; box-shadow: 0 10px 24px -8px rgba(124,58,237,0.6); }
@@ -3621,6 +3626,22 @@
     scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;
   }
   .reel-feed::-webkit-scrollbar { display: none; }
+  .reel-strip { margin: 4px 0 14px; }
+  .reel-strip-head { display: flex; align-items: center; justify-content: space-between; padding: 0 2px 8px; }
+  .reel-strip-title { margin: 0; font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+  .reel-strip-title i, .reel-strip-title svg { width: 16px; height: 16px; color: #a78bfa; }
+  .reel-strip-sub { margin: 1px 0 0; font-size: 11.5px; opacity: .6; }
+  .reel-strip-all { border: none; background: rgba(124,58,237,.18); color: #c4b5fd; font-weight: 700; font-size: 12px; padding: 7px 12px; border-radius: 999px; cursor: pointer; }
+  .reel-strip-row { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 6px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .reel-strip-row::-webkit-scrollbar { display: none; }
+  .reel-thumb { position: relative; flex: 0 0 104px; height: 160px; border-radius: 16px; overflow: hidden; border: none; padding: 0; cursor: pointer; scroll-snap-align: start; background: #0f172a center/cover no-repeat; text-align: left; color: #fff; }
+  .reel-thumb::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(2,6,23,.92) 0%, rgba(2,6,23,.15) 55%, rgba(2,6,23,.25) 100%); }
+  .reel-thumb-play { position: absolute; top: 8px; right: 8px; z-index: 2; width: 24px; height: 24px; border-radius: 50%; background: rgba(15,23,42,.65); display: flex; align-items: center; justify-content: center; }
+  .reel-thumb-play svg { width: 11px; height: 11px; fill: #fff; stroke: #fff; }
+  .reel-thumb-tag { position: absolute; top: 8px; left: 8px; z-index: 2; font-size: 9.5px; font-weight: 800; letter-spacing: .04em; padding: 3px 7px; border-radius: 999px; background: #7c3aed; text-transform: uppercase; }
+  .reel-thumb-meta { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 2; }
+  .reel-thumb-price { font-size: 12.5px; font-weight: 800; margin: 0; }
+  .reel-thumb-title { font-size: 10.5px; margin: 1px 0 0; opacity: .85; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .reel-slide {
     position: relative; height: 100%; overflow: hidden; scroll-snap-align: start; scroll-snap-stop: always;
     background: #000 center / cover no-repeat;
@@ -4495,6 +4516,7 @@
 
   <!-- ---- TENANT VIEW: Search & Book ---- -->
   <div id="tenant-view" class="role-view hidden">
+    <div id="s5-reel-strip" class="reel-strip" style="display:none;"></div>
     <div id="s5-filter-chips"></div>
     <button type="button" class="as-link" id="s5-compare-link" data-assist="compare"><i data-lucide="columns-2" class="w-3.5 h-3.5"></i>Compare listings</button>
 
@@ -9474,8 +9496,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const myLeases = (appState.leases || []).filter(l => l.ownerId === uid);
       const tenantCount = myLeases.length;
       const propertyCount = new Set(myLeases.map(l => l.listingId)).size;
+      const myListingCount = (typeof listings !== 'undefined' ? listings : []).filter(l => l.ownerId === uid && l.status !== 'draft').length;
       const sub = tenantCount === 0
-        ? 'No active tenants yet'
+        ? (myListingCount === 0 ? 'Add your first property to start earning' : 'Your listings are live. Earnings appear once a tenant pays')
         : `${tenantCount} active ${tenantCount === 1 ? 'tenant' : 'tenants'} across ${propertyCount} ${propertyCount === 1 ? 'property' : 'properties'}`;
       return { value: formatMoney(earnings, 'ngn'), sub };
     }
@@ -9484,7 +9507,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const payouts = (appState.payouts || []).filter(p => p.agentId === uid);
       const commission = payouts.reduce((sum, p) => sum + (p.amount || 0), 0);
       const managedCount = (typeof listings !== 'undefined' ? listings : []).filter(l => l.agentId === uid).length;
-      const sub = managedCount === 0 ? 'No listings under management yet' : `${managedCount} ${managedCount === 1 ? 'listing' : 'listings'} under management`;
+      const sub = managedCount === 0 ? 'List a property to start earning commission' : `${managedCount} ${managedCount === 1 ? 'listing' : 'listings'} under management`;
       return { value: formatMoney(commission, 'ngn'), sub };
     }
 
@@ -10817,6 +10840,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="dash-tile-icon-wrap ${a.bg}"><i data-lucide="${a.icon}" class="w-6 h-6 ${a.color}"></i></div>
         <div class="dash-tile-label">${a.label}</div>
       </div>`).join('');
+    const startOld = document.getElementById('dash-start-card'); if (startOld) startOld.remove();
+    if (role === 'landlord' || role === 'agent') {
+      const myUid = getCurrentUserId();
+      const ownCount = listings.filter(l => l.status !== 'draft' && (role === 'agent' ? l.agentId === myUid : l.ownerId === myUid)).length;
+      if (ownCount === 0) {
+        grid.insertAdjacentHTML('beforebegin', `<div class="dash-start-card" id="dash-start-card"><h3>Start here: list your first property</h3><p>Add photos, a price and a walkthrough video. Once it is live, guests can find it, inspect it and pay through MainTown.</p><button type="button" id="dash-start-btn">List a property</button></div>`);
+        document.getElementById('dash-start-btn').addEventListener('click', () => { const t = grid.querySelector('.dash-tile[data-action="browse"]'); if (t) t.click(); });
+      }
+    }
     if (role === 'landlord' || role === 'agent') {
       const dealCount = getClosedDeals(role).length;
       const tileEl = grid.querySelector(`.dash-tile[data-action="${role === 'agent' ? 'clients' : 'tenants'}"]`);
@@ -12886,13 +12918,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
             <button type="button" class="s5-action-btn wt-btn" data-title="${p.title}"><i data-lucide="video" class="w-4 h-4"></i>Virtual Walkthrough</button>
           </div>
           ${isShortlet
-            ? `<button type="button" class="s5-action-btn primary shortlet-book-btn${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;" ${unavailable ? 'disabled' : ''}><i data-lucide="calendar-days" class="w-4 h-4"></i>Book Now</button>
+            ? `<button type="button" class="s5-action-btn primary shortlet-book-btn${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;" ${unavailable ? 'disabled' : ''}><i data-lucide="calendar-days" class="w-4 h-4"></i>${listingCta(p).label}</button>
           ${unavailable ? `<p class="s5-unavailable-notice rented"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i>This property is no longer available as it has been successfully RENTED.</p>` : ''}`
             : `
           <!-- CTA Consolidation: "Book Inspection" and "Add to Inspection Cart" have been
                merged into the single "View Payment Options" CTA below, which opens a
                consolidated drawer offering Schedule Inspection / Add to Inspection Cart. -->
-          <button type="button" class="s5-action-btn primary payment-options-btn${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;" ${unavailable ? 'disabled' : ''}><i data-lucide="key" class="w-4 h-4"></i>Rent Now</button>
+          <button type="button" class="s5-action-btn primary payment-options-btn${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;" ${unavailable ? 'disabled' : ''}><i data-lucide="${listingCta(p).icon}" class="w-4 h-4"></i>${listingCta(p).label}</button>
           ${unavailable ? `<p class="s5-unavailable-notice rented"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i>This property is no longer available as it has been successfully RENTED.</p>` : ''}`}
         </div>
       </div>`;
@@ -13055,13 +13087,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
       .map(x => x.l);
   }
 
+  // One set of button words for a listing, used by the feed card, the details sheet and the reels.
+  function listingCta(p) {
+    const isLand = p.type === 'land', isShortlet = p.type === 'shortlet';
+    const isCommercial = !isLand && !isShortlet && p.usage === 'commercial';
+    if (isLand) return { label: 'Buy Now', icon: 'shopping-bag' };
+    if (isShortlet) return { label: 'Reserve Stay', icon: 'calendar-days' };
+    if (isCommercial) return { label: 'Lease Now', icon: 'building-2' };
+    return { label: 'Rent Now', icon: 'key' };
+  }
   function reelSlideHtml(p) {
     const isLand = p.type === 'land', isShortlet = p.type === 'shortlet';
     const price = isLand ? formatMoney(p.totalPrice, 'ngn') : (currentCurrency === 'usd' ? p.usd : p.ngn);
     const unit = isLand ? 'total price' : (isShortlet ? 'shortlet' : (p.usage === 'commercial' ? String(p.commercialType || 'commercial').toLowerCase() : 'rent'));
     const isCommercial = !isLand && !isShortlet && p.usage === 'commercial';
-    const ctaLabel = isLand ? 'Buy Now' : (isShortlet ? 'Reserve Stay' : (isCommercial ? 'Lease Now' : 'Rent Now'));
-    const ctaIcon = isLand ? 'shopping-bag' : (isShortlet ? 'calendar-days' : (isCommercial ? 'building-2' : 'key'));
+    const ctaLabel = listingCta(p).label;
+    const ctaIcon = listingCta(p).icon;
     const galleryLabel = isLand ? 'View Details' : (isShortlet ? 'View Photos' : 'View Gallery');
     let offerBtn = '';
     if (mktOfferKind(p) && mktRole() === 'tenant') {
@@ -13125,7 +13166,31 @@ This voucher is auto-generated and serves as proof of settlement.`;
     });
   }
 
-  function reelOpen() {
+  // Walkthrough strip at the top of the guest feed: tap a thumbnail to start the reels on that listing.
+  function reelRenderStrip() {
+    const el = document.getElementById('s5-reel-strip');
+    if (!el) return;
+    if ((currentUserRole || 'tenant') !== 'tenant') { el.style.display = 'none'; return; }
+    let items = [];
+    try { items = reelListings(); } catch (e) { items = []; }
+    if (!items.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    const tagOf = (p) => p.type === 'land' ? 'Buy' : (p.type === 'shortlet' ? 'Stay' : (p.usage === 'commercial' ? 'Lease' : 'Rent'));
+    const thumbs = items.slice(0, 10).map(p => {
+      const price = p.type === 'land' ? formatMoney(p.totalPrice, 'ngn') : (currentCurrency === 'usd' ? p.usd : p.ngn);
+      return `<button type="button" class="reel-thumb" data-strip-id="${liEsc(p.id)}" style="background-image:url('${liEsc(p.img)}')" aria-label="Watch walkthrough: ${liEsc(p.title)}">
+        <span class="reel-thumb-tag">${tagOf(p)}</span><span class="reel-thumb-play">${REEL_SVG.play}</span>
+        <span class="reel-thumb-meta"><span class="reel-thumb-price" style="display:block;">${liEsc(price)}</span><span class="reel-thumb-title" style="display:-webkit-box;">${liEsc(p.title)}</span></span></button>`;
+    }).join('');
+    el.innerHTML = `<div class="reel-strip-head"><div><p class="reel-strip-title"><i data-lucide="film"></i>Walkthroughs</p><p class="reel-strip-sub">See inside before you travel</p></div><button type="button" class="reel-strip-all" data-strip-all="1">Watch all</button></div><div class="reel-strip-row">${thumbs}</div>`;
+    el.style.display = 'block';
+    if (window.lucide) lucide.createIcons();
+  }
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-strip-id]');
+    if (t) { reelOpen(t.dataset.stripId); return; }
+    if (e.target.closest('[data-strip-all]')) reelOpen();
+  });
+  function reelOpen(startId) {
     if ((currentUserRole || 'tenant') !== 'tenant') return;
     const items = reelListings();
     reelFeedEl.innerHTML = items.length
@@ -13134,6 +13199,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     reelFeedEl.scrollTop = 0;
     reelScreen.classList.add('open');
     document.body.classList.add('reel-open');
+    if (typeof startId === 'string' || typeof startId === 'number') {
+      const target = reelFeedEl.querySelector('.reel-slide[data-listing-id="' + String(startId).replace(/"/g, '') + '"]');
+      if (target) reelFeedEl.scrollTop = target.offsetTop;
+    }
     reelSyncMute();
     if (window.lucide) lucide.createIcons();
     if (reelObserver) reelObserver.disconnect();
@@ -13216,6 +13285,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (screenId === 'screen-5') reelEntryBtn.style.display = ((currentUserRole || 'tenant') === 'tenant') ? 'flex' : 'none';
     // Keep the Requests tile count in step once the dashboard has rendered.
     setTimeout(() => { if (typeof mktRefreshRequestBadges === 'function') mktRefreshRequestBadges(); }, 60);
+    if (screenId === 'screen-5') setTimeout(reelRenderStrip, 80);
     return out;
   };
 
@@ -13407,8 +13477,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ${unavailable ? `<p class="li-note" style="margin-bottom:12px;">This property is no longer available.</p>` : ''}`;
 
     const primarySel = isLand ? '.land-pay-btn' : (isShortlet ? '.shortlet-book-btn' : '.payment-options-btn');
-    const primaryLabel = isLand ? 'Buy now' : (isShortlet ? 'Book now' : 'Rent now');
-    const primaryIcon = isLand ? 'shopping-bag' : (isShortlet ? 'calendar-days' : 'key');
+    const primaryLabel = listingCta(p).label;
+    const primaryIcon = listingCta(p).icon;
     let secondary = '';
     if (isLand && p.hasVideo) secondary = '<button type="button" class="s5-action-btn" data-li-proxy=".s5-video-preview-btn"><i data-lucide="video" class="w-4 h-4"></i>Site video</button>';
     else if (!isLand) secondary = '<button type="button" class="s5-action-btn" data-li-proxy=".wt-btn"><i data-lucide="video" class="w-4 h-4"></i>Walkthrough</button>';
@@ -29373,7 +29443,7 @@ available in the Post-Lease Hub and this chat thread.`
     if (!host) {
       const mine = mkt.requests.filter(r => r.requesterId === me);
       wrap.innerHTML = `<button type="button" class="dealx-btn" id="mkt-new-req" style="margin-bottom:14px;"><i data-lucide="plus" class="w-4 h-4"></i>New request</button>` +
-        (mine.length ? mine.map(r => mktMyRequestCard(r)).join('') : `<div class="dealx-empty">No requests yet. Post one and hosts with matching listings can pitch you.</div>`);
+        (mine.length ? mine.map(r => mktMyRequestCard(r)).join('') : `<div class="dealx-empty"><strong>Tell hosts what you are looking for</strong>Tap New request, choose your area and budget, and hosts with listings there will pitch you.</div>`);
     } else {
       const chips = ['all'].concat(Object.keys(MKT_CATS)).map(k => `<button type="button" class="dealx-chip${mktReqFilter.cat === k ? ' active' : ''}" data-rcat="${k}">${k === 'all' ? 'All' : MKT_CATS[k]}</button>`).join('');
       let items = mkt.requests.filter(r => r.status === 'active' && r.requesterId !== me && mktHostMatchesRequest(r));
@@ -29382,7 +29452,7 @@ available in the Post-Lease Hub and this chat thread.`
       if (q) items = items.filter(r => r.areas.some(a => String(a).toLowerCase().includes(q)));
       wrap.innerHTML = `<div class="dealx-chips">${chips}</div>
         <input id="mkt-area-filter" class="field-input" style="width:100%;margin-bottom:12px;" placeholder="Filter by area, e.g. Lekki" value="${mktEsc(mktReqFilter.area)}">` +
-        (items.length ? items.map(r => mktHostRequestCard(r, me)).join('') : `<div class="dealx-empty">No open requests match right now.</div>`);
+        (items.length ? items.map(r => mktHostRequestCard(r, me)).join('') : `<div class="dealx-empty"><strong>No matching requests yet</strong>Requests show up here when someone wants a property in an area where you have a live listing. Keep your listings live and complete to get matched.</div>`);
     }
     if (window.lucide) lucide.createIcons();
     mktReqMarkSeen();
@@ -29716,7 +29786,7 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('mkt-off-title').textContent = host ? 'Price Offers' : 'My Offers';
     document.getElementById('mkt-off-sub').textContent = host ? 'Offers on your commercial and land listings. Offers are not binding until the buyer pays.' : 'Offers you have made. Not binding until you pay. MainTown never holds your money.';
     const mine = mkt.offers.filter(o => host ? o.hostId === me : o.buyerId === me);
-    body.innerHTML = mine.length ? mine.map(o => mktOfferCard(o, me)).join('') : `<div class="dealx-empty">${host ? 'No offers yet.' : 'No offers yet. Open a commercial or land listing and tap Offer a price after your inspection.'}</div>`;
+    body.innerHTML = mine.length ? mine.map(o => mktOfferCard(o, me)).join('') : `<div class="dealx-empty">${host ? '<strong>No offers yet</strong>Offers appear here when someone offers a price on your land or commercial listings.' : 'No offers yet. Open a commercial or land listing and tap Offer a price after your inspection.'}</div>`;
     if (window.lucide) lucide.createIcons();
   }
 
