@@ -1428,6 +1428,12 @@
   .mkt-pill .mkt-pill-soon { font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
     background: rgba(245,158,11,0.16); color:#fbbf24; padding:2px 6px; border-radius:999px; }
   .mkt-bar-hint { font-size:11.5px; color:#64748b; }
+  .cur-pill { margin-left:auto; display:inline-flex; padding:3px; border-radius:999px; background:rgba(15,23,42,.8); border:1px solid #1e293b; gap:2px; }
+  .cur-pill button { min-width:34px; height:28px; border-radius:999px; border:none; background:none; color:#94a3b8; font-size:14px; font-weight:800; cursor:pointer; font-family:inherit; }
+  .cur-pill button.on { background:#9333ea; color:#fff; }
+  body.light-theme .cur-pill { background:#f1f5f9; border-color:#e2e8f0; }
+  /* The old full-width currency row is replaced by the compact pill beside the city. */
+  #s5-currency-toggle-wrap { display:none !important; }
   body.light-theme .mkt-pill { color:#7c3aed; background: rgba(147,51,234,0.08); }
   body.light-theme .mkt-bar-hint { color:#64748b; }
   #s5-market-bar { margin: 2px 0 14px; }
@@ -10748,7 +10754,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const card = (p) => {
       const isShortlet = p.type === 'shortlet';
       const isSale = p.type === 'land';
-      const price = isSale ? formatMoney(p.totalPrice, 'ngn') : (currentCurrency === 'usd' ? p.usd : p.ngn);
+      const price = listingPriceFull(p);
       const kind = isSale ? (p.propertyKind === 'house' ? 'For sale \u00b7 House' : 'For sale \u00b7 Land')
         : (isShortlet ? '' : (p.usage === 'commercial' ? 'Commercial lease' : 'For rent'));
       return `
@@ -11456,6 +11462,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   };
 
   let currentCurrency = 'ngn';
+  try { if (localStorage.getItem('mtr_currency') === 'usd') currentCurrency = 'usd'; } catch (e) {}
   let currentListingType = 'rent'; // 'rent' | 'land'
   let s5AllMode = false;           // true while the "All" tab is showing rentals, commercial leases and land / houses together
   function s5SyncTabs() {
@@ -12542,7 +12549,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function marketBarHTML() {
     const m = currentMarket();
-    return `<div class="mkt-bar"><button type="button" class="mkt-pill" data-mkt-open aria-label="Switch city">${MKT_SVG.pin}<span>${m.name}</span>${mktIsLive(m) ? '' : '<span class="mkt-pill-soon">Soon</span>'}${MKT_SVG.chev}</button><span class="mkt-bar-hint">${MARKETS.length} markets \u00b7 Nigeria &amp; Canada</span></div>`;
+    return `<div class="mkt-bar"><button type="button" class="mkt-pill" data-mkt-open aria-label="Switch city">${MKT_SVG.pin}<span>${m.name}</span>${mktIsLive(m) ? '' : '<span class="mkt-pill-soon">Soon</span>'}${MKT_SVG.chev}</button><div class="cur-pill" role="group" aria-label="Currency"><button type="button" data-cur="ngn" class="${currentCurrency === 'usd' ? '' : 'on'}" aria-label="Naira">\u20a6</button><button type="button" data-cur="usd" class="${currentCurrency === 'usd' ? 'on' : ''}" aria-label="US dollars">$</button></div></div>`;
   }
   function renderMarketBars() {
     const slot = document.getElementById('s5-market-bar');
@@ -12924,6 +12931,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
     });
   });
 
+  // Compact currency pill: switches every listing price (rent, lease, shortlet, land) between Naira and USD.
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('.cur-pill [data-cur]');
+    if (!b) return;
+    const next = b.dataset.cur === 'usd' ? 'usd' : 'ngn';
+    if (next === currentCurrency) return;
+    currentCurrency = next;
+    try { localStorage.setItem('mtr_currency', next); } catch (err) {}
+    document.querySelectorAll('.s5-currency-btn').forEach(x => x.classList.toggle('active', x.dataset.currency === next));
+    try { renderMarketBars(); } catch (err) {}
+    try { renderDashListings(currentUserRole || 'tenant'); } catch (err) {}
+    try { if ((currentUserRole || 'tenant') === 'tenant') rerenderS5Feed(); } catch (err) {}
+    try { reelRenderStrip(); } catch (err) {}
+    if (next === 'usd') showToast('Prices shown in USD at about \u20a61,600 = $1');
+  });
   // "All" tab: rentals + commercial leases + land / houses for sale in one feed, interleaved.
   function renderAllFeed() {
     const feed = document.getElementById('s5-listing-feed');
@@ -13041,7 +13063,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="s5-card-body">
           <div class="s5-card-titlerow"><p class="s5-card-title">${p.title}</p><button type="button" class="s5-info-btn" data-listing-id="${p.id}" aria-label="View listing details"><i data-lucide="info" class="w-3.5 h-3.5"></i>Details</button></div>
           <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
-          <p class="s5-card-price">${formatMoney(p.totalPrice, 'ngn')} <span>total price</span></p>
+          <p class="s5-card-price">${listingPriceFull(p)} <span>total price</span></p>
           ${p._deal ? dxMetaHtml(p) : ''}
           ${p.type === 'land' ? `<p class="s5-card-location" style="margin:-4px 0 8px;"><i data-lucide="${listingPropKind(p) === 'house' ? 'home' : 'ruler'}" class="w-3.5 h-3.5"></i>${listingPropSummary(p)}</p>` : (p.sqm ? `<p class="s5-card-location" style="margin:-4px 0 8px;"><i data-lucide="ruler" class="w-3.5 h-3.5"></i>${formatSqm(p.sqm)}</p>` : '')}
           ${p.titleTypeLabel ? `
@@ -13172,7 +13194,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
   function reelSlideHtml(p) {
     const isLand = p.type === 'land', isShortlet = p.type === 'shortlet';
-    const price = isLand ? formatMoney(p.totalPrice, 'ngn') : (currentCurrency === 'usd' ? p.usd : p.ngn);
+    const price = listingPriceFull(p);
     const unit = isLand ? 'total price' : (isShortlet ? 'shortlet' : (p.usage === 'commercial' ? String(p.commercialType || 'commercial').toLowerCase() : 'rent'));
     const isCommercial = !isLand && !isShortlet && p.usage === 'commercial';
     const ctaLabel = listingCta(p).label;
@@ -13250,7 +13272,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!items.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
     const tagOf = (p) => p.type === 'land' ? 'Buy' : (p.type === 'shortlet' ? 'Stay' : (p.usage === 'commercial' ? 'Lease' : 'Rent'));
     const thumbs = items.slice(0, 10).map(p => {
-      const price = p.type === 'land' ? formatMoney(p.totalPrice, 'ngn') : (currentCurrency === 'usd' ? p.usd : p.ngn);
+      const price = listingPriceFull(p);
       return `<button type="button" class="reel-thumb" data-strip-id="${liEsc(p.id)}" style="background-image:url('${liEsc(p.img)}')" aria-label="Watch walkthrough: ${liEsc(p.title)}">
         <span class="reel-thumb-tag">${tagOf(p)}</span><span class="reel-thumb-play">${REEL_SVG.play}</span>
         <span class="reel-thumb-meta"><span class="reel-thumb-price" style="display:block;">${liEsc(price)}</span><span class="reel-thumb-title" style="display:-webkit-box;">${liEsc(p.title)}</span></span></button>`;
@@ -13302,7 +13324,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   async function reelShare(p) {
     const isLand = p.type === 'land';
-    const price = isLand ? formatMoney(p.totalPrice, 'ngn') : (currentCurrency === 'usd' ? p.usd : p.ngn);
+    const price = listingPriceFull(p);
     const text = `${p.title}, ${price}, ${p.location}`;
     const url = location.href.split('#')[0];
     try {
@@ -13475,10 +13497,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     hero.alt = p.title || 'Listing photo';
 
     let priceMain, priceUnit;
-    if (isLand) { priceMain = formatMoney(p.totalPrice, 'ngn'); priceUnit = 'total price'; }
-    else {
-      priceMain = String(p.ngn || '').replace(/\s*\/.*$/, '');
-      priceUnit = (/night/i.test(p.ngn || '') ? 'per night' : 'per month') + (p.usd ? ` \u00B7 ${p.usd}` : '');
+    const usdMode = currentCurrency === 'usd';
+    if (isLand) {
+      priceMain = listingPriceFull(p);
+      priceUnit = 'total price' + (usdMode ? ` \u00B7 ${formatMoney(p.totalPrice, 'ngn')}` : '');
+    } else {
+      priceMain = String(listingPriceFull(p)).replace(/\s*\/.*$/, '');
+      const per = /night/i.test(p.ngn || '') ? 'per night' : (/yr/i.test(p.ngn || '') ? 'per year' : 'per month');
+      priceUnit = per + (usdMode ? ` \u00B7 ${p.ngn}` : (p.usd ? ` \u00B7 ${p.usd}` : ''));
     }
 
     const chips = [`<span class="li-chip ok"><i data-lucide="shield-check"></i>${isLand ? 'Preliminary title check' : 'Preliminary verification'}</span>`];
@@ -15224,6 +15250,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function formatMoney(amount, currency) {
     const symbol = currency === 'usd' ? '$' : '₦';
     return symbol + Math.round(amount).toLocaleString('en-US');
+  }
+  // Listing prices in the guest's chosen currency (display only). Same fixed rate the checkout already uses.
+  const LISTING_USD_PER_NGN = 1 / 1600;
+  function listingPriceFull(p) {
+    if (!p) return '';
+    const usd = currentCurrency === 'usd';
+    if (p.type === 'land') return usd ? formatMoney((Number(p.totalPrice) || 0) * LISTING_USD_PER_NGN, 'usd') : formatMoney(p.totalPrice, 'ngn');
+    if (!usd) return p.ngn || '';
+    if (p.usd) return p.usd;
+    const n = parseInt(String(p.ngn || '').replace(/[^\d]/g, ''), 10) || 0;
+    const unit = (String(p.ngn || '').match(/\s*\/.*$/) || [''])[0];
+    return formatMoney(n * LISTING_USD_PER_NGN, 'usd') + unit;
   }
 
   // Combines a schedule's raw date ("YYYY-MM-DD") and 24h time ("HH:MM") into a single
