@@ -3590,6 +3590,92 @@
   /* Hide all scrollbars (page + inner scroll areas); scrolling still works */
   html, body, * { scrollbar-width: none; -ms-overflow-style: none; }
   html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; background: transparent; }
+
+  /* ===== Walkthrough reels: full-screen vertical swipe feed (tenant) ===== */
+  .reel-entry-btn {
+    position: relative; width: 38px; height: 38px; border-radius: 12px; background: rgba(15,23,42,0.8);
+    border: 1px solid rgba(147,51,234,0.45); display: flex; align-items: center; justify-content: center;
+    color: #c084fc; cursor: pointer; flex-shrink: 0;
+  }
+  body.light-theme .reel-entry-btn { background: #f3e8ff; color: #9333ea; border-color: #e9d5ff; }
+  body.reel-open { overflow: hidden; }
+  body.reel-open #app-bottom-nav { display: none !important; }
+  .reel-screen { display: none; position: fixed; inset: 0; z-index: 49; background: #000; }
+  .reel-screen.open { display: block; }
+  .reel-topbar {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: max(12px, env(safe-area-inset-top)) 14px 28px; pointer-events: none;
+    background: linear-gradient(180deg, rgba(2,6,23,0.7), transparent);
+  }
+  .reel-topbar > * { pointer-events: auto; }
+  .reel-topbar-title { color: #fff; font-size: 14px; font-weight: 700; margin: 0; }
+  .reel-icon-btn {
+    width: 40px; height: 40px; border-radius: 999px; border: none; cursor: pointer; color: #fff;
+    background: rgba(15,23,42,0.55); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .reel-icon-btn svg { width: 20px; height: 20px; }
+  .reel-feed {
+    height: 100%; max-width: 480px; margin: 0 auto; overflow-y: auto; overscroll-behavior: contain;
+    scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .reel-feed::-webkit-scrollbar { display: none; }
+  .reel-slide {
+    position: relative; height: 100%; overflow: hidden; scroll-snap-align: start; scroll-snap-stop: always;
+    background: #000 center / cover no-repeat;
+  }
+  .reel-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: transparent; }
+  .reel-paused {
+    position: absolute; top: 50%; left: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 999px;
+    background: rgba(2,6,23,0.55); display: none; align-items: center; justify-content: center; pointer-events: none;
+  }
+  .reel-paused svg { width: 26px; height: 26px; color: #fff; margin-left: 3px; }
+  .reel-slide.is-paused .reel-paused { display: flex; }
+  .reel-bottom {
+    position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 14px;
+    padding: 64px 14px max(16px, env(safe-area-inset-bottom));
+    background: linear-gradient(0deg, rgba(2,6,23,0.94) 0%, rgba(2,6,23,0.6) 60%, transparent 100%);
+  }
+  .reel-row { display: flex; align-items: flex-end; gap: 12px; }
+  .reel-info { flex: 1; min-width: 0; }
+  .reel-title {
+    color: #fff; font-size: 17px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; margin: 0 0 4px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .reel-loc { color: #cbd5e1; font-size: 12.5px; margin: 0 0 6px; display: flex; align-items: center; gap: 5px; }
+  .reel-loc svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .reel-price { color: #fff; font-size: 20px; font-weight: 800; margin: 0; }
+  .reel-price span { color: #cbd5e1; font-size: 12px; font-weight: 600; margin-left: 4px; }
+  .reel-rail { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .reel-act { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 64px; }
+  .reel-rail .reel-act-btn, .reel-rail .s5-fav-btn {
+    position: static; width: 46px; height: 46px; border-radius: 999px; border: none; cursor: pointer; color: #fff;
+    background: rgba(15,23,42,0.6); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .reel-rail .reel-act-btn svg { width: 22px; height: 22px; }
+  .reel-rail .s5-fav-btn svg { width: 24px; height: 24px; }
+  .reel-act > span { color: #fff; font-size: 11px; font-weight: 600; line-height: 1.2; text-align: center; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+  .reel-ctas { display: flex; gap: 10px; }
+  .reel-cta {
+    flex: 1; height: 48px; border-radius: 14px; border: 1px solid transparent; cursor: pointer; color: #fff;
+    font: inherit; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .reel-cta svg { width: 17px; height: 17px; }
+  .reel-cta.primary { background: #9333ea; flex: 1.3; }
+  .reel-cta.secondary {
+    background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.3);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .reel-screen button:focus-visible { outline: 2px solid #c084fc; outline-offset: 2px; }
+  .reel-empty {
+    height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; padding: 32px; text-align: center; color: #cbd5e1; background: #0b1120;
+  }
+  .reel-empty h2 { color: #fff; font-size: 17px; font-weight: 800; margin: 0; }
+  .reel-empty p { font-size: 13px; line-height: 1.5; margin: 0 0 8px; max-width: 280px; }
+  .reel-empty .reel-cta { flex: none; padding: 0 22px; }
 </style>
 <style id="mtl-logo-anim">
   /* "M" and roof are written out stroke-by-stroke, then the windows pop in */
@@ -4373,6 +4459,7 @@
         <span class="flt-badge" id="s5-filter-badge"></span>
       </button>
     </div>
+    <button type="button" class="reel-entry-btn" id="s5-reel-btn" aria-label="Watch walkthrough reels" style="display:none;"><i data-lucide="film" class="w-4 h-4"></i></button>
     <button type="button" class="cart-fab" id="s5-cart-btn">
       <i data-lucide="shopping-bag" class="w-4 h-4"></i>
       <span class="cart-fab-badge" id="s5-cart-badge">0</span>
@@ -6588,6 +6675,16 @@
 
 </div>
 <!-- ===================== FIXED BOTTOM NAVIGATION (outside #screen-4 and #screen-5) ===================== -->
+<!-- ===================== WALKTHROUGH REELS (tenant): full-screen swipe feed ===================== -->
+<div id="reel-screen" class="reel-screen" role="dialog" aria-modal="true" aria-label="Walkthrough reels">
+  <div class="reel-topbar">
+    <button type="button" class="reel-icon-btn" id="reel-close" aria-label="Back to listings"><i data-lucide="arrow-left"></i></button>
+    <p class="reel-topbar-title">Walkthrough reels</p>
+    <button type="button" class="reel-icon-btn" id="reel-mute" aria-label="Unmute" aria-pressed="true"></button>
+  </div>
+  <div class="reel-feed" id="reel-feed"></div>
+</div>
+
 <nav id="app-bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 hidden">
   <div class="dash-nav">
     <div class="dash-nav-item active" id="nav-home"><span class="nav-icon"><i data-lucide="home" class="w-[18px] h-[18px]"></i></span>Home</div>
@@ -12917,6 +13014,191 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
   }
 
+  // ==================================================================
+  // ---- Walkthrough reels: full-screen vertical swipe feed (tenant only) ----
+  // Opens from the film button on the listings screen. Only listings that have a
+  // real walkthrough video appear. Save / Set Inspection / Share sit on the right;
+  // title, price and the Rent Now / Buy Now (+ Make an Offer) buttons sit at the bottom.
+  // Every action goes through the same handlers the listing cards use, so the
+  // screening gate, inspection-first checkout and offer rules all still apply.
+  // ==================================================================
+  const reelScreen = document.getElementById('reel-screen');
+  const reelFeedEl = document.getElementById('reel-feed');
+  const reelMuteBtn = document.getElementById('reel-mute');
+  const reelEntryBtn = document.getElementById('s5-reel-btn');
+  let reelMuted = true;
+  let reelObserver = null;
+
+  const REEL_SVG = {
+    play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',
+    volOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>',
+    volOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>'
+  };
+
+  function reelVideoUrl(p) { return p.virtual_walkthrough_url || p.video_url || p.videoUrl || ''; }
+
+  function reelListings() {
+    if (typeof dxApplyDeals === 'function') dxApplyDeals();
+    if (!marketIsLive()) return [];
+    const wantLand = currentListingType === 'land';
+    return listings
+      .filter(l => l.status !== 'draft' && !isListingUnavailable(l) && inCurrentMarket(l) && reelVideoUrl(l))
+      .map((l, i) => ({ l, i, first: (l.type === 'land') === wantLand ? 0 : 1 }))
+      .sort((a, b) => a.first - b.first || a.i - b.i)
+      .map(x => x.l);
+  }
+
+  function reelSlideHtml(p) {
+    const isLand = p.type === 'land', isShortlet = p.type === 'shortlet';
+    const price = isLand ? formatMoney(p.totalPrice, 'ngn') : (currentCurrency === 'usd' ? p.usd : p.ngn);
+    const unit = isLand ? 'total price' : (isShortlet ? 'shortlet' : (p.usage === 'commercial' ? String(p.commercialType || 'commercial').toLowerCase() : 'rent'));
+    const ctaLabel = isLand ? 'Buy Now' : (isShortlet ? 'Book Now' : 'Rent Now');
+    const ctaIcon = isLand ? 'shopping-bag' : (isShortlet ? 'calendar-days' : 'key');
+    let offerBtn = '';
+    if (mktOfferKind(p) && mktRole() === 'tenant') {
+      const live = mktLiveOffer(p);
+      offerBtn = live
+        ? `<button type="button" class="reel-cta secondary" data-reel-act="offer-view">${live.status === 'accepted' ? 'Agreed price' : 'My offer'}</button>`
+        : `<button type="button" class="reel-cta secondary" data-reel-act="offer">Make an Offer</button>`;
+    }
+    // Short-let stays don't use inspection scheduling anywhere else in the app, so no Set Inspection here either.
+    const inspectBtn = isShortlet ? '' : `
+        <div class="reel-act"><button type="button" class="reel-act-btn" data-reel-act="inspect" aria-label="Set Inspection"><i data-lucide="calendar-check"></i></button><span>Set inspection</span></div>`;
+    return `
+    <section class="reel-slide" data-listing-id="${liEsc(p.id)}" style="background-image:url('${liEsc(p.img)}')" aria-label="${liEsc(p.title)}">
+      <video class="reel-video" src="${liEsc(reelVideoUrl(p))}" muted loop playsinline preload="metadata" onerror="this.style.display='none'"></video>
+      <div class="reel-paused" aria-hidden="true">${REEL_SVG.play}</div>
+      <div class="reel-bottom">
+        <div class="reel-row">
+          <div class="reel-info">
+            <p class="reel-title">${liEsc(p.title)}</p>
+            <p class="reel-loc"><i data-lucide="map-pin"></i>${liEsc(p.location)}</p>
+            <p class="reel-price">${liEsc(price)}<span>${liEsc(unit)}</span></p>
+          </div>
+          <div class="reel-rail">
+            <div class="reel-act">${mtlFavBtn(p)}<span>Save</span></div>${inspectBtn}
+            <div class="reel-act"><button type="button" class="reel-act-btn" data-reel-act="share" aria-label="Share"><i data-lucide="share-2"></i></button><span>Share</span></div>
+          </div>
+        </div>
+        <div class="reel-ctas">
+          ${offerBtn}
+          <button type="button" class="reel-cta primary" data-reel-act="cta"><i data-lucide="${ctaIcon}"></i>${ctaLabel}</button>
+        </div>
+      </div>
+    </section>`;
+  }
+
+  function reelSyncMute() {
+    reelMuteBtn.innerHTML = reelMuted ? REEL_SVG.volOff : REEL_SVG.volOn;
+    reelMuteBtn.setAttribute('aria-label', reelMuted ? 'Unmute' : 'Mute');
+    reelMuteBtn.setAttribute('aria-pressed', reelMuted ? 'true' : 'false');
+    reelFeedEl.querySelectorAll('video').forEach(v => { v.muted = reelMuted; });
+  }
+
+  // Only the slide on screen plays; the rest are paused and rewound.
+  function reelPlayOnly(active) {
+    reelFeedEl.querySelectorAll('.reel-slide').forEach(s => {
+      const v = s.querySelector('video');
+      if (!v) return;
+      if (s === active) {
+        s.classList.remove('is-paused');
+        v.muted = reelMuted;
+        const pr = v.play();
+        if (pr && pr.catch) pr.catch(() => s.classList.add('is-paused'));
+      } else {
+        v.pause();
+        try { v.currentTime = 0; } catch (e) {}
+        s.classList.remove('is-paused');
+      }
+    });
+  }
+
+  function reelOpen() {
+    if ((currentUserRole || 'tenant') !== 'tenant') return;
+    const items = reelListings();
+    reelFeedEl.innerHTML = items.length
+      ? items.map(reelSlideHtml).join('')
+      : `<div class="reel-empty"><h2>No walkthrough videos yet</h2><p>Listings that have a walkthrough video show up here. Browse the listings to see everything that's available.</p><button type="button" class="reel-cta primary" data-reel-act="close">Back to listings</button></div>`;
+    reelFeedEl.scrollTop = 0;
+    reelScreen.classList.add('open');
+    document.body.classList.add('reel-open');
+    reelSyncMute();
+    if (window.lucide) lucide.createIcons();
+    if (reelObserver) reelObserver.disconnect();
+    if (items.length && 'IntersectionObserver' in window) {
+      reelObserver = new IntersectionObserver((entries) => {
+        entries.forEach(en => { if (en.isIntersecting) reelPlayOnly(en.target); });
+      }, { root: reelFeedEl, threshold: 0.65 });
+      reelFeedEl.querySelectorAll('.reel-slide').forEach(s => reelObserver.observe(s));
+    } else if (items.length) {
+      reelPlayOnly(reelFeedEl.querySelector('.reel-slide'));
+    }
+    document.getElementById('reel-close').focus();
+  }
+
+  function reelClose() {
+    if (!reelScreen.classList.contains('open')) return;
+    if (reelObserver) { reelObserver.disconnect(); reelObserver = null; }
+    reelFeedEl.querySelectorAll('video').forEach(v => v.pause());
+    reelScreen.classList.remove('open');
+    document.body.classList.remove('reel-open');
+    reelFeedEl.innerHTML = '';
+  }
+
+  async function reelShare(p) {
+    const isLand = p.type === 'land';
+    const price = isLand ? formatMoney(p.totalPrice, 'ngn') : (currentCurrency === 'usd' ? p.usd : p.ngn);
+    const text = `${p.title}, ${price}, ${p.location}`;
+    const url = location.href.split('#')[0];
+    try {
+      if (navigator.share) { await navigator.share({ title: p.title, text, url }); return; }
+    } catch (err) { if (err && err.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(`${text}\n${url}`); showToast('Link copied'); }
+    catch (err) { showToast('Sharing is not available on this device'); }
+  }
+
+  reelEntryBtn.addEventListener('click', reelOpen);
+  document.getElementById('reel-close').addEventListener('click', reelClose);
+  reelMuteBtn.addEventListener('click', () => { reelMuted = !reelMuted; reelSyncMute(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') reelClose(); });
+
+  reelFeedEl.addEventListener('click', (e) => {
+    const actBtn = e.target.closest('[data-reel-act]');
+    if (actBtn && actBtn.dataset.reelAct === 'close') { reelClose(); return; }
+    const slide = e.target.closest('.reel-slide');
+    if (!slide) return;
+    if (!actBtn) {
+      // Save is handled by the shared heart handler; any other tap on the video pauses / resumes it.
+      if (e.target.closest('button')) return;
+      const v = slide.querySelector('video');
+      if (!v) return;
+      if (v.paused) { const pr = v.play(); if (pr && pr.catch) pr.catch(() => {}); } else { v.pause(); }
+      slide.classList.toggle('is-paused', v.paused);
+      return;
+    }
+    const p = listings.find(l => String(l.id) === slide.dataset.listingId);
+    if (!p) return;
+    if (isListingUnavailable(p)) { showToast('This property is no longer available'); return; }
+    switch (actBtn.dataset.reelAct) {
+      case 'share': reelShare(p); break;
+      case 'inspect': requireScreening(() => openInspectionModal(p)); break;
+      case 'offer': mktOpenOffer(p.id); break;
+      case 'offer-view': navigateTo('screen-offers'); break;
+      case 'cta': liProxyClick(p.id, p.type === 'land' ? '.land-pay-btn' : (p.type === 'shortlet' ? '.shortlet-book-btn' : '.payment-options-btn')); break;
+    }
+  });
+
+  // Leaving for any other screen (checkout, offers, cart...) closes the reel, so it
+  // can never sit on top of a screen the person just navigated to. The entry button
+  // is tenant-only, like the cart button next to it.
+  const reelBaseNavigateTo = navigateTo;
+  navigateTo = function (screenId, opts) {
+    reelClose();
+    const out = reelBaseNavigateTo.apply(this, arguments);
+    if (screenId === 'screen-5') reelEntryBtn.style.display = ((currentUserRole || 'tenant') === 'tenant') ? 'flex' : 'none';
+    return out;
+  };
+
   // ---- Listing information sheet (tap "Details" on any listing card) ----
   // Mirrors the Property Details panel on maintownrealty.com: location, type,
   // fees, and other details. Everything shown is read from the listing itself;
@@ -13256,7 +13538,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       updateCartBadge();
       syncHearts();
     }
-    ['s5-listing-feed', 'dash-listings-wrap'].forEach((id) => {
+    ['s5-listing-feed', 'dash-listings-wrap', 'reel-screen'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('click', onHeartClick, true);
     });
