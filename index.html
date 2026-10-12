@@ -8945,6 +8945,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderThreadList();
     }
 
+    if (screenId === 'screen-commission') commRender();
     if (screenId === 'screen-requests') mktRenderRequests();
     if (screenId === 'screen-offers') mktRenderOffers();
     { const b = document.getElementById('mkt-s5-banner'); if (b) b.style.display = (screenId === 'screen-5' && (currentUserRole || 'tenant') === 'tenant') ? '' : 'none'; }
@@ -13111,7 +13112,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         : '';
       document.getElementById('li-actions').innerHTML = `${pvVideo}<button type="button" class="s5-action-btn primary" disabled style="opacity:.5; cursor:not-allowed;"><i data-lucide="${primaryIcon}" class="w-4 h-4"></i>${primaryLabel}</button>`;
     } else {
-      const offerBtn = (mktOfferKind(p) && !unavailable && mktRole() === 'tenant') ? '<button type="button" class="s5-action-btn" data-li-offer><i data-lucide="handshake" class="w-4 h-4"></i>Offer a price</button>' : '';
+      const liveOf = (mktOfferKind(p) && mktRole() === 'tenant') ? mktLiveOffer(p) : null;
+      const offerBtn = (mktOfferKind(p) && !unavailable && mktRole() === 'tenant') ? (liveOf ? '<button type="button" class="s5-action-btn" data-li-offer="view"><i data-lucide="handshake" class="w-4 h-4"></i>' + (liveOf.status === 'accepted' ? 'Agreed price' : 'My offer') + '</button>' : '<button type="button" class="s5-action-btn" data-li-offer><i data-lucide="handshake" class="w-4 h-4"></i>Offer a price</button>') : '';
       document.getElementById('li-actions').innerHTML = `${secondary}${offerBtn}<button type="button" class="s5-action-btn primary" data-li-proxy="${primarySel}" ${unavailable ? 'disabled' : ''}><i data-lucide="${primaryIcon}" class="w-4 h-4"></i>${primaryLabel}</button>`;
     }
 
@@ -13130,7 +13132,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('li-next').addEventListener('click', () => liShowPhoto(liPhotoIdx + 1));
     document.getElementById('li-actions').addEventListener('click', (e) => {
       const offBtn = e.target.closest('[data-li-offer]');
-      if (offBtn) { const id = sheet.dataset.listingId; close(); mktOpenOffer(id); return; }
+      if (offBtn) { const id = sheet.dataset.listingId; close(); if (offBtn.dataset.liOffer === 'view') navigateTo('screen-offers'); else mktOpenOffer(id); return; }
       const pv = e.target.closest('[data-li-preview-video]');
       if (pv) {
         const p = liPreviewListing;
@@ -13467,6 +13469,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('po-option-inspect').style.display = 'flex';
     document.getElementById('po-option-outright').style.display = poIsLand ? 'flex' : 'none';
     document.getElementById('po-option-installment').style.display = (poIsLand && listing.installmentEnabled !== false) ? 'flex' : 'none';
+    mktDecoratePo(listing);
     paymentOptionsModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
   }
@@ -14884,7 +14887,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   //   property, or also to MainTown if the Landlord/Owner listed directly.
   function annotateCommissionSplit(breakdown, listing) {
     if (!breakdown) return breakdown;
-    const isAgentListing = !!(listing && listing.listedBy === 'agent');
+    const isAgentListing = !!(listing && listing.listedBy === 'agent' && listing.listedByRole !== 'ENTERPRISE');
     const isLand = !!(listing && listing.type === 'land');
     breakdown.isAgentListing = isAgentListing;
     breakdown.legalGoesToOwner = isLand;
@@ -14897,6 +14900,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
       breakdown.agentShareOfCommission = agentShareOfCommission;
       breakdown.maintownCommission = isAgentListing ? Math.round(breakdown.commission * (1 - agentShareOfCommission)) : breakdown.commission;
       breakdown.agentCommission = isAgentListing ? (breakdown.commission - breakdown.maintownCommission) : 0;
+    }
+    // Company listings: MainTown keeps 60% of the total agency commission and
+    // 40% goes to the company wallet. How the company shares its 40% with
+    // staff is the company's own business.
+    if (listing && listing.listedByRole === 'ENTERPRISE') {
+      const totalCommission = (isLand && breakdown.buyerCommission != null) ? (breakdown.buyerCommission + (breakdown.sellerCommission || 0)) : (breakdown.commission || 0);
+      breakdown.isAgentListing = false;
+      breakdown.agentShareOfCommission = 0;
+      breakdown.maintownCommission = Math.round(totalCommission * COMM_MAINTOWN_PCT);
+      breakdown.companyCommission = totalCommission - breakdown.maintownCommission;
+      breakdown.agentCommission = 0;
     }
     breakdown.ownerLegalTake = isLand ? (breakdown.legal || 0) : 0;
     breakdown.maintownTake = isLand ? breakdown.maintownCommission : (breakdown.legal + breakdown.maintownCommission);
@@ -16703,6 +16717,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
       });
     }
 
+    // Company listings: the 40% commission share goes to the company wallet.
+    if (isEnterpriseListing(listing) && breakdown.companyCommission > 0) {
+      const cid = listing.companyId || listing.ownerId;
+      creditPartyWallet(cid, breakdown.companyCommission, {
+        title: `Company Commission Share - ${listing.title || 'Property'}`,
+        category: 'COMPANY_COMMISSION', propertyName: listing.title,
+        companyMeta: { companyId: cid, salesStaffId: listing.listedByStaffId },
+        feeType: 'Company Commission Share (40%)'
+      });
+      commRecordForListing(listing, breakdown);
+    }
     appState = loadAppState();
     if (!appState.platform_revenue) appState.platform_revenue = { ai_processing_fees: 0, commissions: 0, legal_fees: 0 };
     appState.platform_revenue.commissions = (appState.platform_revenue.commissions || 0) + maintownCommission;
@@ -18607,7 +18632,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         photos: s5PendingPhotoUrls.slice(), videoUrl: s5PendingVideoUrl,
         photoKeys: s5PendingPhotoKeys.slice(), videoKey: s5PendingVideoKey,
         availability: s5PendingAvailability.map(a => ({ date: a.date, slots: a.slots.slice() })),
-        ownerId: companyId, companyId, listedByStaffId: getCurrentUserId(),
+        ownerId: companyId, companyId, enterpriseId: companyId, staffId: getCurrentUserId(), listedByStaffId: getCurrentUserId(),
         listedByRole: 'ENTERPRISE', workflowStatus: 'PENDING_LEGAL_REVIEW',
         // Caution Fee & Service Charge (rent/shortlet only — see Fee
         // Transparency policy): set here by Sales staff on the Owner's
@@ -18713,6 +18738,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // member's own "My Listings" (Sales dashboard) once it goes live.
       companyId: (currentUserRole === 'enterprise_staff' && typeof getEnterpriseCompanyId === 'function') ? getEnterpriseCompanyId() : undefined,
       listedByStaffId: (currentUserRole === 'enterprise_staff') ? getCurrentUserId() : undefined,
+      staffId: (currentUserRole === 'enterprise_staff') ? getCurrentUserId() : undefined,
+      enterpriseId: (currentUserRole === 'enterprise_staff' && typeof getEnterpriseCompanyId === 'function') ? getEnterpriseCompanyId() : undefined,
       // Caution Fee & Service Charge (rent/shortlet only — see Fee
       // Transparency policy): set here by the Agent/Sales staff on the
       // Landlord's behalf, paid straight to the Landlord, never MainTown.
@@ -19161,6 +19188,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Half-Yearly) — same 10% Agency Commission + 5% Legal Fee formula as
     // before, folded into Installment 1.
     renderInstallmentPanel();
+    mktDecorateLp(listing);
 
     landPaymentModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
@@ -19620,6 +19648,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ctaBtn.onclick = () => {
         notificationDetailModal.classList.remove('open');
         if (notif.route.docId) openCountersignForDoc(notif.route.docId); else openHandoverReviewModal();
+      };
+    } else if (notif.route && (notif.route.screen === 'commRequests' || notif.route.screen === 'commStaff')) {
+      ctaLabel.textContent = notif.route.screen === 'commStaff' ? 'Open Earned Commission' : 'Open Commission Requests';
+      ctaBtn.style.display = 'flex';
+      ctaBtn.onclick = () => {
+        notificationDetailModal.classList.remove('open');
+        if (getEnterpriseStaffRole() === 'ceo') { openEnterpriseDashboard(); switchEnterpriseTab('commissions'); }
+        else navigateTo('screen-commission');
       };
     } else if (notif.route && (notif.route.screen === 'mktOffers' || notif.route.screen === 'mktRequests')) {
       ctaLabel.textContent = notif.route.screen === 'mktOffers' ? 'Open Price Offers' : 'Open Requests';
@@ -20093,6 +20129,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderLandlordInspectionsManager();
     renderAgentInspectionsManager();
     ibSubmitting = false;
+    if (typeof mktResumeDraft === 'function') setTimeout(mktResumeDraft, 500);
   });
 
   // ==================================================================
@@ -23311,14 +23348,20 @@ available in the Post-Lease Hub and this chat thread.`
     // Modal first (outright vs. installment) so a valid payload exists before
     // Checkout renders; Rent listings need no such payload and go straight in.
     if (listing) {
-      if (listing.type === 'land') {
-        openLandPaymentModal(listing); // -> LandPurchaseCheckoutModal -> HandoverView
-      } else {
-        openCheckout(listing); // -> RentCheckoutModal
-        navigateTo('screen-6');
-      }
+      // Commercial rent and land can be offered on once the inspection is done:
+      // let the buyer choose between paying the asking price and offering a price.
+      if (mktOfferKind(listing) && mktRole() === 'tenant' && !mktAgreedFor(listing) && !mktBlockedByLock(listing)) mktAfterInspection(listing);
+      else mktProceedCheckout(listing);
     }
   });
+  function mktProceedCheckout(listing) {
+    if (listing.type === 'land') {
+      openLandPaymentModal(listing); // -> LandPurchaseCheckoutModal -> HandoverView
+    } else {
+      openCheckout(listing); // -> RentCheckoutModal
+      navigateTo('screen-6');
+    }
+  }
 
   document.getElementById('id-notsatisfied-btn').addEventListener('click', () => {
     const conv = conversations.find(c => c.id === activeThreadId);
@@ -27815,6 +27858,7 @@ available in the Post-Lease Hub and this chat thread.`
     else if (tabKey === 'team') renderEntTeam();
     else if (tabKey === 'inventory') renderEntInventory();
     else if (tabKey === 'legal') { renderEntLegal(); renderCeoLegalDocsList(); }
+    else if (tabKey === 'commissions') commRenderIntoCeoTab();
     else if (tabKey === 'ledger') renderEntLedger();
     else if (tabKey === 'wallet') renderEntWallet();
     if (window.lucide) lucide.createIcons();
@@ -28184,7 +28228,7 @@ available in the Post-Lease Hub and this chat thread.`
         id, title: r.title, location: [r.address, r.lga, r.state].filter(Boolean).join(', '),
         city: listingMarketId({ location: [r.address, r.lga, r.state].filter(Boolean).join(', ') }),
         companyId, estateName, listedBy: 'enterprise', listedByRole: 'ENTERPRISE',
-        listedByStaffId: getCurrentUserId(),
+        listedByStaffId: getCurrentUserId(), enterpriseId: companyId, staffId: getCurrentUserId(),
         status: 'draft', workflowStatus: 'PENDING_LEGAL_REVIEW', ownerId: companyId, masterTitleLinked,
         description: r.description || '', amenities: r.amenities || '',
       };
@@ -29111,7 +29155,22 @@ available in the Post-Lease Hub and this chat thread.`
     if (ch) mktSave();
   }
 
-  function mktOpenOffer(listingId) {
+  let mktDraft = null; // offer typed in before the buyer booked an inspection
+  function mktLiveOffer(l) {
+    const me = getCurrentUserId();
+    return mkt.offers.find(o => String(o.listingId) === String(l.id) && o.buyerId === me && ['pending', 'countered', 'accepted'].includes(o.status)) || null;
+  }
+  function mktHasBookedInspection(l) {
+    return inspections.some(i => (i.listingId != null ? String(i.listingId) === String(l.id) : i.listingTitle === l.title) && !['completed', 'declined', 'cancelled', 'Declined', 'Cancelled'].includes(i.status));
+  }
+  function mktResumeDraft() {
+    if (!mktDraft) return;
+    const d = mktDraft;
+    mktDraft = null;
+    showToast('Inspection booked. Finish sending your offer.');
+    mktOpenOffer(d.listingId, d);
+  }
+  function mktOpenOffer(listingId, draft) {
     mktTick();
     const l = listings.find(x => String(x.id) === String(listingId));
     if (!l) return;
@@ -29120,46 +29179,50 @@ available in the Post-Lease Hub and this chat thread.`
     if (mktRole() !== 'tenant') { showToast('Offers are made from a Tenant / Buyer account'); return; }
     if (isListingUnavailable(l)) { showToast('This property is no longer available'); return; }
     if (mktBlockedByLock(l)) return;
-    const me = getCurrentUserId();
-    const live = mkt.offers.find(o => String(o.listingId) === String(l.id) && o.buyerId === me && ['pending', 'countered', 'accepted'].includes(o.status));
-    if (live) { showToast('You already have a live offer on this property'); navigateTo('screen-offers'); return; }
+    if (mktLiveOffer(l)) { showToast('You already have a live offer on this property'); navigateTo('screen-offers'); return; }
+    draft = draft || {};
     const asking = mktAskingPrice(l);
-    const inspected = hasSatisfiedInspectionForListing(l);
-    const inspBlock = inspected
+    const done = hasSatisfiedInspectionForListing(l);
+    const booked = !done && mktHasBookedInspection(l);
+    const inspBlock = done
       ? `<p class="dealx-note" style="color:#34d399;opacity:1;">Inspection done. You can make an offer.</p>`
-      : `<div class="dealx-terms"><strong>Inspect first, then offer.</strong> Book a site inspection, or if you are abroad, confirm one of the options below.
+      : (booked
+        ? `<p class="dealx-note" style="color:#34d399;opacity:1;">Inspection booked. You can send your offer now. If the price is agreed, you still need to complete the inspection and tap Satisfied before you pay.</p>`
+        : `<div class="dealx-terms"><strong>Book your inspection to send this offer.</strong> Your price is saved, and you come straight back here after booking. If you are abroad, you can instead confirm one of these:
           <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
             <label class="dealx-check"><input type="radio" name="mk-insp" value="video"><span>I have done a live video inspection of this property</span></label>
             <label class="dealx-check"><input type="radio" name="mk-insp" value="representative"><span>A representative inspected it and sent me photos and video</span></label>
-          </div>
-          <button type="button" class="dealx-prev-btn" id="mk-book-insp" style="margin-top:10px;">Book an inspection instead</button></div>`;
+          </div></div>`);
     mktModal('Offer a price', `
       <p style="font-weight:700;margin:10px 0 2px;">${mktEsc(l.title)}</p>
       <p class="dealx-sub">Asking ${mktMoney(asking)}${kind === 'commercial' ? ' per year' : ''}. ${kind === 'land' ? 'Offers apply to outright payment. Installment prices stay fixed.' : 'Commercial rent is paid annually upfront.'}</p>
       ${inspBlock}
       <label class="field-label" style="margin-top:12px;">Your offer (₦)</label>
-      <input id="mk-offer" type="number" inputmode="numeric" min="0" ${MKT_INPUT} placeholder="e.g. ${Math.round(asking * 0.9)}">
+      <input id="mk-offer" type="number" inputmode="numeric" min="0" ${MKT_INPUT} placeholder="e.g. ${Math.round(asking * 0.9)}" value="${draft.price || ''}">
       <label class="field-label">Offer valid for</label>
       <select id="mk-exp" ${MKT_INPUT}><option value="24">24 hours</option><option value="48" selected>48 hours</option><option value="168">7 days</option></select>
       <label class="field-label">Note to the host (optional)</label>
-      <textarea id="mk-note" ${MKT_INPUT} rows="2" maxlength="300"></textarea>
+      <textarea id="mk-note" ${MKT_INPUT} rows="2" maxlength="300">${mktEsc(draft.note || '')}</textarea>
       <label class="dealx-check"><input type="checkbox" id="mk-ack"><span>I understand this offer is not binding until I pay. MainTown does not hold my money. If accepted, the agreed price is used at checkout.</span></label>`,
-      'Send offer', (el, err) => {
+      (done || booked) ? 'Send offer' : 'Continue', (el, err) => {
         const price = Number(el.querySelector('#mk-offer').value);
-        const insp = inspected ? 'done' : ((el.querySelector('input[name=mk-insp]:checked') || {}).value || '');
+        const remote = (el.querySelector('input[name=mk-insp]:checked') || {}).value || '';
+        const hours = Number(el.querySelector('#mk-exp').value);
         const note = el.querySelector('#mk-note').value.trim();
-        if (!inspected && !insp) { err('Inspect first: book an inspection, or confirm a video or representative inspection.'); return false; }
         if (!price || price <= 0) { err('Enter your offer.'); return false; }
         if (price >= asking) { err('Your offer should be below the asking price. To pay the full price, use Buy / Rent now.'); return false; }
         if (price < asking * 0.5) { err('That is under half the asking price. Please make a serious offer.'); return false; }
         if (!el.querySelector('#mk-ack').checked) { err('Please confirm you understand the offer is not binding.'); return false; }
         const leak = note && mtChatLeakCheck(note);
         if (leak) { err('Sharing ' + leak + ' is not allowed. Keep it inside MainTown.'); return false; }
-        mktCreateOffer(l, kind, asking, price, Number(el.querySelector('#mk-exp').value), insp, note);
-      }, { onOpen: (el) => {
-        const b = el.querySelector('#mk-book-insp');
-        if (b) b.addEventListener('click', () => { el.remove(); requireScreening(() => openInspectionModal(l)); });
-      } });
+        if (!done && !booked && !remote) {
+          // No inspection yet: keep the offer, send the buyer to book, and come back.
+          mktDraft = { listingId: l.id, price, hours, note };
+          setTimeout(() => requireScreening(() => openInspectionModal(l)), 50);
+          return true;
+        }
+        mktCreateOffer(l, kind, asking, price, hours, done ? 'done' : (booked ? 'booked' : remote), note);
+      });
   }
   function mktCreateOffer(l, kind, asking, price, hours, insp, note) {
     const me = getCurrentUserId();
@@ -29169,7 +29232,7 @@ available in the Post-Lease Hub and this chat thread.`
       id: 'of' + Date.now(), listingId: l.id, listingTitle: l.title, kind, buyerId: me, buyerName: resolveUserName(me),
       hostId: h.id, hostRole: h.role, askingPrice: asking, price, lastBy: 'buyer', round: 1, status: 'pending',
       windowMs: hours * 3600000, expiresAt: Date.now() + hours * 3600000, createdAt: Date.now(),
-      inspected: insp === 'done', remoteInspection: insp === 'done' ? 'none' : insp, inspectionConfirmed: insp === 'done',
+      inspectionState: insp, inspected: insp === 'done', remoteInspection: (insp === 'done' || insp === 'booked') ? 'none' : insp, inspectionConfirmed: insp === 'done',
       history: [{ by: 'buyer', price, note, at: Date.now() }]
     };
     mkt.offers.unshift(o); mktSave();
@@ -29215,7 +29278,7 @@ available in the Post-Lease Hub and this chat thread.`
       }); return;
     }
     if (act === 'accept') {
-      const needsConfirm = !iAmBuyer && !o.inspected && !o.inspectionConfirmed;
+      const needsConfirm = !iAmBuyer && o.remoteInspection !== 'none' && !o.inspectionConfirmed;
       const body = `<p class="dealx-sub" style="margin-top:10px;">Agree ${mktMoney(o.price)} for ${mktEsc(o.listingTitle)}. The property is held for this buyer for 72 hours. The buyer then pays through normal MainTown checkout at this price. MainTown does not hold funds.</p>
         ${needsConfirm ? `<label class="dealx-check"><input type="checkbox" id="mk-conf-insp"><span>I confirm the buyer inspected this property by live video or through a representative.</span></label>` : ''}`;
       mktModal('Accept this price?', body, 'Accept', (el, err) => {
@@ -29237,7 +29300,7 @@ available in the Post-Lease Hub and this chat thread.`
       if (o.round >= MKT_MAX_PROPOSALS) { showToast('Counter limit reached. Accept or decline.'); return; }
       const lo = iAmBuyer ? o.history.filter(h => h.by === 'buyer').slice(-1)[0].price : o.price;
       const hint = iAmBuyer ? `Between ${mktMoney(lo)} and ${mktMoney(o.price)}.` : `Between ${mktMoney(o.price)} and ${mktMoney(o.askingPrice)}.`;
-      const cNeedsConfirm = !iAmBuyer && !o.inspected && !o.inspectionConfirmed;
+      const cNeedsConfirm = !iAmBuyer && o.remoteInspection !== 'none' && !o.inspectionConfirmed;
       mktModal('Counter offer', `<p class="dealx-sub" style="margin-top:10px;">${hint} Round ${o.round} of ${MKT_MAX_PROPOSALS}.</p>
         <label class="field-label">Your figure (₦)</label><input id="mk-counter" type="number" inputmode="numeric" ${MKT_INPUT}>
         <label class="field-label">Note (optional)</label><textarea id="mk-cnote" ${MKT_INPUT} rows="2" maxlength="300"></textarea>
@@ -29273,7 +29336,7 @@ available in the Post-Lease Hub and this chat thread.`
       actions = (myTurn ? btn('accept', 'Accept') + (o.round < MKT_MAX_PROPOSALS ? btn('counter', 'Counter') : '') + btn('decline', 'Decline', 'dealx-del-btn') : '')
         + (iAmBuyer ? btn('withdraw', 'Withdraw', 'dealx-del-btn') : '') + btn('chat', 'Chat');
     } else actions = btn('chat', 'Chat');
-    const insp = o.inspected ? 'Inspected' : (o.inspectionConfirmed ? 'Remote inspection confirmed' : `Remote inspection (${o.remoteInspection}) pending host confirmation`);
+    const insp = o.inspected ? 'Inspected' : (o.remoteInspection === 'none' ? 'Inspection booked, buyer must complete it before paying' : (o.inspectionConfirmed ? 'Remote inspection confirmed' : `Remote inspection (${o.remoteInspection}) pending host confirmation`));
     return `<div class="dealx-mine-row" style="display:block;">
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;"><p style="font-weight:700;font-size:14px;margin:0 0 4px;">${mktEsc(o.listingTitle)}</p><span class="dealx-status">${MKT_STATUS[o.status] || o.status}</span></div>
       <p class="dealx-sub" style="margin:0;">${iAmBuyer ? '' : mktEsc(mktFirstName(o.buyerId)) + ' · '}Asking ${mktMoney(o.askingPrice)} · ${o.status === 'accepted' ? 'Agreed' : 'Latest'} <strong>${mktMoney(o.status === 'accepted' ? o.agreedPrice : o.price)}</strong></p>
@@ -29292,6 +29355,73 @@ available in the Post-Lease Hub and this chat thread.`
     const mine = mkt.offers.filter(o => host ? o.hostId === me : o.buyerId === me);
     body.innerHTML = mine.length ? mine.map(o => mktOfferCard(o, me)).join('') : `<div class="dealx-empty">${host ? 'No offers yet.' : 'No offers yet. Open a commercial or land listing and tap Offer a price after your inspection.'}</div>`;
     if (window.lucide) lucide.createIcons();
+  }
+
+  function mktAfterInspection(listing) {
+    const asking = mktAskingPrice(listing);
+    const live = mktLiveOffer(listing);
+    if (live) {
+      mktModal('Inspection done', `
+        <p style="font-weight:700;margin:10px 0 2px;">${mktEsc(listing.title)}</p>
+        <p class="dealx-sub">Your offer of ${mktMoney(live.price)} is still waiting for a response. You can wait for it, or pay the asking price of ${mktMoney(asking)} now.</p>
+        <button type="button" class="dealx-btn" data-mkt-after="view" style="margin-top:6px;">View my offer</button>
+        <button type="button" class="dealx-details-btn" data-mkt-after="pay" style="margin-top:10px;">Continue at the asking price</button>`,
+        null, null, { onOpen: (el) => {
+          el.addEventListener('click', (e) => {
+            const b = e.target.closest('[data-mkt-after]');
+            if (!b) return;
+            el.remove();
+            if (b.dataset.mktAfter === 'view') navigateTo('screen-offers'); else mktProceedCheckout(listing);
+          });
+        } });
+      return;
+    }
+    mktModal('Inspection done', `
+      <p style="font-weight:700;margin:10px 0 2px;">${mktEsc(listing.title)}</p>
+      <p class="dealx-sub">You are satisfied with the property. Asking price ${mktMoney(asking)}${listing.type === 'land' ? '' : ' per year'}. You can pay it now, or offer a lower price first.</p>
+      <button type="button" class="dealx-btn" data-mkt-after="offer" style="margin-top:6px;"><i data-lucide="handshake" class="w-4 h-4"></i>Offer a price</button>
+      <button type="button" class="dealx-details-btn" data-mkt-after="pay" style="margin-top:10px;">Continue at the asking price</button>
+      <p class="dealx-note">An offer is not binding until you pay. MainTown does not hold your money. You can still pay the asking price later.</p>`,
+      null, null, { onOpen: (el) => {
+        el.addEventListener('click', (e) => {
+          const b = e.target.closest('[data-mkt-after]');
+          if (!b) return;
+          el.remove();
+          if (b.dataset.mktAfter === 'offer') mktOpenOffer(listing.id); else mktProceedCheckout(listing);
+        });
+      } });
+  }
+  // "Offer a price" entry points inside the payment modals
+  function mktDecorateLp(listing) {
+    let b = document.getElementById('mkt-lp-offer');
+    const anchor = document.getElementById('lp-continue-btn');
+    if (!b && anchor) {
+      anchor.insertAdjacentHTML('afterend', '<button type="button" id="mkt-lp-offer" class="dealx-details-btn" style="display:none;margin-top:10px;"><i data-lucide="handshake" class="w-4 h-4" style="display:inline;vertical-align:-3px;"></i> Offer a price instead</button>');
+      b = document.getElementById('mkt-lp-offer');
+      b.addEventListener('click', () => { landPaymentModal.classList.remove('open'); mktOpenOffer(b.dataset.lid); });
+    }
+    if (!b) return;
+    const show = mktOfferKind(listing) === 'land' && mktRole() === 'tenant' && !listing._agreedOfferId && !mktLiveOffer(listing);
+    b.dataset.lid = listing.id;
+    b.style.display = show ? '' : 'none';
+    let n = document.getElementById('mkt-lp-note');
+    if (!n && anchor) { anchor.insertAdjacentHTML('beforebegin', '<p id="mkt-lp-note" class="dealx-note" style="display:none;color:#34d399;opacity:1;margin:0 0 10px;"></p>'); n = document.getElementById('mkt-lp-note'); }
+    if (n) {
+      n.style.display = listing._agreedOfferId ? '' : 'none';
+      if (listing._agreedOfferId) n.textContent = 'Agreed price from your accepted offer: ' + mktMoney(listing.totalPrice) + ' (asking ' + mktMoney(listing._askingPrice) + ').';
+    }
+  }
+  function mktDecoratePo(listing) {
+    let b = document.getElementById('mkt-po-offer');
+    const anchor = document.getElementById('po-option-installment');
+    if (!b && anchor) {
+      anchor.insertAdjacentHTML('afterend', '<button type="button" id="mkt-po-offer" class="pay-option" style="display:none;"><div class="pay-option-icon-wrap bg-orange-500/10"><i data-lucide="handshake" class="w-5 h-5 text-orange-400"></i></div><div class="pay-option-text"><p class="pay-option-label">Offer a price</p><p class="pay-option-detail">Inspect first, then offer below the asking price</p></div><div class="pay-option-check" style="display:flex;"><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></div></button>');
+      b = document.getElementById('mkt-po-offer');
+      b.addEventListener('click', () => { paymentOptionsModal.classList.remove('open'); mktOpenOffer(b.dataset.lid); });
+    }
+    if (!b) return;
+    b.dataset.lid = listing.id;
+    b.style.display = (mktOfferKind(listing) === 'commercial' && mktRole() === 'tenant' && !mktLiveOffer(listing)) ? 'flex' : 'none';
   }
 
   // ---- Screens, entry points and delegated events ----
@@ -29361,6 +29491,226 @@ available in the Post-Lease Hub and this chat thread.`
     const tileRequests = { icon: 'search-check', label: 'Requests', bg: 'bg-sky-500/10', color: 'text-sky-400', action: 'requests' };
     const tileOffers = { icon: 'handshake', label: 'Offers', bg: 'bg-orange-500/10', color: 'text-orange-400', action: 'offers' };
     ['tenant', 'landlord', 'agent'].forEach(r => { dashboardContent[r].actions.push(tileRequests, tileOffers); });
+  })();
+
+  // ==================================================================
+  // ---- Enterprise commission: MainTown keeps 60% of the agency
+  //      commission, 40% goes to the company wallet. Sales staff see an
+  //      "Earned Commission" ledger (view only) and can request a payout;
+  //      the CEO or Finance Officer decides the staff amount and marks it
+  //      Paid Offline. MainTown never pays staff. ----
+  // ==================================================================
+  const COMM_MAINTOWN_PCT = 0.60;
+  function commList() { appState = loadAppState(); if (!Array.isArray(appState.commissions)) appState.commissions = []; return appState.commissions; }
+  function commSettings(companyId) {
+    appState = loadAppState();
+    const all = appState.commissionSettings || {};
+    return Object.assign({ showCompanyShare: false, showEstimate: false, defaultSharePct: 50 }, all[companyId] || {});
+  }
+  function commSaveSettings(companyId, patch) {
+    const merged = Object.assign(commSettings(companyId), patch);
+    appState = loadAppState();
+    appState.commissionSettings = appState.commissionSettings || {};
+    appState.commissionSettings[companyId] = merged;
+    saveAppState(appState);
+  }
+  // Called from applySplitPaymentSettlement once a payment on a company
+  // listing clears: records what the company received, per listing and staff member.
+  function commRecordForListing(listing, breakdown) {
+    if (!listing || !breakdown || !isSalesListedEnterpriseListing(listing)) return;
+    const companyShare = breakdown.companyCommission || 0;
+    if (!(companyShare > 0)) return;
+    const list = commList();
+    list.unshift({
+      id: 'cm' + Date.now() + Math.floor(Math.random() * 1000),
+      enterpriseId: listing.companyId || listing.ownerId, staffId: listing.listedByStaffId,
+      listingId: listing.id, listingTitle: listing.title,
+      dealPrice: listing.type === 'land' ? (Number(listing.totalPrice) || 0) : (Number(listing.annualPrice) || 0),
+      totalCommission: (breakdown.maintownCommission || 0) + companyShare, maintownShare: breakdown.maintownCommission || 0, companyShare,
+      status: 'EARNED', staffAmount: null, createdAt: Date.now()
+    });
+    saveAppState(appState);
+  }
+  function commNotifyAdmins(companyId, title, body) {
+    const ids = new Set([companyId].concat(companyStaffIdsByRole(companyId, 'finance')));
+    ids.forEach(id => { try { pushPlatformNotification(null, 'payment', title, body, { screen: 'commRequests' }, 'COMMISSION_REQUEST', null, id); } catch (e) {} });
+  }
+  const COMM_STATUS = { EARNED: 'Earned', REQUESTED: 'Payout requested', PAID: 'Paid offline' };
+  function commEst(c, st) {
+    return (st.showEstimate && st.defaultSharePct > 0) ? Math.round(c.companyShare * st.defaultSharePct / 100) : null;
+  }
+
+  // ---- Sales staff view ----
+  function commRenderStaff(body) {
+    const me = getCurrentUserId();
+    const mine = commList().filter(c => c.staffId === me);
+    const st = commSettings(mine[0] ? mine[0].enterpriseId : getEnterpriseCompanyId());
+    const paid = mine.filter(c => c.status === 'PAID').reduce((s, c) => s + (c.staffAmount || 0), 0);
+    const ready = mine.filter(c => c.status === 'EARNED');
+    const reqd = mine.filter(c => c.status === 'REQUESTED');
+    body.innerHTML = `
+      <div class="dealx-mine-row" style="display:block;">
+        <p class="dealx-sub" style="margin:0;">Commission on your listings. This is a record only: your company pays you directly.</p>
+        <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;">
+          <div><p class="dealx-note" style="margin:0;">Ready to request</p><p style="font-weight:800;margin:0;">${ready.length} deal${ready.length === 1 ? '' : 's'}</p></div>
+          <div><p class="dealx-note" style="margin:0;">Awaiting payment</p><p style="font-weight:800;margin:0;">${reqd.length} deal${reqd.length === 1 ? '' : 's'}</p></div>
+          <div><p class="dealx-note" style="margin:0;">Paid to you</p><p style="font-weight:800;margin:0;">${mktMoney(paid)}</p></div>
+        </div>
+        <button type="button" class="dealx-btn" data-comm-reqall style="margin-top:12px;${ready.length ? '' : 'opacity:.5;'}" ${ready.length ? '' : 'disabled'}><i data-lucide="send" class="w-4 h-4"></i>Request Commission Payout</button>
+      </div>` + (mine.length ? mine.map(c => {
+        const est = commEst(c, st);
+        const amountLine = c.status === 'PAID' ? `Paid <strong>${mktMoney(c.staffAmount)}</strong> on ${new Date(c.paidAt).toLocaleDateString()}`
+          : (est != null ? `Estimated ${mktMoney(est)}. Final amount is set by your company.` : 'Amount is set by your company when paying.');
+        return `<div class="dealx-mine-row" style="display:block;">
+          <div style="display:flex;justify-content:space-between;gap:8px;"><p style="font-weight:700;font-size:14px;margin:0;">${mktEsc(c.listingTitle)}</p><span class="dealx-status">${COMM_STATUS[c.status]}</span></div>
+          <p class="dealx-sub" style="margin:2px 0 0;">Sale value ${mktMoney(c.dealPrice)} · ${new Date(c.createdAt).toLocaleDateString()}</p>
+          ${st.showCompanyShare ? `<p class="dealx-note" style="margin:4px 0 0;">Company commission on this deal: ${mktMoney(c.companyShare)}</p>` : ''}
+          <p class="dealx-note" style="margin:4px 0 0;">${amountLine}</p>
+          <div class="dealx-review-actions">
+            ${c.status === 'EARNED' ? `<button type="button" class="dealx-prev-btn" data-comm-req="${c.id}">Request payout</button>` : ''}
+            ${c.status === 'PAID' && !c.staffConfirmed ? `<button type="button" class="dealx-prev-btn" data-comm-confirm="${c.id}">Confirm I received it</button>` : ''}
+            ${c.status === 'PAID' && c.staffConfirmed ? '<span class="dealx-note" style="margin:0;">Receipt confirmed</span>' : ''}
+          </div></div>`;
+      }).join('') : `<div class="dealx-empty">Nothing here yet. Commission appears when a buyer pays for one of your listings.</div>`);
+  }
+  function commRequestPayout(ids) {
+    const me = getCurrentUserId();
+    const list = commList();
+    const picked = list.filter(c => ids.includes(c.id) && c.staffId === me && c.status === 'EARNED');
+    if (!picked.length) return;
+    picked.forEach(c => { c.status = 'REQUESTED'; c.requestedAt = Date.now(); });
+    saveAppState(appState);
+    commNotifyAdmins(picked[0].enterpriseId, 'Commission payout requested', `${resolveUserName(me)} requested payout on ${picked.length} deal${picked.length === 1 ? '' : 's'}.`);
+    showToast('Request sent to your CEO and Finance Officer');
+  }
+
+  // ---- CEO / Finance view ----
+  let commAdminFilter = 'REQUESTED';
+  function commRenderAdmin(body) {
+    const companyId = getEnterpriseCompanyId();
+    const isCeo = getEnterpriseStaffRole() === 'ceo';
+    const st = commSettings(companyId);
+    const all = commList().filter(c => c.enterpriseId === companyId);
+    const staffIds = Array.from(new Set(all.map(c => c.staffId)));
+    const perStaff = staffIds.map(id => {
+      const rows = all.filter(c => c.staffId === id);
+      const sum = (f) => rows.filter(f).reduce((s, c) => s + (c.companyShare || 0), 0);
+      const paid = rows.filter(c => c.status === 'PAID').reduce((s, c) => s + (c.staffAmount || 0), 0);
+      return `<div class="dealx-detail-row"><span>${mktEsc(resolveUserName(id))}<br><small style="opacity:.6;">${rows.length} deal${rows.length === 1 ? '' : 's'} · company share ${mktMoney(sum(() => true))}</small></span><strong>Paid ${mktMoney(paid)}</strong></div>`;
+    }).join('');
+    const filters = [['REQUESTED', 'Requests'], ['EARNED', 'Earned'], ['PAID', 'Paid'], ['ALL', 'All']]
+      .map(([k, l]) => `<button type="button" class="dealx-chip${commAdminFilter === k ? ' active' : ''}" data-comm-filter="${k}">${l}${k === 'REQUESTED' ? ' (' + all.filter(c => c.status === 'REQUESTED').length + ')' : ''}</button>`).join('');
+    const rows = all.filter(c => commAdminFilter === 'ALL' || c.status === commAdminFilter);
+    body.innerHTML = `
+      ${isCeo ? `<div class="dealx-mine-row" style="display:block;">
+        <p style="font-weight:700;font-size:13.5px;margin:0 0 6px;">Staff visibility</p>
+        <label class="dealx-check"><input type="checkbox" data-comm-set="showCompanyShare" ${st.showCompanyShare ? 'checked' : ''}><span>Show the company's commission on each deal to sales staff</span></label>
+        <label class="dealx-check" style="margin-top:8px;"><input type="checkbox" data-comm-set="showEstimate" ${st.showEstimate ? 'checked' : ''}><span>Show staff an estimated share of</span></label>
+        <div style="display:flex;align-items:center;gap:8px;margin:6px 0 0 24px;"><input type="number" min="1" max="100" class="field-input" data-comm-pct value="${st.defaultSharePct}" style="width:80px;"> <span class="dealx-note" style="margin:0;">% of the company's share</span></div>
+        <p class="dealx-note">Both are off by default. Staff always see their own deals and the amount you pay them.</p></div>` : ''}
+      ${perStaff ? `<div class="dealx-mine-row" style="display:block;"><p style="font-weight:700;font-size:13.5px;margin:0 0 4px;">Sales staff earnings</p>${perStaff}</div>` : ''}
+      <div class="dealx-chips" style="margin-top:6px;">${filters}</div>` +
+      (rows.length ? rows.map(c => {
+        const est = commEst(c, st);
+        const canPay = c.status === 'REQUESTED';
+        return `<div class="dealx-mine-row" style="display:block;">
+          <div style="display:flex;justify-content:space-between;gap:8px;"><p style="font-weight:700;font-size:14px;margin:0;">${mktEsc(c.listingTitle)}</p><span class="dealx-status">${COMM_STATUS[c.status]}</span></div>
+          <p class="dealx-sub" style="margin:2px 0 0;">${mktEsc(resolveUserName(c.staffId))} · sale ${mktMoney(c.dealPrice)} · company share <strong>${mktMoney(c.companyShare)}</strong></p>
+          ${c.status === 'PAID' ? `<p class="dealx-note" style="margin:4px 0 0;">Paid ${mktMoney(c.staffAmount)} offline on ${new Date(c.paidAt).toLocaleDateString()} by ${mktEsc(resolveUserName(c.paidBy))}${c.note ? ' · ' + mktEsc(c.note) : ''}${c.staffConfirmed ? ' · staff confirmed' : ''}</p>` : ''}
+          ${canPay ? `<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+            <input type="number" min="1" class="field-input" data-comm-amt="${c.id}" placeholder="Amount paid to staff (₦)" value="${est != null ? est : ''}" style="flex:1;min-width:150px;">
+            <input type="text" class="field-input" data-comm-note="${c.id}" placeholder="Note or reference (optional)" style="flex:1;min-width:150px;"></div>
+            <button type="button" class="dealx-btn" data-comm-paid="${c.id}" style="margin-top:8px;"><i data-lucide="check" class="w-4 h-4"></i>Mark as Paid Offline</button>` : ''}
+          ${c.status === 'PAID' && isCeo ? `<div class="dealx-review-actions"><button type="button" class="dealx-del-btn" data-comm-reverse="${c.id}">Reverse</button></div>` : ''}</div>`;
+      }).join('') : `<div class="dealx-empty">Nothing in this view.</div>`);
+  }
+  function commMarkPaid(id, amount, note) {
+    const c = commList().find(x => x.id === id);
+    if (!c || c.status !== 'REQUESTED') return 'This request is no longer open.';
+    if (!(amount > 0)) return 'Enter the amount you paid the staff member.';
+    if (amount > c.companyShare) return 'The amount cannot be more than the company share of ' + mktMoney(c.companyShare) + '.';
+    c.status = 'PAID'; c.staffAmount = Math.round(amount); c.paidAt = Date.now(); c.paidBy = getCurrentUserId(); c.note = (note || '').slice(0, 120);
+    saveAppState(appState);
+    try { pushPlatformNotification(null, 'payment', 'Commission paid', `Your company marked ${mktMoney(c.staffAmount)} as paid for ${c.listingTitle}. Please confirm you received it.`, { screen: 'commStaff' }, 'COMMISSION_PAID', null, c.staffId); } catch (e) {}
+    return '';
+  }
+  function commRender() {
+    const body = document.getElementById('comm-body');
+    const sales = getEnterpriseStaffRole() === 'sales';
+    document.getElementById('comm-title').textContent = sales ? 'Earned Commission' : 'Commission Requests';
+    document.getElementById('comm-sub').textContent = sales ? '' : 'Commission earned by your sales staff. Mark each as paid once you have paid them outside MainTown.';
+    (sales ? commRenderStaff : commRenderAdmin)(body);
+    if (window.lucide) lucide.createIcons();
+  }
+  function commRenderIntoCeoTab() {
+    const p = document.getElementById('ent-tab-commissions');
+    if (!p) return;
+    p.innerHTML = '<div id="comm-ceo-body"></div>';
+    commRenderAdmin(document.getElementById('comm-ceo-body'));
+    if (window.lucide) lucide.createIcons();
+  }
+  function commHandleClick(e, rerender) {
+    const t = e.target;
+    const reqAll = t.closest('[data-comm-reqall]');
+    if (reqAll) { commRequestPayout(commList().filter(c => c.staffId === getCurrentUserId() && c.status === 'EARNED').map(c => c.id)); rerender(); return; }
+    const req = t.closest('[data-comm-req]');
+    if (req) { commRequestPayout([req.dataset.commReq]); rerender(); return; }
+    const conf = t.closest('[data-comm-confirm]');
+    if (conf) { const c = commList().find(x => x.id === conf.dataset.commConfirm); if (c) { c.staffConfirmed = true; saveAppState(appState); } rerender(); return; }
+    const f = t.closest('[data-comm-filter]');
+    if (f) { commAdminFilter = f.dataset.commFilter; rerender(); return; }
+    const paid = t.closest('[data-comm-paid]');
+    if (paid) {
+      const id = paid.dataset.commPaid, scope = paid.closest('.dealx-mine-row');
+      const err = commMarkPaid(id, Number(scope.querySelector(`[data-comm-amt="${id}"]`).value), scope.querySelector(`[data-comm-note="${id}"]`).value.trim());
+      if (err) showToast(err); else showToast('Marked as paid offline');
+      rerender(); return;
+    }
+    const rev = t.closest('[data-comm-reverse]');
+    if (rev) {
+      const c = commList().find(x => x.id === rev.dataset.commReverse);
+      if (c && c.status === 'PAID') { c.status = 'REQUESTED'; c.staffConfirmed = false; c.note = ''; saveAppState(appState); showToast('Moved back to requests'); }
+      rerender();
+    }
+  }
+  function commHandleChange(e, rerender) {
+    const s = e.target.closest('[data-comm-set]');
+    const cid = getEnterpriseCompanyId();
+    if (s) { commSaveSettings(cid, { [s.dataset.commSet]: s.checked }); rerender(); return; }
+    const p = e.target.closest('[data-comm-pct]');
+    if (p) { const v = Math.min(100, Math.max(1, Number(p.value) || 50)); commSaveSettings(cid, { defaultSharePct: v }); rerender(); }
+  }
+  (function commInit() {
+    document.getElementById('screen-deals').insertAdjacentHTML('afterend', `
+      <div id="screen-commission" class="screen-view hidden pb-24">
+        <div class="s5-topbar"><button type="button" class="s5-back-btn" id="comm-back-btn"><i data-lucide="arrow-left" class="w-4 h-4"></i></button></div>
+        <h1 class="s5-role-title" id="comm-title" style="margin-bottom:4px;">Earned Commission</h1>
+        <p class="dealx-sub" id="comm-sub"></p>
+        <div id="comm-body"></div>
+      </div>`);
+    const scr = document.getElementById('screen-commission');
+    scr.addEventListener('click', (e) => commHandleClick(e, commRender));
+    scr.addEventListener('change', (e) => commHandleChange(e, commRender));
+    document.getElementById('comm-back-btn').addEventListener('click', () => {
+      const r = getEnterpriseStaffRole();
+      navigateTo(r === 'finance' ? 'screen-ent-finance' : 'screen-ent-sales');
+    });
+    // CEO tab
+    ENT_TAB_DEFS.splice(4, 0, { key: 'commissions', label: 'Commissions', icon: 'hand-coins' });
+    ENT_TAB_VISIBILITY.ceo.splice(4, 0, 'commissions');
+    ENT_PANEL_COPY.commissions = ['Commissions', 'Commission earned by your sales staff and payout requests'];
+    const led = document.getElementById('ent-tab-ledger');
+    if (led) {
+      led.insertAdjacentHTML('beforebegin', '<div id="ent-tab-commissions" class="ent-tab-panel" style="display:none;"></div>');
+      document.getElementById('ent-tab-commissions').addEventListener('click', (e) => commHandleClick(e, commRenderIntoCeoTab));
+      document.getElementById('ent-tab-commissions').addEventListener('change', (e) => commHandleChange(e, commRenderIntoCeoTab));
+    }
+    // Sales + Finance dashboard cards
+    const mk = (id, t, s) => `<button type="button" class="ent-quick-card" id="${id}"><div class="ent-quick-card-icon"><i data-lucide="hand-coins" class="w-5 h-5"></i></div><div class="ent-quick-card-text"><p class="ent-quick-card-title">${t}</p><p class="ent-quick-card-sub">${s}</p></div><i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i></button>`;
+    const alloc = document.getElementById('ent-sales-allocation-card');
+    if (alloc) { alloc.insertAdjacentHTML('beforebegin', mk('ent-sales-commission-card', 'Earned Commission', 'Your commission record and payout requests')); document.getElementById('ent-sales-commission-card').addEventListener('click', () => navigateTo('screen-commission')); }
+    const fin = document.getElementById('ent-finance-view-report-card');
+    if (fin) { fin.insertAdjacentHTML('afterend', mk('ent-finance-commission-card', 'Commission Requests', 'Mark staff commission as paid offline')); document.getElementById('ent-finance-commission-card').addEventListener('click', () => navigateTo('screen-commission')); }
   })();
 
   // ---- Boot: auto-relogin into a saved demo session, else the Welcome screen shows as-is ----
