@@ -4561,6 +4561,7 @@
         </div>
       </div>
 
+      <p id="tv-sale-hold-note" class="dealx-note" style="display:none;margin:0 0 10px;">Property sales: the buyer's payment is split at checkout, but your share is held by our payment partner until the buyer confirms receipt of your original documents (or 7 days after you dispatch them with no complaint). Dispatch within 14 days of full payment. A confirmed problem means a full refund and possible removal from MainTown.</p>
       <div class="field" id="tv-title-type-field" style="display:none;">
         <p class="s5-section-label" style="margin:0 0 4px;"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i>Title Verification Documents</p>
         <p class="modal-sub" style="margin-bottom:10px; text-align:left;">Select every document that applies to this property, then upload each one. Shown publicly on the listing so buyers can judge title risk before making an offer.</p>
@@ -5362,7 +5363,7 @@
         <p>By proceeding with this transaction, you acknowledge and agree to the following binding terms:</p>
         <p><strong>Clause 1 — Pre-Checkout Inspection &amp; Satisfaction:</strong> Checkout requires prior completion of physical or virtual property inspection. By initiating payment, you confirm you (or your authorized representative) have inspected the land, verified its condition, and logged your status as Satisfied within the platform.</p>
         <p><strong>Clause 2 — Title Verification, Due Diligence &amp; Allocation Window:</strong> MainTown Realty conducts automated and preliminary verification of the title documents supplied by the Seller (C of O, Deed of Assignment, Governor's Consent, Gazette or layout plans). That verification is not legal due diligence, a Land Registry search or a certificate of title. You acknowledge that final legal due diligence, the physical search at the Land Registry, independent survey checks and title verification are your own responsibility and must be completed before you execute this Contract. Physical allocation is executed upon the Seller's title warranties being satisfied and adherence to the agreed payment plan.</p>
-        <p><strong>Clause 3 — Automated Non-Custodial Split Payments:</strong> All payments (outright or installment) are processed instantly via automated payment split logic directly to the designated accounts of the Seller/Developer and MainTown Realty. MainTown Realty operates as a non-custodial facilitator and does not hold or escrow transaction funds.</p>
+        <p><strong>Clause 3 — Split Payments &amp; Held Seller Proceeds:</strong> Payments (outright or installment) are split automatically at the point of charge. MainTown's commission and any agent share are paid immediately. The Seller/Developer's share is held by MainTown's licensed payment partner, not by MainTown Realty itself, and is released to the Seller once the Buyer confirms receipt of the original title documents, or automatically 7 days after the documents are dispatched if the Buyer neither confirms nor reports a problem. If the Buyer reports a problem, the Seller's held share stays frozen while MainTown reviews it. If the claim is upheld, the Buyer is refunded in full by the Seller, and the Seller may be suspended and removed from the platform.</p>
         <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule and are scheduled part-payments of the agreed purchase price; no interest or finance charge is added. A mandatory 30-day grace period applies to overdue payments, after which a written notice of default is issued with a 14-day cure period. Payments remaining in default beyond 60 days without cure trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
         <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to you by SmartyHub Logistics, MainTown's delivery partner, at no cost to you, with pick-up within 24 to 48 hours of the Seller's dispatch request.</p>
         <p><strong>Clause 6 — Territorial Scope &amp; Interest-Free Instalments:</strong> MainTown's structured payment plans of up to 12 months are available only for land and property located within the Federal Republic of Nigeria. Buyers who live abroad may purchase Nigerian property subject to identity verification. Each instalment is a scheduled part-payment of the agreed purchase price, and no interest or finance charge is added.</p>
@@ -5437,7 +5438,7 @@
 
     <div class="s5-notice-box">
       <i data-lucide="lock" class="w-5 h-5"></i>
-      <p>Payment is split automatically at the point of charge through <span class="js-provider">Flutterwave</span> — MainTown never holds your funds. The owner's share, any agent's share and MainTown's share are each credited to their own accounts instantly at the point of charge.</p>
+      <p id="s6-protect-note">Payment is split automatically at the point of charge through <span class="js-provider">Flutterwave</span> — MainTown never holds your funds. The owner's share, any agent's share and MainTown's share are each credited to their own accounts instantly at the point of charge.</p>
     </div>
 
     <!-- Agreement Execution (in-app digital signature, mandatory pre-payment) —
@@ -5484,7 +5485,7 @@
   <div id="s6-invoice-panel" class="hidden">
     <div class="dash-card" style="background: linear-gradient(135deg, #7e22ce, #4c1d95); margin-bottom: 20px;">
       <p class="dash-card-label" style="display: flex; align-items: center; gap: 5px;"><i data-lucide="receipt" class="w-3.5 h-3.5"></i>Status</p>
-      <p class="dash-card-value">Payment Successful — Paid Out Instantly</p>
+      <p class="dash-card-value" id="s6-invoice-status-value">Payment Successful — Paid Out Instantly</p>
       <p class="dash-card-sub" id="s6-invoice-ref">Ref: —</p>
     </div>
 
@@ -7120,6 +7121,7 @@
       <input class="field-input" id="lv-bvn" type="text" inputmode="numeric" maxlength="11" placeholder="11-digit BVN" autocomplete="off">
     </div>
 
+    <p id="lv-sale-hold-note" class="dealx-note" style="display:none;margin:0 0 10px;">Property sales: the buyer's payment is split at checkout, but the seller's share is held by our payment partner until the buyer confirms receipt of the original documents (or 7 days after dispatch with no complaint). Dispatch within 14 days of full payment. A confirmed problem means a full refund and possible removal from MainTown.</p>
     <p class="s5-section-label"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i><span id="lv-doc-heading-text">Title Verification Documents</span></p>
     <p class="modal-sub" id="lv-doc-sub" style="margin-bottom:10px; text-align:left;">Select every document that applies to this property, then upload each one.</p>
     <div id="lv-doc-options"><!-- populated dynamically --></div>
@@ -8767,7 +8769,7 @@ document.addEventListener('DOMContentLoaded', () => {
       perks: [
         { icon: 'landmark', text: 'You set your own Caution Deposit and Service Charge on rentals and shortlets — paid straight to you alongside rent, with no MainTown cut.' },
         { icon: 'file-text', text: 'You choose the Deed of Assignment fee (5% or 10%) on Land & Property sales — paid to you with the buyer\'s first installment, not to MainTown.' },
-        { icon: 'zap', text: 'Every payment is split and routed to your verified payout account automatically at the point of charge — MainTown never holds your funds in escrow.' },
+        { icon: 'zap', text: 'Rent and short-let payments are split and routed to your verified payout account at the point of charge. For land and property sales, your share is held by our payment partner until the buyer confirms receipt of your original documents (or 7 days after dispatch with no complaint).' },
         { icon: 'users', text: 'List directly yourself, or let a MainTown Agent list on your behalf — either way, your share is protected and paid out the same way.' }
       ],
       terms: [
@@ -9164,7 +9166,7 @@ document.addEventListener('DOMContentLoaded', () => {
       roleIcon: 'key-round',
       sections: [
         { title: 'Section 1: Title, Ownership & Documentation Warranties', body: "Declaration that property titles (C of O, Gazette, Governor's Consent, Excision) or rental authorization rights are authentic, unencumbered, and free of legal dispute. For Land &amp; Property listings, you warrant that all uploaded survey plans, Certificates of Occupancy, or Gazettes are authentic and unencumbered, and you consent to automated digital verification via MainTown's AI inspection engine prior to listing approval. " + TITLE_LISTING_AUTH_TEXT },
-        { title: 'Section 2: Automated Non-Custodial Payment Disbursement', body: 'Monthly Rentals &amp; Shortlets — each payment is split automatically at the point of charge, with the Landlord\'s share paid directly to their own account. Land &amp; Property Sales — each instalment (or outright payment) is split automatically at the point of charge, with the Seller/Developer\'s share paid directly to their own account. Payments are never held in escrow by MainTown; each charge is routed directly to your verified payout account, minus platform commissions and legal/deed processing fees. Physical allocation and Deed of Assignment execution follow the payment schedule set out in the listing.' },
+        { title: 'Section 2: Payment Disbursement & Held Sale Proceeds', body: 'Monthly Rentals &amp; Shortlets — each payment is split automatically at the point of charge, with the Landlord\'s share paid directly to their own account (short-let shares are held until check-in). Land &amp; Property Sales — each payment is split automatically at the point of charge. MainTown\'s commission and any agent share are paid immediately, but the Seller/Developer\'s share is held by MainTown\'s licensed payment partner, not by MainTown itself, and is released when the Buyer confirms receipt of the original title documents, or automatically 7 days after you dispatch them if the Buyer neither confirms nor reports a problem. You must dispatch the original documents through SmartyHub Logistics within 14 days of full payment. If the Buyer reports a problem, your held share is frozen while MainTown reviews it; if the claim is upheld you must refund the Buyer in full and your account and listings may be suspended and removed. Physical allocation and Deed of Assignment execution follow the payment schedule set out in the listing.' },
         { title: 'Section 3: Contract Countersignature Timing (Land & Property)', body: "Upon a buyer's checkout on a Land &amp; Property sale, you agree to digitally countersign the generated Contract of Sale within 24 hours. Automated platform reminders will trigger every 5 hours until executed.", critical: true },
         { title: 'Section 4: Habitability Standards & Repair SLAs', body: 'Obligation to maintain functional power, water, structural integrity, and estate amenities. Landlords must address critical repairs within 48 hours. MainTown reserves the right to withhold monthly payout releases until critical repairs are resolved.', critical: true },
         { title: 'Section 5: Default, Restructuring, Deed Execution & Physical Delivery', body: "Agreement to MainTown's default policies: Land & Property installment buyers follow a 30-day grace period and a 60-day default threshold, preceded by written notice of default and a 14-day cure period; monthly renters follow the three-stage, eight-day schedule in the Tenant terms (Grace Period on Days 1-3, Finance Follow-Up and Late Notice on Days 4-7, and Legal Escalation and Recovery from Day 8); from Day 8 you may apply any Caution Deposit you collected toward the unpaid rent. Statutory notices are issued by or on behalf of the Landlord, and possession is only recovered through the process required by the Tenancy Law of Lagos State and the Recovery of Premises Law of Lagos State; MainTown provides notice templates and delivery records. Authorizes MainTown to restructure or re-list defaulted inventory. Upon 100% completion of buyer payments for a Land &amp; Property sale, you agree to upload the executed Deed of Assignment and surrender original physical title instruments exclusively to SmartyHub Logistics, MainTown's delivery partner, for secure buyer delivery. Dispatch is free: request it in the app with pick-up and delivery locations and contact numbers, and pick-up happens within 24 to 48 hours. Off-platform physical document transfers are strictly prohibited.", critical: true },
@@ -10464,7 +10466,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         asCard('One-time screening fee', '₦5,000, paid once when you first request an inspection or start a purchase. It covers your credit and background screening and is not charged again at checkout.')
       ];
     }
-    cards.push('<p class="as-note">Payment is split automatically at the point of charge by the licensed payment provider. MainTown never holds your funds. The rows in your Payment Disbursement Breakdown show the exact amounts for this listing.</p>');
+    cards.push('<p class="as-note">Payment is split automatically at the point of charge by the licensed payment provider. The seller\'s share is held by the payment partner, not by MainTown, until you confirm receipt of the original documents. The rows in your Payment Disbursement Breakdown show the exact amounts for this listing.</p>');
     assistOpen('Explain these fees', l ? l.title : '', cards.join(''));
   }
 
@@ -13094,7 +13096,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ${preview ? `<p class="li-preview-note"><i data-lucide="eye"></i><span>${liEsc(opts.statusLabel || 'Preview')}. This is exactly how tenants see your listing; the buttons below are inactive in preview.</span></p>` : ''}
       ${sl ? (sl.offers + sl.ratings + sl.about) : `<details class="li-section li-drawer" open><summary class="li-h">About this listing</summary><p class="li-story">${liEsc(liStory(p))}</p></details>`}
       <details class="li-section li-drawer" open><summary class="li-h">Property details</summary><div class="li-rows">${details.join('')}</div></details>
-      ${isLand ? mktDocChecklistHtml(p) : ''}
+      ${p.location ? mktNearbyHtml(p) : ''}
+      ${isLand ? mktDocChecklistHtml(p) + mktSaleProtectionHtml() : ''}
       <details class="li-section li-drawer"><summary class="li-h">Agent, legal and other fees</summary><div class="li-rows">${fees.join('')}</div>
         <p class="li-note">Final amounts are confirmed and itemised before any payment.</p></details>
       ${isShortlet ? '' : amenHtml}
@@ -15080,6 +15083,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
     checkoutListing = listing;
+    { const pn = document.getElementById('s6-protect-note'); if (pn) { if (!pn.dataset.orig) pn.dataset.orig = pn.innerHTML; pn.innerHTML = listing.type === 'land' ? mktSaleProtectionText() : pn.dataset.orig; } }
     checkoutLandPayment = landPayment || null;
     checkoutAuthSubmitting = false;
     checkoutPaymentPending = false;
@@ -15159,7 +15163,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <p>By proceeding with this transaction, you acknowledge and agree to the following binding terms:</p>
         <p><strong>Clause 1 — Pre-Checkout Inspection &amp; Satisfaction:</strong> Checkout requires prior completion of physical or virtual property inspection. By initiating payment, you confirm you (or your authorized representative) have inspected the land, verified its condition, and logged your status as Satisfied within the platform.</p>
         <p><strong>Clause 2 — Title Verification, Due Diligence &amp; Allocation Window:</strong> MainTown Realty conducts automated and preliminary verification of the title documents supplied by the Seller (C of O, Deed of Assignment, Governor's Consent, Gazette or layout plans). That verification is not legal due diligence, a Land Registry search or a certificate of title. You acknowledge that final legal due diligence, the physical search at the Land Registry, independent survey checks and title verification are your own responsibility and must be completed before you execute this Contract. Physical allocation is executed upon the Seller's title warranties being satisfied and adherence to the agreed payment plan.</p>
-        <p><strong>Clause 3 — Automated Non-Custodial Split Payments:</strong> All payments (outright or installment) are processed instantly via automated payment split logic directly to the designated accounts of the Seller/Developer and MainTown Realty. MainTown Realty operates as a non-custodial facilitator and does not hold or escrow transaction funds.</p>
+        <p><strong>Clause 3 — Split Payments &amp; Held Seller Proceeds:</strong> Payments (outright or installment) are split automatically at the point of charge. MainTown's commission and any agent share are paid immediately. The Seller/Developer's share is held by MainTown's licensed payment partner, not by MainTown Realty itself, and is released to the Seller once the Buyer confirms receipt of the original title documents, or automatically 7 days after the documents are dispatched if the Buyer neither confirms nor reports a problem. If the Buyer reports a problem, the Seller's held share stays frozen while MainTown reviews it. If the claim is upheld, the Buyer is refunded in full by the Seller, and the Seller may be suspended and removed from the platform.</p>
         <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule and are scheduled part-payments of the agreed purchase price; no interest or finance charge is added. A mandatory 30-day grace period applies to overdue payments, after which a written notice of default is issued with a 14-day cure period. Payments remaining in default beyond 60 days without cure trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
         <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to you by SmartyHub Logistics, MainTown's delivery partner, at no cost to you, with pick-up within 24 to 48 hours of the Seller's dispatch request.</p>
         <p><strong>Clause 6 — Territorial Scope &amp; Interest-Free Instalments:</strong> ${TERRITORIAL_SCOPE_TEXT}</p>
@@ -16241,7 +16245,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <h1>Binding Terms</h1>
       <p><strong>Clause 1 — Pre-Checkout Inspection &amp; Satisfaction:</strong> Checkout requires prior completion of physical or virtual property inspection. By initiating payment, the Buyer confirms they (or their authorized representative) have inspected the land, verified its condition, and logged their status as Satisfied within the platform.</p>
       <p><strong>Clause 2 — Title Verification, Due Diligence &amp; Allocation Window:</strong> MainTown Realty conducts automated and preliminary verification of the title documents supplied by the Seller (C of O, Deed of Assignment, Governor's Consent, Gazette or layout plans). That verification is not legal due diligence, a Land Registry search or a certificate of title. The Buyer acknowledges that final legal due diligence, the physical search at the Land Registry, independent survey checks and title verification are the Buyer's own responsibility and must be completed before the Buyer executes this Contract. Physical allocation is executed upon the Seller's title warranties being satisfied and adherence to the agreed payment plan.</p>
-      <p><strong>Clause 3 — Automated Non-Custodial Split Payments:</strong> All payments (outright or installment) are processed instantly via automated payment split logic directly to the designated accounts of the Seller/Developer and MainTown Realty. MainTown Realty operates as a non-custodial facilitator and does not hold or escrow transaction funds.</p>
+      <p><strong>Clause 3 — Split Payments &amp; Held Seller Proceeds:</strong> Payments (outright or installment) are split automatically at the point of charge. MainTown's commission and any agent share are paid immediately. The Seller/Developer's share is held by MainTown's licensed payment partner, not by MainTown Realty itself, and is released to the Seller once the Buyer confirms receipt of the original title documents, or automatically 7 days after the documents are dispatched if the Buyer neither confirms nor reports a problem. If the Buyer reports a problem, the Seller's held share stays frozen while MainTown reviews it. If the claim is upheld, the Buyer is refunded in full by the Seller, and the Seller may be suspended and removed from the platform.</p>
       <p><strong>Clause 4 — Installment Schedule, Grace Period &amp; Default:</strong> Installments are due according to the selected schedule and are scheduled part-payments of the agreed purchase price; no interest or finance charge is added. A mandatory 30-day grace period applies to overdue payments, after which a written notice of default is issued with a 14-day cure period. Payments remaining in default beyond 60 days without cure trigger automated contract restructuring or property forfeiture, subject to administrative charges.</p>
       <p><strong>Clause 5 — Contract Countersignature &amp; Document Dispatch:</strong> Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to the Buyer by SmartyHub Logistics, MainTown's delivery partner. Dispatch is free: you request it in the app by giving pick-up and delivery locations and contact numbers, and pick-up happens within 24 to 48 hours.</p>
       <p><strong>Clause 6 — Territorial Scope &amp; Interest-Free Instalments:</strong> ${TERRITORIAL_SCOPE_TEXT}</p>
@@ -16696,10 +16700,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const sellerCommissionDeduction = (isLand && breakdown.sellerCommission) || 0;
     const ownerAmount = (breakdown.monthly || 0) + ownerLegalShare + cautionFee + serviceChargeFee - sellerCommissionDeduction;
 
-    creditPartyWallet(listing.ownerId, ownerAmount, {
+    (isLand ? holdSaleProceeds : creditPartyWallet)(listing.ownerId, ownerAmount, {
       title: `${isLand ? 'Land Owner' : 'Landlord'} Payout - ${listing.title || 'Property'}`,
       category: 'LANDLORD_PAYOUT',
-      propertyName: listing.title,
+      propertyName: listing.title, listingId: listing.id,
       companyMeta: isSalesListedEnterpriseListing(listing) ? { companyId: listing.companyId || listing.ownerId, salesStaffId: listing.listedByStaffId } : undefined,
       feeType: isLand
         ? [
@@ -16835,7 +16839,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       }
     }
 
-    showToast('Payment successful — everyone paid instantly');
+    showToast((checkoutListing && checkoutListing.type === 'land') ? 'Payment successful. The seller\'s share is held until you confirm your documents.' : 'Payment successful — everyone paid instantly');
+    { const sv = document.getElementById('s6-invoice-status-value'); if (sv) sv.textContent = (checkoutListing && checkoutListing.type === 'land') ? 'Payment Successful — Seller\'s Share Held Until Documents Confirmed' : 'Payment Successful — Paid Out Instantly'; }
 
     // ---- Automatic Property Status Switcher: AVAILABLE -> SOLD / RENTED ----
     // Post-checkout trigger: on successful 6-digit PIN checkout completion,
@@ -18513,6 +18518,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function updateTvTitleTypeVisibility() {
     const isLand = document.getElementById('tv-listing-type').value === 'land';
     document.getElementById('tv-title-type-field').style.display = isLand ? 'block' : 'none';
+    { const hn = document.getElementById('tv-sale-hold-note'); if (hn) hn.style.display = isLand ? 'block' : 'none'; }
   }
 
   // ==================================================================
@@ -18804,6 +18810,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const wrap = document.getElementById('lv-doc-options');
     const single = usesSingleOwnershipDoc(listingType);
     document.getElementById('lv-doc-heading-text').textContent = single ? 'Proof of Ownership' : 'Title Verification Documents';
+    { const hn = document.getElementById('lv-sale-hold-note'); if (hn) hn.style.display = (listingType === 'land') ? 'block' : 'none'; }
     document.getElementById('lv-doc-sub').textContent = single
       ? 'One document is enough: a copy of your title documents or a recent utility bill for this property.'
       : 'Select every document that applies to this property, then upload each one.';
@@ -22921,7 +22928,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return [
       { title: "Clause 1 — Pre-Checkout Inspection & Satisfaction", body: "Checkout requires prior completion of physical or virtual property inspection. By initiating payment, you confirm you (or your authorized representative) have inspected the land, verified its condition, and logged your status as Satisfied within the platform." },
       { title: "Clause 2 — Title Verification, Due Diligence & Allocation Window", body: "MainTown Realty conducts automated and preliminary verification of the title documents supplied by the Seller (C of O, Deed of Assignment, Governor's Consent, Gazette or layout plans). That verification is not legal due diligence, a Land Registry search or a certificate of title. You acknowledge that final legal due diligence, the physical search at the Land Registry, independent survey checks and title verification are your own responsibility and must be completed before you execute this Contract. Physical allocation is executed upon the Seller's title warranties being satisfied and adherence to the agreed payment plan." },
-      { title: "Clause 3 — Automated Non-Custodial Split Payments", body: "All payments (outright or installment) are processed instantly via automated payment split logic directly to the designated accounts of the Seller/Developer and MainTown Realty. MainTown Realty operates as a non-custodial facilitator and does not hold or escrow transaction funds." },
+      { title: "Clause 3 — Split Payments & Held Seller Proceeds", body: "Payments (outright or installment) are split automatically at the point of charge. MainTown's commission and any agent share are paid immediately. The Seller/Developer's share is held by MainTown's licensed payment partner, not by MainTown Realty itself, and is released once the Buyer confirms receipt of the original title documents, or automatically 7 days after the documents are dispatched if the Buyer neither confirms nor reports a problem. If the Buyer reports a problem, the Seller's held share stays frozen while MainTown reviews it. If the claim is upheld, the Buyer is refunded in full by the Seller, and the Seller may be suspended and removed from the platform." },
       { title: "Clause 4 — Installment Schedule, Grace Period & Default", body: "Installments are due according to the selected schedule and are scheduled part-payments of the agreed purchase price; no interest or finance charge is added. A mandatory 30-day grace period applies to overdue payments, after which a written notice of default is issued with a 14-day cure period. Payments remaining in default beyond 60 days without cure trigger automated contract restructuring or property forfeiture, subject to administrative charges." },
       { title: "Clause 5 — Contract Countersignature & Document Dispatch", body: "Upon checkout, the generated Contract of Sale is routed to the Seller for countersignature under platform response windows. Upon 100% completion of the purchase price and processing fees, the Seller is obligated to issue and upload the Deed of Assignment and primary title instruments, delivered securely to you by SmartyHub Logistics, MainTown's delivery partner, at no cost to you, with pick-up within 24 to 48 hours of the Seller's dispatch request." },
       { title: 'Clause 6 \u2014 Territorial Scope & Interest-Free Instalments', body: TERRITORIAL_SCOPE_TEXT },
@@ -23720,7 +23727,7 @@ available in the Post-Lease Hub and this chat thread.`
     } else if (asset.sellerId) {
       pushPlatformNotification('landlord', 'message', 'Receipt of Documents Confirmed', body, { screen: 'screen-owner-assets' }, 'PHYSICAL_DOCS_RECEIVED', null, asset.sellerId);
     }
-    showToast('Receipt of documents confirmed');
+    { const rel = releaseSaleProceeds(asset.ownerId, asset.listingId, 'confirmed'); showToast(rel > 0 ? 'Receipt confirmed. The seller\'s share has been released.' : 'Receipt of documents confirmed'); }
     physDocsConfirming = false;
     if (typeof populateScreenLandHandover === 'function' && !document.getElementById('screen-land-handover').classList.contains('hidden')) populateScreenLandHandover();
     if (typeof renderLegalDispatch === 'function') renderLegalDispatch();
@@ -26376,6 +26383,11 @@ available in the Post-Lease Hub and this chat thread.`
     const el = document.getElementById('wallet-balance-value');
     if (!el) return;
     el.textContent = walletBalanceHidden ? '₦ ••••••••' : formatMoneyDecimal(balance);
+    let pl = document.getElementById('wallet-pending-line');
+    if (!pl) { el.insertAdjacentHTML('afterend', '<p id="wallet-pending-line" style="display:none;font-size:12px;color:rgba(255,255,255,.8);margin:-12px 0 14px;"></p>'); pl = document.getElementById('wallet-pending-line'); }
+    const pend = pendingSaleTotal(walletTargetUserId());
+    pl.style.display = (pend > 0 && !walletBalanceHidden) ? '' : 'none';
+    pl.textContent = pend > 0 ? 'Plus ' + formatMoneyDecimal(pend) + ' held until buyers confirm documents' : '';
   }
 
   function computeWalletInflowOutflow(uid) {
@@ -26412,7 +26424,7 @@ available in the Post-Lease Hub and this chat thread.`
     return 'settled';
   }
   function walletStatusLabel(status, t) {
-    if (status === 'PENDING_ESCROW' && t && t.meta && t.meta.held) return 'HELD UNTIL CHECK-IN';
+    if (status === 'PENDING_ESCROW' && t && t.meta && t.meta.held) return t.meta.holdKind === 'sale' ? 'HELD UNTIL DOCUMENTS CONFIRMED' : 'HELD UNTIL CHECK-IN';
     return status === 'PENDING_ESCROW' ? 'PENDING ESCROW' : (status || 'SUCCESSFUL');
   }
 
@@ -29262,6 +29274,7 @@ available in the Post-Lease Hub and this chat thread.`
     if (act === 'checkout') {
       if (!l || o.status !== 'accepted') return;
       if (o.kind === 'land') requireScreening(() => openLandPaymentModal(l));
+      else if (hasSatisfiedInspectionForListing(l)) mktProceedCheckout(l);
       else openPaymentOptionsModal(l);
       return;
     }
@@ -29404,6 +29417,9 @@ available in the Post-Lease Hub and this chat thread.`
     const show = mktOfferKind(listing) === 'land' && mktRole() === 'tenant' && !listing._agreedOfferId && !mktLiveOffer(listing);
     b.dataset.lid = listing.id;
     b.style.display = show ? '' : 'none';
+    let pn = document.getElementById('mkt-lp-protect');
+    if (!pn && anchor) { anchor.insertAdjacentHTML('beforebegin', '<p id="mkt-lp-protect" class="dealx-note" style="margin:0 0 10px;"></p>'); pn = document.getElementById('mkt-lp-protect'); }
+    if (pn) pn.textContent = mktSaleProtectionText();
     let n = document.getElementById('mkt-lp-note');
     if (!n && anchor) { anchor.insertAdjacentHTML('beforebegin', '<p id="mkt-lp-note" class="dealx-note" style="display:none;color:#34d399;opacity:1;margin:0 0 10px;"></p>'); n = document.getElementById('mkt-lp-note'); }
     if (n) {
@@ -29423,6 +29439,112 @@ available in the Post-Lease Hub and this chat thread.`
     b.dataset.lid = listing.id;
     b.style.display = (mktOfferKind(listing) === 'commercial' && mktRole() === 'tenant' && !mktLiveOffer(listing)) ? 'flex' : 'none';
   }
+
+  // ==================================================================
+  // ---- Held sale proceeds (land & property sales only) ----
+  // The seller's share is held by the payment partner (not MainTown) until
+  // the buyer confirms receipt of the original documents, or 7 days after
+  // dispatch with no complaint. A reported problem freezes it for review.
+  // Rent is unchanged; short-let keeps its own hold until check-in.
+  // ==================================================================
+  const SALE_HOLD_AUTO_MS = 7 * 86400000;
+  // ---- Nearby places: plain links to public map search. No data is stored or scored by MainTown. ----
+  function mktNearbyHtml(p) {
+    const loc = String(p.location || '').trim();
+    if (!loc) return '';
+    const items = [['Hospitals','hospitals'],['Schools','schools'],['Markets & shops','supermarkets'],['Banks & ATMs','banks'],['Fuel stations','petrol stations'],['Police stations','police stations']];
+    const links = items.map(i => `<a class="li-chip" style="text-decoration:none;" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/search/${encodeURIComponent(i[1] + ' near ' + loc)}">${i[0]}</a>`).join(' ');
+    return `<details class="li-section li-drawer"><summary class="li-h">Nearby places</summary>
+      <div class="li-chips" style="flex-wrap:wrap;gap:8px;">${links}</div>
+      <p class="li-note" style="margin-top:8px;">Opens a public map search around this area. Distances and results come from the map, not from MainTown. Check power, flooding and security yourself when you inspect.</p></details>`;
+  }
+  function mktSaleProtectionText() {
+    return 'Property sale protection: your payment is split at the point of charge, but the seller\'s share is held by our licensed payment partner, not by MainTown, until you confirm you have received the original documents and they check out. Report any problem and the seller\'s share stays frozen while MainTown reviews. If you do nothing, it is released 7 days after the documents are dispatched.';
+  }
+  function mktSaleProtectionHtml() {
+    return `<details class="li-section li-drawer"><summary class="li-h">Payment protection</summary>
+      <p class="li-note" style="margin:0 0 8px;">${mktEsc(mktSaleProtectionText())}</p>
+      <p class="li-note">Rent and short-let payments work differently and are explained at checkout.</p></details>`;
+  }
+  function heldList() { appState = loadAppState(); if (!Array.isArray(appState.heldProceeds)) appState.heldProceeds = []; return appState.heldProceeds; }
+  function holdSaleProceeds(userId, amount, opts) {
+    if (!userId || !(amount > 0)) return;
+    const t = recordTransaction({
+      userId, direction: 'credit', category: opts.category || 'LANDLORD_PAYOUT',
+      title: (opts.title || 'Sale Payout') + ' — held until documents confirmed', amount, status: 'PENDING_ESCROW',
+      meta: Object.assign({ sender: 'Buyer (held by payment partner)', recipient: 'You', propertyName: opts.propertyName, feeType: opts.feeType, held: true, holdKind: 'sale' }, opts.companyMeta || {})
+    });
+    const list = heldList();
+    list.unshift({ id: 'hp' + Date.now() + Math.floor(Math.random() * 1000), sellerId: userId, buyerId: getCurrentUserId(), listingId: opts.listingId, title: opts.propertyName, amount: Math.round(amount), txnId: t && t.id, status: 'HELD', createdAt: Date.now() });
+    saveAppState(appState);
+    mktNotify(userId, 'Sale payment held', `${mktMoney(amount)} for ${opts.propertyName || 'your property'} is held until the buyer confirms receipt of your original documents.`, null);
+  }
+  function releaseSaleProceeds(buyerId, listingId, how) {
+    const rows = heldList().filter(h => h.status === 'HELD' && h.buyerId === buyerId && String(h.listingId) === String(listingId));
+    if (!rows.length) return 0;
+    rows.forEach(h => {
+      h.status = 'RELEASED'; h.releasedAt = Date.now(); h.releasedHow = how || 'confirmed';
+      const t = (appState.transactions || []).find(x => x.id === h.txnId);
+      if (t) { t.status = 'SUCCESSFUL'; t.title = t.title.replace(' — held until documents confirmed', ''); t.timestamp = Date.now(); if (t.meta) t.meta.held = false; }
+    });
+    saveAppState(appState);
+    let total = 0;
+    rows.forEach(h => { creditWallet(h.sellerId, h.amount); total += h.amount; mktNotify(h.sellerId, 'Sale payment released', `${mktMoney(h.amount)} for ${h.title || 'your property'} has been released to your wallet${how === 'auto' ? ' (no complaint within 7 days of dispatch)' : ' after the buyer confirmed the documents'}.`, null); });
+    return total;
+  }
+  function disputeSaleProceeds(buyerId, listingId, reason) {
+    const rows = heldList().filter(h => h.status === 'HELD' && h.buyerId === buyerId && String(h.listingId) === String(listingId));
+    if (!rows.length) return 0;
+    rows.forEach(h => { h.status = 'DISPUTED'; h.dispute = { reason: String(reason || '').slice(0, 300), at: Date.now() }; });
+    saveAppState(appState);
+    rows.forEach(h => mktNotify(h.sellerId, 'Buyer reported a problem', `The buyer of ${h.title || 'your property'} reported a problem with the documents. Your held share of ${mktMoney(h.amount)} is frozen while MainTown reviews.`, null));
+    return rows.length;
+  }
+  // Lazy auto-release (a real backend runs this as a scheduled job)
+  function saleHoldTick() {
+    const rows = heldList().filter(h => h.status === 'HELD');
+    rows.forEach(h => {
+      const a = (appState.assets || []).find(x => x.ownerId === h.buyerId && String(x.listingId) === String(h.listingId));
+      if (a && a.dispatch && a.dispatch.requestedAt && Date.now() > a.dispatch.requestedAt + SALE_HOLD_AUTO_MS) releaseSaleProceeds(h.buyerId, h.listingId, 'auto');
+    });
+  }
+  function pendingSaleTotal(uid) { return heldList().filter(h => h.sellerId === uid && h.status !== 'RELEASED' && h.status !== 'REFUNDED').reduce((s, h) => s + h.amount, 0); }
+  function reportDocsProblem(assetId) {
+    appState = loadAppState();
+    const asset = (appState.assets || []).find(a => a.id === assetId);
+    if (!asset || asset.ownerId !== getCurrentUserId()) { showToast('Only the buyer can report a problem'); return; }
+    if (!heldList().some(h => h.status === 'HELD' && h.buyerId === asset.ownerId && String(h.listingId) === String(asset.listingId))) { showToast('Nothing is currently held for this purchase'); return; }
+    mktModal('Report a problem', `<p class="dealx-sub" style="margin-top:10px;">The seller\'s share stays frozen while MainTown reviews. If your claim is upheld you are refunded in full by the seller, and the seller may be removed from MainTown.</p>
+      <label class="field-label">What is wrong?</label>
+      <textarea id="mk-dispute" ${MKT_INPUT} rows="4" maxlength="300" placeholder="e.g. documents not delivered, documents do not match the listing"></textarea>`, 'Report problem', (el, err) => {
+        const r = el.querySelector('#mk-dispute').value.trim();
+        if (r.length < 10) { err('Please describe the problem in a few words.'); return false; }
+        disputeSaleProceeds(asset.ownerId, asset.listingId, r);
+        showToast('Reported. The seller\'s share is frozen while we review.');
+        document.querySelectorAll('.mkt-report-btn').forEach(b => { b.style.display = 'none'; });
+      });
+  }
+  (function holdInit() {
+    ['s6h', 'ah'].forEach(pfx => {
+      const c = document.getElementById(pfx + '-physdocs-confirm-btn');
+      if (!c) return;
+      c.insertAdjacentHTML('afterend', `<button type="button" class="s5-add-btn mkt-report-btn" id="${pfx}-report-btn" style="display:none; margin-bottom:14px; background:transparent; border:1px solid rgba(248,113,113,.5); color:#f87171;"><i data-lucide="flag" class="w-4 h-4"></i> Report a problem with the documents</button>`);
+      document.getElementById(pfx + '-report-btn').addEventListener('click', (e) => reportDocsProblem(e.currentTarget.dataset.assetId));
+    });
+    // Show the Report button for the buyer while money is still held for this purchase
+    const sync = () => {
+      saleHoldTick();
+      const uid = getCurrentUserId();
+      const held = heldList().filter(h => h.status === 'HELD' && h.buyerId === uid);
+      document.querySelectorAll('.mkt-report-btn').forEach(b => {
+        const asset = (appState.assets || []).find(a => a.ownerId === uid && held.some(h => String(h.listingId) === String(a.listingId)));
+        b.style.display = asset ? 'flex' : 'none';
+        if (asset) b.dataset.assetId = asset.id;
+      });
+    };
+    window.addEventListener('maintown_state_updated', sync);
+    setInterval(sync, 4000);
+  })();
 
   // ---- Screens, entry points and delegated events ----
   (function mktInit() {
