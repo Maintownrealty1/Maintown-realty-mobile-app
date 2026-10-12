@@ -29553,7 +29553,7 @@ available in the Post-Lease Hub and this chat thread.`
       ? 'Real people looking for a property. Pitch 1 to 3 of your live listings straight into their chat.'
       : 'Describe what you want and let hosts come to you.';
     if (!host) {
-      const mine = mkt.requests.filter(r => r.requesterId === me);
+      const mine = mkt.requests.filter(r => r.requesterId === me && r.status !== 'closed');
       wrap.innerHTML = `<button type="button" class="dealx-btn" id="mkt-new-req" style="margin-bottom:14px;"><i data-lucide="plus" class="w-4 h-4"></i>New request</button>` +
         (mine.length ? mine.map(r => mktMyRequestCard(r)).join('') : `<div class="dealx-empty"><strong>Tell hosts what you are looking for</strong>Tap New request, choose your area and budget, and hosts with listings there will pitch you.</div>`);
     } else {
@@ -30108,7 +30108,11 @@ available in the Post-Lease Hub and this chat thread.`
       tpl('screen-requests', 'Property Requests', '', 'mkt-req') + tpl('screen-offers', 'Price Offers', '', 'mkt-off'));
     ['screen-requests', 'screen-offers'].forEach(id => {
       document.getElementById(id).addEventListener('click', (e) => {
-        if (e.target.closest('[data-mkt-back]')) { navigateTo(mktHome()); return; }
+        if (e.target.closest('[data-mkt-back]')) {
+          // Guests go back to the listing feed; hosts and sales staff go back to their home.
+          navigateTo(id === 'screen-requests' && !mktIsHostRole() ? 'screen-5' : mktHome());
+          return;
+        }
       });
     });
     const rq = document.getElementById('screen-requests');
@@ -30127,7 +30131,7 @@ available in the Post-Lease Hub and this chat thread.`
       const cl = e.target.closest('[data-rclose]');
       if (cl) {
         const r = mkt.requests.find(x => x.id === cl.dataset.rclose);
-        if (r) { r.status = 'closed'; mktSave(); mktRenderRequests(); }
+        if (r) { r.status = 'closed'; mktSave(); mktRenderRequests(); showToast('Request closed'); }
       }
     });
     rq.addEventListener('input', (e) => {
