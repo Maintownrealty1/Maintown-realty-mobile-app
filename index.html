@@ -29542,6 +29542,7 @@ available in the Post-Lease Hub and this chat thread.`
     });
   }
   let mktReqFilter = { cat: 'all', area: '' };
+  let mktClosedOpen = false;
   function mktRenderRequests() {
     mktTick();
     const wrap = document.getElementById('mkt-req-body');
@@ -29553,9 +29554,13 @@ available in the Post-Lease Hub and this chat thread.`
       ? 'Real people looking for a property. Pitch 1 to 3 of your live listings straight into their chat.'
       : 'Describe what you want and let hosts come to you.';
     if (!host) {
-      const mine = mkt.requests.filter(r => r.requesterId === me && r.status !== 'closed');
+      const mineAll = mkt.requests.filter(r => r.requesterId === me);
+      const mine = mineAll.filter(r => r.status !== 'closed');
+      const closed = mineAll.filter(r => r.status === 'closed');
+      // Closed requests stay out of the main list but remain reachable, so pitched listings are never lost.
+      const closedHtml = closed.length ? `<button type="button" class="dealx-prev-btn" id="mkt-closed-toggle" style="margin:6px 0 10px;width:100%;">Closed requests (${closed.length}) ${mktClosedOpen ? '\u25B4' : '\u25BE'}</button>${mktClosedOpen ? closed.map(r => mktMyRequestCard(r)).join('') : ''}` : '';
       wrap.innerHTML = `<button type="button" class="dealx-btn" id="mkt-new-req" style="margin-bottom:14px;"><i data-lucide="plus" class="w-4 h-4"></i>New request</button>` +
-        (mine.length ? mine.map(r => mktMyRequestCard(r)).join('') : `<div class="dealx-empty"><strong>Tell hosts what you are looking for</strong>Tap New request, choose your area and budget, and hosts with listings there will pitch you.</div>`);
+        (mine.length ? mine.map(r => mktMyRequestCard(r)).join('') : `<div class="dealx-empty"><strong>Tell hosts what you are looking for</strong>Tap New request, choose your area and budget, and hosts with listings there will pitch you.</div>`) + closedHtml;
     } else {
       const chips = ['all'].concat(Object.keys(MKT_CATS)).map(k => `<button type="button" class="dealx-chip${mktReqFilter.cat === k ? ' active' : ''}" data-rcat="${k}">${k === 'all' ? 'All' : MKT_CATS[k]}</button>`).join('');
       let items = mkt.requests.filter(r => r.status === 'active' && r.requesterId !== me && mktHostMatchesRequest(r));
@@ -30128,8 +30133,10 @@ available in the Post-Lease Hub and this chat thread.`
       if (vd) { openListingInfo(vd.dataset.rdetails); return; }
       const of = e.target.closest('[data-roffer]');
       if (of) { if (of.dataset.rofferLive) navigateTo('screen-offers'); else mktOpenOffer(of.dataset.roffer); return; }
+      if (e.target.closest('#mkt-closed-toggle')) { mktClosedOpen = !mktClosedOpen; mktRenderRequests(); return; }
       const cl = e.target.closest('[data-rclose]');
       if (cl) {
+        if (!confirm('Close this request? Hosts will stop seeing it. You can still find it under Closed requests.')) return;
         const r = mkt.requests.find(x => x.id === cl.dataset.rclose);
         if (r) { r.status = 'closed'; mktSave(); mktRenderRequests(); showToast('Request closed'); }
       }
