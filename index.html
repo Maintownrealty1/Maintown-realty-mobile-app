@@ -13214,6 +13214,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     reelClose();
     const out = reelBaseNavigateTo.apply(this, arguments);
     if (screenId === 'screen-5') reelEntryBtn.style.display = ((currentUserRole || 'tenant') === 'tenant') ? 'flex' : 'none';
+    // Keep the Requests tile count in step once the dashboard has rendered.
+    setTimeout(() => { if (typeof mktRefreshRequestBadges === 'function') mktRefreshRequestBadges(); }, 60);
     return out;
   };
 
@@ -13256,7 +13258,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       bits.push('Night one is paid when you book and the remaining nights are debited daily, so you never pay the full stay up front.');
     } else {
       bits.push(`${p.title}, offered at ${p.ngn}.`);
-      bits.push('Rent is paid monthly instead of a full year up front, with no interest or finance charge, and every fee is itemised before you commit.');
+      if (p.usage === 'commercial') bits.push('Commercial leases are paid annually, in full and up front, and every fee is itemised before you commit.');
+      else bits.push('Rent is paid monthly instead of a full year up front, with no interest or finance charge, and every fee is itemised before you commit.');
       if (dates) bits.push(`You can inspect it first: ${dates} viewing ${dates === 1 ? 'date is' : 'dates are'} open.`);
     }
     bits.push(`${liListedBy(p)}.`);
@@ -29104,7 +29107,7 @@ available in the Post-Lease Hub and this chat thread.`
   try { const s = JSON.parse(localStorage.getItem(MKT_KEY)); if (s && typeof s === 'object') mkt = Object.assign(mkt, s); } catch (e) {}
   if (!Array.isArray(mkt.requests)) mkt.requests = [];
   if (!Array.isArray(mkt.offers)) mkt.offers = [];
-  function mktSave() { try { localStorage.setItem(MKT_KEY, JSON.stringify(mkt)); } catch (e) {} }
+  function mktSave() { try { localStorage.setItem(MKT_KEY, JSON.stringify(mkt)); } catch (e) {} setTimeout(() => { try { mktRefreshRequestBadges(); } catch (e) {} }, 0); }
   function mktEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
   function mktMoney(n) { return formatMoney(Number(n) || 0, 'ngn'); }
   function mktRole() { return currentUserRole || 'tenant'; }
@@ -29316,6 +29319,34 @@ available in the Post-Lease Hub and this chat thread.`
     const loc = String(l.location || '').toLowerCase();
     return (areas || []).some(a => loc.includes(String(a).toLowerCase()));
   }
+  // A host only ever sees a request when they have a live listing of that category in a requested area.
+  function mktHostMatchesRequest(r) {
+    return mktMyLiveListings().some(l => mktListingCat(l) === r.category && mktAreaMatches(l, r.areas));
+  }
+  // ---- Count badge on the Requests tile: new matching requests (hosts) / new pitches (guests) ----
+  function mktReqSeenKey() { return 'mtr_req_seen_' + (getCurrentUserId() || 'guest'); }
+  function mktReqSeenAt() { try { return Number(localStorage.getItem(mktReqSeenKey())) || 0; } catch (e) { return 0; } }
+  function mktReqMarkSeen() { try { localStorage.setItem(mktReqSeenKey(), String(Date.now())); } catch (e) {} }
+  function mktReqNewCount() {
+    const me = getCurrentUserId();
+    if (!me) return 0;
+    const seen = mktReqSeenAt();
+    if (mktIsHostRole()) {
+      return mkt.requests.filter(r => r.status === 'active' && r.requesterId !== me && r.createdAt > seen
+        && !r.pitches.some(pt => pt.hostId === me) && mktHostMatchesRequest(r)).length;
+    }
+    return mkt.requests.filter(r => r.requesterId === me)
+      .reduce((n, r) => n + r.pitches.filter(pt => pt.at > seen).length, 0);
+  }
+  function mktRefreshRequestBadges() {
+    let n = 0;
+    try { n = mktReqNewCount(); } catch (e) { n = 0; }
+    document.querySelectorAll('.dash-tile[data-action="requests"]').forEach(t => {
+      const old = t.querySelector('.dash-tile-count'); if (old) old.remove();
+      if (n > 0) t.insertAdjacentHTML('beforeend', `<span class="dash-tile-count">${n > 99 ? '99+' : n}</span>`);
+    });
+    if (typeof setQuickCardBadge === 'function') setQuickCardBadge('ent-sales-requests-card', n);
+  }
   function mktNotifyMatchingHosts(req) {
     const seen = new Set();
     listings.forEach(l => {
@@ -29323,6 +29354,7 @@ available in the Post-Lease Hub and this chat thread.`
       const h = mktHostOf(l);
       if (!h || seen.has(h.id) || h.id === req.requesterId) return;
       if (mktListingCat(l) !== req.category) return;
+      if (!mktAreaMatches(l, req.areas)) return;   // only hosts with a listing in the requested area
       seen.add(h.id);
       mktNotify(h.id, 'New property request', `${req.requesterFirst} wants ${MKT_CATS[req.category]} in ${req.areas.slice(0, 2).join(', ')}, up to ${mktMoney(req.budgetMax)}.`, { screen: 'mktRequests' });
     });
@@ -29344,7 +29376,7 @@ available in the Post-Lease Hub and this chat thread.`
         (mine.length ? mine.map(r => mktMyRequestCard(r)).join('') : `<div class="dealx-empty">No requests yet. Post one and hosts with matching listings can pitch you.</div>`);
     } else {
       const chips = ['all'].concat(Object.keys(MKT_CATS)).map(k => `<button type="button" class="dealx-chip${mktReqFilter.cat === k ? ' active' : ''}" data-rcat="${k}">${k === 'all' ? 'All' : MKT_CATS[k]}</button>`).join('');
-      let items = mkt.requests.filter(r => r.status === 'active' && r.requesterId !== me);
+      let items = mkt.requests.filter(r => r.status === 'active' && r.requesterId !== me && mktHostMatchesRequest(r));
       if (mktReqFilter.cat !== 'all') items = items.filter(r => r.category === mktReqFilter.cat);
       const q = mktReqFilter.area.trim().toLowerCase();
       if (q) items = items.filter(r => r.areas.some(a => String(a).toLowerCase().includes(q)));
@@ -29353,6 +29385,8 @@ available in the Post-Lease Hub and this chat thread.`
         (items.length ? items.map(r => mktHostRequestCard(r, me)).join('') : `<div class="dealx-empty">No open requests match right now.</div>`);
     }
     if (window.lucide) lucide.createIcons();
+    mktReqMarkSeen();
+    mktRefreshRequestBadges();
   }
   function mktReqSummary(r) {
     const bits = [MKT_CATS[r.category], r.areas.join(', ')];
@@ -29764,16 +29798,33 @@ available in the Post-Lease Hub and this chat thread.`
   // Rent is unchanged; short-let keeps its own hold until check-in.
   // ==================================================================
   const SALE_HOLD_AUTO_MS = 7 * 86400000;
-  // ---- Nearby places: plain links to public map search. No data is stored or scored by MainTown. ----
+  // ---- Nearby places: embedded Google Map inside the sheet (keyless embed). Nothing is stored or scored by MainTown. ----
   function mktNearbyHtml(p) {
     const loc = String(p.location || '').trim();
     if (!loc) return '';
     const items = [['Hospitals','hospitals'],['Schools','schools'],['Markets & shops','supermarkets'],['Banks & ATMs','banks'],['Fuel stations','petrol stations'],['Police stations','police stations']];
-    const links = items.map(i => `<a class="li-chip" style="text-decoration:none;" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/search/${encodeURIComponent(i[1] + ' near ' + loc)}">${i[0]}</a>`).join(' ');
-    return `<details class="li-section li-drawer"><summary class="li-h">Nearby places</summary>
-      <div class="li-chips" style="flex-wrap:wrap;gap:8px;">${links}</div>
-      <p class="li-note" style="margin-top:8px;">Opens a public map search around this area. Distances and results come from the map, not from MainTown. Check power, flooding and security yourself when you inspect.</p></details>`;
+    const chips = items.map(i => `<button type="button" class="li-chip li-nearby-chip" data-nearby-q="${liEsc(i[1] + ' near ' + loc)}" style="cursor:pointer;">${i[0]}</button>`).join(' ');
+    return `<details class="li-section li-drawer li-nearby"><summary class="li-h">Nearby places</summary>
+      <div class="li-chips" style="flex-wrap:wrap;gap:8px;">${chips}</div>
+      <div class="li-nearby-map" style="display:none;margin-top:10px;">
+        <iframe class="li-nearby-frame" title="Nearby places map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen
+          style="width:100%;height:240px;border:0;border-radius:14px;background:#0f172a;"></iframe>
+        <a class="li-nearby-open" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:#c4b5fd;text-decoration:underline;">Open in Google Maps</a>
+      </div>
+      <p class="li-note" style="margin-top:8px;">Tap a category to see it on the map around this area. Distances and results come from Google Maps, not from MainTown. Check power, flooding and security yourself when you inspect.</p></details>`;
   }
+  document.addEventListener('click', (e) => {
+    const chip = e.target.closest('.li-nearby-chip');
+    if (!chip) return;
+    const box = chip.closest('.li-nearby');
+    if (!box) return;
+    const q = chip.dataset.nearbyQ || '';
+    box.querySelectorAll('.li-nearby-chip').forEach(c => c.classList.toggle('ok', c === chip));
+    const wrap = box.querySelector('.li-nearby-map');
+    wrap.style.display = 'block';
+    box.querySelector('.li-nearby-frame').src = 'https://maps.google.com/maps?q=' + encodeURIComponent(q) + '&z=14&output=embed';
+    box.querySelector('.li-nearby-open').href = 'https://www.google.com/maps/search/' + encodeURIComponent(q);
+  });
   function mktSaleProtectionText() {
     return 'Property sale protection: your payment is split at the point of charge, but the seller\'s share is held by our licensed payment partner, not by MainTown, until you confirm you have received the original documents and they check out. Report any problem and the seller\'s share stays frozen while MainTown reviews. If you do nothing, it is released 7 days after the documents are dispatched.';
   }
