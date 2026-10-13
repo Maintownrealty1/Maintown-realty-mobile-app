@@ -3731,6 +3731,22 @@
     -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
   }
   .reel-screen button:focus-visible { outline: 2px solid #c084fc; outline-offset: 2px; }
+  /* Lister (agent / landlord / company) shown on the walkthrough viewer only */
+  .reel-lister { display: flex; align-items: center; gap: 9px; margin: 0 0 10px; max-width: 100%; }
+  .reel-lister-av {
+    position: relative; flex: 0 0 36px; width: 36px; height: 36px; border-radius: 999px; overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.92); background: linear-gradient(135deg, #7c3aed, #4c1d95);
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  }
+  .reel-lister-av.is-logo { background: #fff; }
+  .reel-lister-ini { color: #fff; font-size: 13px; font-weight: 800; letter-spacing: .02em; }
+  .reel-lister-av.is-logo .reel-lister-ini { color: #4c1d95; }
+  .reel-lister-av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .reel-lister-av.is-logo img { object-fit: contain; padding: 3px; box-sizing: border-box; background: #fff; }
+  .reel-lister-txt { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .reel-lister-name { color: #fff; font-size: 13.5px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+  .reel-lister-role { color: #cbd5e1; font-size: 10.5px; font-weight: 600; display: flex; align-items: center; gap: 3px; line-height: 1.2; }
+  .reel-lister-role svg, .reel-lister-role i { width: 11px; height: 11px; color: #34d399; flex-shrink: 0; }
   .reel-empty {
     height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 10px; padding: 32px; text-align: center; color: #cbd5e1; background: #0b1120;
@@ -7829,42 +7845,6 @@
       <i data-lucide="x-circle" class="w-4 h-4"></i> Not Satisfied — Request Cancellation
     </button>
     <button type="button" id="id-cancel-btn" class="btn-secondary">Cancel</button>
-  </div>
-</div>
-
-<!-- ===================== MainTown Assistant: who would you like to speak with (PROTOTYPE) ===================== -->
-<div id="mt-picker-modal" class="sheet-overlay" style="z-index:96;">
-  <div class="sheet-card">
-    <div class="sheet-handle"></div>
-    <div class="sheet-header">
-      <div style="min-width:0;">
-        <h2 class="sheet-title" style="margin:0;">Who would you like to speak with?</h2>
-        <p class="sheet-subtitle">Start with our assistant. A live expert can join when you need one.</p>
-      </div>
-      <button type="button" class="sheet-close-btn" id="pk-close" aria-label="Close"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
-    </div>
-    <button type="button" class="pk-opt" data-pk="estate">
-      <span class="pk-ico"><i data-lucide="home" class="w-5 h-5"></i></span>
-      <span style="min-width:0;"><p class="pk-title">Real Estate Advisor</p><p class="pk-desc">Fees, payment plans, inspections and what you still need to complete.</p><span class="pk-status off" id="pk-status-estate"></span></span>
-    </button>
-    <button type="button" class="pk-opt" data-pk="legal">
-      <span class="pk-ico"><i data-lucide="scale" class="w-5 h-5"></i></span>
-      <span style="min-width:0;"><p class="pk-title">Legal and Documents</p><p class="pk-desc">Property documents, agreements and how title verification works.</p><span class="pk-status off" id="pk-status-legal"></span></span>
-    </button>
-    <button type="button" class="pk-opt" data-pk="unsure">
-      <span class="pk-ico"><i data-lucide="message-circle" class="w-5 h-5"></i></span>
-      <span style="min-width:0;"><p class="pk-title">Not sure</p><p class="pk-desc">Tell the assistant what you need and it will point you the right way.</p></span>
-    </button>
-    <button type="button" class="pk-opt" id="pk-resume" data-pk="resume" style="display:none;">
-      <span class="pk-ico"><i data-lucide="history" class="w-5 h-5"></i></span>
-      <span style="min-width:0;"><p class="pk-title">Continue previous chat</p><p class="pk-desc" style="margin:0;">Pick up where you left off.</p></span>
-    </button>
-    <p class="pk-note">Prototype: assistant replies are scripted from MainTown's help and fee text, not live AI, and expert replies are simulated.</p>
-    <div class="pk-demo"><span>Demo: experts are</span>
-      <button type="button" data-pk-avail="auto">Auto</button>
-      <button type="button" data-pk-avail="online">Online</button>
-      <button type="button" data-pk-avail="offline">Offline</button>
-    </div>
   </div>
 </div>
 
@@ -11986,17 +11966,27 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Inspection Manager / Post-Lease views filter correctly by whoever is
   // actually logged in, instead of always showing Frank Hood's data.
   const DEFAULT_LISTINGS = [
-    { id: 1, type: 'rent', title: '2-Bed Flat, Lekki Phase 1', location: 'Lekki Phase 1, Lagos', ngn: '₦180,000 / mo', usd: '$220 / mo', img: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=240&fit=crop&q=80', listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', availability: sampleAvailability() },
-    { id: 2, type: 'rent', title: 'Studio Apartment, Yaba', location: 'Yaba, Lagos', ngn: '₦95,000 / mo', usd: '$115 / mo', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=240&fit=crop&q=80', listedBy: 'landlord', listedByRole: 'LANDLORD', ownerId: 'frank', hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', availability: sampleAvailability() },
-    { id: 3, type: 'rent', title: '3-Bed Duplex, Ikeja GRA', location: 'Ikeja GRA, Lagos', ngn: '₦350,000 / mo', usd: '$430 / mo', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=240&fit=crop&q=80', listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', availability: sampleAvailability() },
-    { id: 4, type: 'land', propertyKind: 'land', landUse: 'Residential', title: '450sqm Land, Ibeju-Lekki', location: 'Ibeju-Lekki, Lagos', totalPrice: 8500000, img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=240&fit=crop&q=80', photos: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1500534623283-312aade485b7?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1501183638710-841dd1904471?w=400&h=240&fit=crop&q=80'], listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', availability: sampleAvailability(), hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
-    { id: 5, type: 'land', propertyKind: 'house', houseType: 'Bungalow', bedrooms: 3, title: '3-Bed Bungalow, Epe (Outright/Installment)', location: 'Epe, Lagos', totalPrice: 22000000, img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=240&fit=crop&q=80', photos: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=240&fit=crop&q=80'], listedBy: 'landlord', listedByRole: 'LANDLORD', ownerId: 'frank', availability: sampleAvailability(), hasVideo: true, videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' }
+    { id: 1, type: 'rent', title: '2-Bed Flat, Lekki Phase 1', location: 'Lekki Phase 1, Lagos', ngn: '₦180,000 / mo', usd: '$220 / mo', img: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=240&fit=crop&q=80', listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', hasVideo: true, videoUrl: 'https://assets.mixkit.co/videos/3090/3090-360.mp4', availability: sampleAvailability() },
+    { id: 2, type: 'rent', title: 'Studio Apartment, Yaba', location: 'Yaba, Lagos', ngn: '₦95,000 / mo', usd: '$115 / mo', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=240&fit=crop&q=80', listedBy: 'landlord', listedByRole: 'LANDLORD', ownerId: 'frank', hasVideo: true, videoUrl: 'https://assets.mixkit.co/videos/3110/3110-360.mp4', availability: sampleAvailability() },
+    { id: 3, type: 'rent', title: '3-Bed Duplex, Ikeja GRA', location: 'Ikeja GRA, Lagos', ngn: '₦350,000 / mo', usd: '$430 / mo', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=240&fit=crop&q=80', listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', hasVideo: true, videoUrl: 'https://assets.mixkit.co/videos/13106/13106-360.mp4', availability: sampleAvailability() },
+    { id: 4, type: 'land', propertyKind: 'land', landUse: 'Residential', title: '450sqm Land, Ibeju-Lekki', location: 'Ibeju-Lekki, Lagos', totalPrice: 8500000, img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=240&fit=crop&q=80', photos: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1500534623283-312aade485b7?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1501183638710-841dd1904471?w=400&h=240&fit=crop&q=80'], listedBy: 'agent', listedByRole: 'AGENT', ownerId: 'frank', agentId: 'john', availability: sampleAvailability(), hasVideo: true, videoUrl: 'https://assets.mixkit.co/videos/41397/41397-360.mp4' },
+    { id: 5, type: 'land', propertyKind: 'house', houseType: 'Bungalow', bedrooms: 3, title: '3-Bed Bungalow, Epe (Outright/Installment)', location: 'Epe, Lagos', totalPrice: 22000000, img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=240&fit=crop&q=80', photos: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=240&fit=crop&q=80'], listedBy: 'landlord', listedByRole: 'LANDLORD', ownerId: 'frank', availability: sampleAvailability(), hasVideo: true, videoUrl: 'https://assets.mixkit.co/videos/8603/8603-360.mp4' },
+    { id: 6, type: 'rent', usage: 'commercial', commercialType: 'Warehouse', flexRent: false, annualPrice: 4500000, sqm: 600, parkingSpaces: 6, powerSupply: 'Grid + generator', title: 'Warehouse, Ikeja Industrial Estate', location: 'Ikeja, Lagos', ngn: '₦4,500,000 / yr', usd: '$2,810 / yr', img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&h=240&fit=crop&q=80', photos: ['https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&h=240&fit=crop&q=80'], listedBy: 'landlord', listedByRole: 'LANDLORD', ownerId: 'frank', hasVideo: true, videoUrl: 'https://assets.mixkit.co/videos/23551/23551-360.mp4', availability: sampleAvailability() }
   ];
 
   let listings = [];
   try {
     const stored = JSON.parse(localStorage.getItem('mtr_listings'));
     listings = Array.isArray(stored) && stored.length ? stored : DEFAULT_LISTINGS.slice();
+    // Sample-listing refresh: swap the old placeholder clip for the real home/land/warehouse tours and
+    // add any sample listing (e.g. the warehouse) that an older saved copy doesn't have yet.
+    if (Array.isArray(stored) && stored.length) {
+      DEFAULT_LISTINGS.forEach(d => {
+        const cur = listings.find(l => l && l.id === d.id && l.ownerId === d.ownerId && l.title === d.title);
+        if (cur) { if (!cur.videoUrl || /flower\.mp4/.test(cur.videoUrl)) cur.videoUrl = d.videoUrl; }
+        else if (!listings.some(l => l && l.id === d.id)) listings.push(Object.assign({}, d));
+      });
+    }
   } catch (e) {
     listings = DEFAULT_LISTINGS.slice();
   }
@@ -13261,6 +13251,36 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (isCommercial) return { label: 'Lease Now', icon: 'building-2' };
     return { label: 'Rent Now', icon: 'key' };
   }
+  // Who listed this property: agent (photo + name), landlord (photo + name) or a company (logo + name).
+  // Shown only inside the walkthrough viewer, above the title.
+  function reelLister(p) {
+    let name = '', photo = '', role = 'landlord', label = 'Landlord', logo = false;
+    try {
+      const isCo = p.listedByRole === 'ENTERPRISE' || (typeof isCompanyOwnedListing === 'function' && isCompanyOwnedListing(p));
+      if (isCo) {
+        const cid = p.companyId || p.ownerId;
+        const st = (typeof loadAppState === 'function') ? loadAppState() : appState;
+        const ent = (st && st.users && st.users[cid] && st.users[cid].enterprise) || {};
+        name = ent.companyName || p.companyName || '';
+        photo = ent.companyLogo || p.companyLogo || '';
+        role = 'company'; label = 'Verified company'; logo = true;
+      } else if (p.listedByRole === 'AGENT' || p.listedBy === 'agent') {
+        name = p.agentName || ''; photo = p.agentPhoto || ''; role = 'agent'; label = 'Verified agent';
+      } else {
+        name = p.landlordName || ''; photo = p.landlordPhoto || '';
+      }
+      if (!String(name).trim() && typeof listingPayeeName === 'function') name = listingPayeeName(p) || '';
+    } catch (e) {}
+    name = String(name || '').trim() || (role === 'company' ? 'Company listing' : (role === 'agent' ? 'MainTown agent' : 'Property owner'));
+    return { name, photo, role, label, logo };
+  }
+  function reelListerHtml(p) {
+    const o = reelLister(p);
+    const ini = o.name.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w.charAt(0)).join('').toUpperCase() || 'M';
+    const img = o.photo ? `<img src="${liEsc(o.photo)}" alt="" onerror="this.remove()">` : '';
+    const tick = o.role === 'landlord' ? '' : '<i data-lucide="badge-check"></i>';
+    return `<div class="reel-lister" data-lister-role="${o.role}"><span class="reel-lister-av${o.logo ? ' is-logo' : ''}"><span class="reel-lister-ini">${liEsc(ini)}</span>${img}</span><span class="reel-lister-txt"><span class="reel-lister-name">${liEsc(o.name)}</span><span class="reel-lister-role">${tick}${liEsc(o.label)}</span></span></div>`;
+  }
   function reelSlideHtml(p) {
     const isLand = p.type === 'land', isShortlet = p.type === 'shortlet';
     const price = listingPriceFull(p);
@@ -13289,6 +13309,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <div class="reel-bottom">
         <div class="reel-row">
           <div class="reel-info">
+            ${reelListerHtml(p)}
             <p class="reel-title">${liEsc(p.title)}</p>
             <p class="reel-loc"><i data-lucide="map-pin"></i>${liEsc(p.location)}</p>
             <p class="reel-price">${liEsc(price)}<span>${liEsc(unit)}</span><button type="button" class="reel-details-link" data-reel-act="details">View details<i data-lucide="chevron-right"></i></button></p>
@@ -14017,7 +14038,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('sv-schedule-btn').style.display = svPreview ? 'none' : '';
     document.getElementById('sv-property-name').textContent = `${listing.title} — land boundary, drone footage & access roads`;
     const videoEl = document.getElementById('sv-video-el');
-    videoEl.src = listing.videoUrl || 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
+    videoEl.src = listing.videoUrl || 'https://assets.mixkit.co/videos/3090/3090-360.mp4';
     videoEl.poster = listing.img || '';
     videoEl.currentTime = 0;
     siteVideoModal.classList.add('open');
@@ -15218,7 +15239,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Fallback Logic: if a listing has no pre-uploaded walkthrough video URL in
   // state, fall back to a smooth embedded royalty-free tour clip rather than
   // showing a broken/empty player.
-  const WT_FALLBACK_VIDEO_URL = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
+  const WT_FALLBACK_VIDEO_URL = 'https://assets.mixkit.co/videos/3090/3090-360.mp4';
 
   function openWalkthroughModal(title, listingOverride, opts) {
     walkthroughListing = listingOverride || rentListings().find(p => p.title === title) || null;
@@ -21580,7 +21601,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   const MT_TEAMS = {
     estate:  { team: 'MainTown Estate team',  name: 'Estate Expert' },
     legal:   { team: 'MainTown Legal team',   name: 'Legal Expert' },
-    support: { team: 'MainTown support team', name: 'Support Agent' }
+    support: { team: 'MainTown customer service team', name: 'Customer Service Agent' }
   };
   const MT_EXPERT_OPEN = {
     estate:  "Hello, I've read your conversation with the assistant. Which listing are you asking about, and which payment option are you considering?",
@@ -22332,7 +22353,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (has(/(talk|speak|chat|connect|reach)\b.{0,25}\b(person|human|expert|lawyer|advisor|adviser|representative|someone|agent|staff|team)/) || has(/\b(want|need)\b (a |an |to (talk|speak) (to|with) )?(person|human|expert|lawyer|advisor|adviser|representative)/)) {
       const team = has(/(lawyer|legal|document|title|c of o|deed)/) ? 'legal' : (has(/(estate|property|listing|rent|inspection)/) ? 'estate' : (mode === 'legal' ? 'legal' : (mode === 'estate' ? 'estate' : null)));
       if (team) return { text: mtTx(conv, 'ofcourse'), handoff: team, loc: true };
-      return { text: mtTx(conv, 'who'), loc: true, keepHandoff: true, chips: mtIsHost() ? [ { l: 'Customer service', a: 'handoff', k: 'support' }, { l: 'Legal expert', a: 'handoff', k: 'legal' } ] : [ { l: 'Customer support', a: 'handoff', k: 'support' }, { l: 'Real estate expert', a: 'handoff', k: 'estate' }, { l: 'Legal expert', a: 'handoff', k: 'legal' } ] };
+      return { text: mtTx(conv, 'who'), loc: true, keepHandoff: true, chips: mtBotWhoChips(conv) };
     }
     const sp = mtBotSpecial(conv, raw); if (sp) return sp;
     // 3. Contact options
@@ -22645,21 +22666,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
       : mtBotChipsFor(conv);
     conv.messages.push({ from: 'them', type: 'text', by: 'bot', byName: '', text: mtHiLine(conv) + greet, chips: chips });
   }
-  function mtBotStart(kind) {
-    const conv = getOrCreateSupportThread();
-    // Direct requests: Customer Service, or a Legal Expert, skip the assistant and connect straight away
-    const direct = kind === 'support' ? 'support' : (kind === 'legaldirect' ? 'legal' : null);
-    conv.mode = direct ? (direct === 'legal' ? 'legal' : 'support') : (mtIsHost() ? 'host' : kind); conv.misses = 0;
-    if (conv.handoff && conv.handoff.active) conv.handoff.active = false;
-    if (!direct) mtBotGreet(conv, kind);
-    else conv.messages.push({ from: 'system', text: direct === 'legal' ? 'You asked for a Legal Expert.' : 'You asked for Customer Service.' });
-    saveConversations();
-    document.getElementById('mt-picker-modal').classList.remove('open');
-    navigateTo('screen-messages');
-    openThreadDetail(conv.id);
-    mtBotScroll();
-    if (direct) mtBotHandoff(conv, direct);
-  }
   function mtBotChip(conv, msg, chip) {
     if (chip.a === 'say') {
       msg.chips = null;
@@ -22672,6 +22678,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
       mtBotHandoff(conv, chip.k);
     } else if (chip.a === 'mode') {
       msg.chips = null; conv.mode = chip.k; mtBotGreet(conv, chip.k); saveConversations(); renderChatLog(conv); mtBotScroll();
+    } else if (chip.a === 'demoexp') {
+      try { localStorage.setItem('mtr_proto_experts', mtExpertsOnline() ? 'offline' : 'online'); } catch (er) {}
+      msg.chips = mtBotWhoChips(conv); saveConversations(); renderChatLog(conv);
     } else if (chip.a === 'resume') {
       msg.chips = null; saveConversations(); mtBotResume(conv);
     } else if (chip.a === 'rate') {
@@ -22692,64 +22701,38 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
   }
 
-  // ---- Expert picker (opens from "Chat with MainTown") ----
-  function mtPickerRefresh() {
-    const on = mtExpertsOnline();
-    ['estate', 'legal'].forEach(k => {
-      const el = document.getElementById('pk-status-' + k);
-      if (el) { el.className = 'pk-status ' + (on ? 'on' : 'off'); el.textContent = on ? 'Experts online' : 'Experts offline · leave a question'; }
-    });
+  // ---- One assistant, one conversation ----
+  // "Chat with MainTown" always opens the assistant first (one thread per signed-in user, so a tenant's
+  // chat and a landlord's or company's chat stay separate). People only reach a human by saying they want
+  // one, or by tapping Talk to a person: the assistant then asks which kind.
+  //   Tenants and buyers: Customer service, Legal expert, Real estate agent or advisor.
+  //   Landlords, agents and company staff: Customer service, Legal expert.
+  function mtBotWhoChips(conv) {
     let ov = 'auto'; try { ov = localStorage.getItem('mtr_proto_experts') || 'auto'; } catch (e) {}
-    document.querySelectorAll('#mt-picker-modal [data-pk-avail]').forEach(b => b.classList.toggle('active', b.dataset.pkAvail === ov));
-    const uid = getCurrentUserId() || 'guest';
-    const existing = conversations.find(c => c.convType === 'support' && c.userId === uid && (mtPickerFromCard || c.messages.length > 2));
-    const r = document.getElementById('pk-resume'); if (r) r.style.display = existing ? 'flex' : 'none';
-  }
-  let mtPickerFromCard = false;
-  function mtPickerBuild() {
-    const modal = document.getElementById('mt-picker-modal'); if (!modal) return;
-    modal.querySelectorAll('.pk-dyn').forEach(n => n.remove());
-    const host = mtIsHost();
-    ['estate', 'legal', 'unsure'].forEach(k => { const b = modal.querySelector('[data-pk="' + k + '"]'); if (b) b.style.display = host ? 'none' : ''; });
-    // tenants and buyers: Real Estate Advisor, Legal and Documents (originals) + Customer Support; no generic "Not sure"
     const on = mtExpertsOnline();
-    const st = on ? '<span class="pk-status on">Experts online</span>' : '<span class="pk-status off">Experts offline · leave a question</span>';
-    const opt = (k, icon, title, desc, status) => '<button type="button" class="pk-opt pk-dyn" data-pk="' + k + '"><span class="pk-ico"><i data-lucide="' + icon + '" class="w-5 h-5"></i></span><span style="min-width:0;"><p class="pk-title">' + title + '</p><p class="pk-desc">' + desc + '</p>' + (status || '') + '</span></button>';
-    const items = host
-      ? opt('host', 'message-circle', 'Ask the assistant', 'Quick answers for your role: listings, commission, payouts and your account.')
-        + opt('support', 'headphones', 'Customer Service', 'Talk to the MainTown support team about an account, payment or app issue.', st)
-        + opt('legaldirect', 'scale', 'Legal Expert', 'Request a legal person directly for documents, agreements and title questions.', st)
-      : opt('support', 'headphones', 'Customer Support', 'Talk to the MainTown support team about an account, payment or app issue.', st);
-    const anchor = document.getElementById('pk-resume');
-    if (anchor) anchor.insertAdjacentHTML('beforebegin', items);
-    const sub = modal.querySelector('.sheet-subtitle');
-    if (sub) sub.textContent = host ? 'Start with the assistant, or go straight to Customer Service or a Legal Expert.' : 'Start with our assistant. A live expert can join when you need one.';
-    if (window.lucide) lucide.createIcons();
+    const chips = [ { l: 'Customer service', a: 'handoff', k: 'support' }, { l: 'Legal expert', a: 'handoff', k: 'legal' } ];
+    if (!mtIsHost()) chips.push({ l: 'Real estate agent or advisor', a: 'handoff', k: 'estate' });
+    chips.push({ l: on ? 'Demo: experts online (tap for offline)' : 'Demo: experts offline (tap for online)', a: 'demoexp' });
+    return chips;
   }
-  function openMtPicker(fromCard) {
-    mtPickerFromCard = fromCard === true;
-    mtPickerBuild();
-    mtPickerRefresh();
-    document.getElementById('mt-picker-modal').classList.add('open');
-    if (window.lucide) lucide.createIcons();
+  function mtBotAskWho(conv) {
+    mtBotSay(conv, mtTx(conv, 'who'), mtBotWhoChips(conv), { delay: 500 });
+  }
+  function mtOpenAssistant() {
+    const conv = getOrCreateSupportThread();
+    const fresh = !conv.messages.some(m => m.from !== 'system');
+    if (fresh) {
+      const kind = mtIsHost() ? 'host' : 'unsure';
+      conv.mode = kind; conv.misses = 0;
+      if (conv.handoff && conv.handoff.active) conv.handoff.active = false;
+      mtBotGreet(conv, kind);
+      saveConversations();
+    }
+    navigateTo('screen-messages');
+    openThreadDetail(conv.id);
+    mtBotScroll();
   }
   (function mtBotWire() {
-    const modal = document.getElementById('mt-picker-modal');
-    if (modal) modal.addEventListener('click', (e) => {
-      if (e.target === modal || e.target.closest('#pk-close')) { modal.classList.remove('open'); return; }
-      const av = e.target.closest('[data-pk-avail]');
-      if (av) { try { localStorage.setItem('mtr_proto_experts', av.dataset.pkAvail); } catch (er) {} mtPickerRefresh(); return; }
-      const opt = e.target.closest('[data-pk]');
-      if (!opt) return;
-      if (opt.dataset.pk === 'resume') {
-        const uid = getCurrentUserId() || 'guest';
-        const conv = conversations.find(c => c.convType === 'support' && c.userId === uid);
-        modal.classList.remove('open');
-        if (conv) { navigateTo('screen-messages'); openThreadDetail(conv.id); mtBotScroll(); }
-        return;
-      }
-      mtBotStart(opt.dataset.pk);
-    });
     const log = document.getElementById('msg-chat-log');
     if (log) log.addEventListener('click', (e) => {
       const b = e.target.closest('[data-bot-chip]');
@@ -22767,7 +22750,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (!conv || conv.convType !== 'support') return;
       if (conv.handoff && conv.handoff.active) { showToast('You are already connected to an expert'); return; }
       mtSystemLine(conv, 'You asked to talk to a person.');
-      mtBotHandoff(conv);
+      mtBotAskWho(conv);
     });
   })();
   // ---- END MainTown Assistant PROTOTYPE ----
@@ -22862,9 +22845,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!item) return;
     const tid = parseInt(item.dataset.id, 10);
     const tconv = conversations.find(c => c.id === tid);
-    // MainTown support card: show the same "Who would you like to speak with?" options
-    // (Continue previous chat is always offered here, since this card IS the previous chat).
-    if (tconv && tconv.convType === 'support') { openMtPicker(true); return; }
+    // MainTown support card: opens the assistant thread (one conversation per user).
+    if (tconv && tconv.convType === 'support') { mtOpenAssistant(); return; }
     openThreadDetail(tid);
   });
 
@@ -25806,7 +25788,7 @@ available in the Post-Lease Hub and this chat thread.`
     return conv;
   }
   function openMainTownChat() {
-    openMtPicker();
+    mtOpenAssistant();
   }
   document.getElementById('profile-contact-btn').addEventListener('click', openMainTownChat);
 
