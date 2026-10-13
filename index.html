@@ -13536,6 +13536,48 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
 
   // Tenant entry point (tap "Details" on a feed card).
+  // ---- Owner preview actions: never a Rent / Lease / Buy button ----
+  // Auto-onboarded (managed) landlords and anyone who did not list the property: Close only.
+  // The person who listed it themselves (direct landlord, agent, sales staff): Delete only, after a Yes / No confirmation.
+  function liOwnerPreviewAction(p) {
+    const none = { kind: 'none' };
+    try {
+      const uid = getCurrentUserId(); const role = currentUserRole;
+      if (!uid || !p) return none;
+      if (role === 'landlord') {
+        const u = (typeof mgUser === 'function') ? mgUser(uid) : null;
+        if (u && u.managedBy) return none;
+        if (p.ownerId === uid || (!p.ownerId && p.listedBy === 'landlord' && !p.agentId && !p.companyId)) return { kind: 'delete', role: 'landlord' };
+        return none;
+      }
+      if (role === 'agent') return (p.agentId === uid || (!p.agentId && p.listedBy === 'agent')) ? { kind: 'delete', role: 'agent' } : none;
+      if (role === 'enterprise_staff' && getEnterpriseStaffRole() === 'sales') {
+        if (p.listedByStaffId === uid || p.staffId === uid) return { kind: p.removalRequested ? 'pending' : 'removal' };
+      }
+    } catch (e) {}
+    return none;
+  }
+  function liOwnerPreviewActionsHtml(p) {
+    const a = liOwnerPreviewAction(p);
+    if (a.kind === 'delete' || a.kind === 'removal') return '<button type="button" class="s5-action-btn" style="color:#ef4444;" data-li-del><i data-lucide="trash-2" class="w-4 h-4"></i>Delete</button>';
+    if (a.kind === 'pending') return '<button type="button" class="s5-action-btn" disabled style="opacity:.6;cursor:not-allowed;"><i data-lucide="clock" class="w-4 h-4"></i>Removal requested</button>';
+    return '<button type="button" class="s5-action-btn primary" data-li-close><i data-lucide="x" class="w-4 h-4"></i>Close</button>';
+  }
+  function liConfirmOwnerDelete(p) {
+    const a = liOwnerPreviewAction(p);
+    if (a.kind === 'delete') { openDeleteListingModal(p.title, a.role); return; }
+    if (a.kind === 'removal') {
+      if (isListingUnavailable(p)) { showToast('This listing has been paid for and can no longer be deleted'); return; }
+      mktModal('Delete this listing?', `<p class="li-note" style="margin:0 0 14px;">Do you want to delete "${mktEsc(p.title)}"? Your CEO reviews the request, and it leaves the tenant feed once approved.</p>
+        <button type="button" class="dealx-btn ghost" data-mkt-close>No, keep it</button>`, 'Yes, delete', () => {
+        const l = (typeof myEnterpriseListings === 'function' ? myEnterpriseListings() : []).find(x => String(x.id) === String(p.id)) || p;
+        if (l.removalRequested) return true;
+        requestListingRemoval(l);
+        showToast('Removal requested. Your CEO will review it.');
+      });
+    }
+  }
+
   function openListingInfo(listingId) {
     const p = listings.find(l => String(l.id) === String(listingId));
     if (!p) return;
@@ -13635,7 +13677,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <p class="li-price">${liEsc(priceMain)}<small>${liEsc(priceUnit)}</small></p>
       ${sl ? sl.ratingLine : ''}
       <div class="li-chips">${chips.join('')}</div>
-      ${preview ? `<p class="li-preview-note"><i data-lucide="eye"></i><span>${liEsc(opts.statusLabel || 'Preview')}. This is exactly how tenants see your listing; the buttons below are inactive in preview.</span></p>` : ''}
+      ${preview ? `<p class="li-preview-note"><i data-lucide="eye"></i><span>${liEsc(opts.statusLabel || 'Preview')}. This is exactly how tenants see your listing.</span></p>` : ''}
       ${sl ? (sl.offers + sl.ratings + sl.about) : `<details class="li-section li-drawer" open><summary class="li-h">About this listing</summary><p class="li-story">${liEsc(liStory(p))}</p></details>`}
       <details class="li-section li-drawer" open><summary class="li-h">Property details</summary><div class="li-rows">${details.join('')}</div></details>
       ${p.location ? mktNearbyHtml(p) : ''}
@@ -13655,7 +13697,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const pvVideo = (p.hasVideo && p.videoUrl)
         ? `<button type="button" class="s5-action-btn" data-li-preview-video><i data-lucide="video" class="w-4 h-4"></i>${isLand ? 'Play site video' : 'Play walkthrough'}</button>`
         : '';
-      document.getElementById('li-actions').innerHTML = `${pvVideo}<button type="button" class="s5-action-btn primary" disabled style="opacity:.5; cursor:not-allowed;"><i data-lucide="${primaryIcon}" class="w-4 h-4"></i>${primaryLabel}</button>`;
+      document.getElementById('li-actions').innerHTML = liOwnerPreviewActionsHtml(p);
     } else {
       const liveOf = (mktOfferKind(p) && mktRole() === 'tenant') ? mktLiveOffer(p) : null;
       const offerBtn = (mktOfferKind(p) && !unavailable && mktRole() === 'tenant') ? (liveOf ? '<button type="button" class="s5-action-btn" data-li-offer="view"><i data-lucide="handshake" class="w-4 h-4"></i>' + (liveOf.status === 'accepted' ? 'Agreed price' : 'My offer') + '</button>' : '<button type="button" class="s5-action-btn" data-li-offer><i data-lucide="handshake" class="w-4 h-4"></i>Offer a price</button>') : '';
@@ -13678,6 +13720,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('li-actions').addEventListener('click', (e) => {
       const offBtn = e.target.closest('[data-li-offer]');
       if (offBtn) { const id = sheet.dataset.listingId; close(); if (offBtn.dataset.liOffer === 'view') navigateTo('screen-offers'); else mktOpenOffer(id); return; }
+      if (e.target.closest('[data-li-close]')) { close(); return; }
+      const lid = e.target.closest('[data-li-del]');
+      if (lid) { const pl = liPreviewListing; if (!pl) return; close(); liConfirmOwnerDelete(pl); return; }
       const pv = e.target.closest('[data-li-preview-video]');
       if (pv) {
         const p = liPreviewListing;
@@ -31254,5 +31299,59 @@ available in the Post-Lease Hub and this chat thread.`
   })();
 </script>
 
+
+<script>
+/* Show / hide toggle (eye icon) on every password and PIN field, including ones the app builds later.
+   Skipped on purpose: the 6 one-digit payment PIN boxes (they already have Show PIN / Hide PIN), card CVV
+   and the signup password (it already has its own eye). */
+(function () {
+  var OPEN = '<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" data-eye="open"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/> <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>';
+  var CLOSED = '<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" data-eye="closed" style="display:none"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12c1.292 4.338 5.31 7.5 10.066 7.5.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/></svg>';
+  function isPin(inp) { return inp.getAttribute('inputmode') === 'numeric' || /pin/i.test((inp.id || '') + ' ' + (inp.placeholder || '')); }
+  function enhance(root) {
+    var list = (root || document).querySelectorAll('input[type="password"]:not(.otp-input):not([autocomplete="cc-csc"]):not([data-pw-eye])');
+    for (var i = 0; i < list.length; i++) {
+      var inp = list[i];
+      inp.setAttribute('data-pw-eye', '1');
+      var wrap = inp.parentElement;
+      if (wrap && wrap.classList.contains('password-wrap') && wrap.querySelector('.eye-btn')) continue;
+      wrap = document.createElement('div');
+      wrap.className = 'password-wrap';
+      inp.parentNode.insertBefore(wrap, inp);
+      wrap.appendChild(inp);
+      var label = isPin(inp) ? 'PIN' : 'password';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'eye-btn';
+      btn.setAttribute('data-pw-toggle', '1');
+      btn.setAttribute('aria-label', 'Show ' + label);
+      btn.setAttribute('aria-pressed', 'false');
+      btn.innerHTML = OPEN + CLOSED;
+      wrap.appendChild(btn);
+    }
+  }
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('[data-pw-toggle]');
+    if (!btn) return;
+    e.preventDefault();
+    var inp = btn.parentElement.querySelector('input');
+    if (!inp) return;
+    var show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password';
+    var label = isPin(inp) ? 'PIN' : 'password';
+    btn.setAttribute('aria-label', (show ? 'Hide ' : 'Show ') + label);
+    btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+    btn.querySelector('[data-eye="open"]').style.display = show ? 'none' : '';
+    btn.querySelector('[data-eye="closed"]').style.display = show ? '' : 'none';
+    try { inp.focus(); } catch (err) {}
+  });
+  var pending = false;
+  new MutationObserver(function () {
+    if (pending) return; pending = true;
+    requestAnimationFrame(function () { pending = false; enhance(); });
+  }).observe(document.body, { childList: true, subtree: true });
+  enhance();
+})();
+</script>
 </body>
 </html>
