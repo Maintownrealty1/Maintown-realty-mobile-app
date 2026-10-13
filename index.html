@@ -22230,12 +22230,63 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
   function mtSystemLine(conv, text) { conv.messages.push({ from: 'system', text: text }); saveConversations(); mtBotRefresh(conv); }
 
+
+  // ---- Role-aware assistant (hosts vs tenants/buyers) ----
+  // Tenants and buyers: Real Estate Advisor, Legal and Documents, and Customer Support.
+  // Hosts (landlords, agents, enterprise staff): the host assistant, Customer Service, or a direct Legal Expert request.
+  function mtChatRole() {
+    const role = (typeof currentUserRole !== 'undefined' && currentUserRole) || 'tenant';
+    if (role === 'tenant') return 'tenant';
+    let er = null; try { er = getEnterpriseStaffRole(); } catch (e) {}
+    if (er) return er; // ceo, sales, finance, legal
+    if (role === 'landlord') { try { return pfManagedLandlord() ? 'landlord_managed' : 'landlord'; } catch (e) { return 'landlord'; } }
+    if (role === 'agent') return 'agent';
+    return 'tenant';
+  }
+  function mtIsHost() { return mtChatRole() !== 'tenant'; }
+  // Greet people by first name, the way a chat assistant would ("Hi Precious!", "Good morning, Precious!")
+  function mtFirstName() {
+    try { const u = appState.users[getCurrentUserId()]; return String((u && u.name) || '').trim().split(/\s+/)[0] || ''; } catch (e) { return ''; }
+  }
+  const MT_HI = { en: 'Hi', pcm: 'Hello', yo: 'Ẹ káàbọ̀,', ig: 'Ndewo', ha: 'Sannu', fr: 'Bonjour' };
+  function mtHiLine(conv, raw) {
+    const nm = mtFirstName(); if (!nm) return '';
+    const lang = mtLang(conv);
+    const tod = lang === 'en' ? String(raw || '').toLowerCase().match(/^good (morning|afternoon|evening)/) : null;
+    if (tod) return 'Good ' + tod[1] + ', ' + nm + '! ';
+    return (MT_HI[lang] || 'Hi') + ' ' + nm + (lang === 'fr' ? ' ! ' : '! ');
+  }
+  function mtStripHello(text) { return String(text).replace(/^[^!]{0,40}?\s?!\s*/, ''); }
+  const MT_HOST_GREET = {
+    landlord_managed: "Hello! I can help with your managed account: approving listings, leaving your agent or company, why some shortcuts are hidden, payouts and documents. What would you like to know?",
+    landlord: "Hello! I can help with listing a property, uploading documents, rent and sales payouts, repairs and Deals, Requests and Offers. What would you like to know?",
+    agent: "Hello! I can help with listing for owners, the landlords you onboard, leave requests, your commission and payouts. What would you like to know?",
+    ceo: "Hello! I can help with commission splits, staff commission payouts, landlord leave requests, listing approvals and your team. What would you like to know?",
+    sales: "Hello! I can help with adding listings, your earned commission, My Landlords, Deals, Requests and Offers. What would you like to know?",
+    finance: "Hello! I can help with commission requests, marking payouts as paid offline and how the company commission is calculated. What would you like to know?",
+    legal: "Hello! I can help with title review, agreements that need the CEO's countersignature and how to reach the CEO. What would you like to know?"
+  };
+  function mtHostChips(role) {
+    const q = (l, t) => ({ l: l, a: 'say', t: t });
+    const sets = {
+      landlord_managed: [ q('Approve a listing', 'How do I approve a listing?'), q('Hidden shortcuts', 'Why can I not see Deals, Requests or Offers?'), q('Leave my agent', 'How do I leave my agent or company?'), q('When I get paid', 'When do I get paid?') ],
+      landlord: [ q('List a property', 'How do I list a property?'), q('Upload documents', 'How do I upload my documents?'), q('When I get paid', 'When do I get paid?'), q('Deals and Offers', 'Where do I see Deals, Requests and Offers?') ],
+      agent: [ q('My commission', 'How much do I earn?'), q('Landlords I onboard', 'What happens to landlords I onboard?'), q('Leave requests', 'What happens when a landlord asks to leave?'), q('List for an owner', 'How do I list on behalf of an owner?') ],
+      ceo: [ q('Commission split', 'How is commission split?'), q('Staff payouts', 'How do my staff get paid commission?'), q('Landlord leave requests', 'How do I handle a landlord request to leave?'), q('Publish listings', 'Who publishes a listing?') ],
+      sales: [ q('My commission', 'Where do I see my commission?'), q('My Landlords', 'What is My Landlords?'), q('Add a listing', 'How do I add a listing?'), q('Remove a listing', 'How do I remove a listing?') ],
+      finance: [ q('Commission requests', 'What are commission requests?'), q('Calculation', 'How is company commission calculated?'), q('Undo a payout', 'Can I undo a payout I marked as paid?'), q('Message the CEO', 'How do I message the CEO?') ],
+      legal: [ q('What I review', 'What do I review?'), q('Agreements', 'How do agreements reach the client?'), q('Message the CEO', 'How do I message the CEO?') ]
+    };
+    return (sets[role] || sets.landlord).slice();
+  }
+
   function mtBotMode(conv) { return conv.mode || 'unsure'; }
   function mtBotChipsFor(conv) {
     const m = mtBotMode(conv);
     const c = (k, x) => Object.assign({ l: mtTx(conv, 'lbl_' + k) }, x);
     let out;
-    if (m === 'legal') out = [
+    if (mtIsHost()) out = mtHostChips(mtChatRole());
+    else if (m === 'legal') out = [
       c('deed', { a: 'say', t: 'What is a Deed of Assignment?' }),
       c('consent', { a: 'say', t: "What is Governor's Consent?" }),
       c('title', { a: 'say', t: 'What does preliminary title screening cover?' })
@@ -22281,7 +22332,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (has(/(talk|speak|chat|connect|reach)\b.{0,25}\b(person|human|expert|lawyer|advisor|adviser|representative|someone|agent|staff|team)/) || has(/\b(want|need)\b (a |an |to (talk|speak) (to|with) )?(person|human|expert|lawyer|advisor|adviser|representative)/)) {
       const team = has(/(lawyer|legal|document|title|c of o|deed)/) ? 'legal' : (has(/(estate|property|listing|rent|inspection)/) ? 'estate' : (mode === 'legal' ? 'legal' : (mode === 'estate' ? 'estate' : null)));
       if (team) return { text: mtTx(conv, 'ofcourse'), handoff: team, loc: true };
-      return { text: mtTx(conv, 'who'), loc: true, keepHandoff: true, chips: [ { l: 'Real estate expert', a: 'handoff', k: 'estate' }, { l: 'Legal expert', a: 'handoff', k: 'legal' } ] };
+      return { text: mtTx(conv, 'who'), loc: true, keepHandoff: true, chips: mtIsHost() ? [ { l: 'Customer service', a: 'handoff', k: 'support' }, { l: 'Legal expert', a: 'handoff', k: 'legal' } ] : [ { l: 'Customer support', a: 'handoff', k: 'support' }, { l: 'Real estate expert', a: 'handoff', k: 'estate' }, { l: 'Legal expert', a: 'handoff', k: 'legal' } ] };
     }
     const sp = mtBotSpecial(conv, raw); if (sp) return sp;
     // 3. Contact options
@@ -22293,7 +22344,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return { text: mtTx(conv, 'offplatform'), loc: true, chips: [ { l: 'What do I need to complete?', a: 'say', t: 'What do I need to complete?' } ] };
     }
     // 5. Small talk and identity
-    if (t.length < 40 && /^(hi|hello|hey|howdy|good (morning|afternoon|evening)|bonjour|bonsoir|salut|sannu|ndewo|kedu|e kaaro|e kaasan|e kaale|how far|bawo)\b/.test(n)) return { text: mtTx(conv, 'hello'), chips: menu, loc: true };
+    if (t.length < 40 && /^(hi|hello|hey|howdy|good (morning|afternoon|evening)|bonjour|bonsoir|salut|sannu|ndewo|kedu|e kaaro|e kaasan|e kaale|how far|bawo)\b/.test(n)) {
+      const hi = mtHiLine(conv, raw);
+      let body = mtTx(conv, 'hello');
+      if (mtIsHost() && mtLang(conv) === 'en') body = MT_HOST_GREET[mtChatRole()] || body;
+      return { text: hi ? hi + mtStripHello(body) : body, chips: menu, loc: true };
+    }
     if (has(/(are you (a )?(bot|human|real|ai|robot)|who are you|am i talking)/)) return { text: mtTx(conv, 'identity'), loc: true };
     if (/^(thanks|thank you|thx|cool|great|ok thanks|merci|nagode|na gode|daalu|e se|e seun)\b/.test(n)) return { text: mtTx(conv, 'thanks'), chips: menu, loc: true };
     // 6. Account status (read-only, from app state)
@@ -22333,6 +22389,74 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const ri = [ { l: mtTx(conv, role === 'tenant' ? 'lbl_open_report' : 'lbl_review_repairs'), a: 'go', k: 'report-issue' }, personChip ];
       if (role === 'tenant') return { text: "To report a repair, open Report an Issue. Pick the category (Plumbing, Electrical, Locksmith, AC/HVAC, Structural or General Repair), describe the problem and add a photo or video as proof. Choose Standard (24-hour response window) or Emergency for a water leak or power outage (4-hour window). You can have a MainTown vetted artisan sent, or notify your landlord or agent to resolve it. Landlords must address critical repairs within 48 hours.", chips: ri };
       return { text: "When a tenant reports a repair, you get a Maintenance Alert to review the proof and assign action. Standard issues have a 24-hour response window and emergencies 4 hours. Landlords must address critical repairs within 48 hours, and MainTown may withhold monthly payout releases until critical repairs are resolved.", chips: ri };
+    }
+    // 6c-0. Host questions, answered per role (landlord, managed landlord, agent, CEO, sales, finance, legal)
+    const cr = mtChatRole();
+    if (cr !== 'tenant') {
+      const mgd = cr === 'landlord_managed';
+      const mgrTxt = (() => { try { const u = pfManagedLandlord(); return u ? pfManagerName(u) : 'your agent or company'; } catch (e) { return 'your agent or company'; } })();
+      if (has(/(leave|quit|exit|switch|release).{0,25}(agent|agency|company|manager)|request to leave|ask(s|ed)? to leave|want(s)? to leave|leave request/)) {
+        if (mgd) return { text: "Tap Request to leave on your dashboard and choose the reason closest to yours: communication or updates, commission or fees, managing your properties yourself, moving to another agent or agency, or another reason. A private chat opens with " + mgrTxt + " so you can talk it through. If you still want to leave, tap I still want to leave in the chat and they can approve. After that you become a direct landlord and must verify before listing on your own.", chips: menu };
+        if (cr === 'landlord') return { text: "You are a direct landlord, so there is no agent or company to leave. If one onboards you later, you can ask to leave at any time with a reason and a private chat.", chips: menu };
+        if (cr === 'agent') return { text: "When a landlord you manage asks to leave, they pick a reason and a private chat opens with you under My Landlords. Read the reason, talk it through, and approve only if they confirm they still want to leave, or decline with a reason they will see. Never hold back their documents or payouts.", chips: menu };
+        if (cr === 'ceo') return { text: "Open the Landlords tab to see leave requests. Read the reason, chat with the landlord, and approve only if they still want to leave, or decline with a reason. Your sales staff can join the chat, but only you can approve or decline.", chips: menu };
+        if (cr === 'sales') return { text: "Open My Landlords to see a landlord's request to leave and chat with them. Only your CEO can approve or decline it.", chips: menu };
+        return { text: "Landlord leave requests are handled by your CEO in the Landlords tab.", chips: menu };
+      }
+      if (has(/(commission|earn(ed|ings)?\b|my share|how much (do|will) i (earn|get)|paid offline|mark(ed)?.{0,12}paid|payout request|staff (get paid|payout))/) && cr !== 'landlord' && !mgd && cr !== 'legal') {
+        if (cr === 'agent') return { text: "On rentals and shortlets you receive 60% of the 10% commission fee and MainTown keeps 40%. On land and property sales you receive the Seller's 5%, and the Buyer's 5% goes to MainTown. Your share is paid automatically at the point of charge once the landlord has joined and validated ownership.", chips: menu };
+        if (cr === 'ceo') return { text: "On rentals and shortlets the company receives 60% of the 10% commission fee and MainTown keeps 40%. On land and property sales the company receives the Seller's 5% and MainTown the Buyer's 5%. Staff see an Earned Commission record (view only) and can request a payout; you or your Finance Officer decide the amount and mark it Paid Offline. MainTown never pays staff.", chips: menu };
+        if (cr === 'sales') return { text: "Open Earned Commission for your record (view only). You can request a payout there; your CEO or Finance Officer decides the amount and marks it Paid Offline. MainTown never pays staff.", chips: menu };
+        if (cr === 'finance') return { text: "Commission Requests are payout requests from sales staff. Enter the amount, add a note and mark the request as Paid Offline once it is settled. On rentals and shortlets the company receives 60% of the 10% commission fee, and on land and property sales the Seller's 5%. MainTown never pays staff.", chips: menu };
+      }
+      if (has(/(undo|reverse|revert|mistake).{0,25}(paid|payout)|marked.{0,12}paid.{0,15}(mistake|wrong)/) && cr === 'finance') {
+        return { text: "Yes. You can move a paid item back to requests if it was marked by mistake.", chips: menu };
+      }
+      if (has(/my landlords|landlords? (i|we) (onboard|manage)|onboarded landlords?|managed landlords?/) && (cr === 'agent' || cr === 'sales' || cr === 'ceo')) {
+        return { text: cr === 'sales'
+          ? "My Landlords lists the landlords you onboarded and any open request to leave. Open the chat to talk with a landlord; only your CEO can approve or decline the request."
+          : "A landlord you onboard is a managed landlord: they cannot list or upgrade on their own, and you handle their deals, requests and offers, so those shortcuts stay hidden on their dashboard. If they ask to leave they choose a reason and a private chat opens with you. After release their properties become direct listings and you stop earning commission on them.", chips: menu };
+      }
+      if (has(/\b(deals?|price offers?|offers?|property requests?|requests)\b/) && !has(/(commission|payout|removal|leave|inspection|repair)/)) {
+        const m2 = {
+          landlord_managed: "Your agent or company makes offers, answers requests and handles deals for you, so Deals, Requests and Offers stay hidden while you are managed. They appear on your dashboard once your request to leave is approved.",
+          landlord: "They are on your dashboard. Use Requests to pitch your listings to people looking, Offers to answer price offers, and Deals to discount a listing. MainTown reviews a deal before it goes public.",
+          agent: "You handle these for the landlords you manage. Use Requests to pitch listings to people looking, Offers to answer price offers, and Deals to discount a listing. MainTown reviews a deal before it goes public.",
+          sales: "Property Requests, Price Offers and Deals are cards on your dashboard. You can run deals on the listings you added yourself.",
+          ceo: "Your sales staff and agents handle Property Requests, Price Offers and Deals on the listings they added.",
+          finance: "Property Requests, Price Offers and Deals are handled by sales staff and agents. Use Message CEO if you need something flagged.",
+          legal: "Property Requests, Price Offers and Deals are handled by sales staff and agents. Use Message CEO if you need something flagged."
+        };
+        return { text: m2[cr] || m2.landlord, chips: menu };
+      }
+      if (mgd && has(/(approve|review|waiting|pending).{0,25}(listing|propert)|(listing|propert).{0,25}(waiting|pending|approve)/)) {
+        return { text: "When a property is waiting, a review card appears on your dashboard. Open it, check the details and upload your title documents so the listing can go live. " + mgrTxt + " cannot publish it without your approval.", chips: menu };
+      }
+      if (has(/(message|contact|reach|talk to|chat).{0,15}(ceo|boss)|message ceo/) && (cr === 'sales' || cr === 'finance' || cr === 'legal')) {
+        return { text: "Use Message CEO on your dashboard to flag a transaction, a document or a sale. It opens a direct line to your CEO.", chips: menu };
+      }
+      if (has(/(delete|remove|take down).{0,20}(listing|property)/)) {
+        const m3 = {
+          landlord_managed: "Ask " + mgrTxt + ", since they manage your listings. You can preview a listing, but only the person who listed it can delete it.",
+          landlord: "Open your listing's Preview and tap Delete, then confirm. You can delete a listing only while it is live; once a client has paid, it leaves the feed automatically.",
+          agent: "Open your listing's Preview and tap Delete, then confirm. You can delete a listing only while it is live; once a client has paid, it leaves the feed automatically.",
+          sales: "Open the listing's Preview and tap Delete, then confirm. It sends a removal request to your CEO, and the listing leaves the feed once approved.",
+          ceo: "Staff request removal of their listings and you review the request. Approve it to take the listing off the feed.",
+          finance: "Listings are removed by the person who added them, after the CEO approves. Use Message CEO if something needs flagging.",
+          legal: "Listings are removed by the person who added them, after the CEO approves. Use Message CEO if something needs flagging."
+        };
+        return { text: m3[cr] || m3.landlord, chips: menu };
+      }
+      if ((cr === 'sales' || cr === 'ceo') && has(/(add|post|create|upload).{0,20}(a |my |new |another )?(listing|property)|who publishes|publish(es)? a listing|approve.{0,12}listing/)) {
+        return { text: cr === 'sales'
+          ? "Choose Agency-owned or Client-owned when you add a listing. Agency-owned listings go to your CEO for title documents and approval. Client-owned listings go to the landlord first to review and upload documents, then to your CEO to publish."
+          : "Agency-owned listings come to you to upload the title documents and approve. Client-owned listings go to the landlord first to review and upload documents, then back to you to publish.", chips: menu };
+      }
+      if (cr === 'legal' && has(/(what do i review|title review|legal review|review queue|agreements?|countersign)/)) {
+        return { text: has(/agreement|countersign/)
+          ? "Prepare the Deed of Assignment, Purchase Agreement or Tenancy Agreement and send it to the CEO. Only the CEO can countersign."
+          : "Review the title documents on listings in legal review and clear them so the CEO can approve the listing.", chips: menu };
+      }
     }
     // 6c. Landlord and agent questions: listing, documents, sales and payouts
     if (role === 'landlord' || role === 'agent') {
@@ -22464,7 +22588,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     mtBotSay(conv, mtTx(conv, 'file_bot'), chips);
   }
   function mtBotHandoff(conv, teamKey) {
-    const key = MT_TEAMS[teamKey] ? teamKey : (conv.mode === 'legal' ? 'legal' : (conv.mode === 'estate' ? 'estate' : 'support'));
+    let key = MT_TEAMS[teamKey] ? teamKey : (conv.mode === 'legal' ? 'legal' : (conv.mode === 'estate' ? 'estate' : 'support'));
+    if (mtIsHost() && key === 'estate') key = 'support'; // hosts reach Customer Service or Legal only
     const team = MT_TEAMS[key];
     if (conv.handoff && conv.handoff.active) { showToast('You are already connected to an expert'); return; }
     const online = mtExpertsOnline();
@@ -22507,24 +22632,33 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
 
   function mtBotGreet(conv, kind) {
+    if (mtIsHost()) {
+      conv.messages.push({ from: 'system', text: 'Host assistant · automated assistant. Customer Service or a Legal Expert can join on request.' });
+      conv.messages.push({ from: 'them', type: 'text', by: 'bot', byName: '', text: mtHiLine(conv) + mtStripHello(MT_HOST_GREET[mtChatRole()] || MT_HOST_GREET.landlord), chips: mtBotChipsFor(conv) });
+      return;
+    }
     const label = kind === 'legal' ? 'Legal and Documents' : (kind === 'estate' ? 'Real Estate Advisor' : 'General help');
     conv.messages.push({ from: 'system', text: label + ' · automated assistant. A live expert can join on request.' });
     const greet = kind === 'legal' ? mtTx(conv, 'greet_legal') : mtTx(conv, 'greet_unsure');
     const chips = kind === 'unsure'
       ? [ { l: mtTx(conv, 'lbl_prop_pay'), a: 'mode', k: 'estate' }, { l: mtTx(conv, 'lbl_docs_legal'), a: 'mode', k: 'legal' }, { l: mtTx(conv, 'lbl_language'), a: 'lang' } ]
       : mtBotChipsFor(conv);
-    conv.messages.push({ from: 'them', type: 'text', by: 'bot', byName: '', text: greet, chips: chips });
+    conv.messages.push({ from: 'them', type: 'text', by: 'bot', byName: '', text: mtHiLine(conv) + greet, chips: chips });
   }
   function mtBotStart(kind) {
     const conv = getOrCreateSupportThread();
-    conv.mode = kind; conv.misses = 0;
+    // Direct requests: Customer Service, or a Legal Expert, skip the assistant and connect straight away
+    const direct = kind === 'support' ? 'support' : (kind === 'legaldirect' ? 'legal' : null);
+    conv.mode = direct ? (direct === 'legal' ? 'legal' : 'support') : (mtIsHost() ? 'host' : kind); conv.misses = 0;
     if (conv.handoff && conv.handoff.active) conv.handoff.active = false;
-    mtBotGreet(conv, kind);
+    if (!direct) mtBotGreet(conv, kind);
+    else conv.messages.push({ from: 'system', text: direct === 'legal' ? 'You asked for a Legal Expert.' : 'You asked for Customer Service.' });
     saveConversations();
     document.getElementById('mt-picker-modal').classList.remove('open');
     navigateTo('screen-messages');
     openThreadDetail(conv.id);
     mtBotScroll();
+    if (direct) mtBotHandoff(conv, direct);
   }
   function mtBotChip(conv, msg, chip) {
     if (chip.a === 'say') {
@@ -22572,8 +22706,29 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const r = document.getElementById('pk-resume'); if (r) r.style.display = existing ? 'flex' : 'none';
   }
   let mtPickerFromCard = false;
+  function mtPickerBuild() {
+    const modal = document.getElementById('mt-picker-modal'); if (!modal) return;
+    modal.querySelectorAll('.pk-dyn').forEach(n => n.remove());
+    const host = mtIsHost();
+    ['estate', 'legal', 'unsure'].forEach(k => { const b = modal.querySelector('[data-pk="' + k + '"]'); if (b) b.style.display = host ? 'none' : ''; });
+    // tenants and buyers: Real Estate Advisor, Legal and Documents (originals) + Customer Support; no generic "Not sure"
+    const on = mtExpertsOnline();
+    const st = on ? '<span class="pk-status on">Experts online</span>' : '<span class="pk-status off">Experts offline · leave a question</span>';
+    const opt = (k, icon, title, desc, status) => '<button type="button" class="pk-opt pk-dyn" data-pk="' + k + '"><span class="pk-ico"><i data-lucide="' + icon + '" class="w-5 h-5"></i></span><span style="min-width:0;"><p class="pk-title">' + title + '</p><p class="pk-desc">' + desc + '</p>' + (status || '') + '</span></button>';
+    const items = host
+      ? opt('host', 'message-circle', 'Ask the assistant', 'Quick answers for your role: listings, commission, payouts and your account.')
+        + opt('support', 'headphones', 'Customer Service', 'Talk to the MainTown support team about an account, payment or app issue.', st)
+        + opt('legaldirect', 'scale', 'Legal Expert', 'Request a legal person directly for documents, agreements and title questions.', st)
+      : opt('support', 'headphones', 'Customer Support', 'Talk to the MainTown support team about an account, payment or app issue.', st);
+    const anchor = document.getElementById('pk-resume');
+    if (anchor) anchor.insertAdjacentHTML('beforebegin', items);
+    const sub = modal.querySelector('.sheet-subtitle');
+    if (sub) sub.textContent = host ? 'Start with the assistant, or go straight to Customer Service or a Legal Expert.' : 'Start with our assistant. A live expert can join when you need one.';
+    if (window.lucide) lucide.createIcons();
+  }
   function openMtPicker(fromCard) {
     mtPickerFromCard = fromCard === true;
+    mtPickerBuild();
     mtPickerRefresh();
     document.getElementById('mt-picker-modal').classList.add('open');
     if (window.lucide) lucide.createIcons();
