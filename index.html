@@ -3208,7 +3208,14 @@
   .ent-txn-row { flex-wrap: wrap; }
   .ent-txn-row .ent-list-text { flex: 1 1 140px; min-width: 0; }
   .ent-txn-row .ent-list-action-btn { flex: 1 1 100%; justify-content: center; }
-  #screen-enterprise .app-shell { max-width: 100%; padding-left: 16px; padding-right: 16px; padding-top: 18px; }
+  /* The enterprise screens sit inside the page-level .app-shell, which already supplies the 420px
+     column and 20px side padding the normal dashboard uses. Their own inner .app-shell was adding a
+     second frame (extra side padding, extra top padding, and on the staff screens a second 420px cap),
+     which is what made them look narrow and boxed in. The inner shell is now a plain pass-through. */
+  #screen-enterprise > .app-shell,
+  #screen-ent-sales > .app-shell,
+  #screen-ent-finance > .app-shell,
+  #screen-ent-legal-dash > .app-shell { max-width: 100% !important; width: 100%; margin: 0; padding-left: 0 !important; padding-right: 0 !important; padding-top: 0 !important; min-height: 0; }
   .ent-panel-title { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: #fff; margin: 0; }
   .ent-panel-sub { font-size: 12.5px; color: #7c8aa0; margin: 4px 0 0; }
 
@@ -3315,8 +3322,13 @@
 
 
   /* CEO home fits on one screen (no page scroll). Other tabs scroll as normal. */
-  #screen-enterprise.ent-home-mode { height: 100dvh; max-height: 100dvh; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 96px; box-sizing: border-box; }
-  #screen-enterprise.ent-home-mode .app-shell { min-height: 0; padding-top: 14px; padding-bottom: 0; }
+  /* CEO home is static: the header, wallet card and Quick access stay put and the page no longer drags or bounces.
+     (A global `.screen-view { overflow: visible !important }` rule used to defeat the old overflow-y:auto here,
+     so the whole page scrolled with the window.) Only the "Payments awaiting confirmation" list scrolls, inside its own box. */
+  #screen-enterprise.ent-home-mode { height: calc(100dvh - 32px); max-height: calc(100dvh - 32px); overflow: hidden !important; overscroll-behavior: none; padding-bottom: 96px; box-sizing: border-box; }
+  html:has(#screen-enterprise.ent-home-mode:not(.hidden)), body:has(#screen-enterprise.ent-home-mode:not(.hidden)) { overflow: hidden !important; overscroll-behavior: none; }
+  #screen-enterprise.ent-home-mode #ent-ov-escrow-wrap { max-height: 26dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  #screen-enterprise.ent-home-mode > .app-shell { min-height: 0; padding-top: 0 !important; padding-bottom: 0; }
   #screen-enterprise.ent-home-mode .ent-header { margin-bottom: 10px; }
   #screen-enterprise.ent-home-mode .ent-vault { padding: 14px 16px 12px; margin-bottom: 10px; border-radius: 20px; }
   #screen-enterprise.ent-home-mode .ent-vault-balance { font-size: clamp(22px, 7vw, 28px); }
@@ -6935,8 +6947,8 @@
 
     <div id="ent-upgrade-step-pay">
       <div class="modal-icon-wrap"><i data-lucide="building-2" class="w-8 h-8 text-purple-400"></i></div>
-      <h2 class="modal-title">Scale to Developer</h2>
-      <p class="modal-sub">Unlock team roles, bulk CSV property uploads, and your own branded company listings.</p>
+      <h2 class="modal-title" id="ent-upgrade-title">Scale to Developer</h2>
+      <p class="modal-sub" id="ent-upgrade-sub">Unlock team roles, bulk CSV property uploads, and your own branded company listings.</p>
       <div class="ent-metric-card" style="margin-bottom:18px; text-align:center;">
         <p class="ent-metric-label">One-Time Upgrade Fee</p>
         <p class="ent-metric-value" style="font-size:22px;" id="ent-upgrade-fee-text">₦150,000</p>
@@ -6994,13 +7006,13 @@
     <div id="ent-upgrade-step-setup" style="display:none;">
       <div class="modal-icon-wrap"><i data-lucide="check-circle-2" class="w-8 h-8 text-emerald-400"></i></div>
       <h2 class="modal-title">Payment Confirmed</h2>
-      <p class="modal-sub">Set up your company profile to finish upgrading.</p>
+      <p class="modal-sub" id="ent-setup-sub">Set up your company profile to finish upgrading.</p>
       <div class="field">
-        <label class="field-label">Company / Business Name</label>
+        <label class="field-label" id="ent-setup-name-label">Company / Business Name</label>
         <input class="field-input" id="ent-setup-company-name" type="text" placeholder="e.g. Horizon Homes Ltd">
       </div>
       <div class="field">
-        <label class="field-label">Company Logo</label>
+        <label class="field-label" id="ent-setup-logo-title">Company Logo</label>
         <div class="s5-upload-box" id="ent-setup-logo-upload">
           <i data-lucide="image" class="w-5 h-5"></i>
           <span id="ent-setup-logo-label">Upload Logo</span>
@@ -7008,11 +7020,11 @@
         </div>
       </div>
       <div class="field">
-        <label class="field-label">CAC / Registration Number</label>
+        <label class="field-label" id="ent-setup-reg-label">CAC / Registration Number</label>
         <input class="field-input" id="ent-setup-cac" type="text" placeholder="RC1234567">
       </div>
       <div class="field">
-        <label class="field-label">Company Address</label>
+        <label class="field-label" id="ent-setup-addr-label">Company Address</label>
         <input class="field-input" id="ent-setup-address" type="text" placeholder="Registered office address">
       </div>
       <button type="button" id="ent-setup-finish-btn" class="btn-primary">Finish Setup &amp; Go to Dashboard</button>
@@ -14316,6 +14328,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('sb-confirm-btn').disabled = !!r;
   }
   function openShortletBookingModal(listing) {
+    if (blockIfPrivilegesPaused()) return;
     sbListing = listing;
     document.getElementById('sb-property-name').textContent = `${listing.title} — ${listing.location}`;
     const todayIso = lagosToday();
@@ -14372,6 +14385,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // 1 night — hands off to the existing daily auto-debit engine for the
   // remaining nights.
   function finalizeShortletCheckout() {
+    if (blockIfPrivilegesPaused()) return false;
     const listing = checkoutListing;
     const sl = checkoutShortlet;
     if (!listing || !sl) return false;
@@ -20442,6 +20456,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   function openInspectionModal(listingOrTitle) {
+    if (blockIfPrivilegesPaused()) return;
     // Generalized: accepts either a rental title string (legacy call sites) or a
     // full listing object — Land/Property Sale cards pass the listing directly so
     // this same modal + Inspection Approval Circle now serves both listing types.
@@ -20541,6 +20556,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
 
   document.getElementById('ib-confirm-btn').addEventListener('click', () => {
+    if (blockIfPrivilegesPaused()) return;
     if (!inspectionListing || !ibSelectedDate || !ibSelectedSlot) return;
     if (ibSubmitting) return;
     if (!document.getElementById('ib-waiver-checkbox').checked) {
@@ -22769,7 +22785,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const me = getCurrentUserId();
       const iAmBuyer = me === conv.buyerId;
       const otherId = iAmBuyer ? conv.hostId : conv.buyerId;
-      const lab = iAmBuyer ? (conv.hostRole === 'agent' ? 'Agent' : (conv.hostRole === 'enterprise_staff' ? 'Sales Manager' : 'Landlord')) : (conv.pairKind === 'request' ? 'Requester' : 'Buyer');
+      const lab = iAmBuyer ? (conv.hostRole === 'agent' ? 'Agent' : (conv.hostRole === 'enterprise_staff' ? entRoleLabel('sales', (appState.users[conv.hostId] || {}).companyId) : 'Landlord')) : (conv.pairKind === 'request' ? 'Requester' : 'Buyer');
       return { name: iAmBuyer ? resolveUserName(otherId) : mktFirstName(otherId), photo: null, label: lab };
     }
     // MainTown support line (opened from Profile > Contact MainTown)
@@ -22781,7 +22797,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (uid === conv.staffId) {
         return { name: 'CEO / Admin', photo: null, label: 'CEO' };
       }
-      return { name: conv.staffName || 'Staff', photo: null, label: (ENT_STAFF_ROLE_LABEL[conv.staffRole] || 'Staff') };
+      return { name: conv.staffName || 'Staff', photo: null, label: entRoleLabel(conv.staffRole, conv.companyId) };
     }
     // Staff <-> Staff private line (Sales/Finance/Legal/CEO messaging a
     // colleague directly) — resolves whichever participant ISN'T the
@@ -22792,7 +22808,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const other = otherId && appState.users[otherId];
       if (other) {
         const otherStaffRole = isEnterpriseCeo(otherId) ? 'ceo' : other.staffRole;
-        return { name: other.name || 'Team Member', photo: null, label: ENT_STAFF_ROLE_LABEL[otherStaffRole] || 'Staff' };
+        return { name: other.name || 'Team Member', photo: null, label: entRoleLabel(otherStaffRole, other.companyId) };
       }
       return { name: 'Team Member', photo: null, label: 'Staff' };
     }
@@ -22802,7 +22818,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (conv.salesStaffId) {
       if (role === 'tenant') {
         const staff = appState.users[conv.salesStaffId];
-        return { name: (staff && staff.name) || 'Sales Manager', photo: null, label: 'Sales Manager' };
+        return { name: (staff && staff.name) || 'Sales Manager', photo: null, label: entRoleLabel('sales', staff && staff.companyId) };
       }
       // Sales staff's own view of this same thread — the peer is the tenant/client.
       const notif = inspectionNotifications.find(n => n.forUserId === conv.salesStaffId && n.listingTitle === conv.listingTitle);
@@ -23961,8 +23977,57 @@ available in the Post-Lease Hub and this chat thread.`
   // ==================================================================
   let activeLease = null;
   // Escalation timeline: 8 days, 3 stages. defaultDay = days past the due date (0 = payment up to date).
-  let defaultDay = 0;
-  const DEFAULT_SIM_DAYS = [0, 1, 4, 8]; // simulator: up to date -> Day 1 -> Day 4 -> Day 8 -> payment recorded
+  let defaultDay = 0; // the day count currently shown (real, or the test button's override)
+  // ---- Real due dates drive the default stages ----
+  // Each auto-debit instalment has a real due date (the schedule built at move-in). Day 0 is the due date
+  // itself; Day 1 is the day after. The oldest unpaid instalment sets the day count, and everything should be
+  // settled by Day 8. Paying rent marks the oldest unpaid instalment as paid. NOTE: the monthly auto-debit
+  // itself is run by the payment provider, not this file, so an instalment only becomes "paid" here when the
+  // tenant pays through Pay Rent (or the backend marks it). The test button below overrides the real dates.
+  let defaultSimOverride = null;
+  function mtDaysBetweenIso(a, b) { return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000); }
+  function tenantLeasesWithSchedule() {
+    appState = loadAppState();
+    const uid = currentDemoUserId();
+    if (!uid) return [];
+    return (appState.leases || []).filter(l => l.tenantId === uid && !l.commercial && Array.isArray(l.autoDebitSchedule));
+  }
+  function realDefaultInfo() {
+    const today = lagosToday();
+    let worst = null;
+    tenantLeasesWithSchedule().forEach(l => l.autoDebitSchedule.forEach(s => {
+      if (s.status === 'paid' || !s.date) return;
+      const d = mtDaysBetweenIso(s.date, today);
+      if (d >= 1 && (!worst || d > worst.day)) worst = { day: d, dueDate: s.date, month: s.month, title: l.propertyTitle, listingId: l.listingId };
+    }));
+    return worst;
+  }
+  function effectiveDefaultDay() {
+    if (defaultSimOverride != null) return defaultSimOverride;
+    const r = realDefaultInfo();
+    return r ? r.day : 0;
+  }
+  function tenantPrivilegesPaused() { return effectiveDefaultDay() >= 4; } // Stage 2 (Day 4) onward
+  function blockIfPrivilegesPaused() {
+    if (!tenantPrivilegesPaused()) return false;
+    showToast("New bookings and inspections are paused because your rent is more than 3 days overdue. Pay it in Manage Your Tenancy and access returns straight away.");
+    return true;
+  }
+  function markEarliestInstalmentPaid() {
+    appState = loadAppState();
+    let target = null;
+    tenantLeasesWithSchedule().forEach(l => l.autoDebitSchedule.forEach(s => {
+      if (s.status !== 'paid' && s.date && (!target || s.date < target.s.date)) target = { l, s };
+    }));
+    if (!target) return;
+    target.s.status = 'paid'; target.s.paidAt = Date.now();
+    saveAppState(appState);
+    if (activeLease && Array.isArray(activeLease.autoDebitSchedule) && String(activeLease.listingId) === String(target.l.listingId)) {
+      const m = activeLease.autoDebitSchedule.find(x => x.date === target.s.date);
+      if (m) { m.status = 'paid'; m.paidAt = target.s.paidAt; }
+    }
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  }
   function defaultStageForDay(day) { return day >= 8 ? 2 : (day >= 4 ? 1 : 0); } // 0 = Days 1-3 (and up to date), 1 = Days 4-7, 2 = Day 8+
   let tickets = [];
   try {
@@ -23971,12 +24036,14 @@ available in the Post-Lease Hub and this chat thread.`
   } catch (e) { tickets = []; }
 
   function renderStageTracker() {
+    defaultDay = effectiveDefaultDay();
     const stage = defaultStageForDay(defaultDay);
     ['s7-stage-0', 's7-stage-1', 's7-stage-2'].forEach((id, idx) => {
       document.getElementById(id).classList.toggle('active-stage', idx === stage);
     });
     const noteEl = document.getElementById('s7-day-note');
-    if (noteEl) noteEl.textContent = defaultDay > 0 ? 'Day ' + defaultDay + ' past due' : 'Payment up to date';
+    const realInfo = defaultSimOverride == null ? realDefaultInfo() : null;
+    if (noteEl) noteEl.textContent = defaultDay > 0 ? ('Day ' + defaultDay + ' past due' + (realInfo ? ' — instalment was due ' + new Date(realInfo.dueDate + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : '') + (defaultDay >= 4 ? ' · bookings and inspections paused' : '')) : 'Payment up to date';
     const statusEl = document.getElementById('s7-lease-status');
     if (defaultDay === 0) { statusEl.textContent = 'Active'; statusEl.style.color = '#34d399'; }
     else if (stage === 0) { statusEl.textContent = 'Grace Period — Reminders Sent'; statusEl.style.color = '#34d399'; }
@@ -23985,10 +24052,10 @@ available in the Post-Lease Hub and this chat thread.`
   }
 
   document.getElementById('s7-simulate-default-btn').addEventListener('click', () => {
-    const i = DEFAULT_SIM_DAYS.indexOf(defaultDay);
-    defaultDay = DEFAULT_SIM_DAYS[(i + 1) % DEFAULT_SIM_DAYS.length];
+    const order = [null, 1, 4, 8];
+    defaultSimOverride = order[(order.indexOf(defaultSimOverride) + 1) % order.length];
     renderStageTracker();
-    if (defaultDay === 0) showToast('Payment recorded — default tracker reset');
+    if (defaultSimOverride == null) showToast('Test mode off — using your real due dates');
     else if (defaultDay === 1) showToast('Day 1 — payment is late: grace period started and automated reminders sent (Stage 1)');
     else if (defaultDay === 4) showToast('Day 4 — Finance Officer follow-up begins and late notice issued (Stage 2)');
     else showToast('Day 8 — case transferred to MainTown Legal Counsel and Formal Demand for Payment issued (Stage 3)');
@@ -24074,6 +24141,19 @@ available in the Post-Lease Hub and this chat thread.`
       activeLease.autoDebitSchedule = generateAutoDebitSchedule(dateVal, activeLease.monthlyAmount, activeLease.remainingMonths || 11);
       activeLease.dueLabel = `Next auto-debit: ${activeLease.autoDebitSchedule[0].dateLabel}`;
       document.getElementById('s7-lease-due').textContent = activeLease.dueLabel;
+      if (checkoutListing) {
+        appState = loadAppState();
+        const sharedLease = (appState.leases || []).find(x => String(x.listingId) === String(checkoutListing.id));
+        if (sharedLease) {
+          const prior = Array.isArray(sharedLease.autoDebitSchedule) ? sharedLease.autoDebitSchedule : [];
+          sharedLease.autoDebitSchedule = activeLease.autoDebitSchedule.map(x => {
+            const was = prior.find(o => o.month === x.month && o.status === 'paid');
+            return Object.assign({}, x, was ? { status: 'paid', paidAt: was.paidAt } : {});
+          });
+          sharedLease.monthlyAmount = activeLease.monthlyAmount;
+          saveAppState(appState);
+        }
+      }
       renderAutoDebitSchedule();
     }
 
@@ -24119,7 +24199,7 @@ available in the Post-Lease Hub and this chat thread.`
     wrap.innerHTML = `
       <p class="s5-section-label"><i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>Auto-Debit Schedule (Remaining ${activeLease.autoDebitSchedule.length} Months)</p>
       <div class="s5-hold-preview">
-        ${activeLease.autoDebitSchedule.map(s => `<div class="s5-hold-row"><span>Month ${s.month} — ${s.dateLabel}</span><strong>${formatMoney(s.amount, 'ngn')}</strong></div>`).join('')}
+        ${activeLease.autoDebitSchedule.map(s => { const od = (s.status !== 'paid' && s.date) ? mtDaysBetweenIso(s.date, lagosToday()) : 0; const tag = s.status === 'paid' ? ' · Paid' : (od >= 1 ? ' · Day ' + od + ' overdue' : ''); return `<div class="s5-hold-row"><span>Month ${s.month} — ${s.dateLabel}${tag}</span><strong>${formatMoney(s.amount, 'ngn')}</strong></div>`; }).join('')}
       </div>
       <p class="stage-day-note" style="margin:10px 2px 0; font-weight:500; line-height:1.45;">Missed a payment? Days 1–3: grace period, no late fee. Days 4–7: Finance follow-up. Day 8+: legal escalation, and the Landlord may apply your Caution Deposit to the unpaid rent. See Section 8 below.</p>`;
     if (window.lucide) lucide.createIcons();
@@ -24708,6 +24788,7 @@ available in the Post-Lease Hub and this chat thread.`
     prMonthsPaid = Math.min(12, prMonthsPaid + 1);
 
     showToast(`Payment of ${prFormat(prSelectedRent)} received via ${methodLabel} — 100% Payment Protection`);
+    markEarliestInstalmentPaid();
 
     // Automated Transaction Generation on Settlement: this monthly rent
     // payment settles straight to the Landlord who owns the lease — both
@@ -27299,43 +27380,41 @@ available in the Post-Lease Hub and this chat thread.`
     return listings.filter(l => l.companyId === companyId);
   }
 
-  // ---- Entry point card on the Landlord dashboard ----
+  // ---- Entry point card: Landlords see the Developer upgrade, Agents see their own Agency upgrade ----
   function renderEnterpriseEntryCard() {
     const wrap = document.getElementById('ent-dashboard-entry');
     if (!wrap) return;
     const uid = getCurrentUserId();
     const role = currentUserRole || 'tenant';
-    if (role !== 'landlord' || !uid) { wrap.innerHTML = ''; return; }
-
-    if (isEnterpriseCeo(uid)) {
+    if ((role !== 'landlord' && role !== 'agent') || !uid) { wrap.innerHTML = ''; return; }
+    const ceo = isEnterpriseCeo(uid);
+    // A landlord who is managed by an agent or company cannot upgrade while managed.
+    if (!ceo && appState.users[uid] && appState.users[uid].managedBy) { wrap.innerHTML = ''; return; }
+    const kind = ceo ? entKindOf(uid) : (role === 'agent' ? 'agency' : 'developer');
+    const c = entKindCfg(kind);
+    if (ceo) {
       const company = appState.users[uid].enterprise;
       wrap.innerHTML = `
         <div class="ent-promo-card" id="ent-goto-dashboard-card">
           <div class="ent-promo-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
           <div style="flex:1; min-width:0;">
             <p class="ent-promo-title">${company.companyName}</p>
-            <p class="ent-promo-sub">Enterprise Developer account active</p>
-            <p class="ent-promo-cta">Go to Enterprise Dashboard <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></p>
+            <p class="ent-promo-sub">${c.accountLabel} account active</p>
+            <p class="ent-promo-cta">Go to ${c.dashLabel} <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></p>
           </div>
         </div>`;
       document.getElementById('ent-goto-dashboard-card').addEventListener('click', openEnterpriseDashboard);
     } else {
       wrap.innerHTML = `
-        <div class="ent-promo-card" id="ent-upgrade-promo-card">
-          <div class="ent-promo-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+        <div class="ent-promo-card" id="ent-upgrade-promo-card" data-kind="${kind}">
+          <div class="ent-promo-icon"><i data-lucide="${kind === 'agency' ? 'users' : 'building-2'}" class="w-5 h-5"></i></div>
           <div style="flex:1; min-width:0;">
-            <p class="ent-promo-title">Managing many properties? Create a team.</p>
-            <p class="ent-promo-sub">Upgrade your Agency or Portfolio to an Enterprise account. Add sub-agents, assign legal &amp; finance staff, and manage self-owned or client properties in one central workspace.</p>
-            <p class="ent-promo-cta">Create Team &amp; Upgrade <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></p>
+            <p class="ent-promo-title">${c.promoTitle}</p>
+            <p class="ent-promo-sub">${c.promoSub}</p>
+            <p class="ent-promo-cta">${c.promoCta} <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></p>
           </div>
         </div>`;
-      document.getElementById('ent-upgrade-promo-card').addEventListener('click', () => {
-        document.getElementById('ent-upgrade-step-pay').style.display = 'block';
-        document.getElementById('ent-upgrade-step-setup').style.display = 'none';
-        entUpgradePaySource = 'wallet';
-        refreshEntUpgradeModal();
-        document.getElementById('ent-upgrade-modal').classList.add('open');
-      });
+      document.getElementById('ent-upgrade-promo-card').addEventListener('click', () => openEntUpgradeModal(kind));
     }
     if (window.lucide) lucide.createIcons();
   }
@@ -27347,8 +27426,55 @@ available in the Post-Lease Hub and this chat thread.`
   });
   // ---- Pay step: MainTown Wallet (real deduction) OR direct card charge ----
   // The fee lives in one constant so the pricing model can change in one place.
-  const ENT_UPGRADE_FEE_NGN = 150000;
   let entUpgradePaySource = 'wallet'; // 'wallet' | 'card'
+  // Two separate upgrade paths share the team engine below: a LANDLORD upgrades to a Developer account, an AGENT
+  // upgrades to an Agency account (sub-agents). Each has its own entry card, wording, fee and setup form.
+  const ENT_UPGRADE_FEE_NGN = 150000;     // Developer (landlords)
+  const AGENCY_UPGRADE_FEE_NGN = 150000;  // Agency (agents) — set separately if the price differs
+  function entKinds() { return {
+    developer: {
+      accountLabel: 'Enterprise Developer', dashLabel: 'Enterprise Dashboard', salesLabel: 'Sales Manager', salesInviteLabel: 'Sales Manager / Officer',
+      modalTitle: 'Scale to Developer', modalSub: 'Unlock team roles, bulk CSV property uploads, and your own branded company listings.',
+      feeTitle: 'Scale to Developer — Upgrade Fee', topupTitle: 'Card Payment — Developer Upgrade', feeType: 'Developer Upgrade Fee',
+      setupSub: 'Set up your company profile to finish upgrading.', nameLabel: 'Company / Business Name', namePh: 'e.g. Horizon Homes Ltd', logoLabel: 'Company Logo',
+      regLabel: 'CAC / Registration Number', regPh: 'RC1234567', addrLabel: 'Company Address', addrPh: 'Registered office address',
+      needFields: 'Please fill in Company Name and CAC Number', needAddr: 'Please add the company address', live: 'an Enterprise Developer account',
+      promoTitle: 'Managing many properties? Create a team.', promoSub: 'Upgrade your Portfolio to an Enterprise Developer account. Add sales managers, assign legal &amp; finance staff, and manage self-owned or client properties in one central workspace.', promoCta: 'Create Team &amp; Upgrade'
+    },
+    agency: {
+      accountLabel: 'Agency', dashLabel: 'Agency Dashboard', salesLabel: 'Sub-agent', salesInviteLabel: 'Sub-agent / Sales Agent',
+      modalTitle: 'Upgrade to Agency', modalSub: 'Bring sub-agents under your agency name, assign finance and legal support, and manage all your clients\' listings from one workspace.',
+      feeTitle: 'Upgrade to Agency — Upgrade Fee', topupTitle: 'Card Payment — Agency Upgrade', feeType: 'Agency Upgrade Fee',
+      setupSub: 'Set up your agency profile to finish upgrading.', nameLabel: 'Agency Name', namePh: 'e.g. Lekki Prime Realtors', logoLabel: 'Agency Logo',
+      regLabel: 'CAC / Business Registration Number', regPh: 'RC1234567 or BN1234567', addrLabel: 'Agency Office Address', addrPh: 'Your office address',
+      needFields: 'Please fill in Agency Name and CAC / Registration Number', needAddr: 'Please add your agency office address', live: 'an Agency account',
+      promoTitle: 'Growing your agency? Add sub-agents.', promoSub: 'Upgrade to an Agency account. Bring sub-agents under your agency name, assign finance and legal support, and manage all your clients\' listings in one place.', promoCta: 'Upgrade to Agency'
+    }
+  }; }
+  var entUpgradeKind = 'developer';
+  function entKindCfg(kind) { const k = entKinds(); return k[kind] || k.developer; }
+  function entKindOf(uid) { const u = appState.users && appState.users[uid]; return (u && u.enterprise && u.enterprise.kind === 'agency') ? 'agency' : 'developer'; }
+  function entUpgradeFee() { return entUpgradeKind === 'agency' ? AGENCY_UPGRADE_FEE_NGN : ENT_UPGRADE_FEE_NGN; }
+  // Role names follow the company's kind: an agency's sales role is a Sub-agent.
+  function entRoleLabel(role, companyId) {
+    const cid = companyId || (typeof getEnterpriseCompanyId === 'function' ? getEnterpriseCompanyId() : null);
+    if (role === 'sales' && cid && entKindOf(cid) === 'agency') return entKinds().agency.salesLabel;
+    return ENT_STAFF_ROLE_LABEL[role] || role || 'Staff';
+  }
+  function openEntUpgradeModal(kind) {
+    entUpgradeKind = kind === 'agency' ? 'agency' : 'developer';
+    const c = entKindCfg(entUpgradeKind);
+    const setT = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+    setT('ent-upgrade-title', c.modalTitle); setT('ent-upgrade-sub', c.modalSub); setT('ent-setup-sub', c.setupSub);
+    setT('ent-setup-name-label', c.nameLabel); setT('ent-setup-logo-title', c.logoLabel); setT('ent-setup-reg-label', c.regLabel); setT('ent-setup-addr-label', c.addrLabel);
+    const ph = (id, t) => { const el = document.getElementById(id); if (el) el.placeholder = t; };
+    ph('ent-setup-company-name', c.namePh); ph('ent-setup-cac', c.regPh); ph('ent-setup-address', c.addrPh);
+    document.getElementById('ent-upgrade-step-pay').style.display = 'block';
+    document.getElementById('ent-upgrade-step-setup').style.display = 'none';
+    entUpgradePaySource = 'wallet';
+    refreshEntUpgradeModal();
+    document.getElementById('ent-upgrade-modal').classList.add('open');
+  }
 
   function entUpgradePayLabel() {
     return entUpgradePaySource === 'card' ? 'Pay by Card' : 'Pay from Wallet';
@@ -27356,9 +27482,9 @@ available in the Post-Lease Hub and this chat thread.`
   function refreshEntUpgradeModal() {
     const uid = getCurrentUserId();
     const bal = uid ? getWalletBalance(uid) : 0;
-    const enough = bal >= ENT_UPGRADE_FEE_NGN;
+    const enough = bal >= entUpgradeFee();
     const feeEl = document.getElementById('ent-upgrade-fee-text');
-    if (feeEl) feeEl.textContent = formatMoney(ENT_UPGRADE_FEE_NGN, 'ngn');
+    if (feeEl) feeEl.textContent = formatMoney(entUpgradeFee(), 'ngn');
     const balEl = document.getElementById('ent-upgrade-wallet-balance');
     if (balEl) balEl.textContent = formatMoney(bal, 'ngn');
     document.getElementById('ent-upgrade-src-wallet')?.classList.toggle('selected', entUpgradePaySource === 'wallet');
@@ -27380,7 +27506,7 @@ available in the Post-Lease Hub and this chat thread.`
   // shortfall notice refresh automatically once the top-up lands.
   document.getElementById('ent-upgrade-fund-btn').addEventListener('click', () => {
     const uid = getCurrentUserId();
-    const shortfall = Math.max(ENT_UPGRADE_FEE_NGN - (uid ? getWalletBalance(uid) : 0), 0);
+    const shortfall = Math.max(entUpgradeFee() - (uid ? getWalletBalance(uid) : 0), 0);
     openFundWalletModal();
     if (shortfall > 0) document.getElementById('fw-amount').value = String(shortfall);
   });
@@ -27423,7 +27549,7 @@ available in the Post-Lease Hub and this chat thread.`
     if (!uid) { showToast('Please log in to continue'); return; }
 
     if (entUpgradePaySource === 'wallet') {
-      if (getWalletBalance(uid) < ENT_UPGRADE_FEE_NGN) {
+      if (getWalletBalance(uid) < entUpgradeFee()) {
         refreshEntUpgradeModal();
         showToast('Insufficient wallet balance — fund your wallet or pay by card');
         return;
@@ -27441,7 +27567,7 @@ available in the Post-Lease Hub and this chat thread.`
     setTimeout(() => {
       if (entUpgradePaySource === 'wallet') {
         // Real deduction — no overdraft.
-        if (!debitWallet(uid, ENT_UPGRADE_FEE_NGN)) {
+        if (!debitWallet(uid, entUpgradeFee())) {
           btn.disabled = false;
           refreshEntUpgradeModal();
           showToast('Insufficient wallet balance — fund your wallet or pay by card');
@@ -27449,24 +27575,24 @@ available in the Post-Lease Hub and this chat thread.`
         }
         recordTransaction({
           userId: uid, direction: 'debit', category: 'UPGRADE_FEE',
-          title: 'Scale to Developer — Upgrade Fee',
-          amount: ENT_UPGRADE_FEE_NGN, status: 'SUCCESSFUL',
-          meta: { sender: 'You (MainTown Wallet)', recipient: 'MainTown Realty', feeType: 'Developer Upgrade Fee', escrowStatus: 'Settled immediately' }
+          title: entKindCfg(entUpgradeKind).feeTitle,
+          amount: entUpgradeFee(), status: 'SUCCESSFUL',
+          meta: { sender: 'You (MainTown Wallet)', recipient: 'MainTown Realty', feeType: entKindCfg(entUpgradeKind).feeType, escrowStatus: 'Settled immediately' }
         });
       } else {
         // Direct card charge (simulated). Ledger stays consistent with the wallet balance:
         // logged as an instant card top-up plus the matching fee debit (net wallet change ₦0).
         recordTransaction({
           userId: uid, direction: 'credit', category: 'TOPUP',
-          title: 'Card Payment — Developer Upgrade',
-          amount: ENT_UPGRADE_FEE_NGN, status: 'SUCCESSFUL',
-          meta: { sender: 'Debit/Credit Card', recipient: 'MainTown Realty', feeType: 'Developer Upgrade Fee' }
+          title: entKindCfg(entUpgradeKind).topupTitle,
+          amount: entUpgradeFee(), status: 'SUCCESSFUL',
+          meta: { sender: 'Debit/Credit Card', recipient: 'MainTown Realty', feeType: entKindCfg(entUpgradeKind).feeType }
         });
         recordTransaction({
           userId: uid, direction: 'debit', category: 'UPGRADE_FEE',
-          title: 'Scale to Developer — Upgrade Fee',
-          amount: ENT_UPGRADE_FEE_NGN, status: 'SUCCESSFUL',
-          meta: { sender: 'You (Card)', recipient: 'MainTown Realty', feeType: 'Developer Upgrade Fee', escrowStatus: 'Settled immediately' }
+          title: entKindCfg(entUpgradeKind).feeTitle,
+          amount: entUpgradeFee(), status: 'SUCCESSFUL',
+          meta: { sender: 'You (Card)', recipient: 'MainTown Realty', feeType: entKindCfg(entUpgradeKind).feeType, escrowStatus: 'Settled immediately' }
         });
         ['ent-upgrade-card-number', 'ent-upgrade-card-expiry', 'ent-upgrade-card-cvv'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
       }
@@ -27492,17 +27618,17 @@ available in the Post-Lease Hub and this chat thread.`
     const companyName = document.getElementById('ent-setup-company-name').value.trim();
     const cac = document.getElementById('ent-setup-cac').value.trim();
     const companyAddress = (document.getElementById('ent-setup-address')?.value || '').trim();
-    if (!companyName || !cac) { showToast('Please fill in Company Name and CAC Number'); return; }
-    if (!companyAddress) { showToast('Please add the company address'); return; }
+    if (!companyName || !cac) { showToast(entKindCfg(entUpgradeKind).needFields); return; }
+    if (!companyAddress) { showToast(entKindCfg(entUpgradeKind).needAddr); return; }
     const uid = getCurrentUserId();
     appState.users[uid] = appState.users[uid] || { id: uid, role: 'landlord' };
     appState.users[uid].enterprise = {
       companyName, companyAddress, companyLogo: entPendingLogoDataUrl, cacNumber: cac,
-      upgradedAt: Date.now(), staffIds: [],
+      upgradedAt: Date.now(), staffIds: [], kind: entUpgradeKind,
     };
     saveAppState(appState);
     document.getElementById('ent-upgrade-modal').classList.remove('open');
-    showToast(`${companyName} is now live as an Enterprise Developer account!`);
+    showToast(`${companyName} is now live as ${entKindCfg(entUpgradeKind).live}!`);
     entPendingLogoDataUrl = null;
     renderEnterpriseEntryCard();
     openEnterpriseDashboard();
@@ -27514,7 +27640,7 @@ available in the Post-Lease Hub and this chat thread.`
   let entActiveTab = null;
   function openEnterpriseDashboard() {
     const companyId = getEnterpriseCompanyId();
-    if (!companyId) { showToast('Upgrade to an Enterprise Developer account first'); return; }
+    if (!companyId) { showToast('Upgrade your account first'); return; }
     const staffRole = getEnterpriseStaffRole() || 'ceo';
 
     // Route each staff role to its own dashboard "home" — not the shared,
@@ -27527,7 +27653,7 @@ available in the Post-Lease Hub and this chat thread.`
     const logoEl = document.getElementById('ent-header-logo');
     logoEl.innerHTML = company.companyLogo ? `<img src="${company.companyLogo}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : (company.companyName || 'C').charAt(0).toUpperCase();
     document.getElementById('ent-header-company').textContent = company.companyName || 'Company';
-    document.getElementById('ent-header-role-badge').textContent = ENT_STAFF_ROLE_LABEL[staffRole] || 'Staff';
+    document.getElementById('ent-header-role-badge').textContent = entRoleLabel(staffRole, companyId);
 
     const visibleTabs = ENT_TAB_VISIBILITY[staffRole] || [];
     const tabsWrap = document.getElementById('ent-tabs');
@@ -27651,7 +27777,7 @@ available in the Post-Lease Hub and this chat thread.`
     }
     Object.values(appState.users || {}).forEach(u => {
       if (u.role === 'enterprise_staff' && u.companyId === companyId && u.id !== uid && u.status !== 'DEACTIVATED') {
-        teammates.push({ id: u.id, name: u.name, roleLabel: ENT_STAFF_ROLE_LABEL[u.staffRole] || u.staffRole });
+        teammates.push({ id: u.id, name: u.name, roleLabel: entRoleLabel(u.staffRole, u.companyId) });
       }
     });
     const list = document.getElementById('staff-team-list');
@@ -28530,7 +28656,7 @@ available in the Post-Lease Hub and this chat thread.`
         <div class="ent-team-card-top">
           <div class="ent-list-icon"><i data-lucide="user" class="w-4 h-4"></i></div>
           <div class="ent-list-text">
-            <p class="ent-list-title">${u.name} <span class="ent-role-badge" style="margin-left:6px;">${ENT_STAFF_ROLE_LABEL[u.staffRole] || u.staffRole}</span></p>
+            <p class="ent-list-title">${u.name} <span class="ent-role-badge" style="margin-left:6px;">${entRoleLabel(u.staffRole, u.companyId)}</span></p>
             <p class="ent-list-sub">${u.email}</p>
             <p class="ent-list-sub" style="margin-top:4px;">${
               u.status === 'ACTIVE' ? '<span class="status-pill success">Active</span>'
@@ -28594,6 +28720,7 @@ available in the Post-Lease Hub and this chat thread.`
 
   document.getElementById('ent-invite-staff-btn').addEventListener('click', () => {
     ['ent-invite-name', 'ent-invite-email', 'ent-invite-phone'].forEach(id => document.getElementById(id).value = '');
+    { const so = document.querySelector('#ent-invite-role option[value="sales"]'); const cid = getEnterpriseCompanyId(); if (so) so.textContent = entKindCfg(cid ? entKindOf(cid) : 'developer').salesInviteLabel; }
     document.getElementById('ent-invite-modal').classList.add('open');
   });
   document.getElementById('ent-invite-cancel-btn').addEventListener('click', () => document.getElementById('ent-invite-modal').classList.remove('open'));
