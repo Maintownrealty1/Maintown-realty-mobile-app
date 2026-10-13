@@ -8929,12 +8929,14 @@ document.addEventListener('DOMContentLoaded', () => {
         { icon: 'trending-up', text: "60% of the 10% commission fee on every rental or shortlet you list — MainTown keeps 40%." },
         { icon: 'handshake', text: "On Land & Property sales, you keep the Seller's full 5% share of the Agency Commission — the Buyer's 5% always goes to MainTown." },
         { icon: 'zap', text: "Commissions are split and paid to your account automatically at the point of charge — no manual payout requests, no waiting on MainTown to release funds." },
-        { icon: 'shield-check', text: "MainTown never touches the Legal Fee, Caution Deposit, Service Charge, or Deed of Assignment fee — those stay entirely between the Landlord/Owner and the tenant/buyer." }
+        { icon: 'shield-check', text: "MainTown never touches the Legal Fee, Caution Deposit, Service Charge, or Deed of Assignment fee — those stay entirely between the Landlord/Owner and the tenant/buyer." },
+        { icon: 'user-check', text: "Onboard landlords under your account: you list and manage their properties, handle their deals, requests and offers, and decide on any request to leave." }
       ],
       terms: [
         { label: 'Rentals & Shortlets', body: 'A flat 10% commission fee applies to the deal. You receive 60% of it; MainTown keeps 40%.' },
         { label: 'Land & Property Sales', body: "A 10% Agency Commission applies, charged as two 5% halves. The Buyer's 5% always goes to MainTown. The Seller's 5% comes to you whenever you list the property." },
-        { label: 'Payout timing', body: 'Your share is split and paid to your account automatically the moment the tenant/buyer pays — never held or delayed by MainTown.' },
+        { label: 'Payout timing', body: 'Your share is split and paid to your account automatically the moment the tenant/buyer pays — never held or delayed by MainTown. Commission on a landlord\'s listing is processed once that landlord has joined and validated ownership.' },
+        { label: 'Landlords you onboard', body: 'A landlord you onboard is a managed landlord. They cannot list or upgrade on their own, and the Deals, Requests and Offers shortcuts stay hidden from their dashboard because you handle those for them. If they ask to leave they choose a reason and a private chat opens with you. Talk it through, and approve only if they still insist on leaving. When you release them, properties you placed become their direct listings: you stop earning commission on them and MainTown acts as their agent.' },
         { label: "Fees you never collect", body: "The tenancy Legal Fee always goes to MainTown. Caution Deposit, Service Charge, and the Deed of Assignment fee always go to the Landlord/Owner, not to you." },
         { label: 'Commercial listings', body: `Commercial rentals are paid annually, in full upfront, with no monthly flex-rent and no instalment default schedule. The landlord may revise the annual rent once every ${COMMERCIAL_RENT_REVIEW_MONTHS} months: a revised rent applies only from the tenant's next renewal, never during a term already paid, and MainTown sends the tenant written notice in the app at least ${COMMERCIAL_RENT_NOTICE_DAYS} days before renewal. Commercial leases use their own agreement.` }
       ]
@@ -8944,12 +8946,13 @@ document.addEventListener('DOMContentLoaded', () => {
         { icon: 'landmark', text: 'You set your own Caution Deposit and Service Charge on rentals and shortlets — paid straight to you alongside rent, with no MainTown cut.' },
         { icon: 'file-text', text: 'You choose the Deed of Assignment fee (5% or 10%) on Land & Property sales — paid to you with the buyer\'s first installment, not to MainTown.' },
         { icon: 'zap', text: 'Rent and short-let payments are split and routed to your verified payout account at the point of charge. For land and property sales, your share is held by our payment partner until the buyer confirms receipt of your original documents (or 7 days after dispatch with no complaint).' },
-        { icon: 'users', text: 'List directly yourself, or let a MainTown Agent list on your behalf — either way, your share is protected and paid out the same way.' }
+        { icon: 'users', text: 'List directly yourself, or let an agent or company list for you. If they onboard you, they manage your listings and handle deals, requests and offers, while you review and approve each listing. You can ask to leave at any time and settle it in a private chat first.' }
       ],
       terms: [
         { label: 'Rentals & Shortlets', body: 'Caution Deposit and Service Charge are entirely yours to set (or skip). The Legal Fee for the tenancy agreement is collected by MainTown, not you.' },
-        { label: 'Land & Property Sales', body: "The Deed of Assignment fee (5% or 10%, your choice) is paid to you with the buyer's first installment. Separately, a 10% Agency Commission applies: the Buyer's 5% always goes to MainTown; the Seller's 5% goes to your listing Agent if one is involved, or also to MainTown if you list directly." },
-        { label: 'Payout timing', body: 'Your share is paid directly to your verified payout account the moment a payment is made — never held or delayed.' },
+        { label: 'Land & Property Sales', body: "The Deed of Assignment fee (5% or 10%, your choice) is paid to you with the buyer's first installment. Separately, a 10% Agency Commission applies: the Buyer's 5% always goes to MainTown; the Seller's 5% goes to the agent or company that listed for you if there is one, or also to MainTown if you list directly." },
+        { label: 'Payout timing', body: 'Rent is split at the point of charge and paid to your verified payout account. Shortlet shares are held until check-in, and land and property sale proceeds are held by our payment partner until the buyer confirms receipt of your original documents (or 7 days after dispatch with no complaint).' },
+        { label: 'Managed accounts', body: 'If an agent or company onboards you, they list and manage your properties, so Deals, Requests and Offers stay hidden from your dashboard until you are released. You review and approve each listing, upload your title documents and keep your payout account. To leave, choose a reason (communication, fees, managing yourself, moving agency, or other) and chat with them; if you still want to leave they can approve. You then verify and list on your own, and properties they placed become your direct listings.' },
         { label: 'What MainTown always collects', body: 'Only the tenancy Legal Fee and its share of the Agency Commission — never your Caution Deposit, Service Charge, or Deed of Assignment fee.' },
         { label: 'Commercial listings', body: `Commercial rentals are paid annually, in full upfront, with no monthly flex-rent and no instalment default schedule. You can revise the annual rent once every ${COMMERCIAL_RENT_REVIEW_MONTHS} months using Update rent on your property card. A revised rent applies only from the tenant's next renewal, never during a term already paid, and MainTown sends the tenant written notice in the app at least ${COMMERCIAL_RENT_NOTICE_DAYS} days before renewal. Commercial leases use their own agreement.` }
       ]
@@ -9354,9 +9357,9 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 7: Fraud, Dual-Leasing & Zero Tolerance', body: 'Immediate account termination, forfeiture of pending payouts, listing removal, and referral to law enforcement for fake listings, fraudulent titles, or executing side-deals/double-leases.', critical: true },
         { title: 'Section 8: Verification Walkthroughs & Inspection Access', body: "Agreement to allow scheduled virtual or physical walkthrough inspections by authorized MainTown verification agents prior to and during listing activation. This includes facilitating buyer inspections at checkout — for Land &amp; Property sales, buyer checkout remains locked until the buyer logs an in-app Satisfied status. " + SITE_SAFETY_WARRANTY_TEXT },
         { title: 'Section 9: Non-Circumvention & Direct Payment Ban', body: 'Strict prohibition against bypassing the platform\'s payment system to request cash, direct bank transfers, or off-platform renewals from MainTown users. Violations incur platform ban and legal recovery of lost fees.', critical: true },
-        { title: 'Section 10: Fee Transparency & Collection', body: 'MainTown collects the Legal Fee for drafting tenancy agreements directly, for transparency — it is never yours to set or collect. Any Caution Deposit and Service Charge you configure for a rental or shortlet listing (or leave as self-service, with no service charge) are paid directly to you alongside the tenant\'s rent/shortlet payments. For Land &amp; Property Sales, the Deed of Assignment legal/processing fee (5% or 10%, as you select at listing) is paid directly to you together with the buyer\'s first installment payment — MainTown does not collect it. A Land &amp; Property sale separately carries a 10% Agency Commission, made up of a Buyer-paid 5% (always to MainTown) and a Seller-paid 5% (to the Agent, if one listed the property on your behalf, or also to MainTown if you listed directly with no agent). Shortlet listings carry a MainTown Platform Fee (5% of the nightly rate) instead of a Legal Fee.' },
+        { title: 'Section 10: Fee Transparency & Collection', body: 'MainTown collects the Legal Fee for drafting tenancy agreements directly, for transparency — it is never yours to set or collect. Any Caution Deposit and Service Charge you configure for a rental or shortlet listing (or leave as self-service, with no service charge) are paid directly to you alongside the tenant\'s rent/shortlet payments. For Land &amp; Property Sales, the Deed of Assignment legal/processing fee (5% or 10%, as you select at listing) is paid directly to you together with the buyer\'s first installment payment — MainTown does not collect it. A Land &amp; Property sale separately carries a 10% Agency Commission, made up of a Buyer-paid 5% (always to MainTown) and a Seller-paid 5% (to the agent or company that listed the property on your behalf, or also to MainTown if you listed directly). Shortlet listings carry a MainTown Platform Fee (5% of the nightly rate) instead of a Legal Fee.' },
         { title: 'Section 11: Dispute Resolution — Mediation & Arbitration', body: ADR_CLAUSE_TEXT },
-        { title: 'Section 12: Managed Accounts & Leaving an Agent or Agency', body: 'If an agent or company onboarded you, your account is a managed account. They create and manage your listings. You review and approve each listing, upload the title documents for that property and confirm your payout account. While managed you cannot create listings yourself or upgrade to an Enterprise account. You may ask to leave at any time from your dashboard, and the agent or company decides your request. Once approved, your account becomes a direct Landlord account: before you list on your own you must complete verification and accept this policy again. Properties your agent or company already placed become direct listings: they no longer earn commission on them, MainTown acts as your agent on them, and payments are split automatically as for any direct landlord.' }
+        { title: 'Section 12: Managed Accounts & Leaving an Agent or Agency', body: 'If an agent or company onboarded you, your account is a managed account. They create and manage your listings and handle deals, requests and offers for you, so those shortcuts stay hidden on your dashboard while you are managed. You review and approve each listing, upload the title documents for that property and confirm your payout account, and your payouts go to your own verified account. While managed you cannot create listings yourself or upgrade to an Enterprise account. You may ask to leave at any time from your dashboard: you choose the reason closest to yours (communication or updates, commission or fees, wanting to manage your properties yourself, moving to another agent or agency, or another reason), and a private chat opens with your agent or company so you can talk it through. If you still want to leave, confirm it in the chat and they can approve your request; they may also decline it with a reason. Once approved, your account becomes a direct Landlord account and Deals, Requests and Offers appear on your dashboard. Before you list on your own you must complete verification and accept this policy again. Properties your agent or company already placed become direct listings: they no longer earn commission on them, MainTown acts as your agent on them, and payments are split automatically as for any direct landlord.' }
       ]
     },
     agent: {
@@ -9373,7 +9376,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 8: Fraud, Double-Leasing & Liability', body: 'Immediate account termination, blacklisting, forfeiture of pending payouts, and law enforcement referral for listing fraudulent inventory, executing double-leases, or collecting illegal offline fees.', critical: true },
         { title: 'Section 9: Fee Transparency', body: 'The Legal Fee on a tenancy agreement is collected by MainTown directly, for transparency — agents never collect or retain it. Any Caution Deposit and Service Charge entered on a rental or shortlet listing belong entirely to the Landlord/Owner and are paid to them alongside the tenant\'s payments. On Land &amp; Property Sales, the Landlord/Owner-selected Deed of Assignment fee (5% or 10%) is paid to them with the first installment, not to MainTown — this is separate from the 10% Agency Commission (see Section 4), which is split 5% Buyer-paid (to MainTown) and 5% Seller-paid (to you, the listing Agent). Shortlet listings carry a MainTown Platform Fee (5%) instead of a Legal Fee.' },
         { title: 'Section 10: Dispute Resolution — Mediation & Arbitration', body: ADR_CLAUSE_TEXT },
-        { title: 'Section 11: Landlords You Onboard (Managed Accounts)', body: 'A landlord you onboard through MainTown is a managed landlord under your account. While managed, they cannot create listings or upgrade to an Enterprise account, and you decide on any request to leave. You agree to answer leave requests promptly and fairly, and never to hold back a landlord\'s documents, reports or payouts. When you release a landlord, they become a direct Landlord, complete verification again and may list on their own; properties you already placed become the landlord direct listings: you no longer earn commission on them and MainTown acts as the landlord agent on them.' }
+        { title: 'Section 11: Landlords You Onboard (Managed Accounts)', body: 'A landlord you onboard through MainTown is a managed landlord under your account. While managed, they cannot create listings or upgrade to an Enterprise account. You list and manage their properties and handle their deals, requests and offers, which is why those shortcuts stay hidden on their dashboard. When a landlord asks to leave, they pick a reason and a private chat opens with you. You agree to read the reason, reply promptly and fairly, and to approve the request once the landlord confirms they still want to leave, or decline it with a clear reason. You never hold back a landlord\'s documents, reports or payouts. When you release a landlord, they become a direct Landlord, complete verification again and may list on their own; properties you already placed become the landlord direct listings: you no longer earn commission on them and MainTown acts as the landlord agent on them.' }
       ]
     }
   };
@@ -10908,8 +10911,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // A landlord onboarded by an agent or company (a "managed" landlord) never lists on their own, so the dashboard
     // must not invite them to: the List Property shortcut becomes View Properties and the "Start here" card stays hidden.
     const mgManagedLandlord = role === 'landlord' && typeof mgUser === 'function' && !!(mgUser(getCurrentUserId()) || {}).managedBy;
+    // Deals, Requests and Offers are also the agent's/company's job while they manage the landlord, so those three
+    // shortcuts stay hidden until the landlord's request to leave is approved (managedBy is cleared on release).
     const dashActions = mgManagedLandlord
-      ? data.actions.map(a => a.label === 'List Property' ? Object.assign({}, a, { icon: 'building-2', label: 'View Properties' }) : a)
+      ? data.actions
+          .filter(a => !['deals', 'requests', 'offers'].includes(a.action))
+          .map(a => a.label === 'List Property' ? Object.assign({}, a, { icon: 'building-2', label: 'View Properties' }) : a)
       : data.actions;
     grid.innerHTML = dashActions.map((a, i) => `
       <div class="dash-tile${(role === 'tenant' && dashActions.length % 2 === 1 && i === dashActions.length - 1) ? ' dash-tile-wide' : ''}" data-action="${a.action}" data-label="${a.label}">
@@ -25273,39 +25280,95 @@ available in the Post-Lease Hub and this chat thread.`
     return d.length === 11 ? `${d.slice(0, 4)} ${d.slice(4, 7)} ${d.slice(7)}` : n;
   }
 
+  // Role-aware helpers: the landlord, agent and enterprise copy below changes with who is signed in.
+  function pfManagedLandlord() { try { const u = mgUser(getCurrentUserId()); return (u && u.managedBy) ? u : null; } catch (e) { return null; } }
+  function pfManagerName(u) { try { return mgManagerLabel(u.managedBy) || 'your agent or company'; } catch (e) { return 'your agent or company'; } }
+  function pfSalesLabel() { try { return entRoleLabel('sales'); } catch (e) { return 'Sales Manager'; } }
+  function pfIsAgency() { try { return entKindOf(getEnterpriseCompanyId()) === 'agency'; } catch (e) { return false; } }
+  const PF_COMMERCIAL = 'Commercial rentals (shops, offices, warehouses and event halls) are paid annually, in full upfront. There is no monthly flex-rent. Commercial leases use their own agreement.';
+  const PF_WHO_GETS_WHAT = 'Each payment is split at the point of charge. The landlord\'s share goes to their verified account, any agent or company commission goes to them, and MainTown keeps its own share. Shortlet shares are held until check-in, and land and property sale proceeds are held by our payment partner until the buyer confirms the original documents (or 7 days after dispatch with no complaint).';
+
   const PROFILE_FAQS = {
     tenant: [
       ['How do I book an inspection?', 'Open a listing and request an inspection. Once the host accepts, chat with them unlocks so you can agree the details.'],
       ['Why is chat with a landlord or agent locked?', 'Chat opens after your inspection request is accepted. Until then, use the listing details or message MainTown.'],
       ['How do I get the full property address?', 'Open the chat with the host and tap Request Full Address. They will share it there.'],
       ['Can I cancel an inspection?', 'Yes. Open Inspection Schedules and cancel before the visit. See the Inspection & Cancellation policy below.'],
+      ['What if I cannot find the property I want?', 'Use Requests to describe what you are looking for. Agents, landlords and company sales teams with matching live listings can pitch you, and you can keep up to 3 active requests. You can also follow price offers under Offers.'],
+      ['What are Deals?', 'Deals shows listings with a reduced price. If you pay under a deal, the agreed deal price is written into your agreement.'],
       ['Where do I find my signed lease or purchase agreement?', 'Signed agreements appear in your chat with the landlord or agent, and are also saved under Signed Agreements in your Asset Portfolio, where you can preview and download them any time.'],
       ['How do I get the original physical title documents?', 'Once the seller issues your Receipt and Deed, they request a free SmartyHub Logistics dispatch. SmartyHub collects the originals and delivers them to you, with pick-up within 24 to 48 hours.'],
       ['Can I pay in installments?', 'Eligible listings offer flexible rent or installment ownership. The terms are shown on the listing before you commit.'],
       ['What happens if I miss a monthly rent payment?', RENT_DEFAULT_ONE_LINE + ' You can follow where you are under the Default & Grace Period Tracker on your lease screen.']
     ],
-    landlord: [
-      ['How do I list a property?', 'Add a listing from your dashboard. Every listing goes through property title verification before it goes live.'],
-      ['How do I respond to inspection requests?', 'Accept or decline from your inspections. Accepting unlocks chat with the tenant.'],
-      ['How does a tenant get the full address?', 'Tenants request it in chat. You share it there once you are ready.'],
-      ['Where are lease and purchase agreements kept?', 'Agreements are shared in the chat with your tenant or buyer, and are also saved under Signed Agreements in your Assets, where you can preview and download them any time.'],
-      ['How do I send the original title documents to a buyer?', 'After you issue the Receipt and Deed, tap Request Dispatch on the sold asset. Enter the pick-up and delivery locations and a phone number for each. SmartyHub Logistics collects the documents free of charge, with pick-up within 24 to 48 hours.'],
-      ['Where do I see shortlet guests and paid clients?', 'Open Bookings for shortlet stays and Tenants & Buyers for people who have paid for your listings. Both update as soon as a client pays.'],
-      ['Why can I not delete a listing?', 'You can delete a listing only while it is live. Once a client has paid for it, MainTown removes it from the feed automatically and it shows as Sold, Rented or Booked.'],
-      ['When do I get paid?', 'Payments follow the split-payment protection terms agreed on the lease. See the Payments & Protection policy.'],
-      ['What happens if my tenant misses rent?', RENT_DEFAULT_HOST_LINE]
-    ],
+    get landlord() {
+      const m = pfManagedLandlord();
+      const shared = [
+        ['Where are lease and purchase agreements kept?', 'Agreements are shared in the chat with your tenant or buyer, and are also saved under Signed Agreements in your Assets, where you can preview and download them any time.'],
+        ['How do I send the original title documents to a buyer?', 'After the Receipt and Deed are issued, tap Request Dispatch on the sold asset. Enter the pick-up and delivery locations and a phone number for each. SmartyHub Logistics collects the documents free of charge, with pick-up within 24 to 48 hours.'],
+        ['Where do I see shortlet guests and paid clients?', 'Open Bookings for shortlet stays and Tenants for people who have paid for your listings. Both update as soon as a client pays.'],
+        ['When do I get paid?', PF_WHO_GETS_WHAT],
+        ['What happens if my tenant misses rent?', RENT_DEFAULT_HOST_LINE]
+      ];
+      if (m) {
+        const nm = pfManagerName(m);
+        return [
+          ['Who lists my properties?', nm + ' lists and manages your properties. You cannot create listings or upgrade to Enterprise while you are managed.'],
+          ['How do I approve a listing?', 'When a property is waiting, a review card appears on your dashboard. Open it, check the details and upload your title documents so the listing can go live.'],
+          ['Why can I not see Deals, Requests or Offers?', 'Your agent or company makes offers, answers requests and handles deals for you, so those shortcuts stay hidden while you are managed. They appear on your dashboard once your request to leave is approved.'],
+          ['How do I leave my agent or company?', 'Tap Request to leave on your dashboard and choose the reason closest to yours. A private chat opens with ' + nm + ' so you can talk it through. If you still want to leave, tap I still want to leave in the chat, and they can approve your request.'],
+          ['What happens after I leave?', 'You become a direct landlord. You complete verification and accept the Landlord policy before listing on your own. Properties already placed become your direct listings: your former agent no longer earns commission on them and MainTown acts as your agent.'],
+          ...shared
+        ];
+      }
+      return [
+        ['How do I list a property?', 'Add a listing from your dashboard. Every listing goes through property title verification before it goes live.'],
+        ['How do I respond to inspection requests?', 'Accept or decline from your inspections. Accepting unlocks chat with the tenant.'],
+        ['How does a tenant get the full address?', 'Tenants request it in chat. You share it there once you are ready.'],
+        ['Where do I see Deals, Requests and Offers?', 'They are on your dashboard. Use Requests to pitch your listings to people looking, Offers to answer price offers, and Deals to discount a listing.'],
+        ...shared.slice(0, 3),
+        ['Why can I not delete a listing?', 'You can delete a listing only while it is live. Once a client has paid for it, MainTown removes it from the feed automatically and it shows as Sold, Rented or Booked.'],
+        ...shared.slice(3),
+        ['Can an agent or company list for me?', 'Yes. If they onboard you, your account becomes managed: they list for you and handle deals, requests and offers, and you review and approve each listing. You can ask to leave at any time.']
+      ];
+    },
     agent: [
-      ['How do I list on behalf of an owner?', 'Add the listing from your dashboard. It shows you as the host, and it goes through property title verification before going live.'],
+      ['How do I list on behalf of an owner?', 'Add the listing from your dashboard. It shows you as the host, and it goes through property title verification before going live. Listing for an owner onboards them as your managed landlord.'],
       ['How do I handle inspection requests?', 'Accept or decline from your inspections. Accepting unlocks chat with the tenant or client.'],
+      ['Who handles deals, requests and offers for my landlords?', 'You do. Landlords you manage do not see Deals, Requests or Offers on their dashboard, so you make offers, answer requests and close deals on their behalf.'],
+      ['What happens when a landlord asks to leave?', 'They choose a reason and a private chat opens with you under My Landlords. Read the reason, talk it through, and approve only if they confirm they still want to leave. You can also decline with a reason they will see.'],
       ['Where do I see who has paid for my listings?', 'Open Clients for people who have paid, and Bookings for shortlet stays. Your listings also show as Sold, Rented or Booked as soon as payment completes.'],
-      ['Where are my commission terms?', 'They are in the partnership terms you accepted at sign-up. Message MainTown if you need a copy or have a question.'],
+      ['How much do I earn?', 'On rentals and shortlets you receive 60% of the 10% commission fee and MainTown keeps 40%. On land and property sales you receive the Seller\'s 5%, and the Buyer\'s 5% goes to MainTown. Your share is paid automatically at the point of charge once the landlord has joined and validated ownership.'],
       ['Why do I need to verify my documents?', 'Verified agents build trust with tenants and owners. Upload your documents in verification to stay active.']
     ],
-    enterprise_staff: [
+    ceo: [
+      ['How is commission split?', 'On rentals and shortlets your ' + (pfIsAgency() ? 'agency' : 'company') + ' receives 60% of the 10% commission fee and MainTown keeps 40%. On land and property sales you receive the Seller\'s 5% and MainTown keeps the Buyer\'s 5%. The split happens automatically at the point of charge.'],
+      ['How do my team members earn commission?', 'Each ' + pfSalesLabel() + ' sees an Earned Commission record (view only) and can request a payout. You or your Finance Officer decide the staff amount and mark it Paid Offline. MainTown never pays staff.'],
+      ['Who can publish a listing?', 'Agency-owned listings come to you, and you upload the title documents and approve them. Client-owned listings go to the landlord first to review and upload documents, then back to you to publish.'],
+      ['How do I handle a landlord\'s request to leave?', 'Open the Landlords tab. Read the reason, chat with the landlord, and approve only if they still want to leave, or decline with a reason. Your ' + pfSalesLabel() + 's can join the chat but only you can approve or decline.'],
+      ['Who can countersign agreements?', 'Only you, as CEO. The Legal Officer prepares documents and sends them to you.'],
+      ['How do I add team members?', 'Open your enterprise dashboard to invite a ' + pfSalesLabel() + ', Finance Officer or Legal Officer. Each role sees only its own tools.']
+    ],
+    sales: [
+      ['How do I add a listing?', 'Choose Agency-owned or Client-owned. Agency-owned listings go to your CEO for title documents and approval. Client-owned listings go to the landlord first, then to your CEO to publish.'],
+      ['Where do I see my commission?', 'Open Earned Commission for your record. You can request a payout there; your CEO or Finance Officer decides the amount and marks it Paid Offline.'],
+      ['What is My Landlords?', 'It lists the landlords you onboarded and any open request to leave. Open the chat to talk with a landlord. Only your CEO can approve or decline the request.'],
       ['How do I message the CEO?', 'Use Message CEO on your dashboard to flag a transaction, a document or a sale.'],
       ['How do I chat with a teammate?', 'Open Team on your dashboard and pick a colleague. Team chats are visible only to the two of you.'],
       ['Who can see tenant chats?', 'Only the sales staff member who posted the listing sees that private tenant conversation.']
+    ],
+    finance: [
+      ['What are Commission Requests?', 'They are payout requests from sales staff for commission earned. Enter the amount, add a note and mark the request as Paid Offline once it is settled. MainTown never pays staff.'],
+      ['How is company commission calculated?', 'On rentals and shortlets the company receives 60% of the 10% commission fee, and on land and property sales it receives the Seller\'s 5%. The split happens automatically at the point of charge.'],
+      ['Can I undo a payout I marked as paid?', 'Yes. You can move a paid item back to requests if it was marked by mistake.'],
+      ['How do I message the CEO?', 'Use Message CEO on your dashboard to flag a transaction or a document.'],
+      ['How do I chat with a teammate?', 'Open Team on your dashboard and pick a colleague. Team chats are visible only to the two of you.']
+    ],
+    legal: [
+      ['What do I review?', 'Listings waiting in legal review. Check the title documents and clear them so the CEO can approve the listing.'],
+      ['How do agreements reach the client?', 'Prepare the Deed of Assignment, Purchase Agreement or Tenancy Agreement and send it to the CEO. Only the CEO can countersign.'],
+      ['How do I message the CEO?', 'Use Message CEO on your dashboard to flag a transaction or a document.'],
+      ['How do I chat with a teammate?', 'Open Team on your dashboard and pick a colleague. Team chats are visible only to the two of you.']
     ],
     common: [
       ['How do I change my email or phone number?', 'Edit them under Account details on this screen. They save automatically once they are valid.'],
@@ -25330,6 +25393,7 @@ available in the Post-Lease Hub and this chat thread.`
     ]},
     payments: { icon: 'wallet', title: 'Payments & Protection', sub: 'Split-payment protection and disputes', sections: [
       ['Split-payment protection', 'Payments made through MainTown are covered by automated split-payment protection, so funds are released according to the terms agreed on the listing or lease.'],
+      ['Who receives what', PF_WHO_GETS_WHAT],
       ['Pay inside the app', 'Keep payments and conversations on MainTown. Payments made outside the app are not protected.'],
       ['Disputes', 'If something goes wrong, message MainTown with the listing and payment details so the team can review it.'],
       ['If a monthly rent payment is missed', RENT_DEFAULT_ONE_LINE]
@@ -25339,32 +25403,81 @@ available in the Post-Lease Hub and this chat thread.`
       ['Cancelling', 'You can cancel from Inspection Schedules before the visit. Repeated late cancellations may limit your ability to book.'],
       ['Property address', 'The full address is shared in chat after you request it.']
     ]},
-    landlord: { icon: 'badge-check', title: 'Listing & Verification', sub: 'What we check before a listing goes live', sections: [
-      ['Managed accounts', 'If an agent or company onboarded you, they create and manage your listings. You review and approve each one, upload your title documents and confirm your payout account. You cannot create listings or upgrade to Enterprise while managed. You can ask to leave from your dashboard, and your agent or company decides. Once approved, you complete verification and accept this policy again before listing on your own.'],
-      ['Verification', 'Every listing goes through property title verification before it goes live.'],
-      ['Accuracy', 'Photos, price and details must match the property. Misleading listings can be removed.'],
-      ['Inspections', 'Respond to requests promptly. Accepting one unlocks chat with the tenant.'],
-      ['Commercial listings', 'Commercial rentals (shops, offices, warehouses and event halls) are paid annually, in full upfront. There is no monthly flex-rent. Commercial leases use their own agreement.']
-    ]},
+    get landlord() {
+      const m = pfManagedLandlord();
+      if (m) {
+        const nm = pfManagerName(m);
+        return { icon: 'badge-check', title: 'Managed Account & Verification', sub: 'How your account works while ' + nm + ' manages it', sections: [
+          ['Your account is managed', nm + ' lists and manages your properties and handles deals, requests and offers for you. You review and approve each listing, upload your title documents and confirm your payout account. Your payouts go to your own verified account.'],
+          ['What you can and cannot do', 'You cannot create listings or upgrade to Enterprise while managed. Deals, Requests and Offers stay hidden from your dashboard until you are released.'],
+          ['Leaving your agent or company', 'Tap Request to leave and choose a reason: communication or updates, commission or fees, managing your properties yourself, moving to another agent or agency, or another reason. A private chat opens with ' + nm + ' so you can talk it through. If you still want to leave, confirm it in the chat and they can approve. They may also decline with a reason.'],
+          ['After you leave', 'You become a direct landlord and Deals, Requests and Offers appear. Complete verification and accept the Landlord policy again before listing on your own. Properties already placed become your direct listings: your former agent no longer earns commission on them and MainTown acts as your agent.'],
+          ['Verification', 'Every listing goes through property title verification before it goes live.'],
+          ['Commercial listings', PF_COMMERCIAL]
+        ]};
+      }
+      return { icon: 'badge-check', title: 'Listing & Verification', sub: 'What we check before a listing goes live', sections: [
+        ['Verification', 'Every listing goes through property title verification before it goes live.'],
+        ['Accuracy', 'Photos, price and details must match the property. Misleading listings can be removed.'],
+        ['Inspections', 'Respond to requests promptly. Accepting one unlocks chat with the tenant.'],
+        ['Deals, Requests and Offers', 'You handle these yourself from your dashboard: pitch your listings to people looking, answer price offers and discount a listing with a deal.'],
+        ['Using an agent or company', 'If an agent or company onboards you, your account becomes managed. They list for you and handle deals, requests and offers, you review and approve each listing, and you can ask to leave at any time through a reason and a private chat with them.'],
+        ['Commercial listings', PF_COMMERCIAL]
+      ]};
+    },
     agent: { icon: 'handshake', title: 'Partnership & Conduct', sub: 'Your commitments as a MainTown agent', sections: [
-      ['Landlords you onboard', 'A landlord you onboard through MainTown is a managed landlord under your account. They cannot list on their own or upgrade while managed, and you decide on any request to leave. Use that control fairly: never hold back a landlord\'s documents, reports or payouts.'],
-      ['Partnership terms', 'Your commission and responsibilities are set out in the partnership terms you accepted at sign-up.'],
+      ['Landlords you onboard', 'A landlord you onboard is a managed landlord under your account. They cannot list on their own or upgrade while managed, and you handle their deals, requests and offers, which stay hidden from their dashboard.'],
+      ['Leave requests', 'When a landlord asks to leave they choose a reason and a private chat opens with you. Reply promptly and fairly, and approve once they confirm they still want to leave, or decline with a clear reason. Never hold back a landlord\'s documents, reports or payouts. After release, the properties you placed become their direct listings and you stop earning commission on them.'],
+      ['Commission', 'You receive 60% of the 10% commission fee on rentals and shortlets, and the Seller\'s 5% on land and property sales. It is paid automatically at the point of charge once the landlord has joined and validated ownership.'],
       ['Representing listings', 'List only properties you are authorised to represent, and keep owners and clients informed.'],
       ['Conduct', 'Keep client conversations and payments on MainTown.'],
-      ['Commercial listings', 'Commercial rentals (shops, offices, warehouses and event halls) are paid annually, in full upfront. There is no monthly flex-rent. Commercial leases use their own agreement.']
+      ['Commercial listings', PF_COMMERCIAL]
     ]},
-    enterprise_staff: { icon: 'lock', title: 'Internal Use & Confidentiality', sub: 'Handling customer and payment data', sections: [
+    ceo: { icon: 'building', title: 'Enterprise Policies', sub: 'Running your ' + 'agency or developer account', sections: [
+      ['Your account', 'You are responsible for your company profile, CAC registration and the staff you add. Keep company details accurate.'],
+      ['Team and access', 'Add a ' + 'Sales Manager (Sub-agent for agencies), Finance Officer and Legal Officer. Each role sees only its own tools. Team chats are visible only to the people in them, and tenant chats are visible only to the sales staff member who posted the listing.'],
+      ['Company listings', 'Agency-owned listings come to you to upload the title documents and approve. Client-owned listings go to the landlord first to review and upload documents, then to you to publish.'],
+      ['Managed landlords', 'A landlord onboarded under your company is managed. They cannot list or upgrade, and your team handles their deals, requests and offers. When they ask to leave, read the reason, chat with them and decide fairly. Never hold back their documents, reports or payouts. After release, their properties become direct listings and your company stops earning commission on them.'],
+      ['Agreements', 'Only the CEO can countersign agreements. Legal prepares and sends them for countersignature.'],
+      ['Conduct', 'Keep payments and client conversations on MainTown. Off-platform payments are not allowed.'],
+      ['Commercial listings', PF_COMMERCIAL]
+    ]},
+    entPay: { icon: 'hand-coins', title: 'Commission & Payments', sub: 'How the company and staff earn', sections: [
+      ['Company commission', 'On rentals and shortlets the company receives 60% of the 10% commission fee and MainTown keeps 40%. On land and property sales the company receives the Seller\'s 5% and MainTown keeps the Buyer\'s 5%.'],
+      ['Paid at the point of charge', 'The company\'s share is split and paid automatically when the tenant or buyer pays. Commission on a landlord\'s listing is processed once the landlord has joined and validated ownership.'],
+      ['Staff commission', 'Staff see an Earned Commission record (view only) and can request a payout. The CEO or Finance Officer decides the staff amount and marks it Paid Offline. MainTown never pays staff.'],
+      ['Fees the company never collects', 'The tenancy Legal Fee goes to MainTown. The Caution Deposit, Service Charge and Deed of Assignment fee go to the landlord or owner.'],
+      ['Held payments', 'Shortlet shares are held until check-in, and land and property sale proceeds are held by our payment partner until the buyer confirms the original documents.']
+    ]},
+    sales: { icon: 'lock', title: 'Internal Use & Confidentiality', sub: 'Handling customer and payment data', sections: [
       ['Confidentiality', 'Tenant, landlord and payment information is for work use only.'],
       ['Escalation', 'Use Message CEO to flag a transaction, a document or a sale.'],
       ['Private chats', 'Team chats are visible only to the people in them.'],
       ['Company listings', 'Choose Agency-owned or Client-owned when you add a listing. Agency-owned listings go to your CEO, who uploads the title documents and approves them. Client-owned listings go to the landlord first, who reviews and uploads the documents, and then back to your CEO to publish.'],
-      ['Commercial listings', 'Commercial rentals (shops, offices, warehouses and event halls) are paid annually, in full upfront. There is no monthly flex-rent. Commercial leases use their own agreement.']
+      ['Landlords you onboard', 'A landlord you onboard is managed under your company. You can chat with them about a request to leave from My Landlords, but only your CEO approves or declines it. Be fair and prompt, and never hold back their documents or payouts.'],
+      ['Commercial listings', PF_COMMERCIAL]
+    ]},
+    finance: { icon: 'lock', title: 'Internal Use & Confidentiality', sub: 'Handling customer and payment data', sections: [
+      ['Confidentiality', 'Tenant, landlord and payment information is for work use only.'],
+      ['Commission payouts', 'Mark a commission request as Paid Offline only once it is settled, and record the amount and a note. You can move an item back to requests if it was marked by mistake.'],
+      ['Escalation', 'Use Message CEO to flag a transaction or a document.'],
+      ['Private chats', 'Team chats are visible only to the people in them.']
+    ]},
+    legal: { icon: 'lock', title: 'Internal Use & Confidentiality', sub: 'Handling customer and payment data', sections: [
+      ['Confidentiality', 'Tenant, landlord and payment information is for work use only.'],
+      ['Title review', 'Review title documents on listings in legal review and clear them before the CEO approves.'],
+      ['Agreements', 'Send agreements to the CEO. Only the CEO can countersign.'],
+      ['Escalation', 'Use Message CEO to flag a transaction or a document.'],
+      ['Private chats', 'Team chats are visible only to the people in them.']
     ]}
   };
 
+  // Enterprise accounts get their own copy: CEO, then Sales (Sub-agent), Finance and Legal.
   function profileRoleKey(role) {
+    let er = null; try { er = getEnterpriseStaffRole(); } catch (e) {}
+    if (er === 'ceo' || role === 'ceo') return 'ceo';
+    if (role === 'enterprise_staff' || er) return ['sales', 'finance', 'legal'].includes(er) ? er : 'sales';
     if (role === 'landlord' || role === 'agent') return role;
-    if (role === 'enterprise_staff' || role === 'ceo') return 'enterprise_staff';
     return 'tenant';
   }
 
@@ -25393,7 +25506,7 @@ available in the Post-Lease Hub and this chat thread.`
       </div>`).join('');
 
     // Policies: role-specific one sits between the general ones
-    const policyKeys = ['privacy', 'terms', 'payments', key];
+    const policyKeys = ['privacy', 'terms', 'payments', key].concat(['ceo', 'sales', 'finance', 'legal'].includes(key) ? ['entPay'] : []);
     document.getElementById('profile-policy-list').innerHTML = policyKeys.map(k => {
       const p = PROFILE_POLICIES[k];
       return `
@@ -30623,7 +30736,7 @@ available in the Post-Lease Hub and this chat thread.`
   function mgSessionManager() {
     if (currentUserRole === 'enterprise_staff') {
       const cid = (typeof getEnterpriseCompanyId === 'function') ? getEnterpriseCompanyId() : null;
-      return { type: 'enterprise', id: cid, name: cid ? mgCompanyName(cid) : 'Your agency' };
+      return { type: 'enterprise', id: cid, name: cid ? mgCompanyName(cid) : 'Your agency', staffId: getCurrentUserId() };
     }
     const uid = getCurrentUserId();
     const u = uid ? mgUser(uid) : null;
@@ -30632,6 +30745,7 @@ available in the Post-Lease Hub and this chat thread.`
   function mgSetManaged(landlordRecord, manager) {
     if (!landlordRecord || !manager || !manager.id || landlordRecord.managedBy) return;
     const mb = { type: manager.type, id: manager.id, name: manager.name || '', since: Date.now() };
+    if (manager.staffId) mb.staffId = manager.staffId;
     landlordRecord.managedBy = mb;
     appState = loadAppState();
     if (appState.users && appState.users[landlordRecord.id]) appState.users[landlordRecord.id].managedBy = mb;
@@ -30683,7 +30797,8 @@ available in the Post-Lease Hub and this chat thread.`
     const wrap = (title, body, action) => `<div class="ent-list-item mg-card" style="flex-direction:column;align-items:stretch;gap:8px;margin-bottom:12px;"><p class="ent-list-title">${title}</p><p class="ent-list-sub" style="white-space:normal;">${body}</p>${action || ''}</div>`;
     if (m) {
       const nm = mktEsc(mgManagerLabel(m));
-      if (lr && lr.status === 'PENDING') return wrap('Managed by ' + nm, `You asked to leave on ${new Date(lr.requestedAt).toLocaleDateString()}. ${nm} will review your request.`, '');
+      if (lr && lr.status === 'PENDING') return wrap('Managed by ' + nm, `You asked to leave on ${new Date(lr.requestedAt).toLocaleDateString()}${lr.reasonLabel ? ' (' + mktEsc(lr.reasonLabel) + ')' : ''}. ${nm} will review your request and may message you first.`,
+        '<button type="button" class="ent-list-action-btn primary" data-mg-chat="' + uid + '">Open chat with ' + nm + '</button>');
       const declined = (lr && lr.status === 'DECLINED') ? ` Your last request was declined${lr.reason ? ': ' + mktEsc(lr.reason) : ''}.` : '';
       return wrap('Managed by ' + nm, `${nm} lists and manages your properties. You review and approve each listing, upload your documents and track your payouts here.${declined}`,
         '<button type="button" class="ent-list-action-btn" data-mg-leave>Request to leave</button>');
@@ -30713,21 +30828,141 @@ available in the Post-Lease Hub and this chat thread.`
     }
     if (window.lucide) lucide.createIcons();
   }
+  // ---- Leave request: structured reason, then a direct chat with the agent / company ----
+  const MG_LEAVE_REASONS = [
+    { id: 'communication', label: 'Communication or updates are not meeting my needs' },
+    { id: 'fees', label: 'I have concerns about commission or fees' },
+    { id: 'control', label: 'I want to list and manage my properties myself' },
+    { id: 'switch', label: 'I am moving to another agent or agency' },
+    { id: 'other', label: 'Other reason' }
+  ];
+  function mgManagerIds(u) {
+    const m = (u && (u.managedBy || u.leaveRequest && { id: u.leaveRequest.managerId, staffId: u.leaveRequest.staffId })) || {};
+    const lr = u && u.leaveRequest || {};
+    return Array.from(new Set([m.id || lr.managerId, m.staffId || lr.staffId].filter(Boolean)));
+  }
+  function mgChatPush(landlordId, msg) {
+    appState = loadAppState();
+    const r = appState.users[landlordId]; if (!r) return null;
+    r.leaveChat = r.leaveChat || [];
+    const full = Object.assign({ id: Date.now() + Math.floor(Math.random() * 1000), at: Date.now() }, msg);
+    r.leaveChat.push(full);
+    saveAppState(appState);
+    return full;
+  }
   function mgRequestLeave() {
     const uid = getCurrentUserId(); const m = mgUser(uid) && mgUser(uid).managedBy; if (!m) return;
     const nm = mgManagerLabel(m);
-    mktModal('Request to leave', `<p class="li-note" style="margin:0 0 10px;">${mktEsc(nm)} decides your request. If approved, you become a direct landlord and must complete verification before listing on your own. Properties they already placed become direct listings: they stop earning commission on them and MainTown becomes your agent on them.</p>
-      <textarea id="mg-leave-note" class="field-input" rows="3" placeholder="Reason (optional)"></textarea>`, 'Send request', () => {
+    const opts = MG_LEAVE_REASONS.map(r => `<label style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid rgba(148,163,184,.3);border-radius:12px;margin-bottom:8px;cursor:pointer;"><input type="radio" name="mg-reason" value="${r.id}" style="margin-top:3px;"><span style="font-size:13.5px;line-height:1.35;">${mktEsc(r.label)}</span></label>`).join('');
+    mktModal('Why do you want to leave?', `<p class="li-note" style="margin:0 0 12px;">Pick the reason closest to yours. ${mktEsc(nm)} will review it and chat with you before deciding. If approved, you become a direct landlord and must complete verification before listing on your own. Properties they placed become direct listings: they stop earning commission on them and MainTown becomes your agent on them.</p>
+      ${opts}
+      <textarea id="mg-leave-note" class="field-input" rows="3" placeholder="Anything else you want ${mktEsc(nm)} to know (required for Other)"></textarea>`, 'Send request', (el, err) => {
+      const picked = el.querySelector('input[name="mg-reason"]:checked');
       const note = (document.getElementById('mg-leave-note').value || '').trim();
+      if (!picked) { err('Please choose a reason'); return false; }
+      if (picked.value === 'other' && !note) { err('Please tell us the reason'); return false; }
+      const reason = MG_LEAVE_REASONS.find(r => r.id === picked.value);
       appState = loadAppState();
       const u = appState.users[uid]; if (!u) return false;
-      u.leaveRequest = { status: 'PENDING', requestedAt: Date.now(), note };
+      u.leaveRequest = { status: 'PENDING', requestedAt: Date.now(), reasonId: reason.id, reasonLabel: reason.label, note, managerId: m.id, staffId: m.staffId || null, insists: false };
+      u.leaveChat = u.leaveChat || [];
       saveAppState(appState);
-      mktNotify(m.id, 'Landlord asked to leave', `${u.name || 'A landlord'} asked to leave your management.${note ? ' Reason: ' + note : ''} Review it under Landlords.`, null);
+      mgChatPush(uid, { senderRole: 'system', text: `${u.name || 'The landlord'} asked to leave. Reason: ${reason.label}.` });
+      if (note) mgChatPush(uid, { senderRole: 'landlord', senderId: uid, senderName: u.name || 'Landlord', text: note });
+      mgManagerIds(mgUser(uid)).forEach(id => mktNotify(id, 'Landlord asked to leave', `${u.name || 'A landlord'} asked to leave your management. Reason: ${reason.label}. Open the chat to talk with them before you decide.`, null));
       showToast('Request sent to ' + nm);
       mgRenderLandlordUi();
       window.dispatchEvent(new Event('maintown_state_updated'));
+      setTimeout(() => mgOpenLeaveChat(uid), 50);
     });
+  }
+
+  function mgOpenLeaveChat(landlordId) {
+    const me = getCurrentUserId();
+    const isLandlord = me === landlordId;
+    const L0 = mgUser(landlordId); if (!L0) return;
+    const mgrName = () => { const u = mgUser(landlordId) || {}; const mm = u.managedBy || (u.formerManager) || {}; return mgManagerLabel(mm) || 'your agent'; };
+    const title = isLandlord ? 'Chat with ' + mgrName() : (L0.name || 'Landlord') + ': request to leave';
+    const body = `<div id="mg-chat-summary" style="font-size:12.5px;line-height:1.4;padding:10px 12px;border-radius:12px;background:rgba(147,51,234,.12);margin:10px 0;"></div>
+      <div id="mg-chat-box" style="max-height:300px;min-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px;"></div>
+      <div id="mg-chat-actions" style="margin-top:10px;"></div>
+      <div id="mg-chat-compose" style="display:flex;gap:8px;margin-top:10px;"><input id="mg-chat-input" class="field-input" style="flex:1;margin:0;" placeholder="Type a message" maxlength="600"><button type="button" class="dealx-btn" id="mg-chat-send" style="width:auto;padding:0 18px;margin:0;">Send</button></div>`;
+    let lastSig = '';
+    const render = (el, force) => {
+      const u = mgUser(landlordId); if (!u) return;
+      const lr = u.leaveRequest || {}; const chat = u.leaveChat || [];
+      const open = lr.status === 'PENDING';
+      const sig = JSON.stringify([chat.length, lr.status, lr.insists]);
+      if (!force && sig === lastSig) return; lastSig = sig;
+      el.querySelector('#mg-chat-summary').innerHTML = `<strong>Reason:</strong> ${mktEsc(lr.reasonLabel || 'Not given')}${lr.status === 'APPROVED' ? '<br><strong>Approved.</strong>' : lr.status === 'DECLINED' ? '<br><strong>Declined.</strong>' : ''}`;
+      const box = el.querySelector('#mg-chat-box');
+      const stick = box.scrollTop + box.clientHeight >= box.scrollHeight - 30;
+      box.innerHTML = chat.map(c => {
+        if (c.senderRole === 'system') return `<div style="align-self:center;text-align:center;font-size:11.5px;opacity:.65;max-width:90%;">${mktEsc(c.text)}</div>`;
+        const mine = isLandlord ? c.senderRole === 'landlord' : c.senderRole === 'manager';
+        const t = new Date(c.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `<div style="align-self:${mine ? 'flex-end' : 'flex-start'};max-width:82%;padding:8px 12px;border-radius:14px;font-size:13.5px;line-height:1.35;word-break:break-word;${mine ? 'background:#7c3aed;color:#fff;' : 'background:rgba(148,163,184,.2);'}">${mine ? '' : `<div style="font-size:11px;font-weight:700;opacity:.75;margin-bottom:2px;">${mktEsc(c.senderName || '')}${c.senderTag ? ' · ' + mktEsc(c.senderTag) : ''}</div>`}${mktEsc(c.text)}<div style="font-size:10px;opacity:.65;text-align:right;margin-top:3px;">${t}</div></div>`;
+      }).join('') || '<div style="opacity:.6;font-size:12.5px;text-align:center;">No messages yet. Say hello.</div>';
+      if (stick || force) box.scrollTop = box.scrollHeight;
+      const act = el.querySelector('#mg-chat-actions');
+      if (!open) act.innerHTML = '<p style="font-size:12.5px;opacity:.7;margin:0;">This request is closed, so the chat is read-only.</p>';
+      else if (isLandlord) act.innerHTML = lr.insists
+        ? `<p style="font-size:12.5px;opacity:.75;margin:0;">You confirmed you still want to leave. ${mktEsc(mgrName())} can now approve your request.</p>`
+        : '<button type="button" class="ent-list-action-btn" data-mg-insist>I still want to leave</button>';
+      else act.innerHTML = (lr.insists ? '<p style="font-size:12.5px;margin:0 0 8px;color:#d97706;font-weight:600;">The landlord confirmed they still want to leave.</p>' : '<p style="font-size:12.5px;opacity:.7;margin:0 0 8px;">Talk to them first. Approve only once they insist on leaving.</p>')
+        + ((isEnterpriseCeo(me) || currentUserRole !== 'enterprise_staff')
+          ? `<div style="display:flex;gap:8px;"><button type="button" class="ent-list-action-btn primary" data-mg-approve-chat>Approve release</button><button type="button" class="ent-list-action-btn" data-mg-decline-chat>Decline</button></div>`
+          : '<p style="font-size:12.5px;opacity:.7;margin:0;">Only your CEO can approve or decline this request.</p>');
+      el.querySelector('#mg-chat-compose').style.display = open ? 'flex' : 'none';
+    };
+    const el = mktModal(title, body, null, null);
+    render(el, true);
+    const send = () => {
+      const inp = el.querySelector('#mg-chat-input'); const text = (inp.value || '').trim(); if (!text) return;
+      const u = mgUser(landlordId); if (!u || !u.leaveRequest || u.leaveRequest.status !== 'PENDING') return;
+      const meU = mgUser(me) || {};
+      const tag = isLandlord ? '' : (isEnterpriseCeo(me) ? 'CEO' : (currentUserRole === 'enterprise_staff' ? entRoleLabel('sales') : 'Agent'));
+      mgChatPush(landlordId, isLandlord
+        ? { senderRole: 'landlord', senderId: me, senderName: u.name || 'Landlord', text }
+        : { senderRole: 'manager', senderId: me, senderName: meU.name || 'Agent', senderTag: tag, text });
+      inp.value = '';
+      const preview = text.length > 80 ? text.slice(0, 77) + '...' : text;
+      if (isLandlord) mgManagerIds(mgUser(landlordId)).forEach(id => id !== me && mktNotify(id, 'Message from ' + (u.name || 'landlord'), preview, null));
+      else mktNotify(landlordId, 'Message about your request to leave', preview, null);
+      render(el, true);
+    };
+    el.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t.closest('#mg-chat-send')) { send(); return; }
+      if (t.closest('[data-mg-insist]')) {
+        appState = loadAppState(); const u = appState.users[landlordId];
+        if (u && u.leaveRequest && u.leaveRequest.status === 'PENDING') {
+          u.leaveRequest.insists = true; saveAppState(appState);
+          mgChatPush(landlordId, { senderRole: 'system', text: `${u.name || 'The landlord'} confirmed they still want to leave.` });
+          mgManagerIds(mgUser(landlordId)).forEach(id => mktNotify(id, 'Landlord still wants to leave', `${u.name || 'The landlord'} confirmed they still want to leave. You can approve the request now.`, null));
+          render(el, true); window.dispatchEvent(new Event('maintown_state_updated'));
+        }
+        return;
+      }
+      if (t.closest('[data-mg-approve-chat]')) { mgConfirmRelease(landlordId); return; }
+      if (t.closest('[data-mg-decline-chat]')) { mgConfirmDecline(landlordId); return; }
+    });
+    el.querySelector('#mg-chat-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); send(); } });
+    const timer = setInterval(() => { if (!el.isConnected) { clearInterval(timer); return; } try { render(el, false); } catch (e) {} }, 2500);
+  }
+
+  // Sub-agent (sales staff) view: the landlords they onboarded and any open leave requests
+  function mgOpenStaffLandlords() {
+    const me = getCurrentUserId(); const cid = getEnterpriseCompanyId();
+    appState = loadAppState();
+    const rows = Object.values(appState.users || {}).filter(u => u.role === 'landlord' && u.managedBy && u.managedBy.id === cid && u.managedBy.staffId === me);
+    const html = rows.length ? rows.map(u => {
+      const lr = u.leaveRequest; const pend = lr && lr.status === 'PENDING';
+      return `<div class="ent-list-item" style="flex-direction:column;align-items:stretch;gap:6px;margin-bottom:10px;"><p class="ent-list-title">${mktEsc(u.name || 'Landlord')}</p>
+        <p class="ent-list-sub" style="white-space:normal;${pend ? 'color:#d97706;' : ''}">${pend ? 'Asked to leave: ' + mktEsc(lr.reasonLabel || '') + (lr.insists ? ' (still wants to leave)' : '') : 'No open request'}</p>
+        ${pend ? `<button type="button" class="ent-list-action-btn primary" data-mg-chat="${u.id}">Open chat</button>` : ''}</div>`;
+    }).join('') : '<p class="li-note">No managed landlords yet. A landlord you onboard when listing for them appears here.</p>';
+    mktModal('My Landlords', html, null, null);
   }
   function mgOpenGate(onDone) {
     const uid = getCurrentUserId(); const u = mgUser(uid); if (!u) return;
@@ -30766,8 +31001,8 @@ available in the Post-Lease Hub and this chat thread.`
       const pend = agentListings.filter(e => e.ownerId === u.id && e.workflowStatus !== 'LIVE').length;
       const lr = u.leaveRequest;
       const req = (lr && lr.status === 'PENDING')
-        ? `<p class="ent-list-sub" style="color:#d97706;white-space:normal;">Asked to leave on ${new Date(lr.requestedAt).toLocaleDateString()}${lr.note ? ': ' + mktEsc(lr.note) : ''}</p>
-           <div style="display:flex;gap:8px;"><button type="button" class="ent-list-action-btn primary" data-mg-approve="${u.id}">Approve</button><button type="button" class="ent-list-action-btn" data-mg-decline="${u.id}">Decline</button></div>` : '';
+        ? `<p class="ent-list-sub" style="color:#d97706;white-space:normal;">Asked to leave on ${new Date(lr.requestedAt).toLocaleDateString()}: ${mktEsc(lr.reasonLabel || lr.note || 'No reason given')}${lr.insists ? ' · still wants to leave' : ''}</p>
+           <div style="display:flex;gap:8px;flex-wrap:wrap;"><button type="button" class="ent-list-action-btn primary" data-mg-chat="${u.id}">Open chat</button><button type="button" class="ent-list-action-btn" data-mg-approve="${u.id}">Approve</button><button type="button" class="ent-list-action-btn" data-mg-decline="${u.id}">Decline</button></div>` : '';
       return `<div class="ent-list-item" style="flex-direction:column;align-items:stretch;gap:6px;">
         <p class="ent-list-title">${mktEsc(u.name || 'Landlord')}</p>
         <p class="ent-list-sub">${live} live · ${pend} in progress${u.status === 'PENDING_CLAIM' ? ' · account not yet claimed' : ''}</p>${req}</div>`;
@@ -30813,9 +31048,10 @@ available in the Post-Lease Hub and this chat thread.`
       const r = appState.users[landlordId]; if (!r) return false;
       r.formerManager = Object.assign({}, r.managedBy, { left: Date.now() });
       r.managedBy = null; r.needsListingGate = true;
-      r.leaveRequest = { status: 'APPROVED', decidedAt: Date.now() };
+      r.leaveRequest = Object.assign({}, r.leaveRequest, { status: 'APPROVED', decidedAt: Date.now() });
       mgConvertToDirect(landlordId);
       saveAppState(appState);
+      mgChatPush(landlordId, { senderRole: 'system', text: 'Request approved. The landlord is now direct.' });
       mktNotify(landlordId, 'Your request to leave was approved', 'You can now list on your own. Complete verification first, from your dashboard. Properties already placed for you are now direct listings: MainTown handles them like any direct landlord, and your former agent no longer earns commission on them.', null);
       showToast('Landlord released');
       mgRefreshManagerUis();
@@ -30827,8 +31063,9 @@ available in the Post-Lease Hub and this chat thread.`
       const reason = (document.getElementById('mg-decline-reason').value || '').trim();
       appState = loadAppState();
       const r = appState.users[landlordId]; if (!r) return false;
-      r.leaveRequest = { status: 'DECLINED', decidedAt: Date.now(), reason };
+      r.leaveRequest = Object.assign({}, r.leaveRequest, { status: 'DECLINED', decidedAt: Date.now(), reason });
       saveAppState(appState);
+      mgChatPush(landlordId, { senderRole: 'system', text: 'Request declined' + (reason ? ': ' + reason : '.') });
       mktNotify(landlordId, 'Your request to leave was declined', reason ? 'Reason: ' + reason : 'Your agent or company declined the request.', null);
       mgRefreshManagerUis();
       window.dispatchEvent(new Event('maintown_state_updated'));
@@ -30933,6 +31170,7 @@ available in the Post-Lease Hub and this chat thread.`
     }, true);
     document.addEventListener('click', (e) => {
       const t = e.target;
+      const ch = t.closest('[data-mg-chat]'); if (ch) { mgOpenLeaveChat(ch.dataset.mgChat); return; }
       if (t.closest('[data-mg-leave]')) { mgRequestLeave(); return; }
       if (t.closest('[data-mg-gate]')) { mgOpenGate(() => mgRenderLandlordUi()); return; }
       const ap = t.closest('[data-mg-approve]'); if (ap) { mgConfirmRelease(ap.dataset.mgApprove); return; }
@@ -30967,6 +31205,12 @@ available in the Post-Lease Hub and this chat thread.`
         }
       } catch (e) {}
     };
+    // Sales staff (sub-agents): quick card for the landlords they onboarded
+    const salesAlloc = document.getElementById('ent-sales-allocation-card');
+    if (salesAlloc && !document.getElementById('ent-sales-landlords-card')) {
+      salesAlloc.insertAdjacentHTML('beforebegin', '<button type="button" class="ent-quick-card" id="ent-sales-landlords-card"><div class="ent-quick-card-icon"><i data-lucide="user-check" class="w-5 h-5"></i></div><div class="ent-quick-card-text"><p class="ent-quick-card-title">My Landlords</p><p class="ent-quick-card-sub">Landlords you onboarded and leave requests</p></div><i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i></button>');
+      document.getElementById('ent-sales-landlords-card').addEventListener('click', mgOpenStaffLandlords);
+    }
     // CEO "Landlords" tab
     const li = ENT_TAB_DEFS.findIndex(t => t.key === 'legal') + 1;
     ENT_TAB_DEFS.splice(li, 0, { key: 'landlords', label: 'Landlords', icon: 'user-check' });
