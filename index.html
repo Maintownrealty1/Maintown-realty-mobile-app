@@ -11142,7 +11142,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (h >= 1) return `Ends in ${h}h ${m % 60}m`;
     return `Ends in ${m}m`;
   }
-  function dxCanPost() { return currentUserRole === 'landlord' || currentUserRole === 'agent'; }
+  function dxCanPost() { return currentUserRole === 'landlord' || currentUserRole === 'agent' || (currentUserRole === 'enterprise_staff' && getEnterpriseStaffRole() === 'sales'); }
 
   function dxSampleDeals() {
     let seed = parseInt(localStorage.getItem('mtr_deals_seed') || '0', 10);
@@ -11288,7 +11288,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // ---- Poster flow ----
   function dxPostableListings() {
     const uid = currentDemoUserId();
-    return (listings || []).filter(l => l.status !== 'draft' && (l.ownerId === uid || l.companyId === uid || l.agentId === uid));
+    const salesStaff = currentUserRole === 'enterprise_staff' && getEnterpriseStaffRole() === 'sales';
+    return (listings || []).filter(l => l.status !== 'draft' && (l.ownerId === uid || l.companyId === uid || l.agentId === uid || (salesStaff && (l.listedByStaffId === uid || l.staffId === uid))));
   }
   function dxBasePrice(l) {
     if (!l) return { amount: 0, unit: '' };
@@ -11379,7 +11380,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     openDealsScreen('mine');
   }
 
-  document.getElementById('deals-back-btn').addEventListener('click', () => navigateTo('screen-5'));
+  document.getElementById('deals-back-btn').addEventListener('click', () => navigateTo(typeof mktIsHostRole === 'function' && mktIsHostRole() && currentUserRole === 'enterprise_staff' ? 'screen-ent-sales' : 'screen-5'));
   document.getElementById('dealpost-back-btn').addEventListener('click', () => { navigateTo('screen-deals'); openDealsScreen('mine'); });
   document.getElementById('dealx-tabs').addEventListener('click', (e) => { const b = e.target.closest('.dealx-tab'); if (b) setDealsTab(b.dataset.dtab); });
   document.getElementById('dealx-kind-chips').addEventListener('click', (e) => { const b = e.target.closest('.dealx-chip'); if (b) { dealsFilter = b.dataset.dkind; renderDealsFeed(); } });
@@ -31210,6 +31211,11 @@ available in the Post-Lease Hub and this chat thread.`
     if (salesAlloc && !document.getElementById('ent-sales-landlords-card')) {
       salesAlloc.insertAdjacentHTML('beforebegin', '<button type="button" class="ent-quick-card" id="ent-sales-landlords-card"><div class="ent-quick-card-icon"><i data-lucide="user-check" class="w-5 h-5"></i></div><div class="ent-quick-card-text"><p class="ent-quick-card-title">My Landlords</p><p class="ent-quick-card-sub">Landlords you onboarded and leave requests</p></div><i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i></button>');
       document.getElementById('ent-sales-landlords-card').addEventListener('click', mgOpenStaffLandlords);
+    }
+    // Sales staff (sub-agents): Deals card, next to Property Requests and Price Offers
+    if (salesAlloc && !document.getElementById('ent-sales-deals-card')) {
+      salesAlloc.insertAdjacentHTML('beforebegin', '<button type="button" class="ent-quick-card" id="ent-sales-deals-card"><div class="ent-quick-card-icon"><i data-lucide="percent" class="w-5 h-5"></i></div><div class="ent-quick-card-text"><p class="ent-quick-card-title">Deals</p><p class="ent-quick-card-sub">Run price drops on your listings</p></div><i data-lucide="chevron-right" class="w-4 h-4 ent-quick-card-chevron"></i></button>');
+      document.getElementById('ent-sales-deals-card').addEventListener('click', () => { navigateTo('screen-deals'); openDealsScreen(); });
     }
     // CEO "Landlords" tab
     const li = ENT_TAB_DEFS.findIndex(t => t.key === 'legal') + 1;
