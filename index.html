@@ -3204,6 +3204,11 @@
   .ent-verified-mark { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--brass); }
   .ent-verified-mark svg { width: 13px; height: 13px; }
   .ent-panel-head { margin: 2px 0 18px; }
+  /* Transaction rows: let the title keep its width; Confirm / Flag buttons drop to their own line. */
+  .ent-txn-row { flex-wrap: wrap; }
+  .ent-txn-row .ent-list-text { flex: 1 1 140px; min-width: 0; }
+  .ent-txn-row .ent-list-action-btn { flex: 1 1 100%; justify-content: center; }
+  #screen-enterprise .app-shell { max-width: 100%; padding-left: 16px; padding-right: 16px; padding-top: 18px; }
   .ent-panel-title { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: #fff; margin: 0; }
   .ent-panel-sub { font-size: 12.5px; color: #7c8aa0; margin: 4px 0 0; }
 
@@ -4895,6 +4900,15 @@
           </div>
         </div>
 
+        <div id="mg-owner-choice" style="display:none; margin-bottom:14px;">
+          <p class="s5-section-label"><i data-lucide="building" class="w-4 h-4 text-purple-400"></i>Who owns this property?</p>
+          <div class="toggle-pill-row" style="margin-bottom:8px;">
+            <button type="button" class="toggle-pill active" id="mg-own-company">Agency-owned</button>
+            <button type="button" class="toggle-pill" id="mg-own-client">Client-owned</button>
+          </div>
+          <p class="s5-list-sub" id="mg-own-hint" style="margin:0;"></p>
+        </div>
+
         <div id="s5-landlord-section">
           <p class="s5-section-label"><i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i>Landlord / Owner (Mandatory)</p>
           <div class="toggle-pill-row" style="margin-bottom:14px;">
@@ -4966,10 +4980,10 @@
 
         <div class="s5-notice-box">
           <i data-lucide="shield-alert" class="w-5 h-5"></i>
-          <p>Submitting sends this listing to the Landlord/Owner for verification. They'll confirm their payout account, approve the listing, and upload title documents before it enters MainTown's legal review queue — only then does it go live with automated payout protection.</p>
+          <p id="mg-submit-note">Submitting sends this listing to the Landlord/Owner for verification. They'll confirm their payout account, approve the listing, and upload title documents before it enters MainTown's legal review queue — only then does it go live with automated payout protection.</p>
         </div>
 
-        <button type="submit" class="btn-primary">Submit for Landlord Verification</button>
+        <button type="submit" class="btn-primary" id="mg-submit-btn">Submit for Landlord Verification</button>
       </form>
     </div>
 
@@ -4993,7 +5007,7 @@
 <!-- ===================== SCREEN ENTERPRISE: Developer Portal (single shell, role-gated tabs) ===================== -->
 <div id="screen-enterprise" class="screen-view hidden pb-24">
   <div class="app-shell" style="padding-top:24px;">
-    <button type="button" id="ent-back-btn" class="ent-list-action-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span id="ent-back-label">Back to Dashboard</span></button>
+
 
     <div class="ent-header">
       <div class="ent-header-identity">
@@ -5078,6 +5092,10 @@
 
     <!-- Tab: Legal Verification & Title Queue (CEO + Legal) -->
     <div id="ent-tab-legal" class="ent-tab-panel" style="display:none;">
+      <div id="mg-ceo-client-wrap" style="display:none;">
+        <p class="s5-section-label"><i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i>Client-Owned Listings</p>
+        <div id="mg-ceo-client-list"></div>
+      </div>
       <p class="s5-section-label"><i data-lucide="scale" class="w-4 h-4 text-purple-400"></i>Pending Legal Review</p>
       <div id="ent-legal-list"></div>
       <div id="ent-ceo-deed-requests-wrap" style="display:none;">
@@ -9179,6 +9197,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Native back button / swipe-back gesture: read the hash and activate that screen
   // without pushing a new history entry or reloading the app.
   window.addEventListener('popstate', () => {
+    const entScr = document.getElementById('screen-enterprise');
+    if (window.__entPushed && entScr && !entScr.classList.contains('hidden') && typeof entActiveTab !== 'undefined' && entActiveTab && entActiveTab !== 'overview') {
+      window.__entPushed = false;
+      switchEnterpriseTab('overview', true);
+      return;
+    }
     const hash = window.location.hash.replace('#', '');
     isPopStateNav = true;
     try {
@@ -9312,7 +9336,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 8: Verification Walkthroughs & Inspection Access', body: "Agreement to allow scheduled virtual or physical walkthrough inspections by authorized MainTown verification agents prior to and during listing activation. This includes facilitating buyer inspections at checkout — for Land &amp; Property sales, buyer checkout remains locked until the buyer logs an in-app Satisfied status. " + SITE_SAFETY_WARRANTY_TEXT },
         { title: 'Section 9: Non-Circumvention & Direct Payment Ban', body: 'Strict prohibition against bypassing the platform\'s payment system to request cash, direct bank transfers, or off-platform renewals from MainTown users. Violations incur platform ban and legal recovery of lost fees.', critical: true },
         { title: 'Section 10: Fee Transparency & Collection', body: 'MainTown collects the Legal Fee for drafting tenancy agreements directly, for transparency — it is never yours to set or collect. Any Caution Deposit and Service Charge you configure for a rental or shortlet listing (or leave as self-service, with no service charge) are paid directly to you alongside the tenant\'s rent/shortlet payments. For Land &amp; Property Sales, the Deed of Assignment legal/processing fee (5% or 10%, as you select at listing) is paid directly to you together with the buyer\'s first installment payment — MainTown does not collect it. A Land &amp; Property sale separately carries a 10% Agency Commission, made up of a Buyer-paid 5% (always to MainTown) and a Seller-paid 5% (to the Agent, if one listed the property on your behalf, or also to MainTown if you listed directly with no agent). Shortlet listings carry a MainTown Platform Fee (5% of the nightly rate) instead of a Legal Fee.' },
-        { title: 'Section 11: Dispute Resolution — Mediation & Arbitration', body: ADR_CLAUSE_TEXT }
+        { title: 'Section 11: Dispute Resolution — Mediation & Arbitration', body: ADR_CLAUSE_TEXT },
+        { title: 'Section 12: Managed Accounts & Leaving an Agent or Agency', body: 'If an agent or company onboarded you, your account is a managed account. They create and manage your listings. You review and approve each listing, upload the title documents for that property and confirm your payout account. While managed you cannot create listings yourself or upgrade to an Enterprise account. You may ask to leave at any time from your dashboard, and the agent or company decides your request. Once approved, your account becomes a direct Landlord account: before you list on your own you must complete verification and accept this policy again. Listings your agent or company already placed stay under their management until each one ends, unless they agree otherwise. Payments continue to be split automatically, with any agreed commission deducted at the point of charge.' }
       ]
     },
     agent: {
@@ -9328,7 +9353,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 7: Professional Credentials & Business Verification', body: 'Requirement to maintain active CAC registration, recognized realtor association membership (e.g., REDAN, NIESV, ERCAAN), or valid government-issued identification.' },
         { title: 'Section 8: Fraud, Double-Leasing & Liability', body: 'Immediate account termination, blacklisting, forfeiture of pending payouts, and law enforcement referral for listing fraudulent inventory, executing double-leases, or collecting illegal offline fees.', critical: true },
         { title: 'Section 9: Fee Transparency', body: 'The Legal Fee on a tenancy agreement is collected by MainTown directly, for transparency — agents never collect or retain it. Any Caution Deposit and Service Charge entered on a rental or shortlet listing belong entirely to the Landlord/Owner and are paid to them alongside the tenant\'s payments. On Land &amp; Property Sales, the Landlord/Owner-selected Deed of Assignment fee (5% or 10%) is paid to them with the first installment, not to MainTown — this is separate from the 10% Agency Commission (see Section 4), which is split 5% Buyer-paid (to MainTown) and 5% Seller-paid (to you, the listing Agent). Shortlet listings carry a MainTown Platform Fee (5%) instead of a Legal Fee.' },
-        { title: 'Section 10: Dispute Resolution — Mediation & Arbitration', body: ADR_CLAUSE_TEXT }
+        { title: 'Section 10: Dispute Resolution — Mediation & Arbitration', body: ADR_CLAUSE_TEXT },
+        { title: 'Section 11: Landlords You Onboard (Managed Accounts)', body: 'A landlord you onboard through MainTown is a managed landlord under your account. While managed, they cannot create listings or upgrade to an Enterprise account, and you decide on any request to leave. You agree to answer leave requests promptly and fairly, and never to hold back a landlord\'s documents, reports or payouts. When you release a landlord, they become a direct Landlord, complete verification again and may list on their own; listings you already placed stay under your management until each one ends, unless you agree otherwise.' }
       ]
     }
   };
@@ -9671,7 +9697,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function requestDeedUpload(asset, ownerId) {
     if (!ownerId || !asset) return;
     const listingForRequest = (typeof listings !== 'undefined') ? listings.find(l => String(l.id) === String(asset.listingId)) : null;
-    const isCompanySale = !!(listingForRequest && isEnterpriseListing(listingForRequest));
+    const isCompanySale = !!(listingForRequest && isCompanyOwnedListing(listingForRequest));
     if (!isCompanySale) {
       pushPlatformNotification('landlord', 'payment', 'Full Payment Received — Deed Required',
         `${asset.title} has been paid in full. Please upload the Deed of Assignment and other title documents from your Asset Portfolio.`,
@@ -9682,7 +9708,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const state = loadAppState();
       const lst = (typeof listings !== 'undefined') ? listings.find(l => String(l.id) === String(asset.listingId)) : null;
-      if (lst && isEnterpriseListing(lst)) {
+      if (lst && isCompanyOwnedListing(lst)) {
         state.deedRequests = state.deedRequests || [];
         if (!state.deedRequests.some(r => r.assetId === asset.id)) {
           const buyer = (state.users && state.users[asset.ownerId]) || {};
@@ -9907,7 +9933,7 @@ document.addEventListener('DOMContentLoaded', () => {
           docsLabel = buyerAsset.requiresConsent ? 'Receipt, Deed &amp; C of O' : 'Receipt &amp; Deed of Assignment';
           if (buyerAsset.deedAvailable) {
             docsAction = `<span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap; flex-shrink:0;"><i data-lucide="badge-check" class="w-3 h-3"></i>Docs Issued</span>`;
-          } else if (allocStatus === 'ATTENDED' && !consentBlocking && isEnterpriseListing(l)) {
+          } else if (allocStatus === 'ATTENDED' && !consentBlocking && isCompanyOwnedListing(l)) {
             docsAction = `<span class="s5-status-badge insp-status-pending" style="white-space:nowrap; flex-shrink:0;">Issued via Legal &amp; CEO review</span>`;
           } else if (allocStatus === 'ATTENDED' && !consentBlocking) {
             docsAction = `<button type="button" class="s5-back-btn oa-issue-deed-btn" data-asset-id="${buyerAsset.id}" style="width:auto; padding:0 12px; gap:6px; display:flex; align-items:center; white-space:nowrap; font-size:11.5px; font-weight:600; flex-shrink:0;"><i data-lucide="upload" class="w-3.5 h-3.5"></i>Issue ${buyerAsset.requiresConsent ? 'Documents' : 'Receipt &amp; Deed'}</button>`;
@@ -9933,7 +9959,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   <span class="s5-status-badge insp-status-confirmed" style="white-space:nowrap; flex-shrink:0;"><i data-lucide="${dsp.status === 'DELIVERED' ? 'package-check' : 'truck'}" class="w-3 h-3"></i>${dsp.status === 'DELIVERED' ? 'Receipt confirmed' : 'Pick-up in 24&ndash;48 hrs'}</span>
                 </div>
                 <p class="s5-list-sub" style="margin:2px 0 0;">From: ${shortletEsc(dsp.pickup)}${dsp.pickupPhone ? ' \u00b7 ' + shortletEsc(dsp.pickupPhone) : ''}<br>To: ${shortletEsc(dsp.delivery)}${dsp.deliveryPhone ? ' \u00b7 ' + shortletEsc(dsp.deliveryPhone) : ''}</p>`;
-            } else if (isEnterpriseListing(l)) {
+            } else if (isCompanyOwnedListing(l)) {
               statusRows += `
                 <div class="oa-status-row">
                   <p class="s5-list-sub oa-status-label">Original Documents &middot; dispatched by Legal</p>
@@ -10038,7 +10064,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const asset = (appState.assets || []).find(a => a.id === assetId);
     if (!asset) return;
     const dspListing = listingForAsset(asset);
-    if (dspListing && isEnterpriseListing(dspListing) && getEnterpriseStaffRole() !== 'legal') {
+    if (dspListing && isCompanyOwnedListing(dspListing) && getEnterpriseStaffRole() !== 'legal') {
       showToast('Original documents for company listings are dispatched by the Legal officer');
       return;
     }
@@ -11584,6 +11610,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function isEnterpriseListing(listing) {
     return !!(listing && listing.listedByRole === 'ENTERPRISE');
   }
+  // A company listing whose owner is the company itself. Client-owned listings (an external
+  // landlord owns the property, the company manages it) are still company-managed for staff
+  // routing and commission, but the landlord is the owner for payee, agreement and deed duties.
+  function isCompanyOwnedListing(listing) {
+    return isEnterpriseListing(listing) && !listing.clientOwned;
+  }
   function enterpriseSalesStaffIdFor(listing) {
     return isEnterpriseListing(listing) ? (listing.listedByStaffId || null) : null;
   }
@@ -11614,7 +11646,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   //   -> the property owner's full legal name. Null only if nothing is on file.
   function listingPayeeName(listing) {
     if (!listing) return null;
-    if (isEnterpriseListing(listing)) {
+    if (isCompanyOwnedListing(listing)) {
       const cid = listing.companyId || listing.ownerId;
       try {
         const st = (typeof loadAppState === 'function') ? loadAppState() : appState;
@@ -11632,7 +11664,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Company-listed (Sales staff) properties: the agreement party is the COMPANY
   // (name + address) and the countersignatory is the CEO — never a landlord.
   function enterprisePartyInfo(listing) {
-    if (!listing || !isEnterpriseListing(listing)) return null;
+    if (!listing || !isCompanyOwnedListing(listing)) return null;
     const cid = listing.companyId || listing.ownerId;
     let u = null;
     try { const st = (typeof loadAppState === 'function') ? loadAppState() : appState; u = st && st.users && st.users[cid]; } catch (e) {}
@@ -15389,15 +15421,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
       breakdown.maintownCommission = isAgentListing ? Math.round(breakdown.commission * (1 - agentShareOfCommission)) : breakdown.commission;
       breakdown.agentCommission = isAgentListing ? (breakdown.commission - breakdown.maintownCommission) : 0;
     }
-    // Company listings: MainTown keeps 60% of the total agency commission and
-    // 40% goes to the company wallet. How the company shares its 40% with
-    // staff is the company's own business.
+    // Company listings follow the individual-agent rules, with the company in the agent's seat:
+    //   Rent / commercial: 60% of the 10% to the company wallet, 40% to MainTown.
+    //   Land & property: buyer's 5% to MainTown, seller's 5% to the company.
+    // How the company shares its part with staff is the company's own business.
     if (listing && listing.listedByRole === 'ENTERPRISE') {
       const totalCommission = (isLand && breakdown.buyerCommission != null) ? (breakdown.buyerCommission + (breakdown.sellerCommission || 0)) : (breakdown.commission || 0);
       breakdown.isAgentListing = false;
       breakdown.agentShareOfCommission = 0;
-      breakdown.maintownCommission = Math.round(totalCommission * COMM_MAINTOWN_PCT);
-      breakdown.companyCommission = totalCommission - breakdown.maintownCommission;
+      if (isLand && breakdown.buyerCommission != null) {
+        breakdown.maintownCommission = breakdown.buyerCommission;
+        breakdown.companyCommission = breakdown.sellerCommission || 0;
+      } else {
+        breakdown.companyCommission = Math.round(totalCommission * COMM_COMPANY_PCT);
+        breakdown.maintownCommission = totalCommission - breakdown.companyCommission;
+      }
       breakdown.agentCommission = 0;
     }
     breakdown.ownerLegalTake = isLand ? (breakdown.legal || 0) : 0;
@@ -16290,7 +16328,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const payeeCompany = listingPayeeName(listing);
     const agrP = listingAgreementProfile(listing);
     const hostName = payeeCompany || (listing.listedBy === 'agent' ? (listing.agentName || 'Agent') : (listing.landlordName || 'Landlord'));
-    const hostRoleWord = isEnterpriseListing(listing) ? 'Company' : (listing.type === 'land' ? 'Seller' : (listing.type === 'shortlet' ? 'Host' : 'Landlord'));
+    const hostRoleWord = isCompanyOwnedListing(listing) ? 'Company' : (listing.type === 'land' ? 'Seller' : (listing.type === 'shortlet' ? 'Host' : 'Landlord'));
     const fileName = `${agrP.fileBase}_${listing.title.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '')}.pdf`;
     const rentLabel = checkoutRentBreakdown ? (agrP.commercial ? `${formatMoney(checkoutRentBreakdown.monthly, 'ngn')} / year (paid in full)` : `${formatMoney(checkoutRentBreakdown.monthly, 'ngn')} / month`) : (listing.ngn || 'See agreement for terms');
     conv.messages.push({
@@ -16302,8 +16340,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       listingTitle: listing.title,
       tenantName,
       hostName,
-      hostAddress: isEnterpriseListing(listing) ? ((enterprisePartyInfo(listing) || {}).companyAddress || undefined) : undefined,
-      signatoryName: isEnterpriseListing(listing) ? ((enterprisePartyInfo(listing) || {}).ceoName || undefined) : undefined,
+      hostAddress: isCompanyOwnedListing(listing) ? ((enterprisePartyInfo(listing) || {}).companyAddress || undefined) : undefined,
+      signatoryName: isCompanyOwnedListing(listing) ? ((enterprisePartyInfo(listing) || {}).ceoName || undefined) : undefined,
       hostLabel: payeeCompany ? hostRoleWord : (listing.listedBy === 'agent' ? 'Agent' : 'Landlord'),
       rentLabel,
       kind: listing.type || 'rent',
@@ -16456,7 +16494,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function notifyLegalDeedReady(asset) {
     if (!asset || assetDeedStage(asset) !== 'READY') return;
     const listing = (typeof listings !== 'undefined') ? listings.find(l => String(l.id) === String(asset.listingId)) : null;
-    if (!listing || !isEnterpriseListing(listing)) return;
+    if (!listing || !isCompanyOwnedListing(listing)) return;
     const companyId = listing.companyId || listing.ownerId;
     const buyerName = (appState.users && appState.users[asset.ownerId] && appState.users[asset.ownerId].name) || 'the buyer';
     companyStaffIdsByRole(companyId, 'legal').forEach(legalId => {
@@ -16505,7 +16543,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     });
   }
   function isSalesListedEnterpriseListing(listing) {
-    if (!isEnterpriseListing(listing) || !listing.listedByStaffId) return false;
+    if (!isCompanyOwnedListing(listing) || !listing.listedByStaffId) return false;
     const staff = appState.users && appState.users[listing.listedByStaffId];
     if (!staff) return listing.listedByStaffId !== (listing.companyId || listing.ownerId); // staff account removed: still company-listed
     return staff.role === 'enterprise_staff' && staff.staffRole === 'sales';
@@ -17186,7 +17224,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const ownerAmount = (breakdown.monthly || 0) + ownerLegalShare + cautionFee + serviceChargeFee - sellerCommissionDeduction;
 
     (isLand ? holdSaleProceeds : creditPartyWallet)(listing.ownerId, ownerAmount, {
-      title: `${isLand ? 'Land Owner' : 'Landlord'} Payout - ${listing.title || 'Property'}`,
+      title: `${isCompanyOwnedListing(listing) ? 'Company' : (isLand ? 'Land Owner' : 'Landlord')} Payout - ${listing.title || 'Property'}`,
       category: 'LANDLORD_PAYOUT',
       propertyName: listing.title, listingId: listing.id,
       companyMeta: isSalesListedEnterpriseListing(listing) ? { companyId: listing.companyId || listing.ownerId, salesStaffId: listing.listedByStaffId } : undefined,
@@ -17206,14 +17244,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
       });
     }
 
-    // Company listings: the 40% commission share goes to the company wallet.
+    // Company listings: the company's commission share goes to the company wallet.
     if (isEnterpriseListing(listing) && breakdown.companyCommission > 0) {
       const cid = listing.companyId || listing.ownerId;
       creditPartyWallet(cid, breakdown.companyCommission, {
         title: `Company Commission Share - ${listing.title || 'Property'}`,
         category: 'COMPANY_COMMISSION', propertyName: listing.title,
         companyMeta: { companyId: cid, salesStaffId: listing.listedByStaffId },
-        feeType: 'Company Commission Share (40%)'
+        feeType: 'Company Commission Share'
       });
       commRecordForListing(listing, breakdown);
     }
@@ -17290,15 +17328,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const isLandTxn = checkoutListing && checkoutListing.type === 'land';
       const principalAmt = Math.max(0, total - checkoutAiFeeNgn);
       if (principalAmt > 0) {
-        const isEnterpriseTxn = isEnterpriseListing(checkoutListing);
+        const isEnterpriseTxn = isCompanyOwnedListing(checkoutListing);
         recordTransaction({
           userId: uid, direction: 'debit',
           category: isLandTxn ? 'PURCHASE_PAYMENT' : 'RENT_PAYMENT',
-          title: `${isLandTxn ? 'Purchase Payment' : 'Rent Installment'} - ${propertyTitle}`,
+          title: `${isLandTxn ? 'Purchase Payment' : ((checkoutListing && checkoutListing.usage === 'commercial') ? 'Annual Rent' : 'Rent Installment')} - ${propertyTitle}`,
           amount: principalAmt, status: 'SUCCESSFUL',
           meta: {
             sender: 'You', recipient: 'Owner / Agent / MainTown (auto-split)', propertyName: propertyTitle,
-            feeType: isLandTxn ? 'Purchase Installment' : 'Rent Installment',
+            feeType: isLandTxn ? 'Purchase Installment' : ((checkoutListing && checkoutListing.usage === 'commercial') ? 'Annual Rent (paid in full)' : 'Rent Installment'),
             escrowStatus: 'Split at point of charge',
             // A Company payment is acknowledged (reconciled) by the CEO OR a Finance staff
             // member — see the "Confirm Payment" action in the
@@ -18848,7 +18886,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const q2 = lease ? commercialRenewalQuote(lease, listing) : null;
       if (!q2 || q2.state !== 'open' || q2.annual !== q.annual || q2.renewalDate !== q.renewalDate) { showToast('The renewal details changed. Please review them and try again.'); document.getElementById('renewal-sheet').classList.remove('open'); renderCommercialRenewalCards(); return; }
       if (!debitWallet(uid, q.annual)) { showToast('Insufficient wallet balance — payment could not be authorized'); return; }
-      const isEnt = isEnterpriseListing(listing);
+      const isEnt = isCompanyOwnedListing(listing);
       const txn = recordTransaction({
         userId: uid, direction: 'debit', category: 'RENT_PAYMENT',
         title: 'Lease Renewal - ' + listing.title, amount: q.annual, status: 'SUCCESSFUL',
@@ -19050,7 +19088,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function populateExistingLandlordSelect() {
     const sel = document.getElementById('s5-existing-landlord-select');
     if (!sel) return;
-    const records = getAllLandlordRecords();
+    const mgMe = mgSessionManager().id;
+    const records = getAllLandlordRecords().filter(u => !u.managedBy || u.managedBy.id === mgMe);
     sel.innerHTML = records.length
       ? records.map(u => `<option value="${u.id}">${u.name}${u.phone ? ' · ' + u.phone : (u.email ? ' · ' + u.email : '')}</option>`).join('')
       : `<option value="">No existing Landlords/Owners yet — use "New Landlord/Owner"</option>`;
@@ -19112,7 +19151,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // ---- Enterprise staff (Sales) list on behalf of the company — no
     // Landlord/Owner switcher, no landlord-verification queue. This goes
     // straight to MainTown's legal review, same as a CEO's Bulk CSV import. ----
-    if (currentUserRole === 'enterprise_staff') {
+    if (currentUserRole === 'enterprise_staff' && mgOwnerMode !== 'client') {
       const companyId = (typeof getEnterpriseCompanyId === 'function') ? getEnterpriseCompanyId() : null;
       if (!companyId) { showToast('Unable to resolve your company account'); return; }
       const newId = Date.now();
@@ -19203,9 +19242,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const landlordProvision = provisionLandlord(landlordName, landlordPhone, landlordEmail);
       landlordUser = landlordProvision.record;
       saveAppState(appState);
+      if (landlordProvision.isNew) { mgSetManaged(landlordUser, mgSessionManager()); landlordUser = ensureWalletRecord(landlordUser.id); }
     }
 
-    const agentName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Agent';
+    const agentName = (currentUserRole === 'enterprise_staff') ? (mgSessionManager().name || 'Your agency') : ((document.getElementById('reg-fullname')?.value || '').trim() || 'Agent');
     const newId = Date.now();
     const feeFields = getFeeFieldsFromForm('s5');
     // A newly submitted listing is never published straight to the Tenant
@@ -19238,6 +19278,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       serviceChargeMode: feeFields.serviceChargeMode,
       serviceChargeFee: feeFields.serviceChargeFee
     };
+    if (currentUserRole === 'enterprise_staff') { baseFields.clientOwned = true; baseFields.listedBy = 'enterprise'; baseFields.agentId = undefined; baseFields.agentName = undefined; }
     let listingData;
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
@@ -19255,7 +19296,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       id: newId + 1, title, address, type, annual, landlordName, landlordPhone, landlordEmail,
       landlordBankAccount, landlordBankName, ownerId: landlordUser.id, agentId: getCurrentUserId(),
       agentName, status: 'draft', workflowStatus: 'PENDING_LANDLORD_VERIFICATION',
-      listingId: newId, hasVideo: s5PendingHasVideo, listingData
+      listingId: newId, hasVideo: s5PendingHasVideo, listingData,
+      ...(currentUserRole === 'enterprise_staff' ? { clientOwned: true, companyId: mgSessionManager().id, staffId: getCurrentUserId() } : {})
     });
     saveListings();
 
@@ -19330,7 +19372,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!entry) return;
     lvCurrentAgentListingId = agentListingId;
     lvSelectedDocs = {};
-    document.getElementById('lv-listing-summary').textContent = `${entry.title} — ${entry.address}`;
+    document.getElementById('lv-listing-summary').textContent = `${entry.title} — ${entry.address}` + (entry.returnNote ? ` — Sent back: ${entry.returnNote}` : '');
     const lvOwner = appState.users[entry.ownerId];
     const lvBank = getPayoutOnFile(entry.ownerId);
     const lvBadge = document.getElementById('lv-bank-onfile');
@@ -19454,6 +19496,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     entry.titleDocuments = titleDocuments;
     if (entry.listingData) entry.listingData.titleDocuments = titleDocuments;
     saveListings();
+    if (entry.clientOwned) { mgAfterLandlordApproval(entry, landlordUser); return; }
 
     document.getElementById('landlord-verify-modal').classList.remove('open');
     showToast("Approved — title documents submitted to MainTown's legal review queue");
@@ -19520,7 +19563,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // it reappears under My Properties when it goes live.
     const mine = agentListings.filter(l => l.ownerId === uid && l.workflowStatus === 'PENDING_LANDLORD_VERIFICATION');
     if (!mine.length) { wrap.innerHTML = ''; return; }
-    wrap.innerHTML = `<p class="s5-section-label"><i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i>Agent-Submitted Listings</p>` +
+    wrap.innerHTML = `<p class="s5-section-label"><i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i>Listings Submitted For You</p>` +
       mine.map(l => {
         let rightHtml;
         if (l.workflowStatus === 'PENDING_LANDLORD_VERIFICATION') {
@@ -24209,7 +24252,7 @@ available in the Post-Lease Hub and this chat thread.`
     saveAppState(appState);
     const listing = listingForAsset(asset);
     const body = `${resolveUserName(asset.ownerId)} has confirmed receipt of the original title documents for ${asset.title} (dispatch ref. ${asset.dispatch.ref}).`;
-    if (listing && isEnterpriseListing(listing)) {
+    if (listing && isCompanyOwnedListing(listing)) {
       notifyCompanyAllocation(listing, 'Receipt of Documents Confirmed', body, { type: 'PHYSICAL_DOCS_RECEIVED' });
     } else if (asset.sellerId) {
       pushPlatformNotification('landlord', 'message', 'Receipt of Documents Confirmed', body, { screen: 'screen-owner-assets' }, 'PHYSICAL_DOCS_RECEIVED', null, asset.sellerId);
@@ -25198,12 +25241,14 @@ available in the Post-Lease Hub and this chat thread.`
       ['Property address', 'The full address is shared in chat after you request it.']
     ]},
     landlord: { icon: 'badge-check', title: 'Listing & Verification', sub: 'What we check before a listing goes live', sections: [
+      ['Managed accounts', 'If an agent or company onboarded you, they create and manage your listings. You review and approve each one, upload your title documents and confirm your payout account. You cannot create listings or upgrade to Enterprise while managed. You can ask to leave from your dashboard, and your agent or company decides. Once approved, you complete verification and accept this policy again before listing on your own.'],
       ['Verification', 'Every listing goes through property title verification before it goes live.'],
       ['Accuracy', 'Photos, price and details must match the property. Misleading listings can be removed.'],
       ['Inspections', 'Respond to requests promptly. Accepting one unlocks chat with the tenant.'],
       ['Commercial listings', 'Commercial rentals (shops, offices, warehouses and event halls) are paid annually, in full upfront. There is no monthly flex-rent. Commercial leases use their own agreement.']
     ]},
     agent: { icon: 'handshake', title: 'Partnership & Conduct', sub: 'Your commitments as a MainTown agent', sections: [
+      ['Landlords you onboard', 'A landlord you onboard through MainTown is a managed landlord under your account. They cannot list on their own or upgrade while managed, and you decide on any request to leave. Use that control fairly: never hold back a landlord\'s documents, reports or payouts.'],
       ['Partnership terms', 'Your commission and responsibilities are set out in the partnership terms you accepted at sign-up.'],
       ['Representing listings', 'List only properties you are authorised to represent, and keep owners and clients informed.'],
       ['Conduct', 'Keep client conversations and payments on MainTown.'],
@@ -25213,7 +25258,7 @@ available in the Post-Lease Hub and this chat thread.`
       ['Confidentiality', 'Tenant, landlord and payment information is for work use only.'],
       ['Escalation', 'Use Message CEO to flag a transaction, a document or a sale.'],
       ['Private chats', 'Team chats are visible only to the people in them.'],
-      ['Company listings', 'Listings you add are listed on behalf of your company, so no Landlord/Owner is needed. They go straight to the MainTown legal review queue.'],
+      ['Company listings', 'Choose Agency-owned or Client-owned when you add a listing. Agency-owned listings go to your CEO, who uploads the title documents and approves them. Client-owned listings go to the landlord first, who reviews and uploads the documents, and then back to your CEO to publish.'],
       ['Commercial listings', 'Commercial rentals (shops, offices, warehouses and event halls) are paid annually, in full upfront. There is no monthly flex-rent. Commercial leases use their own agreement.']
     ]}
   };
@@ -27279,8 +27324,8 @@ available in the Post-Lease Hub and this chat thread.`
         <div class="ent-promo-card" id="ent-upgrade-promo-card">
           <div class="ent-promo-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
           <div style="flex:1; min-width:0;">
-            <p class="ent-promo-title">Create Team / Scale to Developer</p>
-            <p class="ent-promo-sub">Add staff roles, upload bulk inventory via CSV, and brand your listings.</p>
+            <p class="ent-promo-title">Managing many properties? Create a team.</p>
+            <p class="ent-promo-sub">Upgrade your Agency or Portfolio to an Enterprise account. Add sub-agents, assign legal &amp; finance staff, and manage self-owned or client properties in one central workspace.</p>
             <p class="ent-promo-cta">Create Team &amp; Upgrade <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></p>
           </div>
         </div>`;
@@ -27495,12 +27540,9 @@ available in the Post-Lease Hub and this chat thread.`
     switchEnterpriseTab(visibleTabs[0] || 'overview');
     if (window.lucide) lucide.createIcons();
   }
-  document.getElementById('ent-back-btn').addEventListener('click', () => {
-    // Inside a section (Team, Inventory, ...) "back" returns to the Enterprise
-    // home; from the home itself it returns to the CEO's main dashboard.
-    if (entActiveTab && entActiveTab !== 'overview') { switchEnterpriseTab('overview'); return; }
-    navigateTo('screen-4');
-  });
+  // No on-screen back button: the phone's own back button returns from a section to the Enterprise home,
+  // and from there to the previous page (see switchEnterpriseTab and the popstate handler).
+
 
   // ==================================================================
   // ---- Staff → CEO Direct Messaging ----
@@ -27685,7 +27727,7 @@ available in the Post-Lease Hub and this chat thread.`
   }
   function renderSalesListings() {
     const mine = myEnterpriseListings();
-    const statusLabel = { LIVE: 'Live', PENDING_LEGAL_REVIEW: 'Pending Legal Review', PENDING_LANDLORD_VERIFICATION: 'Pending Landlord Verification' };
+    const statusLabel = { LIVE: 'Live', PENDING_LEGAL_REVIEW: 'Pending Legal Review', PENDING_LANDLORD_VERIFICATION: 'Pending Landlord Verification', PENDING_CEO_REVIEW: 'Awaiting CEO Review' };
     const list = document.getElementById('ent-sales-listings-list');
     list.innerHTML = mine.length ? mine.map(l => `
       <div class="ent-list-item">
@@ -27920,7 +27962,7 @@ available in the Post-Lease Hub and this chat thread.`
     const txns = companyTransactions();
     const list = document.getElementById('ent-finance-report-list');
     list.innerHTML = txns.length ? txns.map(t => `
-      <div class="ent-list-item" data-txn-id="${t.id}" style="cursor:pointer;">
+      <div class="ent-list-item ent-txn-row" data-txn-id="${t.id}" style="cursor:pointer;">
         <div class="ent-list-icon" data-txn-id="${t.id}" style="cursor:pointer;"><i data-lucide="${t.direction === 'credit' ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i></div>
         <div class="ent-list-text" data-txn-id="${t.id}" style="cursor:pointer;"><p class="ent-list-title">${t.title}</p><p class="ent-list-sub">${new Date(t.timestamp).toLocaleDateString()} · ${(t.meta && t.meta.needsCompanyConfirmation) ? (t.meta.confirmed ? 'Payment Confirmed' : 'Awaiting Confirmation') : walletStatusLabel(t.status, t)}</p></div>
         <p style="font-size:12.5px; font-weight:700; color:${t.direction === 'credit' ? '#34d399' : '#f87171'};">${t.direction === 'credit' ? '+' : '-'}${formatMoney(t.amount, 'ngn')}</p>
@@ -27995,7 +28037,7 @@ available in the Post-Lease Hub and this chat thread.`
     const cid = getEnterpriseCompanyId();
     const rows = (appState.assets || []).filter(a => {
       const l = listingForAsset(a);
-      return a.deedAvailable && l && isEnterpriseListing(l) && (l.companyId || l.ownerId) === cid;
+      return a.deedAvailable && l && isCompanyOwnedListing(l) && (l.companyId || l.ownerId) === cid;
     }).sort((x, y) => (y.deedIssuedAt || 0) - (x.deedIssuedAt || 0));
     if (!rows.length) { section.style.display = 'none'; return; }
     section.style.display = '';
@@ -28344,7 +28386,10 @@ available in the Post-Lease Hub and this chat thread.`
     window.scrollTo(0, 0);
   }
 
-  function switchEnterpriseTab(tabKey) {
+  function switchEnterpriseTab(tabKey, fromBack) {
+    if (!fromBack && entActiveTab === 'overview' && tabKey !== 'overview') {
+      try { history.pushState({ entSection: tabKey }, '', location.hash || '#screen-enterprise'); window.__entPushed = true; } catch (e) {}
+    }
     entActiveTab = tabKey;
     const entScreenEl = document.getElementById('screen-enterprise');
     if (entScreenEl) { entScreenEl.classList.toggle('ent-home-mode', tabKey === 'overview'); if (tabKey !== 'overview') entScreenEl.scrollTop = 0; }
@@ -28358,6 +28403,7 @@ available in the Post-Lease Hub and this chat thread.`
     else if (tabKey === 'inventory') renderEntInventory();
     else if (tabKey === 'legal') { renderEntLegal(); renderCeoLegalDocsList(); }
     else if (tabKey === 'commissions') commRenderIntoCeoTab();
+    else if (tabKey === 'landlords') mgRenderCeoTab();
     else if (tabKey === 'ledger') renderEntLedger();
     else if (tabKey === 'wallet') renderEntWallet();
     if (window.lucide) lucide.createIcons();
@@ -28577,7 +28623,7 @@ available in the Post-Lease Hub and this chat thread.`
   function renderEntInventory() {
     const myListings = enterpriseListings();
     const list = document.getElementById('ent-inventory-list');
-    const statusLabel = { LIVE: 'Live', PENDING_LEGAL_REVIEW: 'Pending Legal Review', PENDING_LANDLORD_VERIFICATION: 'Pending Landlord Verification' };
+    const statusLabel = { LIVE: 'Live', PENDING_LEGAL_REVIEW: 'Pending Legal Review', PENDING_LANDLORD_VERIFICATION: 'Pending Landlord Verification', PENDING_CEO_REVIEW: 'Awaiting CEO Review' };
     list.innerHTML = myListings.length ? myListings.map(l => `
       <div class="ent-list-item">
         <div class="ent-list-icon"><i data-lucide="home" class="w-4 h-4"></i></div>
@@ -29076,7 +29122,7 @@ available in the Post-Lease Hub and this chat thread.`
     const txns = (appState.transactions || []).filter(t => isCompanyTxn(t, companyId));
     const list = document.getElementById('ent-ledger-list');
     list.innerHTML = txns.length ? txns.map(t => `
-      <div class="ent-list-item" data-txn-id="${t.id}" style="cursor:pointer;">
+      <div class="ent-list-item ent-txn-row" data-txn-id="${t.id}" style="cursor:pointer;">
         <div class="ent-list-icon"><i data-lucide="${t.direction === 'credit' ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i></div>
         <div class="ent-list-text"><p class="ent-list-title">${t.title}</p><p class="ent-list-sub">${new Date(t.timestamp).toLocaleDateString()} · ${(t.meta && t.meta.needsCompanyConfirmation) ? (t.meta.confirmed ? 'Payment Confirmed' : 'Awaiting Confirmation') : walletStatusLabel(t.status, t)}</p></div>
         <p style="font-size:12.5px; font-weight:700; color:${t.direction === 'credit' ? '#34d399' : '#f87171'};">${t.direction === 'credit' ? '+' : '-'}${formatMoney(t.amount, 'ngn')}</p>
@@ -30180,13 +30226,13 @@ available in the Post-Lease Hub and this chat thread.`
   })();
 
   // ==================================================================
-  // ---- Enterprise commission: MainTown keeps 60% of the agency
-  //      commission, 40% goes to the company wallet. Sales staff see an
+  // ---- Enterprise commission: the company gets 60% of the 10% on rentals (MainTown 40%),
+  //      and the seller's 5% on land (MainTown keeps the buyer's 5%). Sales staff see an
   //      "Earned Commission" ledger (view only) and can request a payout;
   //      the CEO or Finance Officer decides the staff amount and marks it
   //      Paid Offline. MainTown never pays staff. ----
   // ==================================================================
-  const COMM_MAINTOWN_PCT = 0.60;
+  const COMM_COMPANY_PCT = 0.60;
   function commList() { appState = loadAppState(); if (!Array.isArray(appState.commissions)) appState.commissions = []; return appState.commissions; }
   function commSettings(companyId) {
     appState = loadAppState();
@@ -30398,6 +30444,324 @@ available in the Post-Lease Hub and this chat thread.`
     const fin = document.getElementById('ent-finance-view-report-card');
     if (fin) { fin.insertAdjacentHTML('afterend', mk('ent-finance-commission-card', 'Commission Requests', 'Mark staff commission as paid offline')); document.getElementById('ent-finance-commission-card').addEventListener('click', () => navigateTo('screen-commission')); }
   })();
+
+  // ==================================================================
+  // ---- Managed landlords + client-owned listings ----
+  // A landlord onboarded by an individual agent or a company is "managed":
+  // they cannot create listings themselves or upgrade to Enterprise, and the
+  // agent/company decides any request to leave. After release they become a
+  // direct landlord and must pass the verification gate again.
+  // Client-owned company listings go: staff submit -> landlord reviews and
+  // uploads documents -> CEO reviews and publishes.
+  // ==================================================================
+  let mgOwnerMode = 'company';
+  function mgUser(id) { appState = loadAppState(); return (appState.users && appState.users[id]) || null; }
+  function mgCompanyName(cid) { const u = mgUser(cid); return (u && u.enterprise && u.enterprise.companyName) || (u && u.name) || 'Your agency'; }
+  function mgSessionManager() {
+    if (currentUserRole === 'enterprise_staff') {
+      const cid = (typeof getEnterpriseCompanyId === 'function') ? getEnterpriseCompanyId() : null;
+      return { type: 'enterprise', id: cid, name: cid ? mgCompanyName(cid) : 'Your agency' };
+    }
+    const uid = getCurrentUserId();
+    const u = uid ? mgUser(uid) : null;
+    return { type: 'agent', id: uid, name: (u && u.name) || (document.getElementById('reg-fullname')?.value || '').trim() || 'Agent' };
+  }
+  function mgSetManaged(landlordRecord, manager) {
+    if (!landlordRecord || !manager || !manager.id || landlordRecord.managedBy) return;
+    const mb = { type: manager.type, id: manager.id, name: manager.name || '', since: Date.now() };
+    landlordRecord.managedBy = mb;
+    appState = loadAppState();
+    if (appState.users && appState.users[landlordRecord.id]) appState.users[landlordRecord.id].managedBy = mb;
+    saveAppState(appState);
+  }
+  function mgManagerLabel(m) {
+    if (!m) return '';
+    if (m.type === 'enterprise') return mgCompanyName(m.id);
+    const u = mgUser(m.id); return (u && u.name) || m.name || 'your agent';
+  }
+  function mgLandlordsOf(managerId) {
+    appState = loadAppState();
+    return Object.values(appState.users || {}).filter(u => u.role === 'landlord' && u.managedBy && u.managedBy.id === managerId);
+  }
+
+  // ---- Landlord side ----
+  function mgLandlordCardHtml(uid) {
+    const u = mgUser(uid); if (!u) return '';
+    const m = u.managedBy, lr = u.leaveRequest;
+    const wrap = (title, body, action) => `<div class="ent-list-item mg-card" style="flex-direction:column;align-items:stretch;gap:8px;margin-bottom:12px;"><p class="ent-list-title">${title}</p><p class="ent-list-sub" style="white-space:normal;">${body}</p>${action || ''}</div>`;
+    if (m) {
+      const nm = mktEsc(mgManagerLabel(m));
+      if (lr && lr.status === 'PENDING') return wrap('Managed by ' + nm, `You asked to leave on ${new Date(lr.requestedAt).toLocaleDateString()}. ${nm} will review your request.`, '');
+      const declined = (lr && lr.status === 'DECLINED') ? ` Your last request was declined${lr.reason ? ': ' + mktEsc(lr.reason) : ''}.` : '';
+      return wrap('Managed by ' + nm, `${nm} lists and manages your properties. You review and approve each listing, upload your documents and track your payouts here.${declined}`,
+        '<button type="button" class="ent-list-action-btn" data-mg-leave>Request to leave</button>');
+    }
+    if (u.needsListingGate) {
+      const fm = u.formerManager ? mktEsc(mgManagerLabel(u.formerManager)) : 'your agent';
+      return wrap('You have left ' + fm, 'You can now list on your own. Complete verification and accept the Landlord policy first.', '<button type="button" class="ent-list-action-btn primary" data-mg-gate>Verify to list on your own</button>');
+    }
+    return '';
+  }
+  function mgRenderLandlordUi() {
+    if ((currentUserRole || '') !== 'landlord') return;
+    const uid = getCurrentUserId(); if (!uid) return;
+    const html = mgLandlordCardHtml(uid);
+    const lv = document.getElementById('landlord-view');
+    if (lv) {
+      let c = document.getElementById('mg-landlord-card');
+      if (!c) { lv.insertAdjacentHTML('afterbegin', '<div id="mg-landlord-card"></div>'); c = document.getElementById('mg-landlord-card'); }
+      c.innerHTML = html;
+    }
+    const u = mgUser(uid);
+    const addBtn = document.getElementById('s5-add-property-btn');
+    if (addBtn) addBtn.style.display = (u && u.managedBy) ? 'none' : '';
+    if (u && u.managedBy) {
+      const wrap = document.getElementById('ent-dashboard-entry');
+      if (wrap) wrap.innerHTML = html;
+    }
+    if (window.lucide) lucide.createIcons();
+  }
+  function mgRequestLeave() {
+    const uid = getCurrentUserId(); const m = mgUser(uid) && mgUser(uid).managedBy; if (!m) return;
+    const nm = mgManagerLabel(m);
+    mktModal('Request to leave', `<p class="li-note" style="margin:0 0 10px;">${mktEsc(nm)} decides your request. If approved, you become a direct landlord and must complete verification before listing on your own. Listings they already placed stay under their management until each one ends.</p>
+      <textarea id="mg-leave-note" class="field-input" rows="3" placeholder="Reason (optional)"></textarea>`, 'Send request', () => {
+      const note = (document.getElementById('mg-leave-note').value || '').trim();
+      appState = loadAppState();
+      const u = appState.users[uid]; if (!u) return false;
+      u.leaveRequest = { status: 'PENDING', requestedAt: Date.now(), note };
+      saveAppState(appState);
+      mktNotify(m.id, 'Landlord asked to leave', `${u.name || 'A landlord'} asked to leave your management.${note ? ' Reason: ' + note : ''} Review it under Landlords.`, null);
+      showToast('Request sent to ' + nm);
+      mgRenderLandlordUi();
+      window.dispatchEvent(new Event('maintown_state_updated'));
+    });
+  }
+  function mgOpenGate(onDone) {
+    const uid = getCurrentUserId(); const u = mgUser(uid); if (!u) return;
+    const bank = getPayoutOnFile(uid); const hasBvn = !!getUserBvn(u);
+    mktModal('Verify to list on your own', `<p class="li-note" style="margin:0 0 10px;">This is the same verification every direct landlord completes before listing.</p>
+      ${hasBvn ? '' : '<div class="field"><label class="field-label">BVN (11 digits)</label><input class="field-input" id="mg-g-bvn" inputmode="numeric" maxlength="11"></div>'}
+      ${bank ? `<p class="li-note">Payout account on file: ${mktEsc(bank.bankName)} ••••${mktEsc(String(bank.accountNumber).slice(-4))}</p>` : '<div class="field"><label class="field-label">Payout account number (10 digits)</label><input class="field-input" id="mg-g-acct" inputmode="numeric" maxlength="10"></div><div class="field"><label class="field-label">Bank name</label><input class="field-input" id="mg-g-bank" type="text"></div>'}
+      <label class="agree-row"><input type="checkbox" class="agree-checkbox" id="mg-g-policy"><span>I have read and accept the Landlord, Developer &amp; Owner policy, including the managed-account section, and I will keep my documents and details accurate.</span></label>`, 'Verify and continue', (el, err) => {
+      const bvn = (document.getElementById('mg-g-bvn') || {}).value;
+      const acct = (document.getElementById('mg-g-acct') || {}).value;
+      const bnk = (document.getElementById('mg-g-bank') || {}).value;
+      if (!hasBvn && !/^\d{11}$/.test((bvn || '').trim())) { err('Enter your 11-digit BVN'); return false; }
+      if (!hasBvn && mtBvnTakenByOther((bvn || '').trim(), uid)) { err('This BVN is already linked to another account.'); return false; }
+      if (!bank && (!/^\d{10}$/.test((acct || '').trim()) || !(bnk || '').trim())) { err('Enter a valid 10-digit account number and bank name'); return false; }
+      if (!document.getElementById('mg-g-policy').checked) { err('Please accept the policy to continue'); return false; }
+      appState = loadAppState();
+      const rec = appState.users[uid];
+      if (!hasBvn) rec.bvn = bvn.trim();
+      if (!bank) rec.settlementBank = { accountNumber: acct.trim(), bankName: bnk.trim() };
+      rec.needsListingGate = false; rec.policyAcceptedAt = Date.now();
+      saveAppState(appState);
+      showToast('Verified. You can now list on your own.');
+      mgRenderLandlordUi();
+      if (typeof onDone === 'function') onDone();
+    });
+  }
+
+  // ---- Agent / CEO side ----
+  function mgRenderManagerList(container, managerId, showEmpty) {
+    if (!container) return;
+    const rows = mgLandlordsOf(managerId);
+    if (!rows.length) { container.innerHTML = showEmpty ? '<div class="ent-empty"><i data-lucide="user-check"></i><p>No managed landlords yet. A landlord you onboard when listing for them appears here.</p></div>' : ''; if (window.lucide) lucide.createIcons(); return; }
+    const head = showEmpty ? '' : '<p class="s5-section-label"><i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i>My Landlords</p>';
+    container.innerHTML = head + rows.map(u => {
+      const live = listings.filter(l => l.ownerId === u.id).length;
+      const pend = agentListings.filter(e => e.ownerId === u.id && e.workflowStatus !== 'LIVE').length;
+      const lr = u.leaveRequest;
+      const req = (lr && lr.status === 'PENDING')
+        ? `<p class="ent-list-sub" style="color:#d97706;white-space:normal;">Asked to leave on ${new Date(lr.requestedAt).toLocaleDateString()}${lr.note ? ': ' + mktEsc(lr.note) : ''}</p>
+           <div style="display:flex;gap:8px;"><button type="button" class="ent-list-action-btn primary" data-mg-approve="${u.id}">Approve</button><button type="button" class="ent-list-action-btn" data-mg-decline="${u.id}">Decline</button></div>` : '';
+      return `<div class="ent-list-item" style="flex-direction:column;align-items:stretch;gap:6px;">
+        <p class="ent-list-title">${mktEsc(u.name || 'Landlord')}</p>
+        <p class="ent-list-sub">${live} live · ${pend} in progress${u.status === 'PENDING_CLAIM' ? ' · account not yet claimed' : ''}</p>${req}</div>`;
+    }).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+  function mgRefreshManagerUis() {
+    const me = (currentUserRole === 'enterprise_staff' || isEnterpriseCeo(getCurrentUserId() || '')) ? (getEnterpriseCompanyId && getEnterpriseCompanyId()) : getCurrentUserId();
+    const a = document.getElementById('mg-agent-landlords'); if (a && currentUserRole === 'agent') mgRenderManagerList(a, getCurrentUserId(), false);
+    const c = document.getElementById('mg-ceo-landlords'); if (c && me) mgRenderManagerList(c, me, true);
+  }
+  function mgRenderCeoTab() {
+    const p = document.getElementById('ent-tab-landlords'); if (!p) return;
+    p.innerHTML = '<div id="mg-ceo-landlords"></div>';
+    mgRenderManagerList(document.getElementById('mg-ceo-landlords'), getEnterpriseCompanyId(), true);
+  }
+  function mgConfirmRelease(landlordId) {
+    const u = mgUser(landlordId); if (!u) return;
+    mktModal('Release ' + (u.name || 'landlord') + '?', '<p class="li-note" style="margin:0;">They become a direct landlord and can list and upgrade on their own after verification. Listings you already placed stay under your management until each one ends.</p>', 'Approve and release', () => {
+      appState = loadAppState();
+      const r = appState.users[landlordId]; if (!r) return false;
+      r.formerManager = Object.assign({}, r.managedBy, { left: Date.now() });
+      r.managedBy = null; r.needsListingGate = true;
+      r.leaveRequest = { status: 'APPROVED', decidedAt: Date.now() };
+      saveAppState(appState);
+      mktNotify(landlordId, 'Your request to leave was approved', 'You can now list on your own. Complete verification first, from your dashboard.', null);
+      showToast('Landlord released');
+      mgRefreshManagerUis();
+      window.dispatchEvent(new Event('maintown_state_updated'));
+    });
+  }
+  function mgConfirmDecline(landlordId) {
+    mktModal('Decline request', '<textarea id="mg-decline-reason" class="field-input" rows="3" placeholder="Reason (the landlord will see this)"></textarea>', 'Decline request', () => {
+      const reason = (document.getElementById('mg-decline-reason').value || '').trim();
+      appState = loadAppState();
+      const r = appState.users[landlordId]; if (!r) return false;
+      r.leaveRequest = { status: 'DECLINED', decidedAt: Date.now(), reason };
+      saveAppState(appState);
+      mktNotify(landlordId, 'Your request to leave was declined', reason ? 'Reason: ' + reason : 'Your agent or company declined the request.', null);
+      mgRefreshManagerUis();
+      window.dispatchEvent(new Event('maintown_state_updated'));
+    });
+  }
+
+  // ---- Client-owned listings: landlord approval -> CEO review -> publish ----
+  function mgAfterLandlordApproval(entry, landlordUser) {
+    entry.returnNote = null; entry.workflowStatus = 'PENDING_CEO_REVIEW';
+    saveListings();
+    document.getElementById('landlord-verify-modal').classList.remove('open');
+    const co = mgCompanyName(entry.companyId);
+    showToast(`Approved. Sent to ${co} for final review.`);
+    const lname = landlordUser.name || 'The landlord';
+    mktNotify(entry.companyId, 'Landlord approved a listing', `${lname} approved "${entry.title}" and uploaded the documents. Review them and publish.`, null);
+    mktNotify(entry.staffId, 'Landlord approved your listing', `${lname} approved "${entry.title}" and uploaded the documents. It is now with the CEO for review.`, null);
+    mktNotify(entry.ownerId, 'Sent for final review', `Your approval of "${entry.title}" was received. ${co} will review it and publish.`, null);
+    renderLandlordVerificationQueue();
+    window.dispatchEvent(new Event('maintown_state_updated'));
+  }
+  function mgCeoClientEntries() {
+    const cid = getEnterpriseCompanyId();
+    return agentListings.filter(e => e.clientOwned && e.companyId === cid && (e.workflowStatus === 'PENDING_CEO_REVIEW' || e.workflowStatus === 'PENDING_LANDLORD_VERIFICATION'));
+  }
+  function mgCeoReviewCount() { return mgCeoClientEntries().filter(e => e.workflowStatus === 'PENDING_CEO_REVIEW').length; }
+  function mgRenderCeoClientQueue() {
+    const wrap = document.getElementById('mg-ceo-client-wrap'), list = document.getElementById('mg-ceo-client-list');
+    if (!wrap || !list) return;
+    const rows = mgCeoClientEntries();
+    wrap.style.display = rows.length ? '' : 'none';
+    list.innerHTML = rows.map(e => `<div class="ent-list-item">
+      <div class="ent-list-icon"><i data-lucide="user-check" class="w-4 h-4"></i></div>
+      <div class="ent-list-text"><p class="ent-list-title">${mktEsc(e.title)}</p>
+      <p class="ent-list-sub">${mktEsc(e.landlordName || 'Landlord')} · ${e.workflowStatus === 'PENDING_CEO_REVIEW' ? 'Documents uploaded, ready for your review' : 'Waiting for the landlord'}</p></div>
+      ${e.workflowStatus === 'PENDING_CEO_REVIEW' ? `<button type="button" class="ent-list-action-btn primary" data-mg-review="${e.id}">Review</button>` : '<span class="s5-status-badge insp-status-pending">With landlord</span>'}
+    </div>`).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+  function mgOpenCeoReview(entryId) {
+    const e = agentListings.find(x => x.id === entryId); if (!e) return;
+    const docs = (e.titleDocuments || []).map(d => `<li>${mktEsc(d.label)}: ${d.fileUrl ? `<a href="${d.fileUrl}" target="_blank" rel="noopener">${mktEsc(d.fileName || 'view')}</a>` : mktEsc(d.fileName || 'uploaded')}</li>`).join('') || '<li>No documents attached</li>';
+    const bank = e.landlordBankAccount ? `${mktEsc(e.landlordBankName || '')} ••••${mktEsc(String(e.landlordBankAccount).slice(-4))}` : 'not recorded';
+    mktModal('Review before publishing', `<p class="li-note" style="margin:0 0 6px;"><b>${mktEsc(e.title)}</b><br>${mktEsc(e.address || '')}</p>
+      <p class="li-note" style="margin:0 0 6px;">Landlord: ${mktEsc(e.landlordName || '')}. Payout account: ${bank}.</p>
+      <p class="li-note" style="margin:0 0 4px;">Documents uploaded by the landlord:</p><ul class="li-note" style="margin:0 0 10px 18px;">${docs}</ul>
+      <textarea id="mg-return-note" class="field-input" rows="2" placeholder="Note to the landlord, only if you send it back"></textarea>
+      <button type="button" class="dealx-btn" data-mg-sendback style="margin-top:10px;background:transparent;border:1px solid currentColor;">Send back to landlord</button>`, 'Publish listing', () => {
+      e.workflowStatus = 'LIVE'; e.status = 'live'; e.returnNote = null;
+      if (e.listingData) {
+        e.listingData.status = 'live'; e.listingData.workflowStatus = 'LIVE'; e.listingData.legalVerifiedAt = Date.now();
+        if (!listingsFeed.some(l => l.id === e.listingData.id)) listingsFeed.unshift(e.listingData);
+      }
+      saveListings();
+      mktNotify(e.ownerId, 'Your listing is live', `"${e.title}" has been published and is now live on MainTown.`, null);
+      mktNotify(e.staffId, 'Listing is now live', `"${e.title}" has been published. You can start taking inspections.`, { screen: 'screen-ent-sales' });
+      showToast('Listing published');
+      mgRenderCeoClientQueue();
+      window.dispatchEvent(new Event('maintown_state_updated'));
+    }, { onOpen: (el) => {
+      el.querySelector('[data-mg-sendback]').addEventListener('click', () => {
+        const note = (el.querySelector('#mg-return-note').value || '').trim();
+        if (!note) { const p = el.querySelector('.mkt-err'); p.textContent = 'Add a short note so the landlord knows what to fix'; p.style.display = 'block'; return; }
+        e.workflowStatus = 'PENDING_LANDLORD_VERIFICATION'; e.returnNote = note; saveListings();
+        mktNotify(e.ownerId, 'Listing sent back to you', `"${e.title}" was sent back: ${note}`, null);
+        mktNotify(e.staffId, 'Listing sent back to the landlord', `"${e.title}" was sent back to the landlord: ${note}`, null);
+        el.remove(); showToast('Sent back to the landlord');
+        mgRenderCeoClientQueue(); window.dispatchEvent(new Event('maintown_state_updated'));
+      });
+    } });
+  }
+
+  // ---- Staff form: agency-owned vs client-owned ----
+  function mgApplyOwnerUi() {
+    const isStaff = currentUserRole === 'enterprise_staff';
+    const choice = document.getElementById('mg-owner-choice'); if (choice) choice.style.display = isStaff ? 'block' : 'none';
+    const client = isStaff && mgOwnerMode === 'client';
+    const ls = document.getElementById('s5-landlord-section'); if (ls) ls.style.display = isStaff ? (client ? 'block' : 'none') : 'block';
+    document.getElementById('mg-own-company')?.classList.toggle('active', !client);
+    document.getElementById('mg-own-client')?.classList.toggle('active', client);
+    const hint = document.getElementById('mg-own-hint');
+    if (hint) hint.textContent = client ? 'The property belongs to an outside landlord. They review and upload the documents, then your CEO publishes it.' : 'The property is in your company\'s own portfolio. Your CEO uploads the title documents and approves it.';
+    const note = document.getElementById('mg-submit-note'), btn = document.getElementById('mg-submit-btn');
+    if (isStaff && note && btn) {
+      note.textContent = client ? 'The landlord is notified to review the listing, upload the documents for this property and approve it. Your CEO then reviews the documents and publishes.' : 'Submitting sends this listing to your CEO, who uploads the title documents and approves it before it goes live.';
+      btn.textContent = client ? 'Submit to Landlord for Verification' : 'Submit for CEO Review';
+    } else if (note && btn) {
+      note.textContent = 'Submitting sends this listing to the Landlord/Owner for verification. They\'ll confirm their payout account, approve the listing, and upload title documents before it enters MainTown\'s legal review.';
+      btn.textContent = 'Submit for Landlord Verification';
+    }
+  }
+  document.getElementById('mg-own-company')?.addEventListener('click', () => { mgOwnerMode = 'company'; mgApplyOwnerUi(); });
+  document.getElementById('mg-own-client')?.addEventListener('click', () => { mgOwnerMode = 'client'; mgApplyOwnerUi(); });
+
+  // ---- Wire-up ----
+  (function mgWire() {
+    // Never let a managed landlord open the add-listing form; a released one passes the gate first.
+    const addBtn = document.getElementById('s5-add-property-btn');
+    if (addBtn) addBtn.addEventListener('click', (e) => {
+      const u = mgUser(getCurrentUserId());
+      if (u && u.managedBy) { e.stopImmediatePropagation(); showToast('Your agent or company lists for you'); return; }
+      if (u && u.needsListingGate) { e.stopImmediatePropagation(); mgOpenGate(() => addBtn.click()); }
+    }, true);
+    document.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t.closest('[data-mg-leave]')) { mgRequestLeave(); return; }
+      if (t.closest('[data-mg-gate]')) { mgOpenGate(() => mgRenderLandlordUi()); return; }
+      const ap = t.closest('[data-mg-approve]'); if (ap) { mgConfirmRelease(ap.dataset.mgApprove); return; }
+      const dc = t.closest('[data-mg-decline]'); if (dc) { mgConfirmDecline(dc.dataset.mgDecline); return; }
+      const rv = t.closest('[data-mg-review]'); if (rv) { mgOpenCeoReview(Number(rv.dataset.mgReview)); }
+    });
+    // Wrap renderers
+    const _p5 = populateScreen5; populateScreen5 = function () { _p5.apply(this, arguments); try { mgApplyOwnerUi(); mgRenderLandlordUi(); } catch (e) {} };
+    const _ee = renderEnterpriseEntryCard; renderEnterpriseEntryCard = function () { _ee.apply(this, arguments); try { mgRenderLandlordUi(); } catch (e) {} };
+    const _ral = renderAgentListings; renderAgentListings = function () {
+      _ral.apply(this, arguments);
+      try {
+        if (currentUserRole === 'agent') {
+          let c = document.getElementById('mg-agent-landlords');
+          if (!c) { const m = document.getElementById('s5-agent-mine'); if (m) { m.insertAdjacentHTML('afterbegin', '<div id="mg-agent-landlords"></div>'); c = document.getElementById('mg-agent-landlords'); } }
+          if (c) mgRenderManagerList(c, getCurrentUserId(), false);
+        }
+      } catch (e) {}
+    };
+    const _rel = renderEntLegal; renderEntLegal = function () { _rel.apply(this, arguments); try { mgRenderCeoClientQueue(); } catch (e) {} };
+    const _clc = ceoLegalQueueCounts; ceoLegalQueueCounts = function () { const r = _clc.apply(this, arguments); try { const n = mgCeoReviewCount(); r.clients = n; r.total += n; } catch (e) {} return r; };
+    const _rsl = renderSalesListings; renderSalesListings = function () {
+      _rsl.apply(this, arguments);
+      try {
+        const uid = getCurrentUserId();
+        const rows = agentListings.filter(e => e.clientOwned && e.staffId === uid && e.workflowStatus !== 'LIVE');
+        const list = document.getElementById('ent-sales-listings-list');
+        if (list && rows.length) {
+          const lbl = { PENDING_LANDLORD_VERIFICATION: 'Waiting for the landlord', PENDING_CEO_REVIEW: 'Awaiting CEO review' };
+          list.insertAdjacentHTML('afterbegin', rows.map(e => `<div class="ent-list-item"><div class="ent-list-icon"><i data-lucide="user-check" class="w-4 h-4"></i></div><div class="ent-list-text"><p class="ent-list-title">${mktEsc(e.title)}</p><p class="ent-list-sub">Client-owned · ${mktEsc(e.landlordName || '')} · ${lbl[e.workflowStatus] || e.workflowStatus}${e.returnNote ? ' · Sent back: ' + mktEsc(e.returnNote) : ''}</p></div></div>`).join(''));
+          if (window.lucide) lucide.createIcons();
+        }
+      } catch (e) {}
+    };
+    // CEO "Landlords" tab
+    const li = ENT_TAB_DEFS.findIndex(t => t.key === 'legal') + 1;
+    ENT_TAB_DEFS.splice(li, 0, { key: 'landlords', label: 'Landlords', icon: 'user-check' });
+    ENT_TAB_VISIBILITY.ceo.splice(ENT_TAB_VISIBILITY.ceo.indexOf('legal') + 1, 0, 'landlords');
+    ENT_PANEL_COPY.landlords = ['Managed landlords', 'Landlords you onboarded, and requests to leave'];
+    const led = document.getElementById('ent-tab-ledger');
+    if (led) led.insertAdjacentHTML('beforebegin', '<div id="ent-tab-landlords" class="ent-tab-panel" style="display:none;"></div>');
+    window.addEventListener('maintown_state_updated', () => { try { mgRenderLandlordUi(); mgRefreshManagerUis(); } catch (e) {} });
+  })();
+
 
   // ---- Boot: auto-relogin into a saved demo session, else the Welcome screen shows as-is ----
   checkAutoRelogin();
