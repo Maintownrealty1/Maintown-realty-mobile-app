@@ -12259,6 +12259,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return CFG.url + '/storage/v1/object/public/' + CFG.bucket + '/' + path;
     }
 
+    // Public "Listed by": the host's name only (never the KYC selfie). Admin can override per listing.
+    function listedByFields(l) {
+      const name = String((l.listedBy === 'agent' ? (l.agentName || l.landlordName) : (l.landlordName || l.agentName)) || '').trim();
+      if (!name) return { listed_by_type: 'maintown', listed_by_name: null, listed_by_photo: null };
+      return { listed_by_type: l.companyId ? 'company' : 'owner', listed_by_name: name.slice(0, 80), listed_by_photo: null };
+    }
     // ---------- local listing -> admin `listings` row ----------
     function rowFromListing(l, images, video) {
       const fees = [];
@@ -12272,11 +12278,27 @@ This voucher is auto-generated and serves as proof of settlement.`;
           fees.push('Property Type: ' + (l.houseType || 'House'));
         } else { beds = 0; fees.push('Property Type: Land (Plot)'); }
         fees.push('Outright Price: ' + naira(l.totalPrice));
+        if (l.installmentOffered !== false) { // legacy app listings always offered installments
+          const ip = Math.max(num(l.installmentPrice), num(l.totalPrice));
+          fees.push('Installment Price: ' + naira(ip), 'Installment Duration: ' + (num(l.installmentMonths) || 12) + ' months');
+          if (num(l.installmentDeposit) > 0) fees.push('Initial Deposit: ' + naira(l.installmentDeposit));
+        }
+        if (l.halfPlotOffered && num(l.halfPlotPrice) > 0) {
+          fees.push('Sold In Parts: Full plot, Half plot', 'Price Basis: Per full plot');
+          if (num(l.plotsAvailable) > 0) fees.push('Plots Available: ' + num(l.plotsAvailable));
+          fees.push('Half Plot Price: ' + naira(l.halfPlotPrice));
+          if (l.installmentOffered !== false && num(l.halfPlotInstallment) > 0) fees.push('Half Plot Installment: ' + naira(l.halfPlotInstallment));
+        }
         if (num(l.legalFeePct)) fees.push('Legal Fee: ' + num(l.legalFeePct) + '% (' + naira(num(l.totalPrice) * num(l.legalFeePct) / 100) + ')');
         if (num(l.sqm)) fees.push('Plot Size: ' + num(l.sqm) + 'sqm');
         if (l.landUse) fees.push('Land Use: ' + l.landUse);
       } else if (l.type === 'shortlet') {
         category = 'short-let'; rent = naira(l.nightlyRate) + '/night';
+        if (num(l.minStay) > 0) fees.push('Minimum Stay: ' + num(l.minStay) + ' night' + (num(l.minStay) > 1 ? 's' : ''));
+        if (num(l.cleaningFee) > 0) fees.push('Cleaning Fee: ' + naira(l.cleaningFee));
+        if (l.shortletOpenFrom && l.shortletOpenTo) fees.push('Open For Booking: ' + l.shortletOpenFrom + ' to ' + l.shortletOpenTo);
+        if (Array.isArray(l.shortletBlockedDates) && l.shortletBlockedDates.length) fees.push('Blocked Dates: ' + l.shortletBlockedDates.join(', '));
+        { const about = String(l.description || '').replace(/\s+/g, ' ').trim().slice(0, 600); if (about) fees.push('About This Space: ' + about); }
       } else {
         const com = l.usage === 'commercial';
         annual = num(l.annualPrice) || null;
@@ -12291,14 +12313,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
           fees.push('Payment Terms: Annual, paid in full upfront');
         }
       }
+      if (l.type === 'rent' && l.usage !== 'commercial' && num(l.annualPrice)) {
+        fees.push('Agent Fee: 10% (' + naira(num(l.annualPrice) * 0.10) + ')', 'Legal Fee: 5% (' + naira(num(l.annualPrice) * 0.05) + ')');
+      }
       if (l.type !== 'land') {
         if (num(l.cautionFee)) fees.push('Caution Fee: ' + naira(l.cautionFee));
         if (num(l.serviceChargeFee)) fees.push('Service Charge: ' + naira(l.serviceChargeFee));
       }
       return {
         title: l.title, location: l.location, beds, category, rent, annual_rent: annual, fees,
-        color: 'from-brand-500/30 to-slate-900', features: [], images, video: video || null,
-        status: 'pending', source: LISTING_SOURCE.APP, prototype_ref: refOf(l) // admin approves -> 'available'
+        color: 'from-brand-500/30 to-slate-900', features: (Array.isArray(l.amenities) ? l.amenities : []).map(String).slice(0, 30), images, video: video || null,
+        status: 'pending', source: LISTING_SOURCE.APP, prototype_ref: refOf(l), // admin approves -> 'available'
+        ...listedByFields(l)
       };
     }
 
@@ -12324,7 +12350,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         listedBy: 'landlord', landlordName: hostInfo.name, landlordPhoto: hostInfo.photo, agentName: null, hostDisplay: hostInfo,
         listedAt: Date.parse(row.created_at) || Date.now(),
         photos: imgs, videoUrl: video, hasPhotos: imgs.length > 0, hasVideo: !!video, mediaRemote: true,
-        availability: [], cautionFee: amt(fm['Caution Fee']), serviceChargeFee: amt(fm['Service Charge'])
+        availability: [], cautionFee: amt(fm['Caution Fee']), serviceChargeFee: amt(fm['Service Charge']), serviceChargeMode: amt(fm['Service Charge']) ? 'charged' : 'self',
+        amenities: (Array.isArray(row.features) ? row.features : []).map(x => String(x).trim()).filter(Boolean)
       };
       base.img = imgs[0] || PROPERTY_IMG_FALLBACK[category] || PROPERTY_IMG_FALLBACK.rent;
       if (category === 'land') {
@@ -12333,12 +12360,27 @@ This voucher is auto-generated and serves as proof of settlement.`;
         return Object.assign(base, {
           type: 'land', propertyKind: house ? 'house' : 'land', landUse: fm['Land Use'] || 'Residential',
           totalPrice: amt(fm['Outright Price']) || amt(row.rent),
+          installmentOffered: amt(fm['Installment Price']) > 0,
+          installmentPrice: amt(fm['Installment Price']) || undefined,
+          installmentMonths: amt(fm['Installment Duration']) || 12,
+          installmentDeposit: amt(fm['Initial Deposit']) || undefined,
+          halfPlotOffered: /half plot/i.test(fm['Sold In Parts'] || '') && amt(fm['Half Plot Price']) > 0,
+          halfPlotPrice: amt(fm['Half Plot Price']) || undefined,
+          halfPlotInstallment: amt(fm['Half Plot Installment']) || undefined,
+          plotsAvailable: amt(fm['Plots Available']) || undefined,
           legalFeePct: amt(fm['Legal Fee']) ? (String(fm['Legal Fee']).indexOf('10%') === 0 ? 10 : 5) : 5
         }, house ? { houseType: pt, bedrooms: num(row.beds), bathrooms: amt(fm['Bathrooms']), toilets: amt(fm['Toilets']), parkingSpaces: amt(fm['Parking Spaces']) } : {},
           amt(fm['Plot Size']) ? { sqm: amt(fm['Plot Size']) } : {});
       }
       if (category === 'shortlet') {
         const n = amt(row.rent);
+        const open = String(fm['Open For Booking'] || '').match(/(\d{4}-\d{2}-\d{2})\s+to\s+(\d{4}-\d{2}-\d{2})/);
+        const blocked = String(fm['Blocked Dates'] || '').split(',').map(x => x.trim()).filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x));
+        Object.assign(base, {
+          minStay: amt(fm['Minimum Stay']) || undefined, cleaningFee: amt(fm['Cleaning Fee']) || undefined,
+          shortletOpenFrom: open ? open[1] : '', shortletOpenTo: open ? open[2] : '', shortletBlockedDates: blocked,
+          description: fm['About This Space'] || ''
+        });
         return Object.assign(base, { type: 'shortlet', nightlyRate: n, bedrooms: num(row.beds), ngn: naira(n) + ' / night', usd: '$' + Math.round(n / 1600) + ' / night' });
       }
       const com = fm['Usage'] === 'Commercial';
@@ -14580,6 +14622,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (serviceRow) serviceRow.style.display = breakdown.serviceChargeFee > 0 ? 'flex' : 'none';
     const serviceEl = document.getElementById('sb-service');
     if (serviceEl) serviceEl.textContent = formatMoney(breakdown.serviceChargeFee, 'ngn');
+    if (serviceRow) { const lb = serviceRow.querySelector('span'); if (lb) lb.textContent = breakdown.cleaningFee > 0 ? 'Service Charge & Cleaning Fee (to host)' : 'Service Charge (to host)'; }
     document.getElementById('sb-total-now').textContent = formatMoney(breakdown.totalPayable, 'ngn');
     document.getElementById('sb-autodebit-note').textContent = breakdown.remainingNights > 0
       ? `Night 1 (plus Caution Fee & Service Charge, if set) is paid now. Nights 2–${breakdown.nights} auto-debit ${formatMoney(breakdown.dailyDebitAmount, 'ngn')} daily from your wallet until the stay is fully paid.`
@@ -14617,6 +14660,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const picked = SL_AMENITIES.filter(a => slOffers[p].sel.has(a.k));
     const missing = SL_AMENITIES.filter(a => a.safety && !slOffers[p].sel.has(a.k)).map(a => a.l);
     return {
+      minStay: Math.max(0, parseInt((document.getElementById(`${p}-sl-minstay`) || {}).value, 10) || 0) || undefined,
+      cleaningFee: Math.max(0, parseFloat((document.getElementById(`${p}-sl-cleaning`) || {}).value) || 0) || undefined,
       shortletOpenFrom: document.getElementById(`${p}-sl-from`).value, shortletOpenTo: document.getElementById(`${p}-sl-to`).value, shortletBlockedDates: slBlocked[p].slice(),
       // Host-written "About this space" + "What this place offers" (shown on the listing's Details sheet)
       description: aboutEl ? aboutEl.value.trim() : '',
@@ -14826,6 +14871,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   });
 
   function shortletUnavailableReason(l, inIso, outIso) {
+    if (l && Number(l.minStay) > 1 && inIso && outIso) {
+      const n = Math.round((new Date(outIso) - new Date(inIso)) / 86400000);
+      if (n < Number(l.minStay)) return `Minimum stay is ${l.minStay} nights.`;
+    }
     if (!l || !l.shortletOpenFrom) return '';
     if (inIso < l.shortletOpenFrom || outIso > l.shortletOpenTo) return `Pick dates between ${l.shortletOpenFrom} and ${l.shortletOpenTo}.`;
     const blocked = l.shortletBlockedDates || [];
@@ -15889,10 +15938,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // legalPct: the Landlord/Owner-selected Deed of Assignment processing fee
   // percentage (5 or 10), chosen at listing time. Defaults to 5% for listings
   // created before this selection existed.
-  function computeInstallmentBreakdown(totalAmount, frequency, legalPct) {
-    const plan = INSTALLMENT_PLANS[frequency] || INSTALLMENT_PLANS.monthly;
+  // Installment base price: the host's own installment price when set (never below the outright price).
+  function installmentBase(l) { const ip = Number(l && l.installmentPrice) || 0, tp = Number(l && l.totalPrice) || 0; return ip > tp ? ip : tp; }
+  function installmentMonthsOf(l) { const m = Number(l && l.installmentMonths) || 12; return m >= 2 && m <= 60 ? Math.round(m) : 12; }
+  // months: plan length chosen by the host (default 12). Quarterly/half-yearly counts scale from it.
+  function installmentDepositOf(l) { const d = Number(l && l.installmentDeposit) || 0, b = installmentBase(l); return d > 0 && d < b ? Math.round(d) : 0; }
+  function computeInstallmentBreakdown(totalAmount, frequency, legalPct, months, deposit) {
+    const basePlan = INSTALLMENT_PLANS[frequency] || INSTALLMENT_PLANS.monthly;
+    const mm = Number(months) || 12;
+    const plan = mm === 12 ? basePlan : Object.assign({}, basePlan, { count: Math.max(1, Math.round(mm / basePlan.intervalMonths)) });
     const pct = (legalPct === 10 ? 0.10 : 0.05);
-    const monthly = Math.round(totalAmount / plan.count);
+    const dep = (Number(deposit) > 0 && Number(deposit) < totalAmount) ? Math.round(Number(deposit)) : 0;
+    const monthly = Math.round((totalAmount - dep) / plan.count);
     // Agency Commission is a total 10% of Total Amount, charged at the SOURCE
     // as two separate 5% halves — not billed to the Buyer as one lump 10%:
     //   Buyer's 5%  -> billed to the Buyer on top of Installment 1 (folded
@@ -15905,10 +15962,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const sellerCommission = Math.round(totalAmount * 0.05);
     const commission = buyerCommission + sellerCommission; // 10% total, kept for display/attribution
     const legal = Math.round(totalAmount * pct);
-    const upfront = monthly + buyerCommission + legal;
-    const remainingMonths = plan.count - 1;
+    // With an initial deposit the deposit is payment 1 and ALL `count` installments follow;
+    // without one, installment 1 is paid upfront and count-1 remain.
+    const upfront = (dep > 0 ? dep : monthly) + buyerCommission + legal;
+    const remainingMonths = dep > 0 ? plan.count : plan.count - 1;
     const remainingTotal = monthly * remainingMonths;
     return {
+      deposit: dep,
       frequency, label: plan.label, periodLabel: plan.periodLabel,
       installmentCount: plan.count, intervalMonths: plan.intervalMonths,
       monthly, commission, buyerCommission, sellerCommission, legal, legalPct: pct * 100, upfront, remainingMonths, remainingTotal,
@@ -16010,7 +16070,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       nights = Math.max(1, diff || 1);
     }
     const cautionFee = (listing && listing.cautionFee) || 0;
-    const serviceChargeFee = (listing && listing.serviceChargeMode === 'charged') ? (listing.serviceChargeFee || 0) : 0;
+    const cleaningFee = Number(listing && listing.cleaningFee) || 0; // one-time, paid to the host with the service charge line
+    const serviceChargeFee = ((listing && listing.serviceChargeMode === 'charged') ? (listing.serviceChargeFee || 0) : 0) + cleaningFee;
     const nightlyPlatformFee = Math.round(rate * 0.05);
     const remainingNights = Math.max(0, nights - 1);
     const dailyDebitAmount = rate + nightlyPlatformFee;
@@ -16019,7 +16080,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     return {
       checkIn: checkInIso, checkOut: checkOutIso, nights, remainingNights,
       nightlyRate: rate, nightlyPlatformFee,
-      cautionFee, serviceChargeFee,
+      cautionFee, serviceChargeFee, cleaningFee,
       // Night 1 figures — what the Checkout Screen's breakdown & PIN gate
       // actually charge today, regardless of how many nights were selected.
       netRent: rate, platformFee: nightlyPlatformFee,
@@ -16309,7 +16370,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       }
       if (sl.serviceChargeFee > 0) {
         serviceRow.style.display = 'flex';
-        document.getElementById('s6-row5-label').textContent = `Service Charge (to ${payeeName || 'Host'})`;
+        document.getElementById('s6-row5-label').textContent = `Service Charge${sl.cleaningFee > 0 ? ' & Cleaning Fee' : ''} (to ${payeeName || 'Host'})`;
         document.getElementById('s6-service-amount').textContent = formatMoney(sl.serviceChargeFee, 'ngn');
       } else {
         serviceRow.style.display = 'none';
@@ -18505,6 +18566,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('s5-add-property-btn').addEventListener('click', () => {
     document.getElementById('tv-title').value = '';
     document.getElementById('tv-address').value = '';
+    resetHostExtras('tv');
     document.getElementById('tv-city').value = '';
     populateAreaSelect('tv-city', 'tv-area');
     document.getElementById('tv-city-hint').className = 'mkt-city-hint';
@@ -18688,6 +18750,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const cityId = document.getElementById('tv-city').value;
     const areaId = document.getElementById('tv-area').value;
     const type = document.getElementById('tv-listing-type').value;
+    { const hxErr = validateHostExtras('tv', type); if (hxErr) { showToast(hxErr); return; } }
     if (type === 'shortlet' && shortletAvailError('tv')) { showToast(shortletAvailError('tv')); return; }
     const annual = parseFloat(document.getElementById('tv-annual').value) || 0;
     // Vendor Activation Gate: Land & Property listings require KYC + Vendor
@@ -18756,7 +18819,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // policy): set here by the Owner, paid straight to them, never MainTown.
       cautionFee: feeFields.cautionFee,
       serviceChargeMode: feeFields.serviceChargeMode,
-      serviceChargeFee: feeFields.serviceChargeFee
+      serviceChargeFee: feeFields.serviceChargeFee,
+      ...getHostExtras('tv', type)
     };
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
@@ -19105,6 +19169,178 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (e.target.files.length) { box.classList.add('has-file'); label.textContent = e.target.files[0].name; }
   });
 
+  // ==================================================================
+  // ---- Host extras on the Add Property forms (landlord "tv" + agent/staff "s5") ----
+  // Features (rent + land) and, for Land & Property sales, the payment options a host sets:
+  // outright only, or outright + an installment plan (own installment price + duration).
+  // The same values are sent to the admin/website feed so every surface shows the same sheet.
+  // ==================================================================
+  const HOST_FEATURES = ['Fully Furnished', 'Personal Kitchen', 'Smart TV', 'DSTV', 'Air Conditioner', 'WiFi', 'Standing Fan', 'Water Heater', 'Clean Water', 'Standby Generator', 'Housekeeping', 'Serviced Court', 'Swimming Pool', '24/7 Security', 'Parking Space', 'Gated Estate'];
+  const hostExtraState = {};
+  function hostExtraGet(prefix) {
+    return hostExtraState[prefix] || (hostExtraState[prefix] = { feats: new Set(), custom: [], instOn: true, halfOn: false });
+  }
+  function injectHostExtras(prefix) {
+    if (document.getElementById(`${prefix}-host-features`)) return;
+    const photoBox = document.getElementById(`${prefix}-photo-upload`);
+    const sqm = document.getElementById(`${prefix}-sqm-field`);
+    if (!photoBox || !sqm) return;
+    const inst = document.createElement('div');
+    inst.id = `${prefix}-host-payment`; inst.style.display = 'none';
+    inst.innerHTML = `
+      <div class="field">
+        <label class="field-label">Payment options for this sale</label>
+        <div class="toggle-row" style="display:flex;gap:8px;">
+          <button type="button" class="toggle-pill" data-hx-inst="${prefix}" data-on="0">Outright only</button>
+          <button type="button" class="toggle-pill active" data-hx-inst="${prefix}" data-on="1">Outright + Installment</button>
+        </div>
+      </div>
+      <div id="${prefix}-host-inst-fields">
+        <div class="field">
+          <label class="field-label">Installment price (NGN) — total, optional</label>
+          <input class="field-input" id="${prefix}-inst-price" type="number" min="0" inputmode="numeric" placeholder="Leave blank to use the outright price">
+          <p class="hint" id="${prefix}-inst-hint" style="margin-top:6px;font-size:12px;opacity:.75;"></p>
+        </div>
+        <div class="field">
+          <label class="field-label">Installment duration</label>
+          <select class="field-input" id="${prefix}-inst-months"><option value="6">6 months</option><option value="12" selected>12 months</option><option value="18">18 months</option><option value="24">24 months</option></select>
+        </div>
+        <div class="field">
+          <label class="field-label">Initial deposit (NGN) — optional</label>
+          <input class="field-input" id="${prefix}-inst-deposit" type="number" min="0" inputmode="numeric" placeholder="Paid upfront; the rest is split over the months">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Plot sizes</label>
+        <div class="toggle-row" style="display:flex;gap:8px;">
+          <button type="button" class="toggle-pill active" data-hx-half="${prefix}" data-on="0">Full plot only</button>
+          <button type="button" class="toggle-pill" data-hx-half="${prefix}" data-on="1">Also sell half plots</button>
+        </div>
+      </div>
+      <div id="${prefix}-host-half-fields" style="display:none;">
+        <div class="field"><label class="field-label">Half plot outright price (NGN)</label><input class="field-input" id="${prefix}-half-out" type="number" min="0" inputmode="numeric" placeholder="Must be lower than the full plot price"></div>
+        <div class="field" id="${prefix}-half-inst-wrap"><label class="field-label">Half plot installment price (NGN) — optional</label><input class="field-input" id="${prefix}-half-inst" type="number" min="0" inputmode="numeric" placeholder="Blank = half of the full plot installment price"></div>
+        <div class="field"><label class="field-label">Plots available — optional</label><input class="field-input" id="${prefix}-plots-count" type="number" min="1" inputmode="numeric" placeholder="e.g. 8"></div>
+      </div>`;
+    sqm.parentNode.insertBefore(inst, sqm.nextSibling);
+    const slBox = document.getElementById(`${prefix}-sl-avail`);
+    if (slBox && !document.getElementById(`${prefix}-sl-minstay`)) {
+      const sx = document.createElement('div');
+      sx.innerHTML = `
+        <div class="field"><label class="field-label">Minimum stay (nights) — optional</label><input class="field-input" id="${prefix}-sl-minstay" type="number" min="1" inputmode="numeric" placeholder="e.g. 2"></div>
+        <div class="field"><label class="field-label">Cleaning fee (NGN, one-time) — optional</label><input class="field-input" id="${prefix}-sl-cleaning" type="number" min="0" inputmode="numeric" placeholder="e.g. 15000"></div>`;
+      slBox.appendChild(sx);
+    }
+    const feats = document.createElement('div');
+    feats.id = `${prefix}-host-features`; feats.className = 'field';
+    feats.innerHTML = `
+      <label class="field-label">Features (tap all that apply)</label>
+      <div id="${prefix}-feat-chips" style="display:flex;flex-wrap:wrap;gap:8px;">${HOST_FEATURES.map(f => `<button type="button" class="sl-offer-chip" data-hx-feat="${prefix}" data-label="${f}">${f}</button>`).join('')}</div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <input class="field-input" id="${prefix}-feat-custom" type="text" maxlength="40" placeholder="Add your own feature" style="flex:1;">
+        <button type="button" class="toggle-pill" data-hx-addfeat="${prefix}">Add</button>
+      </div>
+      <div id="${prefix}-feat-custom-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>`;
+    photoBox.parentNode.insertBefore(feats, photoBox);
+  }
+  function hostExtrasUI(prefix, type) {
+    injectHostExtras(prefix);
+    const pay = document.getElementById(`${prefix}-host-payment`);
+    const fe = document.getElementById(`${prefix}-host-features`);
+    if (pay) pay.style.display = type === 'land' ? 'block' : 'none';
+    if (fe) fe.style.display = (type === 'rent' || type === 'land') ? 'block' : 'none'; // short-let has its own amenity chips
+    const st = hostExtraGet(prefix);
+    const fields = document.getElementById(`${prefix}-host-inst-fields`);
+    if (fields) fields.style.display = st.instOn ? 'block' : 'none';
+    const halfF = document.getElementById(`${prefix}-host-half-fields`);
+    if (halfF) halfF.style.display = st.halfOn ? 'block' : 'none';
+    const halfI = document.getElementById(`${prefix}-half-inst-wrap`);
+    if (halfI) halfI.style.display = st.instOn ? 'block' : 'none';
+    document.querySelectorAll(`[data-hx-half="${prefix}"]`).forEach(b => b.classList.toggle('active', (b.dataset.on === '1') === st.halfOn));
+    document.querySelectorAll(`[data-hx-inst="${prefix}"]`).forEach(b => b.classList.toggle('active', (b.dataset.on === '1') === st.instOn));
+    const hint = document.getElementById(`${prefix}-inst-hint`);
+    const price = Number((document.getElementById(`${prefix}-annual`) || document.getElementById(`${prefix}-listing-annual`) || {}).value) || 0;
+    const ip = Number((document.getElementById(`${prefix}-inst-price`) || {}).value) || 0;
+    if (hint) hint.textContent = (ip && price && ip < price) ? 'The installment price cannot be lower than the outright price.' : (price ? `Outright price: ${formatMoney(price, 'ngn')}. Buyers who choose installments pay the installment price in equal parts.` : '');
+  }
+  function renderHostCustomFeats(prefix) {
+    const st = hostExtraGet(prefix), box = document.getElementById(`${prefix}-feat-custom-list`);
+    if (box) box.innerHTML = st.custom.map((c, i) => `<button type="button" class="sl-offer-chip on" data-hx-rmfeat="${prefix}" data-i="${i}">${String(c).replace(/[<>&"]/g, '')} ✕</button>`).join('');
+  }
+  document.addEventListener('click', (e) => {
+    const f = e.target.closest('[data-hx-feat]');
+    if (f) { const st = hostExtraGet(f.dataset.hxFeat), l = f.dataset.label; if (st.feats.has(l)) st.feats.delete(l); else st.feats.add(l); f.classList.toggle('on', st.feats.has(l)); return; }
+    const add = e.target.closest('[data-hx-addfeat]');
+    if (add) {
+      const p = add.dataset.hxAddfeat, inp = document.getElementById(`${p}-feat-custom`), v = inp.value.trim().slice(0, 40), st = hostExtraGet(p);
+      if (v && st.custom.length < 10 && !st.custom.some(c => c.toLowerCase() === v.toLowerCase())) { st.custom.push(v); renderHostCustomFeats(p); }
+      inp.value = ''; return;
+    }
+    const rm = e.target.closest('[data-hx-rmfeat]');
+    if (rm) { const p = rm.dataset.hxRmfeat; hostExtraGet(p).custom.splice(Number(rm.dataset.i), 1); renderHostCustomFeats(p); return; }
+    const it = e.target.closest('[data-hx-inst]');
+    if (it) { const p = it.dataset.hxInst; hostExtraGet(p).instOn = it.dataset.on === '1'; hostExtrasUI(p, 'land'); return; }
+    const hf = e.target.closest('[data-hx-half]');
+    if (hf) { const p = hf.dataset.hxHalf; hostExtraGet(p).halfOn = hf.dataset.on === '1'; hostExtrasUI(p, 'land'); }
+  });
+  document.addEventListener('input', (e) => { if (e.target && /-inst-price$/.test(e.target.id || '')) hostExtrasUI(e.target.id.split('-')[0], 'land'); });
+  // Values to store on the listing at submit time. Returns {} for fields that don't apply.
+  function getHostExtras(prefix, type) {
+    const st = hostExtraGet(prefix), out = {};
+    if (type === 'rent' || type === 'land') {
+      const all = Array.from(st.feats).concat(st.custom);
+      if (all.length) out.amenities = all;
+    }
+    if (type === 'land') {
+      out.installmentOffered = !!st.instOn;
+      if (st.instOn) {
+        const total = Number((document.getElementById(`${prefix}-annual`) || document.getElementById(`${prefix}-listing-annual`) || {}).value) || 0;
+        const ip = Number((document.getElementById(`${prefix}-inst-price`) || {}).value) || 0;
+        out.installmentPrice = ip > total ? ip : total; // never below the outright price
+        out.installmentMonths = Number((document.getElementById(`${prefix}-inst-months`) || {}).value) || 12;
+        const dep = Number((document.getElementById(`${prefix}-inst-deposit`) || {}).value) || 0;
+        if (dep > 0) out.installmentDeposit = dep;
+      }
+      if (st.halfOn) {
+        const ho = Number((document.getElementById(`${prefix}-half-out`) || {}).value) || 0;
+        if (ho > 0) {
+          out.halfPlotOffered = true; out.halfPlotPrice = ho;
+          if (st.instOn) {
+            const hi = Number((document.getElementById(`${prefix}-half-inst`) || {}).value) || 0;
+            out.halfPlotInstallment = hi > 0 ? hi : Math.round(out.installmentPrice / 2);
+          }
+          const pc = Number((document.getElementById(`${prefix}-plots-count`) || {}).value) || 0;
+          if (pc > 0) out.plotsAvailable = Math.round(pc);
+        }
+      }
+    }
+    return out;
+  }
+  // Returns an error message (string) when the host's land payment options don't add up, else ''.
+  function validateHostExtras(prefix, type) {
+    const st = hostExtraGet(prefix), num = (id) => Number((document.getElementById(`${prefix}-${id}`) || {}).value) || 0;
+    if (type === 'shortlet') return '';
+    if (type !== 'land') return '';
+    const total = Number((document.getElementById(`${prefix}-annual`) || document.getElementById(`${prefix}-listing-annual`) || {}).value) || 0;
+    const ip = num('inst-price'), dep = num('inst-deposit'), eff = ip > 0 ? ip : total;
+    if (st.instOn && ip > 0 && ip < total) return 'The installment price cannot be lower than the outright price.';
+    if (st.instOn && dep > 0 && dep >= eff) return 'The initial deposit must be less than the installment price.';
+    if (st.halfOn) {
+      const ho = num('half-out'), hi = num('half-inst');
+      if (!ho || ho >= total) return 'The half plot price must be above zero and lower than the full plot price.';
+      if (st.instOn && hi > 0 && (hi >= eff || hi < ho)) return 'The half plot installment price must be lower than the full plot installment and not below the half plot price.';
+    }
+    return '';
+  }
+  function resetHostExtras(prefix) {
+    hostExtraState[prefix] = { feats: new Set(), custom: [], instOn: true, halfOn: false };
+    document.querySelectorAll(`[data-hx-feat="${prefix}"]`).forEach(b => b.classList.remove('on'));
+    renderHostCustomFeats(prefix);
+    ['inst-price', 'inst-deposit', 'half-out', 'half-inst', 'plots-count', 'sl-minstay', 'sl-cleaning'].forEach(k => { const el = document.getElementById(`${prefix}-${k}`); if (el) el.value = ''; });
+    const m = document.getElementById(`${prefix}-inst-months`); if (m) m.value = '12';
+  }
+  injectHostExtras('tv'); injectHostExtras('s5');
+
   // ---- Auto-calculating Annual-to-Monthly Rent + Fee Structure Preview (Agent form) ----
   function updateAnnualCalc(prefix) {
     const annualInputEl = document.getElementById(`${prefix}-annual`) || document.getElementById(`${prefix}-listing-annual`);
@@ -19145,6 +19381,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (legalPctField) legalPctField.style.display = type === 'land' ? 'block' : 'none';
     const sqmField = document.getElementById(`${prefix}-sqm-field`);
     if (sqmField) sqmField.style.display = type === 'land' ? 'block' : 'none';
+    hostExtrasUI(prefix, type);
     const pkField = document.getElementById(`${prefix}-propkind-field`);
     if (pkField) pkField.style.display = type === 'land' ? 'block' : 'none';
     applyPropKindUI(prefix);
@@ -19670,6 +19907,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const cityId = document.getElementById('s5-listing-city').value;
     const areaId = document.getElementById('s5-listing-area').value;
     const type = document.getElementById('s5-listing-type').value;
+    { const hxErr = validateHostExtras('s5', type); if (hxErr) { showToast(hxErr); return; } }
     if (type === 'shortlet' && shortletAvailError('s5')) { showToast(shortletAvailError('s5')); return; }
     const annual = parseFloat(document.getElementById('s5-listing-annual').value) || 0;
 
@@ -19706,7 +19944,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         // behalf, paid straight to the Owner, never MainTown.
         cautionFee: feeFields.cautionFee,
         serviceChargeMode: feeFields.serviceChargeMode,
-        serviceChargeFee: feeFields.serviceChargeFee
+          serviceChargeFee: feeFields.serviceChargeFee,
+        ...getHostExtras('s5', type)
       };
       let listingData;
       if (type === 'rent') {
@@ -19727,6 +19966,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       s5PendingPhotoCount = 0;
       s5PendingHasVideo = false;
       s5PendingPhotoUrls = [];
+      resetHostExtras('s5');
       s5PendingVideoUrl = null;
       s5PendingPhotoKeys = [];
       s5PendingVideoKey = null;
@@ -19813,7 +20053,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // Landlord's behalf, paid straight to the Landlord, never MainTown.
       cautionFee: feeFields.cautionFee,
       serviceChargeMode: feeFields.serviceChargeMode,
-      serviceChargeFee: feeFields.serviceChargeFee
+      serviceChargeFee: feeFields.serviceChargeFee,
+      ...getHostExtras('s5', type)
     };
     if (currentUserRole === 'enterprise_staff') { baseFields.clientOwned = true; baseFields.listedBy = 'enterprise'; baseFields.agentId = undefined; baseFields.agentName = undefined; }
     let listingData;
@@ -19846,6 +20087,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     s5PendingPhotoCount = 0;
     s5PendingHasVideo = false;
     s5PendingPhotoUrls = [];
+    resetHostExtras('s5');
     s5PendingVideoUrl = null;
     s5PendingPhotoKeys = [];
     s5PendingVideoKey = null;
@@ -20178,6 +20420,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // ==================================================================
   const landPaymentModal = document.getElementById('land-payment-modal');
   let landModalListing = null;
+  let landModalBase = null;   // the listing as shown (full plot)
+  let landModalPlot = 'full'; // 'full' | 'half' (when the host also sells half plots)
   let landModalMode = 'outright';
   let landModalFreq = 'monthly'; // 'monthly' | 'quarterly' | 'halfyearly'
   let landModalInspectionSatisfied = false;
@@ -20186,19 +20430,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // frequency (Monthly/Quarterly/Half-Yearly) is currently selected.
   function renderInstallmentPanel() {
     if (!landModalListing) return;
-    const b = computeInstallmentBreakdown(landModalListing.totalPrice, landModalFreq, landModalListing.legalFeePct);
+    const b = computeInstallmentBreakdown(installmentBase(landModalListing), landModalFreq, landModalListing.legalFeePct, installmentMonthsOf(landModalListing), installmentDepositOf(landModalListing));
     document.getElementById('lp-monthly-label').textContent = `${b.label} Installment`;
     document.getElementById('lp-monthly').textContent = formatMoney(b.monthly, 'ngn') + ` / ${b.frequency === 'monthly' ? 'mo' : b.periodLabel}`;
     document.getElementById('lp-commission').textContent = formatMoney(b.buyerCommission, 'ngn');
     document.getElementById('lp-legal').textContent = formatMoney(b.legal, 'ngn');
     const legalLabelEl = document.getElementById('lp-legal-label');
     if (legalLabelEl) legalLabelEl.textContent = `Deed of Assignment Fee (${b.legalPct}%) — paid to Owner`;
-    document.getElementById('lp-down-label').textContent = `Total Due Now (Installment 1 + Fees)`;
+    document.getElementById('lp-down-label').textContent = b.deposit > 0 ? `Total Due Now (Deposit + Fees)` : `Total Due Now (Installment 1 + Fees)`;
     document.getElementById('lp-down').textContent = formatMoney(b.upfront, 'ngn');
     document.getElementById('lp-firstdate-label').textContent = `Remaining ${b.remainingMonths} Installment${b.remainingMonths === 1 ? '' : 's'}`;
     document.getElementById('lp-firstdate').textContent = `${b.remainingMonths} × ${formatMoney(b.monthly, 'ngn')} = ${formatMoney(b.remainingTotal, 'ngn')}`;
     document.getElementById('lp-installment-explainer').textContent =
-      `${b.label} plan: pay Installment 1 + 10% Commission + ${b.legalPct}% Deed of Assignment Fee now. The remaining ${b.remainingMonths} installment${b.remainingMonths === 1 ? '' : 's'} auto-debit ${b.periodLabel}, starting from your possession date. The Deed of Assignment Fee is paid straight to the Landlord/Owner together with Installment 1 — MainTown never collects it.`;
+      `${b.label} plan: pay ${b.deposit > 0 ? 'the ' + formatMoney(b.deposit, 'ngn') + ' initial deposit' : 'Installment 1'} + 10% Commission + ${b.legalPct}% Deed of Assignment Fee now. The remaining ${b.remainingMonths} installment${b.remainingMonths === 1 ? '' : 's'} auto-debit ${b.periodLabel}, starting from your possession date. The Deed of Assignment Fee is paid straight to the Landlord/Owner together with Installment 1 — MainTown never collects it.`;
   }
 
   // Inspection-First Checkout Gate: true only once a physical inspection for
@@ -20217,19 +20461,59 @@ This voucher is auto-generated and serves as proof of settlement.`;
     ));
   }
 
-  function dxOutrightOnly(l) { return !!(l && l._agreedOfferId) || !!(l && l.type === 'land' && l._deal && l._deal.dealType === 'distress' && l._deal.endsAt > Date.now()); }
+  function dxOutrightOnly(l) { return !!(l && l._agreedOfferId) || !!(l && l.type === 'land' && l._deal && l._deal.dealType === 'distress' && l._deal.endsAt > Date.now()) || !!(l && l.type === 'land' && l.installmentOffered === false); } // last clause: host chose outright-only
+  // Half-plot option (host sets it on the listing): buyer picks the size; the modal then prices off the chosen part.
+  function lpPartListing(base, part) {
+    if (part !== 'half' || !base || !base.halfPlotOffered) return base;
+    const hasInst = base.installmentOffered !== false;
+    const instBase = installmentBase(base);
+    return Object.assign({}, base, {
+      totalPrice: Number(base.halfPlotPrice),
+      installmentPrice: hasInst ? (Number(base.halfPlotInstallment) || Math.round(instBase / 2)) : undefined,
+      installmentDeposit: base.installmentDeposit ? Math.round(Number(base.installmentDeposit) / 2) : undefined,
+      title: base.title + ' (Half plot)', _plot: 'half'
+    });
+  }
+  function lpRefreshAmounts() {
+    const l = landModalListing, fee = Math.round(l.totalPrice * 0.02);
+    document.getElementById('lp-property-name').textContent = l.title;
+    document.getElementById('lp-out-total').textContent = formatMoney(l.totalPrice, 'ngn');
+    document.getElementById('lp-out-fee').textContent = formatMoney(fee, 'ngn');
+    document.getElementById('lp-out-grand').textContent = formatMoney(l.totalPrice + fee, 'ngn');
+    renderInstallmentPanel();
+  }
+  function lpPlotChooser(base) {
+    let row = document.getElementById('lp-plot-row');
+    const show = !!(base && base.type === 'land' && base.halfPlotOffered && !base._agreedOfferId);
+    if (!row) {
+      row = document.createElement('div'); row.id = 'lp-plot-row'; row.style.cssText = 'display:flex;gap:8px;margin:0 0 12px;';
+      const modeRow = document.getElementById('lp-mode-outright').parentNode;
+      modeRow.parentNode.insertBefore(row, modeRow);
+      row.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-lp-plot]'); if (!b || !landModalBase) return;
+        landModalPlot = b.dataset.lpPlot; landModalListing = lpPartListing(landModalBase, landModalPlot);
+        lpPlotChooser(landModalBase); lpRefreshAmounts();
+      });
+    }
+    row.style.display = show ? 'flex' : 'none';
+    if (!show) return;
+    const half = lpPartListing(base, 'half');
+    row.innerHTML = `<button type="button" class="toggle-pill${landModalPlot === 'full' ? ' active' : ''}" data-lp-plot="full">Full plot · ${formatMoney(base.totalPrice, 'ngn')}</button><button type="button" class="toggle-pill${landModalPlot === 'half' ? ' active' : ''}" data-lp-plot="half">Half plot · ${formatMoney(half.totalPrice, 'ngn')}</button>`;
+  }
   function openLandPaymentModal(listing) {
     dxApplyDeals();
     if (mktBlockedByLock(listing)) return;
     listing = mktApplyAgreed(listing);
+    landModalBase = listing; landModalPlot = 'full';
     landModalListing = listing;
+    lpPlotChooser(listing);
     landModalMode = 'outright';
     (function () {
       const only = dxOutrightOnly(listing);
       document.getElementById('lp-mode-installment').style.display = only ? 'none' : '';
       let n = document.getElementById('lp-distress-note');
       if (!n) { n = document.createElement('p'); n.id = 'lp-distress-note'; n.className = 'dealx-note'; n.style.margin = '0 0 10px'; document.getElementById('lp-mode-outright').parentNode.insertAdjacentElement('afterend', n); }
-      n.textContent = listing._agreedOfferId ? 'Agreed price from your accepted offer. Outright payment only.' : 'Distress sale: this property is sold on outright payment only. Installments are not available.';
+      n.textContent = (listing.installmentOffered === false && !listing._agreedOfferId && !(listing._deal && listing._deal.dealType === 'distress')) ? 'The seller offers this property on outright payment only.' : listing._agreedOfferId ? 'Agreed price from your accepted offer. Outright payment only.' : 'Distress sale: this property is sold on outright payment only. Installments are not available.';
       n.style.display = only ? '' : 'none';
     })();
     landModalFreq = 'monthly';
@@ -20317,7 +20601,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (landModalMode === 'outright' || dxOutrightOnly(landModalListing)) {
       payload = { mode: 'outright', totalPrice: landModalListing.totalPrice, processingFee: fee };
     } else {
-      const b = annotateCommissionSplit(computeInstallmentBreakdown(landModalListing.totalPrice, landModalFreq, landModalListing.legalFeePct), landModalListing);
+      const b = annotateCommissionSplit(computeInstallmentBreakdown(installmentBase(landModalListing), landModalFreq, landModalListing.legalFeePct, installmentMonthsOf(landModalListing), installmentDepositOf(landModalListing)), landModalListing);
       payload = {
         mode: 'installment', months: b.installmentCount,
         frequency: b.frequency, label: b.label, periodLabel: b.periodLabel, intervalMonths: b.intervalMonths,
