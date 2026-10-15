@@ -11135,7 +11135,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const H = 3600e3, now = Date.now();
     const pcts = [20, 25, 10, 15, 12, 18], hrs = [52, 120, 216, 20, 144, 288];
     // Demo discounts only ever land on the built-in sample listings, never on a listing a user created.
-    const pool = (listings || []).filter(l => !l.ownerId && !l.agentId && !l.listedByRole && !l.companyId && l.status !== 'draft' && (l.type === 'rent' || l.type === 'shortlet' || l.type === 'land') && !isListingUnavailable(l));
+    const pool = (listings || []).filter(l => !l.ownerId && !l.agentId && !l.listedByRole && !l.companyId && l.origin !== 'remote' && l.status !== 'draft' && (l.type === 'rent' || l.type === 'shortlet' || l.type === 'land') && !isListingUnavailable(l));
     // Only one sample per type (rent, shortlet, land) — every other listing keeps its normal price.
     const picks = ['rent', 'shortlet', 'land'].map(t => pool.find(l => l.type === t)).filter(Boolean);
     return picks.map((l, i) => {
@@ -11979,6 +11979,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     { id: 6, type: 'rent', usage: 'commercial', commercialType: 'Warehouse', flexRent: false, annualPrice: 4500000, sqm: 600, parkingSpaces: 6, powerSupply: 'Grid + generator', title: 'Warehouse, Ikeja Industrial Estate', location: 'Ikeja, Lagos', ngn: '₦4,500,000 / yr', usd: '$2,810 / yr', img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&h=240&fit=crop&q=80', photos: ['https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&h=240&fit=crop&q=80', 'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&h=240&fit=crop&q=80'], listedBy: 'landlord', listedByRole: 'LANDLORD', ownerId: 'frank', hasVideo: true, videoUrl: 'https://assets.mixkit.co/videos/23551/23551-360.mp4', availability: sampleAvailability() }
   ];
 
+  DEFAULT_LISTINGS.forEach(d => { d.source = 'sample'; }); // built-in demo data: local only, never synced to the admin DB
   let listings = [];
   try {
     const stored = JSON.parse(localStorage.getItem('mtr_listings'));
@@ -12051,7 +12052,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
     // Synchronously applies any already-known blob URLs to a listing.
     function applyToListing(l) {
-      if (!l) return;
+      if (!l || l.mediaRemote) return; // media already lives at public https URLs; never replace with a device-local blob
       if (Array.isArray(l.photoKeys) && l.photoKeys.length) {
         const urls = l.photoKeys.map(k => urlCache.get(k)).filter(Boolean);
         if (urls.length) { l.photos = urls; l.img = urls[0]; }
@@ -12067,6 +12068,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     async function hydrateAll(list) {
       const wanted = [];
       list.forEach(l => {
+        if (l.mediaRemote) return;
         (Array.isArray(l.photoKeys) ? l.photoKeys : []).forEach(k => wanted.push(k));
         if (l.videoKey) wanted.push(l.videoKey);
       });
@@ -12086,7 +12088,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
       applyToAll(list);
     }
 
-    return { newKey, store, applyToListing, applyToAll, hydrateAll };
+    // Returns the original File/Blob for a stored key (used to upload it to the live feed).
+    async function getBlob(key) {
+      const u = urlCache.get(key);
+      if (u) { try { const r = await fetch(u); return await r.blob(); } catch (e) { /* fall through to IndexedDB */ } }
+      try {
+        const db = await openDb();
+        return await new Promise(res => {
+          const rq = db.transaction(STORE).objectStore(STORE).get(key);
+          rq.onsuccess = () => res(rq.result || null);
+          rq.onerror = () => res(null);
+        });
+      } catch (e) { return null; }
+    }
+
+    return { newKey, store, applyToListing, applyToAll, hydrateAll, getBlob };
   })();
 
   // Cover image for a new listing: first uploaded photo, else the placeholder.
@@ -12099,6 +12115,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function listingForStorage(l) {
     const isBlob = v => typeof v === 'string' && v.indexOf('blob:') === 0;
     const copy = { ...l };
+    delete copy._syncing; delete copy._nextTry; // transient sync state
     if (copy._dealBase) { Object.assign(copy, copy._dealBase); delete copy._dealBase; delete copy._deal; }
     if (Array.isArray(copy.photos)) copy.photos = copy.photos.filter(u => !isBlob(u));
     if (isBlob(copy.videoUrl)) copy.videoUrl = null;
@@ -12106,7 +12123,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     return copy;
   }
   function saveListings() {
-    try { localStorage.setItem('mtr_listings', JSON.stringify(listings.map(listingForStorage))); }
+    listings.forEach(l => { if (l && !l.source) l.source = listingSource(l); }); // source tag on everything
+    try { localStorage.setItem('mtr_listings', JSON.stringify(listings.filter(l => l && l.origin !== 'remote').map(listingForStorage))); }
     catch (e) { console.warn('[MainTown] Could not save listings', e); }
     // BUGFIX: the Landlord's "My Properties" and the Agent's "My Listings"
     // were plain in-memory arrays, so every refresh emptied them (and with
@@ -12119,7 +12137,399 @@ This voucher is auto-generated and serves as proof of settlement.`;
         agentListings.map(e => (e && e.listingData) ? { ...e, listingData: listingForStorage(e.listingData) } : e)
       ));
     } catch (e) { /* not yet initialised, or storage unavailable */ }
+    try { RemoteFeed.onLocalSave(); } catch (e) { /* sync layer not ready yet */ }
   }
+
+  // ==================================================================
+  // ---- Listing source tagging + visibility (single source of truth) ----
+  //   web_manual    : created from the Admin web panel (lives in Supabase)
+  //   app_prototype : submitted from this mobile prototype
+  //   sample        : built-in DEFAULT_LISTINGS demo data (local only, never synced)
+  // ==================================================================
+  const LISTING_SOURCE = Object.freeze({ WEB: 'web_manual', APP: 'app_prototype', SAMPLE: 'sample' });
+  function isSampleListing(l) {
+    return !!l && (l.source === LISTING_SOURCE.SAMPLE || DEFAULT_LISTINGS.some(d => d.id === l.id && d.title === l.title));
+  }
+  function listingSource(l) {
+    if (!l) return LISTING_SOURCE.APP;
+    if (l.source) return l.source;
+    if (l.origin === 'remote') return LISTING_SOURCE.WEB;
+    return isSampleListing(l) ? LISTING_SOURCE.SAMPLE : LISTING_SOURCE.APP;
+  }
+  // A listing is hidden from every PUBLIC feed when it is a draft, when an admin set it to
+  // "Unavailable", or when the owner/admin hid it remotely. (Sold/Rented are NOT hidden here:
+  // they are handled by isListingUnavailable() and keep their labelled treatment.)
+  // Host listings from this prototype are additionally gated by the admin review: until MainTown
+  // approves them (reviewStatus === 'approved') they never reach any public feed.
+  function isListingHiddenFromFeed(l) {
+    if (!l) return false;
+    if (l.status === 'draft' || l.status === 'unavailable' || l.adminHidden === true) return true;
+    if (l.origin !== 'remote' && !isSampleListing(l) && l.reviewStatus !== 'approved') return true;
+    return false;
+  }
+
+  // ==================================================================
+  // ---- Remote Feed Sync (Supabase REST, no SDK needed) ----
+  // PUSH: every live prototype listing is uploaded (media -> Storage, row -> `listings`
+  //       with source = 'app_prototype') so it shows in the Admin dashboard and on the site.
+  // PULL: rows from the shared `listings` table (web-manual + other prototype devices) are
+  //       merged into the same `listings` / `listingsFeed` array next to the sample listings.
+  //       Rows an admin set to "unavailable" are never shown; their local copies get hidden.
+  // Media is stored as public https URLs, which is what fixes "uploaded but not displaying":
+  // device-only blob: URLs are never sent to, or read back from, the feed.
+  // ==================================================================
+  const RemoteFeed = (function () {
+    const CFG = {
+      enabled: true,
+      url: 'https://obtggomfwvravjcnypid.supabase.co',
+      key: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8', // public anon/publishable key (same as admin.html)
+      table: 'listings',
+      bucket: 'listing-media',
+      docBucket: 'listing-docs', // PRIVATE bucket for title/ownership documents
+      mediaPrefix: 'app-prototype/',
+      pollMs: 30000,
+      pullLimit: 500,
+      retryMs: 60000,
+      cacheKey: 'mtr_remote_rows'
+    };
+    let started = false, pulling = false, pushing = false, saveTimer = null, warned = false, lastSig = '';
+
+    const isHttp = u => typeof u === 'string' && /^https?:\/\//i.test(u);
+    const num = v => Number(v) || 0;
+    const naira = n => '₦' + Math.round(num(n)).toLocaleString('en-US');
+    const amt = v => Number(String(v == null ? '' : v).replace(/[^\d.]/g, '')) || 0;
+    const hdr = extra => Object.assign({ apikey: CFG.key }, extra || {});
+    const toRemoteStatus = s => s === 'SOLD' ? 'sold' : s === 'RENTED' ? 'rented' : 'available';
+    const refOf = l => deviceId() + '-' + l.id;
+    const IN_REVIEW = ['PENDING_LEGAL_REVIEW', 'LEGAL_REVIEW'];
+    // Agent-listed properties keep their workflow stage on the agentListings entry (listingData === l).
+    const entryOf = l => { try { return agentListings.find(e => e && e.listingData === l) || null; } catch (e) { return null; } };
+    const inReview = l => IN_REVIEW.indexOf(l.workflowStatus) >= 0 || IN_REVIEW.indexOf((entryOf(l) || {}).workflowStatus) >= 0;
+    const readyForReview = l => l.status === 'live' || inReview(l);
+    function deviceId() {
+      try {
+        let d = localStorage.getItem('mtr_device_id');
+        if (!d) { d = 'dev-' + Math.random().toString(36).slice(2, 10); localStorage.setItem('mtr_device_id', d); }
+        return d;
+      } catch (e) { return 'dev-anon'; }
+    }
+    async function api(path, opts) {
+      const res = await fetch(CFG.url + path, opts);
+      if (!res.ok) {
+        let t = ''; try { t = await res.text(); } catch (e) {}
+        const err = new Error(res.status + ' ' + t.slice(0, 240)); err.status = res.status; err.body = t; throw err;
+      }
+      return res;
+    }
+    function warnOnce(msg) {
+      console.warn('[MainTown] Remote feed:', msg);
+      if (warned) return; warned = true;
+      try { showToast('Saved on this device. Live feed sync will retry automatically.'); } catch (e) {}
+    }
+
+    // ---------- media ----------
+    async function compressImage(blob) {
+      try {
+        if (!/^image\/(jpeg|png|webp)$/.test(blob.type) || !window.createImageBitmap) return blob;
+        const bmp = await createImageBitmap(blob);
+        const sc = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+        const cv = document.createElement('canvas');
+        cv.width = Math.round(bmp.width * sc); cv.height = Math.round(bmp.height * sc);
+        cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+        const out = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.82));
+        return (out && out.size < blob.size) ? out : blob;
+      } catch (e) { return blob; }
+    }
+    async function uploadBlob(blob) {
+      const ext = ((blob.type || '').split('/')[1] || 'bin').replace(/[^a-z0-9]/gi, '').slice(0, 5) || 'bin';
+      const path = CFG.mediaPrefix + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+      await api('/storage/v1/object/' + CFG.bucket + '/' + path, {
+        method: 'POST',
+        headers: hdr({ 'Content-Type': blob.type || 'application/octet-stream', 'x-upsert': 'false', 'cache-control': 'max-age=31536000' }),
+        body: blob
+      });
+      return CFG.url + '/storage/v1/object/public/' + CFG.bucket + '/' + path;
+    }
+
+    // ---------- local listing -> admin `listings` row ----------
+    function rowFromListing(l, images, video) {
+      const fees = [];
+      let category = 'rent', rent = '', annual = null, beds = num(l.bedrooms != null ? l.bedrooms : l.beds);
+      if (l.type === 'land') {
+        category = 'land'; rent = naira(l.totalPrice);
+        if (l.propertyKind === 'house') {
+          if (num(l.bathrooms)) fees.push('Bathrooms: ' + num(l.bathrooms));
+          if (num(l.toilets)) fees.push('Toilets: ' + num(l.toilets));
+          if (num(l.parkingSpaces)) fees.push('Parking Spaces: ' + num(l.parkingSpaces));
+          fees.push('Property Type: ' + (l.houseType || 'House'));
+        } else { beds = 0; fees.push('Property Type: Land (Plot)'); }
+        fees.push('Outright Price: ' + naira(l.totalPrice));
+        if (num(l.legalFeePct)) fees.push('Legal Fee: ' + num(l.legalFeePct) + '% (' + naira(num(l.totalPrice) * num(l.legalFeePct) / 100) + ')');
+        if (num(l.sqm)) fees.push('Plot Size: ' + num(l.sqm) + 'sqm');
+        if (l.landUse) fees.push('Land Use: ' + l.landUse);
+      } else if (l.type === 'shortlet') {
+        category = 'short-let'; rent = naira(l.nightlyRate) + '/night';
+      } else {
+        const com = l.usage === 'commercial';
+        annual = num(l.annualPrice) || null;
+        rent = com ? naira(l.annualPrice) + '/yr' : naira(num(l.annualPrice) / 12) + '/mo';
+        if (com) {
+          beds = 0;
+          fees.push('Usage: Commercial');
+          if (l.commercialType) fees.push('Commercial Type: ' + l.commercialType);
+          if (num(l.sqm)) fees.push('Commercial Size: ' + num(l.sqm) + ' sqm');
+          if (l.parkingSpaces != null) fees.push('Commercial Parking: ' + num(l.parkingSpaces));
+          if (l.powerSupply) fees.push('Power Supply: ' + l.powerSupply);
+          fees.push('Payment Terms: Annual, paid in full upfront');
+        }
+      }
+      if (l.type !== 'land') {
+        if (num(l.cautionFee)) fees.push('Caution Fee: ' + naira(l.cautionFee));
+        if (num(l.serviceChargeFee)) fees.push('Service Charge: ' + naira(l.serviceChargeFee));
+      }
+      return {
+        title: l.title, location: l.location, beds, category, rent, annual_rent: annual, fees,
+        color: 'from-brand-500/30 to-slate-900', features: [], images, video: video || null,
+        status: 'pending', source: LISTING_SOURCE.APP, prototype_ref: refOf(l) // admin approves -> 'available'
+      };
+    }
+
+    // ---------- admin `listings` row -> feed listing ----------
+    function listingFromRow(row) {
+      const fm = {};
+      (Array.isArray(row.fees) ? row.fees : []).forEach(f => {
+        const s = String(f), i = s.indexOf(':');
+        if (i > 0) fm[s.slice(0, i).trim()] = s.slice(i + 1).trim();
+      });
+      const imgs = (Array.isArray(row.images) ? row.images : []).filter(isHttp);
+      const video = isHttp(row.video) ? row.video : null;
+      const st = row.status === 'sold' ? 'SOLD' : (row.status === 'rented' || row.status === 'booked') ? 'RENTED' : 'live';
+      const category = row.category === 'land' ? 'land' : row.category === 'short-let' ? 'shortlet' : 'rent';
+      const base = {
+        id: 'web-' + row.id, remoteId: row.id, origin: 'remote', source: row.source || LISTING_SOURCE.WEB,
+        status: st, title: row.title, location: row.location,
+        listedBy: 'landlord', landlordName: 'MainTown Realty', agentName: null,
+        listedAt: Date.parse(row.created_at) || Date.now(),
+        photos: imgs, videoUrl: video, hasPhotos: imgs.length > 0, hasVideo: !!video, mediaRemote: true,
+        availability: [], cautionFee: amt(fm['Caution Fee']), serviceChargeFee: amt(fm['Service Charge'])
+      };
+      base.img = imgs[0] || PROPERTY_IMG_FALLBACK[category] || PROPERTY_IMG_FALLBACK.rent;
+      if (category === 'land') {
+        const pt = fm['Property Type'];
+        const house = !!pt && pt !== 'Land (Plot)';
+        return Object.assign(base, {
+          type: 'land', propertyKind: house ? 'house' : 'land', landUse: fm['Land Use'] || 'Residential',
+          totalPrice: amt(fm['Outright Price']) || amt(row.rent),
+          legalFeePct: amt(fm['Legal Fee']) ? (String(fm['Legal Fee']).indexOf('10%') === 0 ? 10 : 5) : 5
+        }, house ? { houseType: pt, bedrooms: num(row.beds), bathrooms: amt(fm['Bathrooms']), toilets: amt(fm['Toilets']), parkingSpaces: amt(fm['Parking Spaces']) } : {},
+          amt(fm['Plot Size']) ? { sqm: amt(fm['Plot Size']) } : {});
+      }
+      if (category === 'shortlet') {
+        const n = amt(row.rent);
+        return Object.assign(base, { type: 'shortlet', nightlyRate: n, bedrooms: num(row.beds), ngn: naira(n) + ' / night', usd: '$' + Math.round(n / 1600) + ' / night' });
+      }
+      const com = fm['Usage'] === 'Commercial';
+      const price = amt(row.rent);
+      const annual = com ? price : (num(row.annual_rent) || price * 12);
+      const monthly = com ? Math.round(annual / 12) : price;
+      return Object.assign(base, {
+        type: 'rent', annualPrice: annual, bedrooms: num(row.beds),
+        ngn: com ? naira(annual) + ' / yr' : naira(monthly) + ' / mo',
+        usd: com ? '$' + Math.round(annual / 1600) + ' / yr' : '$' + Math.round(monthly / 1600) + ' / mo'
+      }, com ? { usage: 'commercial', flexRent: false, commercialType: fm['Commercial Type'] || 'Commercial', sqm: amt(fm['Commercial Size']), parkingSpaces: amt(fm['Commercial Parking']), powerSupply: fm['Power Supply'] || '' } : {});
+    }
+
+    // ---------- host + documents (private: separate table + private bucket) ----------
+    function hostOf(l) {
+      let u = null;
+      try { u = (typeof loadAppState === 'function' && loadAppState().users || {})[l.ownerId] || null; } catch (e) {}
+      return {
+        name: l.landlordName || (u && u.name) || null, role: l.listedByRole || l.listedBy || null,
+        phone: (u && u.phone) || null, email: (u && u.email) || null,
+        agentName: l.agentName || null, ownerId: l.ownerId || null
+      };
+    }
+    async function uploadDoc(blob, ref, name) {
+      const safe = String(name || 'document').replace(/[^a-zA-Z0-9.\-_]/g, '-');
+      const path = CFG.mediaPrefix + ref + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 6) + '-' + safe;
+      await api('/storage/v1/object/' + CFG.docBucket + '/' + path, {
+        method: 'POST', headers: hdr({ 'Content-Type': blob.type || 'application/octet-stream', 'x-upsert': 'false' }), body: blob
+      });
+      return path;
+    }
+    async function sendSubmission(l) {
+      const docs = [];
+      const docList = (Array.isArray(l.titleDocuments) && l.titleDocuments.length) ? l.titleDocuments : ((entryOf(l) || {}).titleDocuments || []);
+      for (const d of docList) {
+        const entry = { label: d.label || d.id || 'Document', name: d.fileName || '' };
+        if (d.fileKey) { const blob = await MediaStore.getBlob(d.fileKey); if (blob) entry.path = await uploadDoc(blob, refOf(l), d.fileName); }
+        docs.push(entry);
+      }
+      try {
+        await api('/rest/v1/listing_submissions', { method: 'POST', headers: hdr({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
+          body: JSON.stringify({ listing_id: String(l.remoteId), host: hostOf(l), documents: docs }) });
+      } catch (e) { if (!(e.status === 409 || /23505/.test(e.body || ''))) throw e; }
+      l.submissionSent = true;
+    }
+    // Statuses of this device's own submissions (anon cannot SELECT pending/closed rows, so a
+    // narrow security-definer RPC returns only rows matching the given prototype_refs).
+    async function fetchOwnStatuses(refs) {
+      if (!refs.length) return [];
+      const res = await api('/rest/v1/rpc/prototype_listing_status', { method: 'POST', headers: hdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ p_refs: refs }) });
+      const out = await res.json(); return Array.isArray(out) ? out : [];
+    }
+
+    // ---------- PUSH ----------
+    async function publishOne(l) {
+      if (l._syncing) return;
+      l._syncing = true;
+      try {
+        if (l.remoteId == null) {
+          const images = [];
+          for (const k of (Array.isArray(l.photoKeys) ? l.photoKeys : [])) {
+            const blob = await MediaStore.getBlob(k);
+            if (blob) images.push(await uploadBlob(await compressImage(blob)));
+          }
+          (Array.isArray(l.photos) ? l.photos : []).forEach(u => { if (isHttp(u) && images.indexOf(u) < 0) images.push(u); });
+          let video = isHttp(l.videoUrl) ? l.videoUrl : null;
+          if (l.videoKey) { const vb = await MediaStore.getBlob(l.videoKey); if (vb) video = await uploadBlob(vb); }
+          const row = rowFromListing(l, images, video);
+          try {
+            await api('/rest/v1/' + CFG.table, { method: 'POST', headers: hdr({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }), body: JSON.stringify(row) });
+          } catch (e) { if (!(e.status === 409 || /23505/.test(e.body || ''))) throw e; } // already inserted on a previous attempt
+          const hit = (await fetchOwnStatuses([row.prototype_ref])).find(x => x.prototype_ref === row.prototype_ref);
+          if (!hit || hit.id == null) throw new Error('Submitted listing not found on server');
+          l.remoteId = hit.id; l.source = LISTING_SOURCE.APP; l.reviewStatus = 'pending'; l.remoteStatus = 'pending';
+          l.syncedLocalStatus = l.status; l.adminHidden = false;
+          if (images.length) { l.photos = images; l.img = images[0]; l.hasPhotos = true; l.mediaRemote = true; }
+          if (video) { l.videoUrl = video; l.hasVideo = true; l.mediaRemote = true; }
+        }
+        if (!l.submissionSent) await sendSubmission(l);
+        delete l.syncError; delete l._nextTry;
+        return true;
+      } catch (e) {
+        l.syncError = String(e && e.message || e); l._nextTry = Date.now() + CFG.retryMs;
+        warnOnce('submit failed for "' + l.title + '": ' + l.syncError);
+        return !!(l.remoteId != null);
+      } finally { l._syncing = false; }
+    }
+    async function pushPending() {
+      if (!CFG.enabled || pushing) return;
+      pushing = true;
+      let dirty = false;
+      try {
+        for (const l of listings.slice()) {
+          if (!l || l.origin === 'remote' || isSampleListing(l)) continue;
+          const due = !l._nextTry || Date.now() > l._nextTry;
+          if (l.remoteId == null || !l.submissionSent) {
+            // Submit for admin review once the host's flow marks it ready (live or in review).
+            if (readyForReview(l) && due) { if (await publishOne(l)) dirty = true; }
+          } else if (l.reviewStatus === 'approved' && l.syncedLocalStatus !== l.status) {
+            const desired = toRemoteStatus(l.status);
+            if (desired === 'available' && l.adminHidden) { l.syncedLocalStatus = l.status; dirty = true; continue; } // admin hide wins
+            try {
+              await api('/rest/v1/rpc/prototype_mark_listing', { method: 'POST', headers: hdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ p_id: String(l.remoteId), p_status: desired }) });
+              l.syncedLocalStatus = l.status; l.remoteStatus = desired; dirty = true;
+            } catch (e) { warnOnce('status sync failed for "' + l.title + '": ' + e.message); }
+          }
+        }
+      } finally { pushing = false; }
+      if (dirty) { try { saveListings(); } catch (e) {} refreshUi(); }
+    }
+
+    // ---------- PULL ----------
+    // Admin decisions on this device's own submissions:
+    //   pending -> waiting | available -> approved, goes live | closed -> declined |
+    //   unavailable -> approved but hidden | sold/rented/booked -> labelled, not bookable
+    function reconcileOwn(statuses) {
+      let changed = false;
+      const byId = new Map(statuses.map(r => [String(r.id), r]));
+      listings.forEach(l => {
+        if (!l || l.origin === 'remote' || l.remoteId == null) return;
+        const r = byId.get(String(l.remoteId));
+        const st = r ? r.status : 'closed'; // row gone = deleted by admin
+        const note = r ? (r.review_note || '') : 'Removed by MainTown admin';
+        const set = (k, v) => { if (l[k] !== v) { l[k] = v; changed = true; } };
+        l.remoteStatus = st;
+        if (st === 'pending') { set('reviewStatus', 'pending'); set('adminHidden', false); }
+        else if (st === 'closed') { set('reviewStatus', 'closed'); set('reviewNote', note); set('adminHidden', false); }
+        else {
+          set('reviewStatus', 'approved'); set('reviewNote', '');
+          set('adminHidden', st === 'unavailable');
+          // Approved while the host's own flow was still "in review": it goes live now.
+          if (l.status === 'draft' && inReview(l)) {
+            l.status = 'live'; l.workflowStatus = 'LIVE'; l.syncedLocalStatus = 'live'; changed = true;
+            try { const ae = agentListings.find(e => e && e.listingData === l); if (ae) { ae.status = 'live'; ae.workflowStatus = 'LIVE'; } } catch (e) {}
+          }
+          if (st === 'sold' || st === 'rented' || st === 'booked') {
+            const want = st === 'sold' ? 'SOLD' : 'RENTED';
+            if (l.type !== 'shortlet' && l.status !== want) { l.status = want; l.syncedLocalStatus = want; changed = true; }
+          } else if (st === 'available' && isListingUnavailable(l) && l.syncedLocalStatus === l.status) {
+            l.status = 'live'; l.syncedLocalStatus = 'live'; changed = true; // admin re-opened it
+          }
+        }
+      });
+      return changed;
+    }
+    function applyRows(rows) {
+      const ownIds = new Set();
+      listings.forEach(l => { if (l && l.origin !== 'remote' && l.remoteId != null) ownIds.add(String(l.remoteId)); });
+      const incoming = rows
+        .filter(r => r && r.id != null && ['available', 'sold', 'rented', 'booked'].indexOf(r.status) >= 0 && !ownIds.has(String(r.id)))
+        .map(listingFromRow);
+      const sig = JSON.stringify(incoming.map(m => [m.id, m.status, m.title, m.location, m.ngn || m.totalPrice, m.img, m.videoUrl]));
+      if (sig === lastSig) return false;
+      lastSig = sig;
+      for (let i = listings.length - 1; i >= 0; i--) if (listings[i] && listings[i].origin === 'remote') listings.splice(i, 1);
+      incoming.forEach(m => listings.push(m));
+      return true;
+    }
+    async function pull() {
+      if (!CFG.enabled || pulling) return;
+      pulling = true;
+      try {
+        let changed = false;
+        try {
+          const refs = listings.filter(l => l && l.origin !== 'remote' && l.remoteId != null).map(refOf);
+          if (refs.length && reconcileOwn(await fetchOwnStatuses(refs))) changed = true;
+        } catch (e) { console.warn('[MainTown] Review status check failed:', e.message); }
+        const res = await api('/rest/v1/' + CFG.table + '?select=*&order=created_at.desc&limit=' + CFG.pullLimit, { headers: hdr() });
+        const rows = await res.json();
+        if (Array.isArray(rows)) {
+          try { localStorage.setItem(CFG.cacheKey, JSON.stringify(rows)); } catch (e) {}
+          if (applyRows(rows)) changed = true;
+        }
+        if (changed) { try { saveListings(); } catch (e) {} refreshUi(); }
+      } catch (e) { console.warn('[MainTown] Remote feed pull failed:', e.message); }
+      finally { pulling = false; }
+    }
+
+    function refreshUi() {
+      try {
+        const tv = document.getElementById('tenant-view');
+        if (tv && !tv.classList.contains('hidden')) { if (currentListingType === 'land') renderLandFeed(); else renderTenantFeed(currentCurrency); }
+      } catch (e) {}
+      try { window.dispatchEvent(new Event('maintown_state_updated')); } catch (e) {}
+    }
+    async function tick() { await pushPending(); await pull(); }
+    function onLocalSave() {
+      if (!started) return;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => { pushPending(); }, 150); // near-instant publish after a submit
+    }
+    function start() {
+      if (started || !CFG.enabled) return;
+      started = true;
+      try { const c = JSON.parse(localStorage.getItem(CFG.cacheKey)); if (Array.isArray(c) && applyRows(c)) refreshUi(); } catch (e) {} // instant feed from last visit
+      tick();
+      setInterval(tick, CFG.pollMs);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+      window.addEventListener('online', tick);
+    }
+    return { start, tick, pull, pushPending, onLocalSave, config: CFG };
+  })();
+  window.MainTownRemoteFeed = RemoteFeed; // handy for debugging: MainTownRemoteFeed.tick()
+
 
   // Boot: clear dead blob: URLs left in storage by older builds, then rebuild
   // real media URLs from IndexedDB and refresh whatever screen is showing.
@@ -12156,8 +12566,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   // Media Uploads visibility rule: draft/private listings (status: 'draft') are stored
   // but never surfaced on the tenant-facing feeds below until explicitly published.
-  function rentListings() { return listings.filter(l => (l.type === 'rent' || l.type === 'shortlet') && l.status !== 'draft'); }
-  function landListingsList() { return listings.filter(l => l.type === 'land' && l.status !== 'draft'); }
+  function rentListings() { return listings.filter(l => (l.type === 'rent' || l.type === 'shortlet') && !isListingHiddenFromFeed(l)); }
+  function landListingsList() { return listings.filter(l => l.type === 'land' && !isListingHiddenFromFeed(l)); }
 
   // ==================================================================
   // ---- Market Switcher ----
@@ -12818,6 +13228,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   try { const s = JSON.parse(localStorage.getItem('mtr_landlord_props')); if (Array.isArray(s)) landlordProperties = s; } catch (e) {}
   try { const s = JSON.parse(localStorage.getItem('mtr_agent_listings')); if (Array.isArray(s)) agentListings = s; } catch (e) {}
   bootHydrateListingMedia();
+  RemoteFeed.start(); // connect the prototype to the shared live feed (push own listings, pull shared ones)
   // The "legal review -> live" step runs on a timer; a refresh would kill it and
   // leave the listing stuck in review, so restart it for anything still waiting.
   agentListings.forEach(e => {
@@ -13241,7 +13652,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!marketIsLive()) return [];
     const wantLand = currentListingType === 'land';
     return listings
-      .filter(l => l.status !== 'draft' && !isListingUnavailable(l) && inCurrentMarket(l) && reelVideoUrl(l))
+      .filter(l => !isListingHiddenFromFeed(l) && !isListingUnavailable(l) && inCurrentMarket(l) && reelVideoUrl(l))
       .map((l, i) => ({ l, i, first: (l.type === 'land') === wantLand ? 0 : 1 }))
       .sort((a, b) => a.first - b.first || a.i - b.i)
       .map(x => x.l);
@@ -18314,7 +18725,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const currentUserName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Landlord';
     const feeFields = getFeeFieldsFromForm('tv');
     const baseFields = {
-      id: newId, listedAt: Date.now(), title, location: composeListingLocation(address, cityId, areaId), city: cityId, area: areaId, listedBy: 'landlord', status: isPublished ? 'live' : 'draft',
+      id: newId, listedAt: Date.now(), title, location: composeListingLocation(address, cityId, areaId), city: cityId, area: areaId, listedBy: 'landlord', source: LISTING_SOURCE.APP, status: isPublished ? 'live' : 'draft',
       hasPhotos: tvPendingPhotoCount > 0, hasVideo: tvPendingHasVideo,
       photos: tvPendingPhotoUrls.slice(), videoUrl: tvPendingVideoUrl,
       photoKeys: tvPendingPhotoKeys.slice(), videoKey: tvPendingVideoKey,
@@ -18486,6 +18897,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (w === 'PENDING_LANDLORD_VERIFICATION') return 'Pending landlord verification, not yet visible to tenants';
     if (w === 'LEGAL_REVIEW' || w === 'PENDING_LEGAL_REVIEW') return 'In legal review, not yet visible to tenants';
     if (listing.status === 'draft') return 'Draft, hidden from tenants until published';
+    if (listing.reviewStatus === 'closed') return 'Closed: declined after MainTown review' + (listing.reviewNote ? ' (' + listing.reviewNote + ')' : '');
+    if (listing.origin !== 'remote' && !isSampleListing(listing) && listing.reviewStatus !== 'approved') return 'Pending MainTown admin review, not yet visible to tenants';
     return 'Live on the tenant feed';
   }
   function openOwnerListingPreview(listing, workflow) {
@@ -18648,7 +19061,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } else if (fileInput && fileInput.files.length) {
       const id = fileInput.dataset.docId;
       const file = fileInput.files[0];
-      tvSelectedDocs[id] = { fileName: file.name, fileUrl: URL.createObjectURL(file) };
+      const docKey = MediaStore.newKey('doc'); tvSelectedDocs[id] = { fileName: file.name, fileUrl: MediaStore.store(docKey, file), fileKey: docKey }; // keep the real file so it can be sent to the admin for review
       const uploadBox = fileInput.closest('.tv-doc-upload');
       uploadBox.classList.add('has-file');
       uploadBox.querySelector('.tv-doc-upload-label').textContent = file.name;
@@ -19267,7 +19680,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const newId = Date.now();
       const feeFields = getFeeFieldsFromForm('s5');
       const baseFields = {
-        id: newId, title, location: composeListingLocation(address, cityId, areaId), city: cityId, area: areaId, listedBy: 'enterprise', status: 'draft',
+        id: newId, title, location: composeListingLocation(address, cityId, areaId), city: cityId, area: areaId, listedBy: 'enterprise', source: LISTING_SOURCE.APP, status: 'draft',
         hasPhotos: s5PendingPhotoCount > 0, hasVideo: s5PendingHasVideo,
         photos: s5PendingPhotoUrls.slice(), videoUrl: s5PendingVideoUrl,
         photoKeys: s5PendingPhotoKeys.slice(), videoKey: s5PendingVideoKey,
@@ -19362,7 +19775,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // feed — it stays out of `listingsFeed` entirely until Landlord
     // verification and MainTown's legal review both complete.
     const baseFields = {
-      id: newId, title, location: composeListingLocation(address, cityId, areaId), city: cityId, area: areaId, listedBy: 'agent', status: 'draft',
+      id: newId, title, location: composeListingLocation(address, cityId, areaId), city: cityId, area: areaId, listedBy: 'agent', source: LISTING_SOURCE.APP, status: 'draft',
       hasPhotos: s5PendingPhotoCount > 0, hasVideo: s5PendingHasVideo,
       photos: s5PendingPhotoUrls.slice(), videoUrl: s5PendingVideoUrl,
         photoKeys: s5PendingPhotoKeys.slice(), videoKey: s5PendingVideoKey,
@@ -19516,7 +19929,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } else if (fileInput && fileInput.files.length) {
       const id = fileInput.dataset.docId;
       const file = fileInput.files[0];
-      lvSelectedDocs[id] = { fileName: file.name, fileUrl: URL.createObjectURL(file) };
+      const dk = MediaStore.newKey('doc'); lvSelectedDocs[id] = { fileName: file.name, fileUrl: MediaStore.store(dk, file), fileKey: dk }; // real file kept so the admin can review it
       const uploadBox = fileInput.closest('.lv-doc-upload');
       uploadBox.classList.add('has-file');
       uploadBox.querySelector('.lv-doc-upload-label').textContent = file.name;
@@ -19526,7 +19939,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const single = e.target.closest('.lv-single-file');
     if (single && single.files.length) {
       const file = single.files[0];
-      lvSelectedDocs[OWNERSHIP_PROOF_DOC.id] = { fileName: file.name, fileUrl: URL.createObjectURL(file) };
+      const dk = MediaStore.newKey('doc'); lvSelectedDocs[OWNERSHIP_PROOF_DOC.id] = { fileName: file.name, fileUrl: MediaStore.store(dk, file), fileKey: dk };
       const box = single.closest('.lv-single-upload');
       box.classList.add('has-file');
       box.querySelector('.lv-single-label').textContent = file.name;
@@ -29221,7 +29634,7 @@ available in the Post-Lease Hub and this chat thread.`
         city: listingMarketId({ location: [r.address, r.lga, r.state].filter(Boolean).join(', ') }),
         companyId, estateName, listedBy: 'enterprise', listedByRole: 'ENTERPRISE',
         listedByStaffId: getCurrentUserId(), enterpriseId: companyId, staffId: getCurrentUserId(),
-        status: 'draft', workflowStatus: 'PENDING_LEGAL_REVIEW', ownerId: companyId, masterTitleLinked,
+        source: LISTING_SOURCE.APP, status: 'draft', workflowStatus: 'PENDING_LEGAL_REVIEW', ownerId: companyId, masterTitleLinked,
         description: r.description || '', amenities: r.amenities || '',
       };
       const price = parseFloat(r.price) || 0;
