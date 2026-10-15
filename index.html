@@ -12187,6 +12187,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       bucket: 'listing-media',
       docBucket: 'listing-docs', // PRIVATE bucket for title/ownership documents
       mediaPrefix: 'app-prototype/',
+      siteBase: '', // SET to your website address (e.g. 'https://maintown.com/') so website listings whose photos are site files like ./osapa-exterior.jpg can show here
       pollMs: 30000,
       pullLimit: 500,
       retryMs: 60000,
@@ -12195,6 +12196,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     let started = false, pulling = false, pushing = false, saveTimer = null, warned = false, lastSig = '';
 
     const isHttp = u => typeof u === 'string' && /^https?:\/\//i.test(u);
+    // Admin-entered listings may store photos as site-relative files ("./x.jpg"). Resolve them against siteBase.
+    const absUrl = u => {
+      if (typeof u !== 'string' || !u || /^(blob:|data:|file:)/i.test(u)) return null;
+      if (isHttp(u)) return u;
+      if (!CFG.siteBase) return null;
+      try { return new URL(u, CFG.siteBase).href; } catch (e) { return null; }
+    };
     const num = v => Number(v) || 0;
     const naira = n => '₦' + Math.round(num(n)).toLocaleString('en-US');
     const amt = v => Number(String(v == null ? '' : v).replace(/[^\d.]/g, '')) || 0;
@@ -12301,14 +12309,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
         const s = String(f), i = s.indexOf(':');
         if (i > 0) fm[s.slice(0, i).trim()] = s.slice(i + 1).trim();
       });
-      const imgs = (Array.isArray(row.images) ? row.images : []).filter(isHttp);
-      const video = isHttp(row.video) ? row.video : null;
+      const imgs = (Array.isArray(row.images) ? row.images : []).map(absUrl).filter(Boolean);
+      const video = absUrl(row.video);
       const st = row.status === 'sold' ? 'SOLD' : (row.status === 'rented' || row.status === 'booked') ? 'RENTED' : 'live';
       const category = row.category === 'land' ? 'land' : row.category === 'short-let' ? 'shortlet' : 'rent';
+      // "Listed by" as chosen in the admin: MainTown Realty (default) / owner / company.
+      const lbType = (row.listed_by_type === 'owner' || row.listed_by_type === 'company') && row.listed_by_name ? row.listed_by_type : 'maintown';
+      const hostInfo = lbType === 'maintown'
+        ? { name: 'MainTown Realty', photo: null, role: 'landlord', label: 'MainTown Realty' }
+        : { name: String(row.listed_by_name).trim(), photo: absUrl(row.listed_by_photo), role: lbType === 'company' ? 'company' : 'landlord', label: lbType === 'company' ? 'Company' : 'Property owner' };
       const base = {
         id: 'web-' + row.id, remoteId: row.id, origin: 'remote', source: row.source || LISTING_SOURCE.WEB,
         status: st, title: row.title, location: row.location,
-        listedBy: 'landlord', landlordName: 'MainTown Realty', agentName: null,
+        listedBy: 'landlord', landlordName: hostInfo.name, landlordPhoto: hostInfo.photo, agentName: null, hostDisplay: hostInfo,
         listedAt: Date.parse(row.created_at) || Date.now(),
         photos: imgs, videoUrl: video, hasPhotos: imgs.length > 0, hasVideo: !!video, mediaRemote: true,
         availability: [], cautionFee: amt(fm['Caution Fee']), serviceChargeFee: amt(fm['Service Charge'])
@@ -13670,6 +13683,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Who listed this property: agent (photo + name), landlord (photo + name) or a company (logo + name).
   // Shown only inside the walkthrough viewer, above the title.
   function reelLister(p) {
+    if (p && p.hostDisplay && p.hostDisplay.name) { const h = p.hostDisplay; return { name: h.name, photo: h.photo || '', role: h.role, label: h.label, logo: h.role === 'company' }; } // admin-chosen "Listed by"
     let name = '', photo = '', role = 'landlord', label = 'Landlord', logo = false;
     try {
       const isCo = p.listedByRole === 'ENTERPRISE' || (typeof isCompanyOwnedListing === 'function' && isCompanyOwnedListing(p));
