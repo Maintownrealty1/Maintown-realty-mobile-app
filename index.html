@@ -6527,6 +6527,71 @@
 
 </div>
 
+<!-- ===================== SCREEN: Customer Service live chat (real people, via admin Support Chat) ===================== -->
+<div id="screen-support-live" class="screen-view hidden">
+  <style>
+    #screen-support-live { display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 8px; }
+    #screen-support-live.hidden { display: none; }
+    .sl-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+    .sl-head .s5-role-title { margin: 0; }
+    .sl-chip { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: rgba(147,51,234,0.15); color: #c084fc; border: 1px solid rgba(147,51,234,0.3); }
+    .sl-chip.open { background: rgba(245,158,11,0.15); color: #fbbf24; border-color: rgba(245,158,11,0.3); }
+    .sl-chip.pending { background: rgba(16,185,129,0.15); color: #34d399; border-color: rgba(16,185,129,0.3); }
+    .sl-chip.resolved { background: rgba(148,163,184,0.15); color: #94a3b8; border-color: rgba(148,163,184,0.3); }
+    .sl-notice { font-size: 11px; line-height: 1.5; color: #94a3b8; background: rgba(15,23,42,0.6); border: 1px solid #1e293b; border-radius: 12px; padding: 9px 12px; margin: 0 0 10px; }
+    .sl-banner { font-size: 12px; line-height: 1.5; color: #fca5a5; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 12px; padding: 10px 12px; margin: 0 0 10px; }
+    #sl-log { flex: 1; margin: 6px 0 12px; }
+    .sl-divider { text-align: center; font-size: 10.5px; color: #64748b; margin: 14px 0 10px; }
+    .sl-divider span { background: rgba(15,23,42,0.8); border: 1px solid #1e293b; border-radius: 999px; padding: 3px 10px; }
+    .sl-who { font-size: 10.5px; opacity: .75; margin-bottom: 3px; font-weight: 600; }
+    .sl-time { font-size: 9.5px; opacity: .6; margin-top: 4px; text-align: right; }
+    .sl-media { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+    .sl-media img, .sl-media video { max-width: 230px; max-height: 260px; width: 100%; border-radius: 10px; object-fit: cover; display: block; }
+    .sl-file { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: inherit; text-decoration: underline; word-break: break-all; }
+    .sl-hint { font-size: 11.5px; color: #94a3b8; text-align: center; margin: 0 0 8px; }
+    .sl-composer-wrap { position: sticky; bottom: 0; padding: 8px 0 max(10px, env(safe-area-inset-bottom)); background: linear-gradient(to top, #020617 70%, rgba(2,6,23,0)); }
+    body.light-theme .sl-composer-wrap { background: linear-gradient(to top, #ffffff 70%, rgba(255,255,255,0)); }
+    .sl-pending { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .sl-pending:empty { display: none; }
+    .sl-pend-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 4px 8px 4px 10px; border-radius: 999px; background: rgba(30,41,59,0.9); border: 1px solid #334155; color: #e2e8f0; max-width: 100%; }
+    .sl-pend-chip button { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px; }
+    .sl-empty { text-align: center; font-size: 12.5px; color: #94a3b8; padding: 26px 10px; line-height: 1.6; }
+  </style>
+
+  <div class="s5-topbar">
+    <button type="button" class="s5-back-btn" id="sl-back-btn" aria-label="Back to Messages">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    </button>
+    <div class="s5-role-header" style="margin: 0;">
+      <p class="s5-role-eyebrow" style="margin: 0;"><i data-lucide="life-buoy" class="w-3.5 h-3.5"></i><span>Customer Service</span></p>
+    </div>
+  </div>
+
+  <div class="sl-head">
+    <h1 class="s5-role-title">MainTown Customer Service</h1>
+    <span id="sl-ticket-chip" class="sl-chip">New conversation</span>
+  </div>
+  <p class="sl-notice">You are chatting with the MainTown Customer Service team. Messages and files you send are saved, and authorised MainTown staff can read them to help you and keep accounts safe. Never share your PIN, password or one-time code, even with us.</p>
+  <div id="sl-banner" class="sl-banner" style="display:none;"></div>
+
+  <div id="sl-log"></div>
+  <p id="sl-hint" class="sl-hint" style="display:none;"></p>
+
+  <div class="sl-composer-wrap">
+    <div id="sl-pending" class="sl-pending"></div>
+    <div class="msg-composer" style="margin-bottom:0;">
+      <button type="button" id="sl-attach-btn" class="msg-icon-btn" title="Attach a photo, video or PDF" aria-label="Attach a photo, video or PDF">
+        <i data-lucide="paperclip" class="w-4 h-4"></i>
+      </button>
+      <input type="text" id="sl-input" class="msg-composer-input" placeholder="Write to Customer Service..." maxlength="4000" autocomplete="off">
+      <button type="button" id="sl-send-btn" class="msg-icon-btn send-btn" title="Send" aria-label="Send">
+        <i data-lucide="send" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <input type="file" id="sl-file" hidden multiple accept="image/*,video/*,application/pdf">
+  </div>
+</div>
+
 <!-- ===================== SCREEN: In-App Notification Center ===================== -->
 <div id="screen-notifications" class="screen-view hidden pb-24">
 
@@ -23329,6 +23394,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     let key = MT_TEAMS[teamKey] ? teamKey : (conv.mode === 'legal' ? 'legal' : (conv.mode === 'estate' ? 'estate' : 'support'));
     if (mtIsHost() && key === 'estate') key = 'support'; // hosts reach Customer Service or Legal only
     const team = MT_TEAMS[key];
+    if (key === 'support' && window.MTSupportLive) {
+      // Customer service is a real team now: continue in the live support chat (own ticket numbers and history).
+      mtSystemLine(conv, 'Opening your Customer Service chat. A real person will reply there.');
+      saveConversations();
+      window.MTSupportLive.open();
+      return;
+    }
     if (conv.handoff && conv.handoff.active) { showToast('You are already connected to an expert'); return; }
     const online = mtExpertsOnline();
     let tickets = [];
@@ -23487,6 +23559,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('msg-thread-detail').style.display = 'none';
     const list = document.getElementById('msg-thread-list');
     const emptyHint = document.getElementById('msg-empty-hint');
+    if (window.MTSupportLive) window.MTSupportLive.refreshBadge();
 
     // Sales/Finance/Legal staff: a direct line to the CEO, PLUS (Sales only)
     // their own tenant/client chats for listings they personally posted, PLUS
@@ -23524,13 +23597,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     visibleConversations = visibleConversations.filter(c => !(c.convType === 'pair' && c.pairKind === 'request'));
 
     if (!visibleConversations.length) {
-      list.innerHTML = '';
+      list.innerHTML = window.MTSupportLive ? window.MTSupportLive.pinned() : '';
       emptyHint.style.display = 'block';
+      if (window.lucide) lucide.createIcons();
       return;
     }
     emptyHint.style.display = 'none';
 
-    list.innerHTML = visibleConversations.map(c => {
+    list.innerHTML = (window.MTSupportLive ? window.MTSupportLive.pinned() : '') + visibleConversations.map(c => {
       const archived = c.status === 'archived';
       const badge = archived
         ? '<span class="thread-badge" style="background:rgba(148,163,184,0.15); color:#94a3b8;">Archived</span>'
@@ -25902,11 +25976,12 @@ available in the Post-Lease Hub and this chat thread.`
     document.querySelectorAll('.ri-dispatch-btn').forEach(b => b.classList.toggle('selected', b === btn));
   });
 
+  let riPickedFile = null; // the photo/video the tenant attached; sent to MainTown with the ticket
   document.getElementById('ri-upload').addEventListener('click', () => document.getElementById('ri-file').click());
   document.getElementById('ri-file').addEventListener('change', (e) => {
     const box = document.getElementById('ri-upload');
     const label = document.getElementById('ri-upload-label');
-    if (e.target.files.length) { box.classList.add('has-file'); label.textContent = e.target.files[0].name; }
+    if (e.target.files.length) { box.classList.add('has-file'); label.textContent = e.target.files[0].name; riPickedFile = e.target.files[0]; }
   });
 
   // routing_rules.agent_listed_property / direct_landlord_property from the spec
@@ -25950,9 +26025,13 @@ available in the Post-Lease Hub and this chat thread.`
       propertyTitle,
       createdAt: Date.now(),
       slaDeadline: Date.now() + slaHours * 60 * 60 * 1000,
-      slaHours
+      slaHours,
+      userId: (typeof getCurrentUserId === 'function' ? getCurrentUserId() : null)
     };
     tickets.unshift(ticket);
+    if (window.MTRQuickFix && riPickedFile) window.MTRQuickFix.attach(ticket.id, riPickedFile);
+    riPickedFile = null;
+    try { document.getElementById('ri-file').value = ''; } catch (e) {}
     saveTickets();
 
     routeMaintenanceTicket(ticket);
@@ -26010,7 +26089,7 @@ available in the Post-Lease Hub and this chat thread.`
     if (window.lucide) lucide.createIcons();
   }
 
-  function saveTickets() { try { localStorage.setItem('mtr_tickets', JSON.stringify(tickets)); } catch (e) {} }
+  function saveTickets() { try { localStorage.setItem('mtr_tickets', JSON.stringify(tickets)); } catch (e) {} window.MTRQuickFix && window.MTRQuickFix.poke(); }
 
   // sla_escalation: fallback_action = AUTO_DISPATCH_MAINTOWN_ARTISAN once the
   // urgency-based timeout (4hr emergency / 24hr standard) has elapsed without
@@ -32476,6 +32555,313 @@ available in the Post-Lease Hub and this chat thread.`
     window.addEventListener('online', flush);
     setInterval(poke, 30000);
     setTimeout(poke, 3000);
+  })();
+
+  // ==================================================================
+  // ---- Customer Service live chat (real people, answered from the admin Support Chat) ----
+  // One ongoing thread per signed-in user; each new issue gets its own ticket number (MT-001001 ...).
+  // The app has no Supabase login, so the thread is protected by a random secret kept on this device:
+  // the database functions (support_open / support_send / support_fetch / support_unread) check it,
+  // and the app never touches the tables directly. Photos, videos and PDFs go to the support-media
+  // bucket and are referenced by their random link. See support_chat_migration.sql.
+  // ==================================================================
+  (function () {
+    const CFG = {
+      url: 'https://obtggomfwvravjcnypid.supabase.co',
+      key: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8',
+      bucket: 'support-media', pollMs: 4000, badgeMs: 30000
+    };
+    const PREFIX = CFG.url + '/storage/v1/object/public/' + CFG.bucket + '/';
+    const MAX = { image: 8 * 1024 * 1024, video: 30 * 1024 * 1024, file: 10 * 1024 * 1024 };
+    const S = { uid: null, secret: null, ticket: null, msgs: [], lastAt: null, files: [], sending: false, polling: null, badge: { unread: 0 }, loading: false };
+    const $ = id => document.getElementById(id);
+    const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    const pad = n => 'MT-' + String(n).padStart(6, '0');
+    const rd = (k, fb) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? fb : v; } catch (e) { return fb; } };
+    function rand(bytes) { const a = new Uint8Array(bytes); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach((_, i) => { a[i] = Math.floor(Math.random() * 256); }); return Array.from(a, b => b.toString(16).padStart(2, '0')).join(''); }
+    function currentUid() { try { return (typeof getCurrentUserId === 'function' && getCurrentUserId()) || null; } catch (e) { return null; } }
+    function profile(uid) {
+      const u = (rd('maintown_app_state', {}).users || {})[uid] || {};
+      let role = null; try { role = (typeof currentUserRole !== 'undefined' && currentUserRole) || u.role || null; } catch (e) {}
+      let name = u.name || null; try { if (!name && typeof DEMO_USERS !== 'undefined' && DEMO_USERS[uid]) name = DEMO_USERS[uid].name; } catch (e) {}
+      return { name: name, role: role, email: u.email || null, phone: u.phone || null };
+    }
+    async function rpc(fn, args) {
+      const r = await fetch(CFG.url + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: CFG.key, 'Content-Type': 'application/json' }, body: JSON.stringify(args) });
+      const t = await r.text(); let j = null; try { j = t ? JSON.parse(t) : null; } catch (e) {}
+      if (!r.ok) { const e = new Error((j && (j.message || j.hint)) || ('HTTP ' + r.status)); e.status = r.status; e.code = j && j.code; throw e; }
+      return j;
+    }
+    function friendly(e) {
+      const m = String((e && e.message) || '');
+      if (/thread_locked/.test(m)) return 'This support thread is linked to another device, so it cannot be opened here. Please contact us from the device you first used.';
+      if (/rate_limited/.test(m)) return 'You are sending messages very quickly. Please wait a moment and try again.';
+      if (/message_too_long/.test(m)) return 'That message is too long. Please shorten it.';
+      if (e && (e.status === 404 || e.code === 'PGRST202' || /Could not find the function/.test(m))) return 'Customer Service chat is not switched on yet. Please try again later.';
+      if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'You appear to be offline. Your message was not sent.';
+      return 'Something went wrong. Please try again.';
+    }
+    function banner(msg) { const b = $('sl-banner'); if (!b) return; b.textContent = msg || ''; b.style.display = msg ? 'block' : 'none'; }
+    function onScreen() { const s = $('screen-support-live'); return !!s && !s.classList.contains('hidden'); }
+
+    function secretFor(uid) {
+      const k = 'mtr_support_secret_' + uid;
+      let s = null; try { s = localStorage.getItem(k); } catch (e) {}
+      if (!s || s.length < 24) { s = rand(24); try { localStorage.setItem(k, s); } catch (e) {} }
+      return s;
+    }
+    async function ensure() {
+      const uid = currentUid(); if (!uid) throw new Error('signed_out');
+      if (S.uid !== uid) { S.uid = uid; S.secret = secretFor(uid); S.msgs = []; S.lastAt = null; S.ticket = null; S.files = []; }
+      const p = profile(uid);
+      const r = await rpc('support_open', { p_user_id: uid, p_secret: S.secret, p_name: p.name, p_role: p.role, p_email: p.email, p_phone: p.phone });
+      if (r && r.ticket_no) S.ticket = { ticket_no: r.ticket_no, status: r.status };
+    }
+
+    function merge(list) {
+      const seen = new Set(S.msgs.map(m => m.id)); let added = false;
+      (list || []).forEach(m => { if (!seen.has(m.id)) { S.msgs.push(m); seen.add(m.id); added = true; } });
+      if (added) S.msgs.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      if (S.msgs.length) S.lastAt = S.msgs[S.msgs.length - 1].created_at;
+      return added;
+    }
+    async function pull(full) {
+      const j = await rpc('support_fetch', { p_user_id: S.uid, p_secret: S.secret, p_after: full ? null : S.lastAt });
+      if (j && j.ticket) S.ticket = j.ticket;
+      const added = merge(j && j.messages);
+      S.badge = { unread: 0 };
+      return added;
+    }
+
+    function mediaHtml(media) {
+      if (!Array.isArray(media) || !media.length) return '';
+      return '<div class="sl-media">' + media.filter(m => m && typeof m.url === 'string' && m.url.indexOf(PREFIX) === 0).map(m => {
+        const u = esc(m.url);
+        if (m.type === 'image') return '<a href="' + u + '" target="_blank" rel="noopener noreferrer"><img src="' + u + '" alt="Photo" loading="lazy" onerror="this.outerHTML=\'<a class=sl-file href=' + u + ' target=_blank rel=noopener>Open photo</a>\'"></a>';
+        if (m.type === 'video') return '<video src="' + u + '" controls preload="metadata" playsinline></video>';
+        return '<a class="sl-file" href="' + u + '" target="_blank" rel="noopener noreferrer"><i data-lucide="file-text" class="w-3.5 h-3.5"></i>' + esc(m.name || 'Document') + '</a>';
+      }).join('') + '</div>';
+    }
+    function timeOf(iso) { const d = new Date(iso); return isNaN(d.getTime()) ? '' : d.toLocaleString([], { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }); }
+
+    function render(stick) {
+      const log = $('sl-log'); if (!log) return;
+      const chip = $('sl-ticket-chip'), hint = $('sl-hint');
+      const t = S.ticket;
+      if (chip) {
+        const label = { open: 'Open', pending: 'Support replied', resolved: 'Resolved' };
+        chip.className = 'sl-chip' + (t ? ' ' + t.status : '');
+        chip.textContent = t ? pad(t.ticket_no) + ' · ' + (label[t.status] || t.status) : 'New conversation';
+      }
+      if (hint) {
+        const msg = !S.msgs.length ? '' : (t && t.status === 'resolved' ? 'This ticket is resolved. Send a message any time to open a new one.' : '');
+        hint.textContent = msg; hint.style.display = msg ? 'block' : 'none';
+      }
+      if (!S.msgs.length) {
+        log.innerHTML = '<div class="sl-empty">Tell us what you need help with.<br>You can attach photos, videos or a PDF. You do not need to keep this screen open. Replies arrive here and your whole history stays in this chat.</div>';
+        if (window.lucide) lucide.createIcons(); return;
+      }
+      let lastTicket = null;
+      log.innerHTML = S.msgs.map(m => {
+        let pre = '';
+        if (m.ticket_no !== lastTicket) { lastTicket = m.ticket_no; pre = '<div class="sl-divider"><span>Ticket ' + pad(m.ticket_no) + '</span></div>'; }
+        if (m.sender_type === 'system') return pre + '<div class="chat-bubble system">' + esc(m.body) + '</div>';
+        const mine = m.sender_type === 'user';
+        const who = mine ? '' : '<div class="sl-who">' + esc(m.sender_name || 'Customer Service') + ' · MainTown Customer Service</div>';
+        return pre + '<div class="chat-bubble ' + (mine ? 'me' : 'them expert') + '">' + who + (m.body ? '<div style="white-space:pre-wrap;word-break:break-word;">' + esc(m.body) + '</div>' : '') + mediaHtml(m.media) + '<div class="sl-time">' + esc(timeOf(m.created_at)) + '</div></div>';
+      }).join('');
+      if (window.lucide) lucide.createIcons();
+      if (stick) window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+    function renderPending() {
+      const el = $('sl-pending'); if (!el) return;
+      el.innerHTML = S.files.map((f, i) => '<span class="sl-pend-chip">' + esc(f.name) + '<button type="button" data-rm="' + i + '" aria-label="Remove">&times;</button></span>').join('');
+    }
+
+    function startPolling() {
+      stopPolling();
+      S.polling = setInterval(async () => {
+        if (!onScreen() || document.hidden || S.loading || S.sending) return;
+        try { banner(''); const added = await pull(false); if (added) render(true); else if (S.ticket) render(false); } catch (e) { banner(friendly(e)); }
+      }, CFG.pollMs);
+    }
+    function stopPolling() { if (S.polling) { clearInterval(S.polling); S.polling = null; } }
+
+    async function open() {
+      if (!currentUid()) { try { showToast('Please sign in to chat with Customer Service'); } catch (e) {} return; }
+      navigateTo('screen-support-live');
+      const nav = $('app-bottom-nav'); if (nav) nav.classList.add('hidden');
+      banner(''); S.loading = true;
+      if (S.uid !== currentUid()) { S.msgs = []; S.lastAt = null; S.ticket = null; }
+      render(false);
+      try { await ensure(); await pull(true); render(true); startPolling(); }
+      catch (e) { banner(e && e.message === 'signed_out' ? 'Please sign in to chat with Customer Service.' : friendly(e)); }
+      finally { S.loading = false; }
+    }
+
+    async function upload(file) {
+      const kind = file.type.indexOf('image/') === 0 ? 'image' : (file.type.indexOf('video/') === 0 ? 'video' : 'file');
+      const safe = String(file.name || 'file').replace(/[^A-Za-z0-9._-]+/g, '_').slice(-60) || 'file';
+      const path = 'chat/' + rand(16) + '/' + Date.now() + '-' + safe;
+      const r = await fetch(CFG.url + '/storage/v1/object/' + CFG.bucket + '/' + path, { method: 'POST', headers: { apikey: CFG.key, 'Content-Type': file.type || 'application/octet-stream', 'x-upsert': 'false' }, body: file });
+      if (!r.ok) throw new Error('upload_failed');
+      return { url: PREFIX + path, type: kind, name: file.name || 'file', size: file.size || 0 };
+    }
+    async function send() {
+      if (S.sending) return;
+      const input = $('sl-input'); const text = (input.value || '').trim();
+      if (!text && !S.files.length) return;
+      S.sending = true; const btn = $('sl-send-btn'); btn.disabled = true; banner('');
+      try {
+        await ensure();
+        const media = []; for (const f of S.files) media.push(await upload(f));
+        await rpc('support_send', { p_user_id: S.uid, p_secret: S.secret, p_body: text, p_media: media });
+        input.value = ''; S.files = []; renderPending();
+        await pull(false); render(true);
+      } catch (e) { banner(e && e.message === 'upload_failed' ? 'A file could not be uploaded. Please check your connection and try again.' : friendly(e)); }
+      finally { S.sending = false; btn.disabled = false; }
+    }
+    function addFiles(list) {
+      Array.from(list || []).forEach(f => {
+        const kind = f.type.indexOf('image/') === 0 ? 'image' : (f.type.indexOf('video/') === 0 ? 'video' : (f.type === 'application/pdf' ? 'file' : null));
+        if (!kind) { try { showToast('Only photos, videos and PDFs can be sent'); } catch (e) {} return; }
+        if (f.size > MAX[kind]) { try { showToast((kind === 'video' ? 'Videos' : (kind === 'image' ? 'Photos' : 'PDFs')) + ' can be up to ' + Math.round(MAX[kind] / 1048576) + ' MB'); } catch (e) {} return; }
+        if (S.files.length >= 6) { try { showToast('You can attach up to 6 files at a time'); } catch (e) {} return; }
+        S.files.push(f);
+      });
+      renderPending();
+    }
+
+    // Messages list: pinned "Customer Service" row + unread badge.
+    function pinned() {
+      const b = S.badge || { unread: 0 };
+      const badge = b.unread > 0 ? '<span class="thread-badge" style="background:rgba(239,68,68,0.18); color:#f87171;">' + b.unread + ' new</span>' : '<span class="thread-badge" style="background:rgba(147,51,234,0.15); color:#c084fc;">Open chat</span>';
+      const sub = b.preview ? esc(b.preview) : 'Talk to a real person. Your tickets and history stay here.';
+      return '<div class="thread-item" data-sl="1"><div class="thread-avatar"><i data-lucide="life-buoy" class="w-4 h-4"></i></div><div class="thread-text"><p class="thread-title">MainTown Customer Service</p><p class="thread-sub">' + sub + '</p><span class="thread-context-badge">' + (b.ticket_no ? 'Ticket ' + pad(b.ticket_no) : 'Support') + ' • Ongoing thread</span></div>' + badge + '</div>';
+    }
+    let badgeBusy = false;
+    async function refreshBadge() {
+      const uid = currentUid(); if (!uid || badgeBusy) return;
+      badgeBusy = true;
+      try {
+        const secret = secretFor(uid);
+        const j = await rpc('support_unread', { p_user_id: uid, p_secret: secret });
+        const changed = JSON.stringify(j) !== JSON.stringify(S.badge);
+        S.badge = j || { unread: 0 };
+        if (changed) { const l = $('msg-thread-list'); const row = l && l.querySelector('[data-sl]'); if (row) { const tmp = document.createElement('div'); tmp.innerHTML = pinned(); row.replaceWith(tmp.firstChild); if (window.lucide) lucide.createIcons(); } }
+      } catch (e) {} finally { badgeBusy = false; }
+    }
+
+    // Wire the screen.
+    $('sl-back-btn').addEventListener('click', () => { stopPolling(); navigateTo('screen-messages'); });
+    $('sl-send-btn').addEventListener('click', send);
+    $('sl-input').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+    $('sl-attach-btn').addEventListener('click', () => $('sl-file').click());
+    $('sl-file').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
+    $('sl-pending').addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if (b) { S.files.splice(parseInt(b.dataset.rm, 10), 1); renderPending(); } });
+    $('msg-thread-list').addEventListener('click', e => { if (e.target.closest('[data-sl]')) { e.stopPropagation(); open(); } }, true);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && onScreen()) { pull(false).then(a => a && render(true)).catch(() => {}); } });
+    setInterval(() => { const l = $('screen-messages'); if (l && !l.classList.contains('hidden') && !document.hidden) refreshBadge(); }, CFG.badgeMs);
+
+    window.MTSupportLive = { open: open, pinned: pinned, refreshBadge: refreshBadge };
+  })();
+
+  // ==================================================================
+  // ---- Quick Fix Reporter -> Admin Quick Fix tab (Supabase `service_requests`) ----
+  // A tenant's "Report an Issue" ticket is sent to MainTown when they chose "Send MainTown Vetted Artisan",
+  // or when the landlord did not act in time and MainTown auto-dispatched an artisan. Tickets the tenant
+  // routed to their landlord only are NOT sent. The tenant's photo/video is uploaded and attached.
+  // Delivered through the report_app_quickfix() database function (quickfix_app_reporting_migration.sql);
+  // a secret kept on this device means only this device can update its own request. Undelivered reports
+  // wait in an outbox and retry.
+  // ==================================================================
+  (function () {
+    const CFG = { url: 'https://obtggomfwvravjcnypid.supabase.co', key: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8', bucket: 'support-media', throttleMs: 1500, retryMs: 60000 };
+    const PREFIX = CFG.url + '/storage/v1/object/public/' + CFG.bucket + '/';
+    const LS_SEEN = 'mtr_qf_reported', LS_BOX = 'mtr_qf_outbox';
+    const files = {};            // ticket id -> File (kept in memory until uploaded)
+    let timer = null, running = false, flushing = false;
+    const rd = (k, fb) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? fb : v; } catch (e) { return fb; } };
+    const wr = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+    function rand(n) { const a = new Uint8Array(n); crypto.getRandomValues(a); return Array.from(a, b => b.toString(16).padStart(2, '0')).join(''); }
+    function uid() { try { return (typeof getCurrentUserId === 'function' && getCurrentUserId()) || null; } catch (e) { return null; } }
+    function role() { try { return (typeof currentUserRole !== 'undefined') ? currentUserRole : null; } catch (e) { return null; } }
+    function profile(id) {
+      const u = (rd('maintown_app_state', {}).users || {})[id] || {};
+      let name = u.name || null; try { if (!name && typeof DEMO_USERS !== 'undefined' && DEMO_USERS[id]) name = DEMO_USERS[id].name; } catch (e) {}
+      return { name: name, email: u.email || '', phone: u.phone || '' };
+    }
+    function toMainTown(t) { return t && (t.dispatchPref === 'artisan' || t.status === 'AUTO_DISPATCHED_ARTISAN'); }
+    function statusText(t) {
+      if (t.status === 'AUTO_DISPATCHED_ARTISAN') return 'MainTown artisan auto-dispatched (landlord did not act in time)';
+      if (t.dispatchPref === 'artisan') return 'Tenant asked for a MainTown vetted artisan';
+      return String(t.status || '').replace(/_/g, ' ').toLowerCase();
+    }
+    function addressOf(t) { try { if (typeof activeLease !== 'undefined' && activeLease && (activeLease.address || activeLease.location)) return activeLease.address || activeLease.location; } catch (e) {} return t.propertyTitle || ''; }
+
+    async function upload(file) {
+      const kind = file.type.indexOf('image/') === 0 ? 'image' : (file.type.indexOf('video/') === 0 ? 'video' : null);
+      if (!kind || file.size > 30 * 1048576) return null;
+      const safe = String(file.name || 'file').replace(/[^A-Za-z0-9._-]+/g, '_').slice(-60) || 'file';
+      const path = 'quickfix/' + rand(16) + '/' + Date.now() + '-' + safe;
+      const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 90000);
+      try {
+        const r = await fetch(CFG.url + '/storage/v1/object/' + CFG.bucket + '/' + path, { method: 'POST', headers: { apikey: CFG.key, 'Content-Type': file.type, 'x-upsert': 'false' }, body: file, signal: ctl.signal });
+        if (!r.ok) return null;
+        return { url: PREFIX + path, type: kind, name: file.name || 'file' };
+      } catch (e) { return null; } finally { clearTimeout(to); }
+    }
+
+    async function run() {
+      timer = null; if (running) return; running = true;
+      try {
+        const seen = rd(LS_SEEN, {}), box = rd(LS_BOX, {}), me = uid(), tenant = role() === 'tenant';
+        let changed = false;
+        for (const t of rd('mtr_tickets', [])) {
+          if (!toMainTown(t)) continue;
+          const id = String(t.id), owner = t.userId || (tenant ? me : null);
+          if (!owner) continue; // cannot say whose it is yet; reported when the tenant is signed in
+          const e = seen[id] || (seen[id] = { secret: rand(24), media: [], fp: '' });
+          if (files[id]) { const m = await upload(files[id]); delete files[id]; if (m) e.media = [m]; changed = true; }
+          const fp = statusText(t) + '|' + e.media.length;
+          if (e.fp === fp) continue;
+          const p = profile(owner);
+          box[id] = { fp: fp, args: {
+            p_ticket_id: id, p_secret: e.secret, p_user_id: owner, p_name: p.name, p_email: p.email, p_phone: p.phone,
+            p_service: t.category || 'Service request', p_address: addressOf(t),
+            p_description: (t.desc || '') + '\n\nReported in the MainTown app (ticket ' + id + '). Urgency: ' + (t.urgency || 'Standard') + '.',
+            p_urgency: t.urgency || 'Standard', p_property: t.propertyTitle || '', p_dispatch: t.dispatchPref === 'owner' ? 'owner' : 'artisan',
+            p_app_status: statusText(t), p_media: e.media, p_sla_deadline: t.slaDeadline ? new Date(t.slaDeadline).toISOString() : null } };
+          changed = true;
+        }
+        if (changed) { wr(LS_SEEN, seen); wr(LS_BOX, box); }
+      } finally { running = false; }
+      flush();
+    }
+
+    async function flush() {
+      if (flushing) return;
+      const box = rd(LS_BOX, {}); const ids = Object.keys(box); if (!ids.length) return;
+      flushing = true; let retry = false;
+      try {
+        for (const id of ids) {
+          const item = box[id];
+          try {
+            const r = await fetch(CFG.url + '/rest/v1/rpc/report_app_quickfix', { method: 'POST', headers: { apikey: CFG.key, 'Content-Type': 'application/json' }, body: JSON.stringify(item.args) });
+            if (!r.ok) throw new Error('quickfix ' + r.status);
+            const cur = rd(LS_BOX, {}); if (cur[id] && cur[id].fp === item.fp) delete cur[id]; wr(LS_BOX, cur);
+            const seen = rd(LS_SEEN, {}); if (seen[id]) { seen[id].fp = item.fp; wr(LS_SEEN, seen); }
+          } catch (e) { retry = true; }
+        }
+      } finally { flushing = false; }
+      if (retry) setTimeout(flush, CFG.retryMs);
+    }
+
+    function poke() { if (timer) return; timer = setTimeout(run, CFG.throttleMs); }
+    window.MTRQuickFix = { poke: poke, flush: flush, attach: function (ticketId, file) { if (file) files[String(ticketId)] = file; } };
+    window.addEventListener('online', flush);
+    setInterval(poke, 30000);
+    setTimeout(poke, 3500);
   })();
 </script>
 
