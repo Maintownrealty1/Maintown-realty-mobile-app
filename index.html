@@ -12617,6 +12617,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
   function saveShortletBookings() {
     try { localStorage.setItem('mtr_shortlet_bookings', JSON.stringify(shortletBookings)); } catch (e) {}
+    window.MTRInspReport && window.MTRInspReport.poke();
   }
 
   // Media Uploads visibility rule: draft/private listings (status: 'draft') are stored
@@ -20636,7 +20637,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const storedInsp = JSON.parse(localStorage.getItem('mtr_inspections'));
     inspections = Array.isArray(storedInsp) ? storedInsp : [];
   } catch (e) { inspections = []; }
-  function saveInspections() { try { localStorage.setItem('mtr_inspections', JSON.stringify(inspections)); } catch (e) {} }
+  function saveInspections() { try { localStorage.setItem('mtr_inspections', JSON.stringify(inspections)); } catch (e) {} window.MTRInspReport && window.MTRInspReport.poke(); }
 
   // ---- Inspection Activation & Dashboard Cards Sync ----
   let inspectionNotifications = [];
@@ -21814,7 +21815,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const storedSchedules = JSON.parse(localStorage.getItem('flexrent_schedules'));
     schedules = Array.isArray(storedSchedules) ? storedSchedules : [];
   } catch (e) { schedules = []; }
-  function saveSchedules() { try { localStorage.setItem('flexrent_schedules', JSON.stringify(schedules)); } catch (e) {} }
+  function saveSchedules() { try { localStorage.setItem('flexrent_schedules', JSON.stringify(schedules)); } catch (e) {} window.MTRInspReport && window.MTRInspReport.poke(); }
 
   function updateCartBadge() {
     const badge = document.getElementById('s5-cart-badge');
@@ -27176,6 +27177,8 @@ available in the Post-Lease Hub and this chat thread.`
   }
   function saveAppState(state) {
     try { localStorage.setItem('maintown_app_state', JSON.stringify(state)); } catch (e) {}
+    window.MTRInspReport && window.MTRInspReport.poke();
+    window.MTRAcctReport && window.MTRAcctReport.poke();
   }
   let appState = loadAppState();
 
@@ -32149,6 +32152,330 @@ available in the Post-Lease Hub and this chat thread.`
       window.addEventListener('resize', set);
       set();
     });
+  })();
+
+  // ==================================================================
+  // ---- Inspection & Schedule Reporter -> Admin (Supabase `inspection_events`) ----
+  // Every inspection / schedule / move-in step in the app is mirrored to the admin
+  // panel as an append-only event, so MainTown staff can monitor who booked what,
+  // with whom, for which date, and exactly when each step happened.
+  //
+  // It watches the four stores every flow already writes to, so ALL flows are
+  // covered without touching each button handler (and future flows are covered too):
+  //   flexrent_schedules   -> Rent inspections, Flex Rent cart inspections,
+  //                           Land/Property site inspections (host <-> guest)
+  //   mtr_shortlet_bookings-> Shortlet bookings (check-in / check-out dates)
+  //   maintown_app_state.assets (allocationRequestStatus) -> post-payment Physical
+  //                           Land Allocation / Physical Access handover appointments
+  //   maintown_app_state.leases (moveInDate) -> Rent move-in dates
+  // Each change becomes one event row. The authoritative timestamp is the database's
+  // own created_at (server clock); `client_at` is only the device clock, for reference.
+  // Reports that can't be delivered (offline, table missing) wait in an outbox and
+  // retry; duplicates are impossible (unique event_key, ignore-duplicates).
+  // ==================================================================
+  (function () {
+    const CFG = {
+      url: 'https://obtggomfwvravjcnypid.supabase.co',
+      key: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8', // same public key as RemoteFeed / admin.html
+      table: 'inspection_events',
+      throttleMs: 1200, retryMs: 60000, batch: 40, outboxCap: 500
+    };
+    const LS_SEEN = 'mtr_insp_reported', LS_BOX = 'mtr_insp_outbox';
+    let timer = null, flushing = false;
+
+    function rd(k, fb) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? fb : v; } catch (e) { return fb; } }
+    function wr(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+    function nameOf(id) {
+      if (!id) return null;
+      try { if (typeof DEMO_USERS !== 'undefined' && DEMO_USERS[id]) return DEMO_USERS[id].name; } catch (e) {}
+      const u = ((rd('maintown_app_state', {}).users) || {})[id];
+      return (u && u.name) ? u.name : String(id);
+    }
+    function roleOf(id) {
+      try { if (typeof DEMO_USERS !== 'undefined' && DEMO_USERS[id]) return DEMO_USERS[id].role; } catch (e) {}
+      const u = ((rd('maintown_app_state', {}).users) || {})[id];
+      return (u && u.role) ? String(u.role).toLowerCase() : null;
+    }
+    function ownerOfListing(listingId) {
+      try { const l = (typeof listings !== 'undefined' ? listings : []).find(x => String(x.id) === String(listingId)); return l ? (l.ownerId || l.agentId || null) : null; } catch (e) { return null; }
+    }
+    function isoFromLabel(label) {
+      const base = String(label || '').split(' (')[0].trim();
+      const d = new Date(base); if (!base || isNaN(d.getTime())) return null;
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function timeFromLabel(label) { const m = String(label || '').match(/\(([^)]+)\)/); return m ? m[1] : null; }
+    function kindOf(status, isNew) {
+      const s = String(status || '').toLowerCase();
+      if (/pending/.test(s)) return 'requested';
+      if (/declin/.test(s)) return 'declined';
+      if (/cancel/.test(s)) return 'cancelled';
+      if (/conduct|attend|complet|checked.?out|ended|closed/.test(s)) return 'completed';
+      if (/confirm/.test(s)) return 'confirmed';
+      if (/check.?in/.test(s)) return 'checked_in';
+      if (/active|booked/.test(s)) return 'booked';
+      if (/schedul/.test(s)) return isNew ? 'scheduled' : 'rescheduled';
+      return s.replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'updated';
+    }
+
+    // One normalized record per tracked thing (key = stable identity, fp = what we diff on).
+    function snapshot() {
+      const out = [];
+      const st = rd('maintown_app_state', {});
+
+      rd('flexrent_schedules', []).forEach(s => {
+        if (!s) return;
+        const tt = s.transactionType;
+        const hostId = s.agent_id || s.sales_staff_id || s.landlord_id || null;
+        out.push({
+          key: 'sched:' + (s.inspection_id || s.id),
+          flow: tt === 'LAND_SALE' ? 'land_inspection' : (tt === 'RENTAL' ? 'rent_inspection' : (tt ? String(tt).toLowerCase() : 'flex_rent_inspection')),
+          listing_id: s.property_id != null ? String(s.property_id) : null,
+          listing_title: s.property_title || s.title || null,
+          location: s.address || s.location || null,
+          guest_id: s.tenant_id || null, guest_name: s.tenantName || null,
+          host_id: hostId, host_name: nameOf(hostId),
+          host_role: s.agent_id ? 'agent' : (s.sales_staff_id ? 'sales_staff' : 'landlord'),
+          scheduled_date: s.scheduled_date || s.date || null, scheduled_time: s.scheduled_time || s.time || null,
+          status: s.status || null,
+          details: { fee: s.fee != null ? s.fee : null, escrow_mode: s.escrowMode || null, cancellation_reason: s.cancellationReason || null },
+          fp: [s.status, s.scheduled_date || s.date, s.scheduled_time || s.time].join('|')
+        });
+      });
+
+      rd('mtr_shortlet_bookings', []).forEach(b => {
+        if (!b) return;
+        const hostId = ownerOfListing(b.listingId);
+        out.push({
+          key: 'short:' + b.id, flow: 'shortlet_booking',
+          listing_id: b.listingId != null ? String(b.listingId) : null, listing_title: b.listingTitle || null, location: b.location || null,
+          guest_id: b.tenantId || null, guest_name: nameOf(b.tenantId),
+          host_id: hostId, host_name: nameOf(hostId), host_role: roleOf(hostId) || 'host',
+          scheduled_date: b.checkIn || null, scheduled_time: null,
+          status: b.status || null,
+          details: { check_in: b.checkIn || null, check_out: b.checkOut || null, nights: b.nights || null },
+          fp: [b.status, b.checkIn, b.checkOut].join('|')
+        });
+      });
+
+      (st.assets || []).forEach(a => {
+        if (!a || !a.allocationRequestStatus) return;
+        out.push({
+          key: 'alloc:' + a.id, flow: 'land_allocation',
+          listing_id: a.listingId != null ? String(a.listingId) : null, listing_title: a.title || null, location: a.location || null,
+          guest_id: a.ownerId || null, guest_name: nameOf(a.ownerId),
+          host_id: a.sellerId || null, host_name: nameOf(a.sellerId), host_role: roleOf(a.sellerId) || 'seller',
+          scheduled_date: isoFromLabel(a.allocationDateLabel), scheduled_time: timeFromLabel(a.allocationDateLabel),
+          status: a.allocationRequestStatus,
+          details: { date_label: a.allocationDateLabel || null },
+          fp: [a.allocationRequestStatus, a.allocationDateLabel].join('|')
+        });
+      });
+
+      (st.leases || []).forEach(l => {
+        if (!l || !l.moveInDate) return;
+        const hostId = l.agentId || l.ownerId || null;
+        out.push({
+          key: 'move:' + l.listingId, flow: 'move_in',
+          listing_id: l.listingId != null ? String(l.listingId) : null, listing_title: l.propertyTitle || null, location: null,
+          guest_id: l.tenantId || null, guest_name: l.tenantName || nameOf(l.tenantId),
+          host_id: hostId, host_name: nameOf(hostId), host_role: l.agentId ? 'agent' : 'landlord',
+          scheduled_date: l.moveInDate, scheduled_time: timeFromLabel(l.moveInDateLabel),
+          status: l.moveInStatus || 'SCHEDULED',
+          details: { date_label: l.moveInDateLabel || null },
+          fp: [l.moveInStatus, l.moveInDate, l.moveInDateLabel].join('|')
+        });
+      });
+      return out;
+    }
+
+    function actor() {
+      let id = null, role = null;
+      try { id = (typeof currentDemoUserId === 'function') ? currentDemoUserId() : null; } catch (e) {}
+      try { role = (typeof currentUserRole !== 'undefined') ? currentUserRole : null; } catch (e) {}
+      return { id: id, name: id ? nameOf(id) : null, role: role };
+    }
+
+    function run() {
+      timer = null;
+      let seen = rd(LS_SEEN, null);
+      const firstRun = seen === null;
+      if (firstRun) seen = {};
+      const box = rd(LS_BOX, []);
+      const who = actor();
+      const nowIso = new Date().toISOString();
+      let changed = false;
+
+      snapshot().forEach(r => {
+        const prev = seen[r.key];
+        if (prev && prev.fp === r.fp) return;
+        const isNew = !prev;
+        const statusChanged = isNew || String(prev.status || '') !== String(r.status || '');
+        const n = (prev ? prev.n : 0) + 1;
+        const kind = isNew ? kindOf(r.status, true) : (statusChanged ? kindOf(r.status, false) : 'rescheduled');
+        box.push({
+          event_key: r.key + '|' + n + '|' + r.fp,
+          entity_key: r.key, flow: r.flow, kind: kind,
+          listing_id: r.listing_id, listing_title: r.listing_title, location: r.location,
+          guest_id: r.guest_id, guest_name: r.guest_name,
+          host_id: r.host_id, host_name: r.host_name, host_role: r.host_role,
+          scheduled_date: r.scheduled_date, scheduled_time: r.scheduled_time,
+          status: r.status, prev_status: prev ? (prev.status || null) : null,
+          actor_id: firstRun ? null : who.id, actor_name: firstRun ? null : who.name, actor_role: firstRun ? null : who.role,
+          details: r.details, backfill: firstRun, client_at: nowIso
+        });
+        seen[r.key] = { fp: r.fp, status: r.status, n: n };
+        changed = true;
+      });
+
+      if (changed) {
+        wr(LS_SEEN, seen);
+        wr(LS_BOX, box.slice(-CFG.outboxCap));
+      } else if (firstRun) {
+        wr(LS_SEEN, seen);
+      }
+      flush();
+    }
+
+    async function flush() {
+      if (flushing) return;
+      const box = rd(LS_BOX, []);
+      if (!box.length) return;
+      flushing = true;
+      try {
+        while (true) {
+          const cur = rd(LS_BOX, []);
+          if (!cur.length) break;
+          const part = cur.slice(0, CFG.batch);
+          const res = await fetch(CFG.url + '/rest/v1/' + CFG.table + '?on_conflict=event_key', {
+            method: 'POST',
+            headers: { apikey: CFG.key, 'Content-Type': 'application/json', Prefer: 'resolution=ignore-duplicates,return=minimal' },
+            body: JSON.stringify(part)
+          });
+          if (!res.ok) throw new Error('inspection_events ' + res.status);
+          const sent = new Set(part.map(p => p.event_key));
+          wr(LS_BOX, rd(LS_BOX, []).filter(p => !sent.has(p.event_key)));
+        }
+      } catch (e) {
+        setTimeout(flush, CFG.retryMs); // table not created yet / offline: keep the outbox and try again
+      } finally { flushing = false; }
+    }
+
+    function poke() { if (timer) return; timer = setTimeout(run, CFG.throttleMs); }
+
+    window.MTRInspReport = { poke: poke, flush: flush };
+    window.addEventListener('maintown_state_updated', poke);
+    window.addEventListener('storage', poke);
+    window.addEventListener('online', flush);
+    setInterval(poke, 30000); // safety net for any write path that skips the save helpers
+    setTimeout(poke, 2500);
+  })();
+
+  // ==================================================================
+  // ---- Account Reporter -> Admin (Supabase `app_signup_events`) ----
+  // Every account created inside the app reports to the admin Sign-Ups tab:
+  //   * people who sign up themselves (tenant / landlord / agent),
+  //   * landlords an Agent auto-onboards (PENDING_CLAIM, then "claimed" when they log in),
+  //   * enterprise staff invited by a company owner.
+  // Same mechanism as the inspection reporter: it watches maintown_app_state.users, sends
+  // one append-only row per change (created / claimed / deactivated ...), the database
+  // stamps created_at, and anything undeliverable waits in an outbox and retries.
+  // Deliberately NEVER sent: BVN, temp access codes, bank/settlement details, wallet,
+  // PINs, home address, KYC images. Only who, role, source, status and contact details.
+  // ==================================================================
+  (function () {
+    const CFG = {
+      url: 'https://obtggomfwvravjcnypid.supabase.co',
+      key: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8',
+      table: 'app_signup_events', throttleMs: 1500, retryMs: 60000, batch: 40, cap: 500
+    };
+    const LS_SEEN = 'mtr_acct_reported', LS_BOX = 'mtr_acct_outbox';
+    let timer = null, flushing = false;
+    function rd(k, fb) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? fb : v; } catch (e) { return fb; } }
+    function wr(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+    function isDemo(id) { try { return typeof DEMO_USERS !== 'undefined' && !!DEMO_USERS[id]; } catch (e) { return false; } }
+    function sourceOf(u) {
+      if (u.role === 'enterprise_staff') return 'enterprise_invite';
+      if (u.tempCode || (u.welcomeAlerts && u.welcomeAlerts.length) || u.status === 'PENDING_CLAIM') return 'agent_onboarded';
+      return 'app_signup';
+    }
+    function kindOf(prev, cur) {
+      const p = String(prev || '').toUpperCase(), c = String(cur || '').toUpperCase();
+      if (p === 'PENDING_CLAIM' && c === 'ACTIVE') return 'claimed';
+      if (c === 'DEACTIVATED') return 'deactivated';
+      if (p === 'DEACTIVATED' && c === 'ACTIVE') return 'reactivated';
+      return 'status_changed';
+    }
+    function actor() {
+      let id = null, role = null, name = null;
+      try { id = (typeof currentDemoUserId === 'function') ? currentDemoUserId() : null; } catch (e) {}
+      try { role = (typeof currentUserRole !== 'undefined') ? currentUserRole : null; } catch (e) {}
+      if (id) { const u = (rd('maintown_app_state', {}).users || {})[id]; name = u && u.name ? u.name : null;
+        try { if (!name && typeof DEMO_USERS !== 'undefined' && DEMO_USERS[id]) name = DEMO_USERS[id].name; } catch (e) {} }
+      return { id: id, name: name, role: role };
+    }
+    function run() {
+      timer = null;
+      let seen = rd(LS_SEEN, null);
+      const firstRun = seen === null; if (firstRun) seen = {};
+      const box = rd(LS_BOX, []);
+      const who = actor();
+      const nowIso = new Date().toISOString();
+      const users = rd('maintown_app_state', {}).users || {};
+      let changed = false;
+      Object.keys(users).forEach(id => {
+        const u = users[id];
+        if (!u || typeof u !== 'object' || !u.role || !(u.email || u.name)) return;
+        const status = u.status || 'ACTIVE';
+        const prev = seen[id];
+        if (prev && prev.status === status && prev.role === u.role) return;
+        const isNew = !prev, n = (prev ? prev.n : 0) + 1;
+        const source = prev ? prev.source : sourceOf(u);
+        box.push({
+          event_key: 'acct:' + id + '|' + n + '|' + status,
+          account_id: id, kind: isNew ? 'created' : kindOf(prev.status, status),
+          full_name: u.name || null, email: u.email || null, phone: u.phone || null,
+          role: u.role, staff_role: u.staffRole || null, company_id: u.companyId || null,
+          source: source, status: status, prev_status: prev ? prev.status : null,
+          actor_id: firstRun ? null : who.id, actor_name: firstRun ? null : who.name, actor_role: firstRun ? null : who.role,
+          is_demo: isDemo(id), backfill: firstRun,
+          account_created_at: u.createdAt ? new Date(u.createdAt).toISOString() : null,
+          client_at: nowIso
+        });
+        seen[id] = { status: status, role: u.role, source: source, n: n };
+        changed = true;
+      });
+      if (changed || firstRun) wr(LS_SEEN, seen);
+      if (changed) wr(LS_BOX, box.slice(-CFG.cap));
+      flush();
+    }
+    async function flush() {
+      if (flushing) return;
+      if (!rd(LS_BOX, []).length) return;
+      flushing = true;
+      try {
+        while (true) {
+          const cur = rd(LS_BOX, []); if (!cur.length) break;
+          const part = cur.slice(0, CFG.batch);
+          const res = await fetch(CFG.url + '/rest/v1/' + CFG.table + '?on_conflict=event_key', {
+            method: 'POST',
+            headers: { apikey: CFG.key, 'Content-Type': 'application/json', Prefer: 'resolution=ignore-duplicates,return=minimal' },
+            body: JSON.stringify(part)
+          });
+          if (!res.ok) throw new Error('app_signup_events ' + res.status);
+          const sent = new Set(part.map(p => p.event_key));
+          wr(LS_BOX, rd(LS_BOX, []).filter(p => !sent.has(p.event_key)));
+        }
+      } catch (e) { setTimeout(flush, CFG.retryMs); }
+      finally { flushing = false; }
+    }
+    function poke() { if (timer) return; timer = setTimeout(run, CFG.throttleMs); }
+    window.MTRAcctReport = { poke: poke, flush: flush };
+    window.addEventListener('maintown_state_updated', poke);
+    window.addEventListener('storage', poke);
+    window.addEventListener('online', flush);
+    setInterval(poke, 30000);
+    setTimeout(poke, 3000);
   })();
 </script>
 
