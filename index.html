@@ -6548,6 +6548,13 @@
     .ex-meta { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #c4b5fd; margin: 0 0 4px; }
     .ex-title { font-size: 16px; font-weight: 700; line-height: 1.35; color: #fff; margin: 0 0 6px; }
     .ex-sum { font-size: 12.5px; line-height: 1.55; color: #94a3b8; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .ex-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 8px; border-radius: 16px; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-bottom: 8px; }
+    .ex-carousel::-webkit-scrollbar { display: none; }
+    .ex-slide { flex: 0 0 100%; scroll-snap-align: center; height: 230px; border-radius: 16px; overflow: hidden; background: #0f172a; }
+    .ex-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ex-dots { display: flex; justify-content: center; gap: 6px; margin: 0 0 14px; }
+    .ex-dots i { width: 7px; height: 7px; border-radius: 99px; background: #475569; display: block; }
+    .ex-dots i.on { background: #a78bfa; }
     .ex-status { text-align: center; font-size: 12.5px; color: #94a3b8; padding: 22px 8px; line-height: 1.6; }
     .ex-detail-cover { height: 210px; border-radius: 16px; overflow: hidden; margin-bottom: 14px; background-size: cover; background-position: center; }
     .ex-detail-cover img, .ex-video { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -32979,6 +32986,10 @@ available in the Post-Lease Hub and this chat thread.`
       if (list) out.push('</ul>'); return out.join('');
     }
 
+    function images(p) { const a = []; if (p.cover_url) a.push(p.cover_url); (p.gallery || []).forEach(u => { if (u && a.indexOf(u) < 0) a.push(u); }); return a; }
+    function carousel(imgs) {
+      return '<div class="ex-carousel" id="ex-car">' + imgs.map(u => '<div class="ex-slide"><img src="' + esc(u) + '" alt="" loading="lazy"></div>').join('') + '</div><div class="ex-dots" id="ex-dots">' + imgs.map((_, i) => '<i class="' + (i === 0 ? 'on' : '') + '"></i>').join('') + '</div>';
+    }
     function cover(p, cls) {
       return p.cover_url ? '<div class="' + cls + '"><img src="' + esc(p.cover_url) + '" alt="" loading="lazy"></div>'
                          : '<div class="' + cls + '" style="background:' + (GRAD[p.category] || GRAD.learn) + ';"></div>';
@@ -32999,15 +33010,15 @@ available in the Post-Lease Hub and this chat thread.`
       st.style.display = 'none';
       $('ex-feed').innerHTML = items.map((p, i) =>
         '<button type="button" class="ex-card' + (i === 0 ? ' first' : '') + '" data-id="' + esc(p.id) + '">' +
-        '<div class="ex-cover" style="' + (p.cover_url ? '' : 'background:' + (GRAD[p.category] || GRAD.learn)) + '">' + (p.cover_url ? '<img src="' + esc(p.cover_url) + '" alt="" loading="lazy">' : '') +
-        '<div class="ex-badges">' + (p.kind === 'video' ? '<span class="ex-badge">Video</span>' : '') + (p.is_sponsored ? '<span class="ex-badge sponsored">Sponsored</span>' : '') + '</div></div>' +
+        '<div class="ex-cover" style="' + (images(p)[0] ? '' : 'background:' + (GRAD[p.category] || GRAD.learn)) + '">' + (images(p)[0] ? '<img src="' + esc(images(p)[0]) + '" alt="" loading="lazy">' : '') +
+        '<div class="ex-badges">' + (p.kind === 'video' ? '<span class="ex-badge">Video</span>' : (images(p).length > 1 ? '<span class="ex-badge">' + images(p).length + ' photos</span>' : '')) + (p.is_sponsored ? '<span class="ex-badge sponsored">Sponsored</span>' : '') + '</div></div>' +
         '<div class="ex-cardbody"><p class="ex-meta">' + esc(CATS[p.category] || 'Update') + ' &middot; ' + esc(when(p)) + '</p><p class="ex-title">' + esc(p.title) + '</p><p class="ex-sum">' + esc(p.summary) + '</p></div></button>').join('');
       renderChips();
     }
 
     async function fetchPosts() {
       try {
-        const r = await fetch(CFG.url + '/rest/v1/explore_posts?select=id,slug,kind,category,title,summary,body,cover_url,video_url,audiences,author_name,published_at,publish_at,is_sponsored,sponsor_name&order=published_at.desc&limit=60', { headers: { apikey: CFG.key } });
+        const r = await fetch(CFG.url + '/rest/v1/explore_posts?select=id,slug,kind,category,title,summary,body,cover_url,gallery,video_url,audiences,author_name,published_at,publish_at,is_sponsored,sponsor_name&order=published_at.desc&limit=60', { headers: { apikey: CFG.key } });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const rows = await r.json(); S.posts = rows; S.fetchedAt = Date.now(); wr('mtr_explore_cache', { at: S.fetchedAt, posts: rows });
         return true;
@@ -33031,9 +33042,12 @@ available in the Post-Lease Hub and this chat thread.`
       $('ex-detail-cat').textContent = CATS[p.category] || 'Explore';
       $('ex-detail-title').textContent = p.title;
       $('ex-detail-meta').textContent = (p.author_name || 'MainTown Realty') + ' \u00b7 ' + when(p) + ' \u00b7 ' + mins(p.body) + ' min ' + (p.kind === 'video' ? 'watch' : 'read') + (p.is_sponsored ? ' \u00b7 Sponsored' + (p.sponsor_name ? ' by ' + p.sponsor_name : '') : '');
+      const imgs = images(p);
       $('ex-detail-media').innerHTML = (p.kind === 'video' && p.video_url)
-        ? '<video class="ex-video" src="' + esc(p.video_url) + '" controls playsinline preload="metadata"' + (p.cover_url ? ' poster="' + esc(p.cover_url) + '"' : '') + '></video>'
-        : cover(p, 'ex-detail-cover');
+        ? '<video class="ex-video" src="' + esc(p.video_url) + '" controls playsinline preload="metadata"' + (imgs[0] ? ' poster="' + esc(imgs[0]) + '"' : '') + '></video>' + (imgs.length > 1 ? carousel(imgs) : '')
+        : (imgs.length > 1 ? carousel(imgs) : cover({ cover_url: imgs[0], category: p.category }, 'ex-detail-cover'));
+      const car = $('ex-car'), dots = $('ex-dots');
+      if (car && dots) car.addEventListener('scroll', () => { const i = Math.round(car.scrollLeft / Math.max(1, car.clientWidth)); Array.prototype.forEach.call(dots.children, (d, k) => d.classList.toggle('on', k === i)); });
       $('ex-detail-body').innerHTML = md(p.body);
       syncSave();
       $('ex-list-view').style.display = 'none'; $('ex-detail-view').style.display = 'block';
