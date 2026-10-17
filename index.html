@@ -6527,6 +6527,79 @@
 
 </div>
 
+<!-- ===================== SCREEN: Explore (MainTown-curated articles and videos; same posts as the website Housing Updates) ===================== -->
+<div id="screen-explore" class="screen-view hidden">
+  <style>
+    #screen-explore { padding-bottom: 96px; }
+    .ex-head h1 { font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 2px; }
+    .ex-head p { font-size: 12.5px; color: #94a3b8; margin: 0 0 14px; line-height: 1.5; }
+    .ex-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 14px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .ex-chips::-webkit-scrollbar { display: none; }
+    .ex-chip { flex: 0 0 auto; border: 1px solid #334155; background: transparent; color: #cbd5e1; border-radius: 999px; padding: 7px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .ex-chip.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+    .ex-card { display: block; width: 100%; text-align: left; border: 1px solid #1e293b; background: rgba(15,23,42,0.6); border-radius: 16px; overflow: hidden; margin-bottom: 14px; padding: 0; cursor: pointer; color: inherit; }
+    .ex-cover { position: relative; height: 150px; background-size: cover; background-position: center; }
+    .ex-card.first .ex-cover { height: 190px; }
+    .ex-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ex-badges { position: absolute; top: 10px; left: 10px; display: flex; gap: 6px; }
+    .ex-badge { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: rgba(0,0,0,0.62); color: #fff; }
+    .ex-badge.sponsored { background: rgba(245,158,11,0.92); color: #1c1917; }
+    .ex-cardbody { padding: 12px 14px 14px; }
+    .ex-meta { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #c4b5fd; margin: 0 0 4px; }
+    .ex-title { font-size: 16px; font-weight: 700; line-height: 1.35; color: #fff; margin: 0 0 6px; }
+    .ex-sum { font-size: 12.5px; line-height: 1.55; color: #94a3b8; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .ex-status { text-align: center; font-size: 12.5px; color: #94a3b8; padding: 22px 8px; line-height: 1.6; }
+    .ex-detail-cover { height: 210px; border-radius: 16px; overflow: hidden; margin-bottom: 14px; background-size: cover; background-position: center; }
+    .ex-detail-cover img, .ex-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ex-video { height: auto; max-height: 360px; border-radius: 16px; background: #000; margin-bottom: 14px; }
+    .ex-detail h2.ex-dtitle { font-size: 22px; line-height: 1.3; font-weight: 700; color: #fff; margin: 4px 0 8px; }
+    .ex-dmeta { font-size: 11.5px; color: #94a3b8; margin: 0 0 14px; }
+    .ex-actions { display: flex; gap: 10px; margin: 0 0 16px; }
+    .ex-act { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #334155; background: transparent; color: #e2e8f0; border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .ex-act.on { background: rgba(124,58,237,0.18); border-color: #7c3aed; color: #c4b5fd; }
+    .ex-body p, .ex-body li { font-size: 14.5px; line-height: 1.75; color: #cbd5e1; margin: 0 0 12px; }
+    .ex-body h3 { font-size: 16px; color: #fff; margin: 20px 0 8px; font-weight: 700; }
+    .ex-body h4 { font-size: 14px; color: #c4b5fd; margin: 16px 0 6px; font-weight: 700; }
+    .ex-body ul { margin: 0 0 12px; padding-left: 20px; }
+    .ex-body li { margin-bottom: 6px; }
+    .ex-body strong { color: #fff; }
+    .ex-body a { color: #c4b5fd; text-decoration: underline; }
+    .ex-note { font-size: 11px; color: #64748b; line-height: 1.5; margin-top: 18px; }
+    body.light-theme .ex-head h1, body.light-theme .ex-title, body.light-theme .ex-detail h2.ex-dtitle, body.light-theme .ex-body h3, body.light-theme .ex-body strong { color: #0f172a; }
+    body.light-theme .ex-card { background: #ffffff; border-color: #e2e8f0; }
+    body.light-theme .ex-sum, body.light-theme .ex-body p, body.light-theme .ex-body li { color: #475569; }
+    body.light-theme .ex-chip { color: #334155; border-color: #cbd5e1; }
+    body.light-theme .ex-act { color: #334155; border-color: #cbd5e1; }
+    body.light-theme .ex-meta, body.light-theme .ex-body h4, body.light-theme .ex-body a { color: #6d28d9; }
+  </style>
+
+  <div id="ex-list-view">
+    <div class="ex-head">
+      <h1>Explore</h1>
+      <p>Learn, discover and stay informed about property in Nigeria.</p>
+    </div>
+    <div id="ex-chips" class="ex-chips"></div>
+    <div id="ex-feed"></div>
+    <div id="ex-status" class="ex-status" style="display:none;"></div>
+  </div>
+
+  <div id="ex-detail-view" class="ex-detail" style="display:none;">
+    <div class="s5-topbar">
+      <button type="button" class="s5-back-btn" id="ex-back-btn" aria-label="Back to Explore"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+      <div class="s5-role-header" style="margin:0;"><p class="s5-role-eyebrow" style="margin:0;"><i data-lucide="compass" class="w-3.5 h-3.5"></i><span id="ex-detail-cat">Explore</span></p></div>
+    </div>
+    <div id="ex-detail-media"></div>
+    <h2 class="ex-dtitle" id="ex-detail-title"></h2>
+    <p class="ex-dmeta" id="ex-detail-meta"></p>
+    <div class="ex-actions">
+      <button type="button" class="ex-act" id="ex-save-btn"><i data-lucide="bookmark" class="w-4 h-4"></i><span>Save</span></button>
+      <button type="button" class="ex-act" id="ex-share-btn"><i data-lucide="share-2" class="w-4 h-4"></i><span>Share</span></button>
+    </div>
+    <div class="ex-body" id="ex-detail-body"></div>
+    <p class="ex-note" id="ex-detail-note">This is general information, not legal or financial advice. Rules and costs differ by state and property.</p>
+  </div>
+</div>
+
 <!-- ===================== SCREEN: Customer Service live chat (real people, via admin Support Chat) ===================== -->
 <div id="screen-support-live" class="screen-view hidden">
   <style>
@@ -6847,6 +6920,7 @@
   <div class="dash-nav">
     <div class="dash-nav-item active" id="nav-home"><span class="nav-icon"><i data-lucide="home" class="w-[18px] h-[18px]"></i></span>Home</div>
     <div class="dash-nav-item" id="nav-search"><span class="nav-icon"><i data-lucide="search" class="w-[18px] h-[18px]"></i></span>Search</div>
+    <div class="dash-nav-item" id="nav-explore"><span class="nav-icon"><i data-lucide="compass" class="w-[18px] h-[18px]"></i></span>Explore</div>
     <div class="dash-nav-item" id="nav-messages"><span class="nav-icon"><i data-lucide="message-square" class="w-[18px] h-[18px]"></i></span>Messages</div>
     <div class="dash-nav-item" id="nav-profile"><span class="nav-icon"><i data-lucide="user" class="w-[18px] h-[18px]"></i></span>Profile</div>
   </div>
@@ -9242,6 +9316,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const staffHomeScreens = ['screen-ent-sales', 'screen-ent-finance', 'screen-ent-legal-dash'];
     document.getElementById('nav-home').classList.toggle('active', screenId === 'screen-4' || staffHomeScreens.includes(screenId));
     document.getElementById('nav-search').classList.toggle('active', screenId === 'screen-5');
+    document.getElementById('nav-explore').classList.toggle('active', screenId === 'screen-explore');
+    if (screenId === 'screen-explore' && window.MTExplore) window.MTExplore.onShow();
     document.getElementById('nav-messages').classList.toggle('active', screenId === 'screen-messages');
     document.getElementById('nav-profile').classList.toggle('active', screenId === 'screen-profile');
 
@@ -9299,6 +9375,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   document.getElementById('nav-search').addEventListener('click', () => navigateTo('screen-5'));
+  document.getElementById('nav-explore').addEventListener('click', () => navigateTo('screen-explore'));
   document.getElementById('nav-messages').addEventListener('click', () => navigateTo('screen-messages'));
   document.getElementById('nav-profile').addEventListener('click', () => navigateTo('screen-profile'));
   document.getElementById('dash-avatar').addEventListener('click', () => navigateTo('screen-profile'));
@@ -32862,6 +32939,131 @@ available in the Post-Lease Hub and this chat thread.`
     window.addEventListener('online', flush);
     setInterval(poke, 30000);
     setTimeout(poke, 3500);
+  })();
+
+  // ==================================================================
+  // ---- Explore: MainTown-curated articles and videos ----
+  // Posts are written in the admin (Explore Content). Published posts appear here and on the website
+  // "Housing Updates" page. Read-only for the app: it fetches published posts and logs view / save / share
+  // through explore_track(). Posts are cached on the device so the feed also opens offline.
+  // ==================================================================
+  (function () {
+    const CFG = { url: 'https://obtggomfwvravjcnypid.supabase.co', key: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8' };
+    const SITE = 'https://maintownrealty.com/housingupdates.html';   // base address for shared links
+    const CATS = { learn: 'Learn', neighbourhoods: 'Neighbourhoods', news: 'News', stories: 'Stories', design: 'Design' };
+    const GRAD = { learn: 'linear-gradient(135deg,#6d28d9,#a855f7)', neighbourhoods: 'linear-gradient(135deg,#0f766e,#14b8a6)', news: 'linear-gradient(135deg,#1d4ed8,#38bdf8)', stories: 'linear-gradient(135deg,#b45309,#f59e0b)', design: 'linear-gradient(135deg,#be185d,#f472b6)' };
+    const S = { posts: [], cat: 'all', open: null, fetchedAt: 0 };
+    const $ = id => document.getElementById(id);
+    const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    const rd = (k, fb) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? fb : v; } catch (e) { return fb; } };
+    const wr = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+    function uid() { try { const u = (typeof getCurrentUserId === 'function') && getCurrentUserId(); if (u) return u; } catch (e) {} let d = null; try { d = localStorage.getItem('mtr_device_id'); } catch (e) {} if (!d) { d = 'dev-' + Math.random().toString(36).slice(2) + Date.now().toString(36); try { localStorage.setItem('mtr_device_id', d); } catch (e) {} } return d; }
+    function myRole() { try { return String((typeof currentUserRole !== 'undefined' && currentUserRole) || '').toLowerCase(); } catch (e) { return ''; } }
+    function saved() { return new Set(rd('mtr_explore_saved', [])); }
+    function track(id, ev) { try { fetch(CFG.url + '/rest/v1/rpc/explore_track', { method: 'POST', headers: { apikey: CFG.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_post: id, p_event: ev, p_user: uid() }) }).catch(() => {}); } catch (e) {} }
+    function visible(p) { const a = p.audiences || ['all']; const r = myRole(); return a.indexOf('all') > -1 || (r && a.indexOf(r) > -1); }
+    function when(p) { const d = new Date(p.published_at || p.publish_at); return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Africa/Lagos' }); }
+    function mins(b) { return Math.max(1, Math.round(String(b || '').split(/\s+/).length / 200)); }
+    function inl(t) { return t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'); }
+    function md(src) {
+      const out = []; let list = false;
+      String(src || '').replace(/\r/g, '').split('\n').forEach(raw => {
+        const line = esc(raw.trim());
+        if (/^- /.test(line)) { if (!list) { out.push('<ul>'); list = true; } out.push('<li>' + inl(line.slice(2)) + '</li>'); return; }
+        if (list) { out.push('</ul>'); list = false; }
+        if (!line) return;
+        if (/^### /.test(line)) out.push('<h4>' + inl(line.slice(4)) + '</h4>');
+        else if (/^## /.test(line)) out.push('<h3>' + inl(line.slice(3)) + '</h3>');
+        else out.push('<p>' + inl(line) + '</p>');
+      });
+      if (list) out.push('</ul>'); return out.join('');
+    }
+
+    function cover(p, cls) {
+      return p.cover_url ? '<div class="' + cls + '"><img src="' + esc(p.cover_url) + '" alt="" loading="lazy"></div>'
+                         : '<div class="' + cls + '" style="background:' + (GRAD[p.category] || GRAD.learn) + ';"></div>';
+    }
+    function renderChips() {
+      const have = {}; S.posts.filter(visible).forEach(p => { have[p.category] = 1; });
+      const nSaved = S.posts.filter(p => saved().has(p.id)).length;
+      let h = '<button type="button" class="ex-chip' + (S.cat === 'all' ? ' active' : '') + '" data-cat="all">All</button>';
+      Object.keys(CATS).filter(k => have[k]).forEach(k => { h += '<button type="button" class="ex-chip' + (S.cat === k ? ' active' : '') + '" data-cat="' + k + '">' + CATS[k] + '</button>'; });
+      if (nSaved) h += '<button type="button" class="ex-chip' + (S.cat === 'saved' ? ' active' : '') + '" data-cat="saved">Saved (' + nSaved + ')</button>';
+      $('ex-chips').innerHTML = h;
+    }
+    function renderFeed() {
+      const sv = saved();
+      const items = S.posts.filter(visible).filter(p => S.cat === 'all' ? true : (S.cat === 'saved' ? sv.has(p.id) : p.category === S.cat));
+      const st = $('ex-status');
+      if (!items.length) { st.style.display = 'block'; st.textContent = S.posts.length ? 'Nothing here yet.' : 'No stories yet. Check back soon.'; $('ex-feed').innerHTML = ''; renderChips(); return; }
+      st.style.display = 'none';
+      $('ex-feed').innerHTML = items.map((p, i) =>
+        '<button type="button" class="ex-card' + (i === 0 ? ' first' : '') + '" data-id="' + esc(p.id) + '">' +
+        '<div class="ex-cover" style="' + (p.cover_url ? '' : 'background:' + (GRAD[p.category] || GRAD.learn)) + '">' + (p.cover_url ? '<img src="' + esc(p.cover_url) + '" alt="" loading="lazy">' : '') +
+        '<div class="ex-badges">' + (p.kind === 'video' ? '<span class="ex-badge">Video</span>' : '') + (p.is_sponsored ? '<span class="ex-badge sponsored">Sponsored</span>' : '') + '</div></div>' +
+        '<div class="ex-cardbody"><p class="ex-meta">' + esc(CATS[p.category] || 'Update') + ' &middot; ' + esc(when(p)) + '</p><p class="ex-title">' + esc(p.title) + '</p><p class="ex-sum">' + esc(p.summary) + '</p></div></button>').join('');
+      renderChips();
+    }
+
+    async function fetchPosts() {
+      try {
+        const r = await fetch(CFG.url + '/rest/v1/explore_posts?select=id,slug,kind,category,title,summary,body,cover_url,video_url,audiences,author_name,published_at,publish_at,is_sponsored,sponsor_name&order=published_at.desc&limit=60', { headers: { apikey: CFG.key } });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const rows = await r.json(); S.posts = rows; S.fetchedAt = Date.now(); wr('mtr_explore_cache', { at: S.fetchedAt, posts: rows });
+        return true;
+      } catch (e) { return false; }
+    }
+    async function onShow() {
+      showList();
+      if (!S.posts.length) { const c = rd('mtr_explore_cache', null); if (c && c.posts) S.posts = c.posts; }
+      renderFeed();
+      if (Date.now() - S.fetchedAt > 60000) {
+        const ok = await fetchPosts();
+        if (ok) renderFeed(); else if (!S.posts.length) { const st = $('ex-status'); st.style.display = 'block'; st.textContent = 'Could not load Explore. Check your connection and try again.'; }
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function showList() { $('ex-detail-view').style.display = 'none'; $('ex-list-view').style.display = 'block'; const v = document.querySelector('#ex-detail-media video'); if (v) v.pause(); S.open = null; }
+    function openPost(id) {
+      const p = S.posts.find(x => x.id === id); if (!p) return;
+      S.open = p;
+      $('ex-detail-cat').textContent = CATS[p.category] || 'Explore';
+      $('ex-detail-title').textContent = p.title;
+      $('ex-detail-meta').textContent = (p.author_name || 'MainTown Realty') + ' \u00b7 ' + when(p) + ' \u00b7 ' + mins(p.body) + ' min ' + (p.kind === 'video' ? 'watch' : 'read') + (p.is_sponsored ? ' \u00b7 Sponsored' + (p.sponsor_name ? ' by ' + p.sponsor_name : '') : '');
+      $('ex-detail-media').innerHTML = (p.kind === 'video' && p.video_url)
+        ? '<video class="ex-video" src="' + esc(p.video_url) + '" controls playsinline preload="metadata"' + (p.cover_url ? ' poster="' + esc(p.cover_url) + '"' : '') + '></video>'
+        : cover(p, 'ex-detail-cover');
+      $('ex-detail-body').innerHTML = md(p.body);
+      syncSave();
+      $('ex-list-view').style.display = 'none'; $('ex-detail-view').style.display = 'block';
+      if (window.lucide) lucide.createIcons();
+      window.scrollTo({ top: 0 });
+      track(p.id, 'view');
+    }
+    function syncSave() {
+      const on = S.open && saved().has(S.open.id), b = $('ex-save-btn');
+      b.classList.toggle('on', !!on); b.querySelector('span').textContent = on ? 'Saved' : 'Save';
+    }
+    function toggleSave() {
+      if (!S.open) return; const sv = saved();
+      if (sv.has(S.open.id)) sv.delete(S.open.id); else { sv.add(S.open.id); track(S.open.id, 'save'); try { showToast('Saved to your Explore'); } catch (e) {} }
+      wr('mtr_explore_saved', Array.from(sv)); syncSave();
+    }
+    function share() {
+      const p = S.open; if (!p) return; const url = SITE + '?p=' + encodeURIComponent(p.slug);
+      track(p.id, 'share');
+      if (navigator.share) navigator.share({ title: p.title, text: p.summary || '', url: url }).catch(() => {});
+      else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => { try { showToast('Link copied'); } catch (e) {} });
+    }
+
+    $('ex-chips').addEventListener('click', e => { const b = e.target.closest('[data-cat]'); if (b) { S.cat = b.dataset.cat; renderFeed(); } });
+    $('ex-feed').addEventListener('click', e => { const c = e.target.closest('[data-id]'); if (c) openPost(c.dataset.id); });
+    $('ex-back-btn').addEventListener('click', () => { showList(); window.scrollTo({ top: 0 }); renderFeed(); });
+    $('ex-save-btn').addEventListener('click', toggleSave);
+    $('ex-share-btn').addEventListener('click', share);
+
+    window.MTExplore = { onShow: onShow };
   })();
 </script>
 
