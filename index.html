@@ -4410,7 +4410,7 @@
   </div>
 
   <p class="role-hint" style="margin-top: 24px;">New here? <span id="login-signup-link" style="color:#c084fc; cursor:pointer; font-weight:600;">Create an account</span></p>
-  <p class="role-hint" style="margin-top: 10px;">Provisioned as a Landlord by an Agent? <span id="claim-landlord-link" style="color:#c084fc; cursor:pointer; font-weight:600;">Claim Landlord Account / Use Temp Code</span></p>
+  <p class="role-hint" style="margin-top: 10px;">Added as a Landlord by an Agent or MainTown? <span id="claim-landlord-link" style="color:#c084fc; cursor:pointer; font-weight:600;">Claim Landlord Account / Use Temp Code</span></p>
 
 </div>
 <!-- ===================== END SCREEN LOGIN ===================== -->
@@ -12497,6 +12497,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         id: 'web-' + row.id, remoteId: row.id, origin: 'remote', source: row.source || LISTING_SOURCE.WEB,
         // MainTown-managed listing: the landlord is a verified owner with their own app wallet, so the
         // normal wallet-to-wallet split credits them (MainTown keeps 100% of the commission: no agent).
+        // Explicit city picked in the admin (a market id) wins; otherwise it is worked out from the address text.
+        city: (typeof MARKETS !== 'undefined' && MARKETS.some(m => m.id === row.city)) ? row.city : undefined,
         managedLandlordId: row.managed_landlord_id || null,
         managedLandlordName: row.managed_landlord_name || null,
         ownerId: row.managed_landlord_id ? ('ml_' + row.managed_landlord_id) : undefined,
@@ -26881,7 +26883,17 @@ available in the Post-Lease Hub and this chat thread.`
       hideLoginError();
       loginAsDemoUser(demoUser);
     } else {
-      showLoginError('Account not found. Use a demo account (John Adam, Frank Hood, or Angel Tiwa).');
+      const typedCode = (document.getElementById('login-password').value || '').trim();
+      if (/^MT-\d{6}$/i.test(typedCode)) {
+        // They typed a temp code as the password: send them to Claim Landlord Account with it filled in.
+        hideLoginError();
+        openClaimLandlordModal();
+        document.getElementById('claim-email').value = typed.trim();
+        document.getElementById('claim-temp-code').value = typedCode.toUpperCase();
+        showToast('That is a temp code. Tap Verify to activate your account.');
+      } else {
+        showLoginError('Account not found. Use a demo account (John Adam, Frank Hood, or Angel Tiwa).');
+      }
     }
   });
   document.getElementById('login-email').addEventListener('input', () => hideLoginError());
