@@ -12495,6 +12495,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
         : { name: String(row.listed_by_name).trim(), photo: absUrl(row.listed_by_photo), role: lbType === 'company' ? 'company' : 'landlord', label: lbType === 'company' ? 'Company' : 'Property owner' };
       const base = {
         id: 'web-' + row.id, remoteId: row.id, origin: 'remote', source: row.source || LISTING_SOURCE.WEB,
+        // MainTown-managed listing: the landlord is a verified owner with their own app wallet, so the
+        // normal wallet-to-wallet split credits them (MainTown keeps 100% of the commission: no agent).
+        managedLandlordId: row.managed_landlord_id || null,
+        managedLandlordName: row.managed_landlord_name || null,
+        ownerId: row.managed_landlord_id ? ('ml_' + row.managed_landlord_id) : undefined,
         status: st, title: row.title, location: row.location,
         listedBy: 'landlord', landlordName: hostInfo.name, landlordPhoto: hostInfo.photo, agentName: null, hostDisplay: hostInfo,
         listedAt: Date.parse(row.created_at) || Date.now(),
@@ -12686,6 +12691,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       lastSig = sig;
       for (let i = listings.length - 1; i >= 0; i--) if (listings[i] && listings[i].origin === 'remote') listings.splice(i, 1);
       incoming.forEach(m => listings.push(m));
+      setTimeout(() => { try { incoming.forEach(ensureManagedLandlordAccount); } catch (e) { console.warn('[MainTown] managed landlord accounts:', e.message); } }, 0);
       return true;
     }
     async function pull() {
@@ -17945,6 +17951,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function applySplitPaymentSettlement(listing, breakdown) {
     if (!listing || !breakdown) return;
+    try { ensureManagedLandlordAccount(listing); } catch (e) {}
     const isAgentManaged = listing.listedByRole ? listing.listedByRole === 'AGENT' : listing.listedBy === 'agent';
     const isLand = listing.type === 'land';
     const legal = breakdown.legal || 0;
@@ -27133,7 +27140,7 @@ available in the Post-Lease Hub and this chat thread.`
 
   function getPendingClaimLandlords() {
     appState = loadAppState();
-    return Object.values(appState.users || {}).filter(u => (u.role === 'landlord' || u.role === 'enterprise_staff') && u.status === 'PENDING_CLAIM');
+    return Object.values(appState.users || {}).filter(u => (u.role === 'landlord' || u.role === 'enterprise_staff') && u.status === 'PENDING_CLAIM' && !(u.managedByMainTown && !u.tempCode));
   }
 
   function renderLoginPendingClaims() {
@@ -27846,6 +27853,62 @@ available in the Post-Lease Hub and this chat thread.`
 
   // Finds-or-creates the Landlord profile for an Agent-uploaded listing. Returns
   // the (possibly newly provisioned) Landlord user record.
+  // ---- MainTown-managed landlords: their app account (wallet) ----
+  // Website listings that MainTown lists on a verified landlord's behalf carry ownerId 'ml_<id>'.
+  // This makes sure that account exists, so checkout names the owner on agreements and receipts and
+  // every split payment credits their wallet exactly like any other landlord. (Accounts and balances
+  // live on the device until your backend holds them.)
+  function ensureManagedLandlordAccount(l) {
+    if (!l || !l.ownerId || l.origin !== 'remote') return;
+    appState = loadAppState();
+    if (!appState.users) appState.users = {};
+    const cur = appState.users[l.ownerId];
+    if (cur) {
+      if (l.managedLandlordName && !cur.legalName) { cur.legalName = l.managedLandlordName; cur.name = cur.name && cur.name !== l.ownerId ? cur.name : l.managedLandlordName; saveAppState(appState); }
+      return;
+    }
+    appState.users[l.ownerId] = {
+      id: l.ownerId, name: l.managedLandlordName || 'Property owner', legalName: l.managedLandlordName || undefined,
+      role: 'landlord', status: 'PENDING_CLAIM', managedByMainTown: true, walletBalance: 0,
+      settlementBank: null, walletPin: null, escrowLedger: [], welcomeAlerts: [], createdAt: Date.now()
+    };
+    saveAppState(appState);
+  }
+
+  // Claim a MainTown-onboarded landlord account: the same email + temp code (MT-123456) as an
+  // agent-onboarded landlord, but the code is checked against Supabase (the account was created in the
+  // admin, not on this phone). On success the account is created here with the same id the listings
+  // use (ml_<id>), then the normal claim steps (password + wallet PIN) take over.
+  async function claimManagedLandlordRemote(email, code) {
+    try {
+      const c = RemoteFeed.config;
+      if (!c || !email || !code) return null;
+      const res = await fetch(c.url + '/rest/v1/rpc/claim_managed_landlord', {
+        method: 'POST',
+        headers: { apikey: c.key, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_email: email, p_code: code })
+      });
+      if (!res.ok) return null;
+      const rows = await res.json();
+      const r = Array.isArray(rows) ? rows[0] : rows;
+      if (!r || !r.landlord_id) return null;
+      appState = loadAppState();
+      if (!appState.users) appState.users = {};
+      const id = 'ml_' + r.landlord_id;
+      const rec = appState.users[id] || { id, walletBalance: 0, settlementBank: null, walletPin: null, escrowLedger: [], welcomeAlerts: [], createdAt: Date.now() };
+      if (rec.status === 'ACTIVE') return rec; // already claimed on this phone
+      Object.assign(rec, {
+        id, name: r.landlord_name, legalName: r.landlord_name, phone: r.landlord_phone || rec.phone || null,
+        email: normalizeContact(r.landlord_email), role: 'landlord', status: 'PENDING_CLAIM',
+        tempCode: String(code).trim().toUpperCase(), managedByMainTown: true
+      });
+      appState.users[id] = rec;
+      saveAppState(appState);
+      window.dispatchEvent(new Event('maintown_state_updated'));
+      return rec;
+    } catch (e) { return null; }
+  }
+
   function provisionLandlord(name, phone, email, bankAccountNumber, bankName) {
     const existing = findLandlordUserByContact(email, phone);
     if (existing) {
@@ -28011,13 +28074,15 @@ available in the Post-Lease Hub and this chat thread.`
   document.getElementById('claim-cancel-btn-1').addEventListener('click', () => claimLandlordModal.classList.remove('open'));
   document.getElementById('claim-cancel-btn-2').addEventListener('click', () => claimLandlordModal.classList.remove('open'));
 
-  document.getElementById('claim-verify-btn').addEventListener('click', () => {
+  document.getElementById('claim-verify-btn').addEventListener('click', async () => {
     hideClaimStep1Error();
     const email = normalizeContact(document.getElementById('claim-email').value);
     const code = document.getElementById('claim-temp-code').value.trim().toUpperCase();
-    const match = Object.values(appState.users).find(u =>
+    let match = Object.values(appState.users).find(u =>
       (u.role === 'landlord' || u.role === 'enterprise_staff') && normalizeContact(u.email) === email && (u.tempCode || '').toUpperCase() === code
     );
+    // Not an account created on this phone: it may be a landlord MainTown onboarded from the admin.
+    if (!match) match = await claimManagedLandlordRemote(email, code);
     if (!match) {
       showClaimStep1Error('No pending Landlord account matches that email and temp code.');
       return;
