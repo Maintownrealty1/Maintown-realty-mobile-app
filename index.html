@@ -7420,6 +7420,7 @@
          matter how tall the policy text renders on a given screen. -->
     <div class="va-sticky-footer">
       <p class="login-error-msg" id="va-error-msg"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span id="va-error-text">Please check the box above to continue.</span></p>
+      <p class="role-hint" style="text-align:left; margin:8px 0 0;">By activating, you agree that MainTown securely stores your ID photo, selfie and the last 4 digits of your BVN/NIN to verify your identity. Only MainTown's legal team can see them, and every view is logged.</p>
       <button type="button" id="va-activate-btn" class="btn-primary" style="margin-top:10px; margin-bottom:12px;">Activate Vendor Account</button>
     </div>
   </div>
@@ -13445,8 +13446,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // The "legal review -> live" step runs on a timer; a refresh would kill it and
   // leave the listing stuck in review, so restart it for anything still waiting.
   agentListings.forEach(e => {
-    if (e && e.workflowStatus === 'LEGAL_REVIEW') setTimeout(() => activateAgentListing(e.id), 6000);
+    if (e && e.workflowStatus === 'LEGAL_REVIEW' && !e.legalReviewKey) setTimeout(() => activateAgentListing(e.id), 6000); // older submissions made before Legal review was real
   });
+  setTimeout(() => { try { LegalPoll.start(); } catch (e) {} }, 0);
 
   // ==================================================================
   // ---- Host Availability Engine: Add/remove inspection date + time-slot
@@ -18906,8 +18908,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!vaAddress) { errText.textContent = 'Please enter your home address as it appears on your NIN / ID.'; errEl.classList.add('show'); return; }
     const kycErr = vaKycGateError();
     if (kycErr) { errText.textContent = kycErr; errEl.classList.add('show'); return; }
+    const kycFiles = {
+      id: (document.getElementById('va-kyc-file-id') || {}).files && document.getElementById('va-kyc-file-id').files[0],
+      selfie: (document.getElementById('va-kyc-file-selfie') || {}).files && document.getElementById('va-kyc-file-selfie').files[0]
+    };
     setVendorActivated(userId, { bankName, bankAccount, bvn: bvnNin, address: vaAddress });
     if (appState.users[userId] && vaKycState) { appState.users[userId].kyc = Object.assign({}, vaKycState); saveAppState(appState); }
+    // Report the KYC to MainTown Legal (masked numbers + the photos they chose to upload). Retried in the background.
+    LegalBridge.withRetry(() => LegalBridge.reportKyc(userId, { bankName, bankAccount, bvn: bvnNin, address: vaAddress }, kycFiles))
+      .catch(err => console.warn('[MainTown] KYC report not delivered', err));
     document.getElementById('vendor-activation-modal').classList.remove('open');
     showToast('Vendor account activated — dashboard unlocked');
     const cb = vendorActivationPendingCallback;
@@ -20388,7 +20397,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('landlord-verify-modal').classList.remove('open');
   });
 
-  document.getElementById('lv-submit-btn').addEventListener('click', () => {
+  document.getElementById('lv-submit-btn').addEventListener('click', async () => {
     const entry = agentListings.find(l => l.id === lvCurrentAgentListingId);
     if (!entry) { document.getElementById('landlord-verify-modal').classList.remove('open'); return; }
     const onFile = getPayoutOnFile(entry.ownerId);
@@ -20444,8 +20453,27 @@ This voucher is auto-generated and serves as proof of settlement.`;
           const doc = TITLE_DOC_TYPES.find(d => d.id === cb.dataset.docId);
           return { id: doc.id, label: doc.label, ...lvSelectedDocs[doc.id] };
         });
+    // Send the documents to MainTown Legal. If they cannot be delivered we stop here so the landlord can
+    // retry: nothing is treated as approved on this phone without a real review.
+    let legalKey = null;
+    if (!entry.clientOwned) {
+      const sendBtn = document.getElementById('lv-submit-btn');
+      if (sendBtn) sendBtn.disabled = true;
+      showToast('Sending your documents securely to MainTown Legal...');
+      try {
+        legalKey = await LegalBridge.submitPropertyDocs(entry, titleDocuments, landlordUser);
+      } catch (err) {
+        console.warn('[MainTown] legal submit failed', err);
+        showToast(err && err.userMessage ? err.userMessage : 'We could not send your documents. Check your connection and try again.');
+        if (sendBtn) sendBtn.disabled = false;
+        return;
+      }
+      if (sendBtn) sendBtn.disabled = false;
+    }
     entry.landlordBankAccount = bankAccount;
     entry.landlordBankName = bankName;
+    entry.legalReviewKey = legalKey;
+    delete entry.legalDecline;
     entry.workflowStatus = 'LEGAL_REVIEW';
     entry.titleDocuments = titleDocuments;
     if (entry.listingData) entry.listingData.titleDocuments = titleDocuments;
@@ -20474,7 +20502,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // review, the listing activates on the marketplace with escrow milestone
     // protection. Simulated here with a short delay in place of a real
     // back-office review queue.
-    setTimeout(() => activateAgentListing(entry.id), 6000);
+    if (entry.legalReviewKey) LegalPoll.start();
+    else setTimeout(() => activateAgentListing(entry.id), 6000); // agent-managed client path (no Legal queue)
   });
 
   // Legal Review -> Live. Split out of the submit handler so a refresh during
@@ -20534,6 +20563,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <div class="s5-list-text">
             <p class="s5-list-title">${l.title}</p>
             <p class="s5-list-sub">${l.address} · Agent: ${l.agentName || 'MainTown Agent'}</p>
+            ${l.legalDecline ? `<p class="s5-list-sub" style="color:#f87171;">MainTown Legal declined your documents: ${String(l.legalDecline.reason || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))} Fix this and submit again.</p>` : ''}
           </div>
           <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">${rightHtml}</div>
         </div>`;
@@ -27886,6 +27916,158 @@ available in the Post-Lease Hub and this chat thread.`
   // This makes sure that account exists, so checkout names the owner on agreements and receipts and
   // every split payment credits their wallet exactly like any other landlord. (Accounts and balances
   // live on the device until your backend holds them.)
+  // ==================================================================
+  // ---- Legal review & KYC reporting (Supabase) ----
+  // Property documents a host/landlord submits go to MainTown's Legal team for a REAL review (admin: Legal
+  // Review tab). Nothing goes live until Legal approves; a decline carries the reason back to the host.
+  // KYC reports send only masked ID numbers (last 4 digits) plus the ID photo and selfie the user chose to
+  // upload, into a private bucket only Legal can open. Full BVN/NIN and full account numbers never leave the phone.
+  // ==================================================================
+  const LegalBridge = (function () {
+    const OK_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+    const MAX_BYTES = 10 * 1024 * 1024;
+    const cfg = () => RemoteFeed.config;
+    const rid = p => p + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 8);
+    const safe = v => String(v == null ? '' : v).replace(/[^A-Za-z0-9._-]+/g, '_').slice(0, 80) || 'file';
+    function mimeOf(blob, name) {
+      if (blob && blob.type) return blob.type;
+      const ext = String(name || '').split('.').pop().toLowerCase();
+      return { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' }[ext] || '';
+    }
+    function problem(msg) { const e = new Error(msg); e.userMessage = msg; return e; }
+    function check(blob, name) {
+      const m = mimeOf(blob, name);
+      if (!OK_MIME.includes(m)) throw problem('Only PDF, JPG, PNG or WEBP files are accepted (' + (name || 'a file') + ' is not).');
+      if (blob.size > MAX_BYTES) throw problem((name || 'A file') + ' is larger than 10 MB. Please upload a smaller copy.');
+      return m;
+    }
+    async function upload(path, blob, mime) {
+      const c = cfg();
+      const res = await fetch(c.url + '/storage/v1/object/legal-docs/' + path, {
+        method: 'POST',
+        headers: { apikey: c.key, Authorization: 'Bearer ' + c.key, 'Content-Type': mime, 'x-upsert': 'false' },
+        body: blob
+      });
+      if (!res.ok) { let t = ''; try { t = await res.text(); } catch (e) {} throw new Error('upload ' + res.status + ' ' + t.slice(0, 140)); }
+    }
+    async function insertRow(table, row) {
+      const c = cfg();
+      const res = await fetch(c.url + '/rest/v1/' + table, {
+        method: 'POST',
+        headers: { apikey: c.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify(row)
+      });
+      if (res.ok || res.status === 409) return;
+      let t = ''; try { t = await res.text(); } catch (e) {}
+      throw new Error(table + ' ' + res.status + ' ' + t.slice(0, 140));
+    }
+    async function blobOf(doc) {
+      let b = null;
+      if (doc.fileKey) b = await MediaStore.getBlob(doc.fileKey);
+      if (!b && doc.fileUrl) { try { b = await (await fetch(doc.fileUrl)).blob(); } catch (e) {} }
+      return b;
+    }
+    // Property / title documents -> legal_reviews. Returns the secret key used to check the outcome.
+    async function submitPropertyDocs(entry, docs, owner) {
+      const key = rid('lr'), out = [];
+      for (const d of docs) {
+        const blob = await blobOf(d);
+        if (!blob) throw problem('One of your files could not be read. Please upload it again.');
+        const mime = check(blob, d.fileName);
+        const path = 'property/' + safe(entry.id) + '/' + key + '/' + safe(d.id) + '-' + safe(d.fileName);
+        await upload(path, blob, mime);
+        out.push({ label: d.label || d.id, path, mime, size: blob.size });
+      }
+      const attempt = (entry.legalAttempts || 0) + 1;
+      await insertRow('legal_reviews', {
+        event_key: key, listing_ref: String(entry.id), listing_title: entry.title || null, listing_type: entry.type || null,
+        owner_name: (owner && (owner.legalName || owner.name)) || null, submitted_by_id: String(entry.ownerId || ''),
+        submitted_by_name: (owner && owner.name) || null, submitted_by_role: 'landlord', agent_name: entry.agentName || null,
+        attempt, documents: out
+      });
+      entry.legalAttempts = attempt;
+      return key;
+    }
+    // Outcome of this phone's own submissions (looked up by their secret keys).
+    async function statuses(keys) {
+      try {
+        const c = cfg();
+        const res = await fetch(c.url + '/rest/v1/rpc/legal_review_status', {
+          method: 'POST', headers: { apikey: c.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_keys: keys })
+        });
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (e) { return null; }
+    }
+    // KYC report: masked numbers + the photos the user uploaded, with their consent.
+    async function reportKyc(userId, d, files) {
+      const rec = (appState.users && appState.users[userId]) || {}, k = rec.kyc || {};
+      const key = rid('kyc'), docs = [];
+      for (const kind of ['id', 'selfie']) {
+        const f = files && files[kind]; if (!f) continue;
+        const m = mimeOf(f, f.name);
+        if (!OK_MIME.includes(m) || f.size > MAX_BYTES) continue; // skipped: unsupported type or too large
+        const path = 'kyc/' + safe(userId) + '/' + key + '-' + kind + '.' + (m.split('/')[1] || 'bin').replace('jpeg', 'jpg');
+        await upload(path, f, m);
+        docs.push({ kind, path, mime: m, size: f.size });
+      }
+      const va = (appState.vendorActivation && appState.vendorActivation[userId]) || {};
+      await insertRow('app_kyc_submissions', {
+        event_key: key, account_id: String(userId), full_name: rec.legalName || rec.name || null, role: rec.role || null,
+        email: rec.email || null, phone: rec.phone || null, address: d.address || rec.address || null,
+        bvn_last4: k.bvnLast4 || (d.bvn ? String(d.bvn).slice(-4) : null), nin_last4: k.ninLast4 || null,
+        verify_status: k.status || null, verify_reference: k.reference || null,
+        bank_name: d.bankName || null, account_last4: d.bankAccount ? String(d.bankAccount).slice(-4) : null,
+        documents: docs, policy_accepted_at: va.policyAcceptedAt || null, consent_at: new Date().toISOString(),
+        is_demo: !!(typeof DEMO_USERS !== 'undefined' && DEMO_USERS[userId])
+      });
+    }
+    async function withRetry(fn) {
+      let err;
+      for (const wait of [0, 5000, 20000, 60000]) {
+        if (wait) await new Promise(r => setTimeout(r, wait));
+        try { return await fn(); } catch (e) { err = e; }
+      }
+      throw err;
+    }
+    return { submitPropertyDocs, statuses, reportKyc, withRetry };
+  })();
+
+  // Checks Legal's decision on documents this phone submitted, every 30s and when back online.
+  const LegalPoll = (function () {
+    let timer = null;
+    async function tick() {
+      const waiting = (agentListings || []).filter(l => l && l.workflowStatus === 'LEGAL_REVIEW' && l.legalReviewKey);
+      if (!waiting.length) return;
+      const rows = await LegalBridge.statuses(waiting.map(l => l.legalReviewKey));
+      if (!Array.isArray(rows)) return;
+      let changed = false;
+      rows.forEach(r => {
+        const l = waiting.find(x => x.legalReviewKey === r.event_key); if (!l) return;
+        if (r.status === 'approved') { activateAgentListing(l.id); changed = true; }
+        else if (r.status === 'declined') {
+          l.workflowStatus = 'PENDING_LANDLORD_VERIFICATION';
+          l.legalDecline = { reason: r.decline_reason || '', at: r.reviewed_at || new Date().toISOString() };
+          saveListings();
+          pushPlatformNotification('landlord', 'listing', 'Documents Declined by MainTown Legal',
+            `MainTown Legal could not approve the documents for "${l.title}". Reason: ${l.legalDecline.reason}. Open it under Listings Submitted For You, fix the issue and submit again.`,
+            null, 'listing_verification', null, l.ownerId);
+          pushPlatformNotification('agent', 'listing', 'Landlord Documents Declined by Legal',
+            `Legal declined the documents for "${l.title}". Reason: ${l.legalDecline.reason}. The landlord has been asked to resubmit.`,
+            null, 'listing_verification', null, l.agentId);
+          changed = true;
+        }
+      });
+      if (changed) {
+        renderLandlordVerificationQueue();
+        if (typeof renderAgentListings === 'function') renderAgentListings();
+        window.dispatchEvent(new Event('maintown_state_updated'));
+      }
+    }
+    function start() { if (timer) return; timer = setInterval(tick, 30000); window.addEventListener('online', tick); tick(); }
+    return { start, tick };
+  })();
+
   // MainTown acts as the agent for landlords it onboards, so they get the SAME "managed by" setting an
   // agent-onboarded landlord has. That is what hides List Property / Start here, shows View Properties and the
   // "Managed by MainTown Realty" card, and lets them request to leave.
