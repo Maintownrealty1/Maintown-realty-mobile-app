@@ -18497,7 +18497,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const myProps = myProperties();
     const liveAgentListings = agentListings.filter(l => l.ownerId === getCurrentUserId() && l.workflowStatus === 'LIVE');
     const salesRows = ceoSalesListings();
-    if (!myProps.length && !liveAgentListings.length && !salesRows.length) {
+    // Properties MainTown listed on this landlord's behalf (website listings linked to them in the admin).
+    // They are already live and verified by MainTown, so the landlord only reviews them: Preview / View Live,
+    // no document upload, no delete.
+    const managedRows = (listings || []).filter(l => l && l.origin === 'remote' && l.ownerId && l.ownerId === getCurrentUserId() && l.status !== 'draft');
+    if (!myProps.length && !liveAgentListings.length && !salesRows.length && !managedRows.length) {
       list.innerHTML = `<p class="role-hint" style="text-align:left;">No properties or inspection requests yet.</p>`;
       if (window.lucide) lucide.createIcons();
       renderLandlordInspectionsManager();
@@ -18563,6 +18567,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
           <div class="s5-list-text">
             <p class="s5-list-title">${l.title}</p>
             <p class="s5-list-sub">${l.location || ''} \u00b7 Listed by Sales${l.agentName ? ': ' + l.agentName : ''}</p>
+            <button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="preview" data-listing-id="${l.id}"><i data-lucide="eye" class="w-3 h-3"></i>Preview</button>
+          </div>
+          <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
+            ${soldStatusBadgeHtml(l) || `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`}
+          </div>
+        </div>`).join(''));
+    list.insertAdjacentHTML('beforeend', managedRows.map(l => `
+        <div class="s5-list-item">
+          <div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+          <div class="s5-list-text">
+            <p class="s5-list-title">${l.title}</p>
+            <p class="s5-list-sub">${l.location || ''} \u00b7 Listed and managed by MainTown Realty</p>
             <button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="preview" data-listing-id="${l.id}"><i data-lucide="eye" class="w-3 h-3"></i>Preview</button>
           </div>
           <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
@@ -27870,18 +27886,34 @@ available in the Post-Lease Hub and this chat thread.`
   // This makes sure that account exists, so checkout names the owner on agreements and receipts and
   // every split payment credits their wallet exactly like any other landlord. (Accounts and balances
   // live on the device until your backend holds them.)
+  // MainTown acts as the agent for landlords it onboards, so they get the SAME "managed by" setting an
+  // agent-onboarded landlord has. That is what hides List Property / Start here, shows View Properties and the
+  // "Managed by MainTown Realty" card, and lets them request to leave.
+  function mtManagedBy() { return { type: 'agent', id: 'maintown', name: 'MainTown Realty', since: Date.now() }; }
+  function repairManagedByMainTown() {
+    try {
+      const st = loadAppState(); let changed = false;
+      Object.values((st && st.users) || {}).forEach(u => {
+        if (u && u.managedByMainTown && !u.managedBy) { u.managedBy = mtManagedBy(); changed = true; }
+      });
+      if (changed) { saveAppState(st); try { appState = st; } catch (e) {} }
+    } catch (e) {}
+  }
+  repairManagedByMainTown();
+
   function ensureManagedLandlordAccount(l) {
     if (!l || !l.ownerId || l.origin !== 'remote') return;
     appState = loadAppState();
     if (!appState.users) appState.users = {};
     const cur = appState.users[l.ownerId];
     if (cur) {
+      if (!cur.managedBy && cur.managedByMainTown) { cur.managedBy = mtManagedBy(); saveAppState(appState); }
       if (l.managedLandlordName && !cur.legalName) { cur.legalName = l.managedLandlordName; cur.name = cur.name && cur.name !== l.ownerId ? cur.name : l.managedLandlordName; saveAppState(appState); }
       return;
     }
     appState.users[l.ownerId] = {
       id: l.ownerId, name: l.managedLandlordName || 'Property owner', legalName: l.managedLandlordName || undefined,
-      role: 'landlord', status: 'PENDING_CLAIM', managedByMainTown: true, walletBalance: 0,
+      role: 'landlord', status: 'PENDING_CLAIM', managedByMainTown: true, managedBy: mtManagedBy(), walletBalance: 0,
       settlementBank: null, walletPin: null, escrowLedger: [], welcomeAlerts: [], createdAt: Date.now()
     };
     saveAppState(appState);
@@ -27912,7 +27944,7 @@ available in the Post-Lease Hub and this chat thread.`
       Object.assign(rec, {
         id, name: r.landlord_name, legalName: r.landlord_name, phone: r.landlord_phone || rec.phone || null,
         email: normalizeContact(r.landlord_email), role: 'landlord', status: 'PENDING_CLAIM',
-        tempCode: String(code).trim().toUpperCase(), managedByMainTown: true
+        tempCode: String(code).trim().toUpperCase(), managedByMainTown: true, managedBy: rec.managedBy || mtManagedBy()
       });
       appState.users[id] = rec;
       saveAppState(appState);
