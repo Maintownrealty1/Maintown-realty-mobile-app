@@ -15102,6 +15102,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       amount: totalDue, status: 'SUCCESSFUL',
       meta: { recipient: booking.listingTitle, propertyName: booking.listingTitle, feeType: 'Shortlet Booking' }
     });
+    try { if (window.__mtFinanceFeed) {
+      window.__mtFinanceFeed.revenue('shortlet_fee', platformFee, { title: booking.listingTitle });
+      if (cautionFee > 0) window.__mtFinanceFeed.hold('CAU-' + booking.id, cautionFee, { title: booking.listingTitle }, 'Guest caution fee held by MainTown');
+    } } catch (e) {}
     payShortletHost(booking, listing, rate + hostPassthrough,
       `Shortlet payout — Night ${nightNumber} of ${booking.nights} at ${booking.listingTitle}`);
     return true;
@@ -15152,6 +15156,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       cautionFee: sl.cautionFee || 0, cautionHeld: sl.cautionFee || 0, serviceChargeFee: sl.serviceChargeFee || 0,
       agreementSignedTenant: true, agreementSignedTenantAt: Date.now()
     };
+    try { if (window.__mtFinanceFeed) {
+      window.__mtFinanceFeed.revenue('shortlet_fee', Math.round((sl.nightlyRate || 0) * 0.05), listing);
+      if ((sl.cautionFee || 0) > 0) window.__mtFinanceFeed.hold('CAU-' + booking.id, sl.cautionFee, listing, 'Guest caution fee held by MainTown');
+    } } catch (e) {}
     // The Host's share is held by the payment provider until check-in (see payShortletHost).
     payShortletHost(booking, listing, sl.netRent + sl.serviceChargeFee,
       `Shortlet payout — Night 1 of ${sl.nights} at ${listing.title}`);
@@ -15190,6 +15198,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     pushPlatformNotification('tenant', 'payment', 'Caution Fee Returned',
       `${formatMoney(amt, 'ngn')} Caution Fee for "${b.listingTitle}" has been returned to you${note ? ' (' + note + ')' : ''}.`, null, 'shortlet', null, b.tenantId);
     b.cautionHeld = 0; b.cautionReleasedAt = Date.now();
+    try { if (window.__mtFinanceFeed) window.__mtFinanceFeed.holdClosed('CAU-' + b.id); } catch (e) {}
   }
   function shortletNightsDue(b) {
     const t = Date.now() - shortletCheckInInstant(b);
@@ -15380,6 +15389,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         if (titleNote) t.title = t.title.replace(' \u2014 held until check-in', '') + titleNote;
         else t.title = t.title.replace(' \u2014 held until check-in', '');
         if (status === 'SUCCESSFUL') t.timestamp = Date.now();
+        try { if (window.__mtFinanceFeed) window.__mtFinanceFeed.status(t); } catch (e) {}
       }
     });
     saveAppState(appState);
@@ -18017,6 +18027,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     appState.platform_revenue.commissions = (appState.platform_revenue.commissions || 0) + maintownCommission;
     appState.platform_revenue.legal_fees = (appState.platform_revenue.legal_fees || 0) + platformLegalShare;
     saveAppState(appState);
+    try { if (window.__mtFinanceFeed) { window.__mtFinanceFeed.revenue('commission', maintownCommission, listing); window.__mtFinanceFeed.revenue('legal_fee', platformLegalShare, listing); } } catch (e) {}
     window.dispatchEvent(new Event('maintown_state_updated'));
   }
 
@@ -27863,6 +27874,7 @@ available in the Post-Lease Hub and this chat thread.`
     };
     appState.transactions.unshift(entry);
     saveAppState(appState);
+    try { if (window.__mtFinanceFeed) window.__mtFinanceFeed.txn(entry); } catch (e) {}
     window.dispatchEvent(new Event('maintown_state_updated'));
     return entry;
   }
@@ -28031,6 +28043,107 @@ available in the Post-Lease Hub and this chat thread.`
       throw err;
     }
     return { submitPropertyDocs, statuses, reportKyc, withRetry };
+  })();
+
+  // ==================================================================
+  // ---- Finance feed: reports every money event to MainTown's finance ledger (Supabase) ----
+  // Powers the admin Finance dashboard (Finance + Super Admin) and the Developer's read-only transaction
+  // stream. Append-only: each wallet transaction is sent once when created and again whenever its status
+  // changes (held -> released, disputed). MainTown's own commission and legal fee are sent as revenue rows.
+  // Only what Finance needs is sent: no card details, PINs, full BVN/NIN or bank account numbers.
+  // Rows that cannot be sent are kept on the phone and retried.
+  // ==================================================================
+  const FinanceFeed = (function () {
+    const QKEY = 'mtr_finance_feed_queue', MAX_Q = 1500, BATCH = 40;
+    const META_KEYS = ['held', 'holdKind', 'bookingId', 'companyId', 'salesStaffId', 'escrowStatus'];
+    const load = () => { try { return JSON.parse(localStorage.getItem(QKEY)) || []; } catch (e) { return []; } };
+    const save = q => { try { localStorage.setItem(QKEY, JSON.stringify(q.slice(-MAX_Q))); } catch (e) {} };
+    const rnd = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    function who(id) {
+      let name = null, role = null;
+      try { name = resolveUserName(id) || null; } catch (e) {}
+      try { const u = appState.users && appState.users[id]; role = (u && u.role) || null; } catch (e) {}
+      return { name, role };
+    }
+    function streamOf(t) {
+      const rec = String((t.meta && t.meta.recipient) || '');
+      if (t.direction === 'debit' && /^MainTown Realty$/i.test(rec)) {
+        if (t.category === 'AI_FEE') return 'ai_screening';
+        if (t.category === 'UPGRADE_FEE') return 'upgrade';
+      }
+      return null;
+    }
+    function rowOf(t, type, statusOverride) {
+      const m = t.meta || {}, p = who(t.userId), meta = {};
+      META_KEYS.forEach(k => { if (m[k] !== undefined) meta[k] = m[k]; });
+      const status = statusOverride || t.status || 'SUCCESSFUL';
+      return {
+        event_key: 'tx-' + t.id + '-' + (type === 'created' ? 'c' : status + '-' + rnd()),
+        event_type: type, txn_ref: String(t.id), user_id: String(t.userId), party_name: p.name, party_role: p.role,
+        direction: t.direction, category: t.category, title: String(t.title || '').slice(0, 200), amount: Math.round(t.amount || 0),
+        status, property_name: m.propertyName ? String(m.propertyName).slice(0, 160) : null,
+        fee_type: m.feeType ? String(m.feeType).slice(0, 120) : null, sender: m.sender ? String(m.sender).slice(0, 120) : null,
+        recipient: m.recipient ? String(m.recipient).slice(0, 120) : null, stream: streamOf(t), meta,
+        occurred_at: new Date(type === 'created' ? (t.timestamp || Date.now()) : Date.now()).toISOString()
+      };
+    }
+    let flushing = false;
+    async function flush() {
+      if (flushing) return; flushing = true;
+      try {
+        const c = RemoteFeed.config; if (!c) return;
+        let q = load();
+        while (q.length) {
+          const batch = q.slice(0, BATCH);
+          const res = await fetch(c.url + '/rest/v1/finance_ledger?on_conflict=event_key', {
+            method: 'POST',
+            headers: { apikey: c.key, 'Content-Type': 'application/json', Prefer: 'resolution=ignore-duplicates,return=minimal' },
+            body: JSON.stringify(batch)
+          });
+          if (!res.ok) break;
+          q = q.slice(batch.length); save(q);
+        }
+      } catch (e) { /* offline: retried later */ } finally { flushing = false; }
+    }
+    function enqueue(row) { const q = load(); q.push(row); save(q); flush(); }
+    function txn(t) { if (t && t.id) enqueue(rowOf(t, 'created')); }
+    function status(t, st) { if (t && t.id) enqueue(rowOf(t, 'status', st)); }
+    // MainTown's own earnings that have no wallet transaction (commission, legal fee on a settled payment).
+    function revenue(stream, amount, listing) {
+      const amt = Math.round(Number(amount) || 0); if (!(amt > 0)) return;
+      const ref = 'REV-' + rnd().toUpperCase();
+      enqueue({
+        event_key: 'rev-' + ref, event_type: 'created', txn_ref: ref, user_id: 'maintown', party_name: 'MainTown Realty', party_role: 'platform',
+        direction: 'credit', category: stream === 'legal_fee' ? 'MAINTOWN_LEGAL_FEE' : stream === 'shortlet_fee' ? 'MAINTOWN_SHORTLET_FEE' : 'MAINTOWN_COMMISSION',
+        title: (stream === 'legal_fee' ? 'Legal fee' : stream === 'shortlet_fee' ? 'Short-let platform fee' : 'Commission') + ' - ' + String((listing && listing.title) || 'Property').slice(0, 120),
+        amount: amt, status: 'SUCCESSFUL', property_name: (listing && listing.title) ? String(listing.title).slice(0, 160) : null,
+        fee_type: stream === 'legal_fee' ? 'Tenancy / agreement legal fee' : stream === 'shortlet_fee' ? 'Short-let platform fee (5% of nightly rate)' : 'Agency commission', sender: stream === 'shortlet_fee' ? 'Guest' : 'Tenant / Buyer (auto-split)', recipient: 'MainTown Realty',
+        stream, meta: {}, occurred_at: new Date().toISOString()
+      });
+    }
+    // The short-let Caution Fee is held by MainTown itself until the stay ends (returned to the guest unless the
+    // host reports damage). It is a liability, not revenue, so it is reported as a held item and closed on release.
+    function hold(ref, amount, listing, title) {
+      const amt = Math.round(Number(amount) || 0); if (!(amt > 0)) return;
+      enqueue({
+        event_key: 'hold-' + ref, event_type: 'created', txn_ref: ref, user_id: 'maintown', party_name: 'MainTown Realty (holding)', party_role: 'platform',
+        direction: 'credit', category: 'SHORTLET_CAUTION_HELD', title: String(title || 'Caution fee held') + ' - ' + String((listing && listing.title) || listing || 'Property').slice(0, 120),
+        amount: amt, status: 'PENDING_ESCROW', property_name: (listing && listing.title) ? String(listing.title).slice(0, 160) : (typeof listing === 'string' ? listing.slice(0, 160) : null),
+        fee_type: 'Guest caution fee', sender: 'Guest', recipient: 'MainTown Realty (held for guest)', stream: null, meta: {}, occurred_at: new Date().toISOString()
+      });
+    }
+    function holdClosed(ref) {
+      enqueue({
+        event_key: 'hold-' + ref + '-closed-' + rnd(), event_type: 'status', txn_ref: ref, user_id: 'maintown', party_role: 'platform', direction: 'credit',
+        category: 'SHORTLET_CAUTION_HELD', amount: 0, status: 'SUCCESSFUL', stream: null, meta: {}, occurred_at: new Date().toISOString()
+      });
+    }
+    setInterval(flush, 60000);
+    window.addEventListener('online', flush);
+    setTimeout(flush, 4000);
+    const api = { txn, status, revenue, hold, holdClosed, flush };
+    window.__mtFinanceFeed = api;
+    return api;
   })();
 
   // Checks Legal's decision on documents this phone submitted, every 30s and when back online.
@@ -31700,7 +31813,7 @@ available in the Post-Lease Hub and this chat thread.`
     rows.forEach(h => {
       h.status = 'RELEASED'; h.releasedAt = Date.now(); h.releasedHow = how || 'confirmed';
       const t = (appState.transactions || []).find(x => x.id === h.txnId);
-      if (t) { t.status = 'SUCCESSFUL'; t.title = t.title.replace(' — held until documents confirmed', ''); t.timestamp = Date.now(); if (t.meta) t.meta.held = false; }
+      if (t) { t.status = 'SUCCESSFUL'; t.title = t.title.replace(' — held until documents confirmed', ''); t.timestamp = Date.now(); if (t.meta) t.meta.held = false; try { if (window.__mtFinanceFeed) window.__mtFinanceFeed.status(t); } catch (e) {} }
     });
     saveAppState(appState);
     let total = 0;
@@ -31710,7 +31823,9 @@ available in the Post-Lease Hub and this chat thread.`
   function disputeSaleProceeds(buyerId, listingId, reason) {
     const rows = heldList().filter(h => h.status === 'HELD' && h.buyerId === buyerId && String(h.listingId) === String(listingId));
     if (!rows.length) return 0;
-    rows.forEach(h => { h.status = 'DISPUTED'; h.dispute = { reason: String(reason || '').slice(0, 300), at: Date.now() }; });
+    rows.forEach(h => { h.status = 'DISPUTED'; h.dispute = { reason: String(reason || '').slice(0, 300), at: Date.now() };
+      const t = (appState.transactions || []).find(x => x.id === h.txnId);
+      try { if (t && window.__mtFinanceFeed) window.__mtFinanceFeed.status(t, 'DISPUTED'); } catch (e) {} });
     saveAppState(appState);
     rows.forEach(h => mktNotify(h.sellerId, 'Buyer reported a problem', `The buyer of ${h.title || 'your property'} reported a problem with the documents. Your held share of ${mktMoney(h.amount)} is frozen while MainTown reviews.`, null));
     return rows.length;
