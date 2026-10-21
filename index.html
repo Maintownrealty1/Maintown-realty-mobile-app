@@ -4426,6 +4426,17 @@
     </div>
   </div>
 
+  <!-- Mobile testing helper: shows whether this phone's inspection + finance reports reached the admin database. -->
+  <div id="login-report-status-wrap" style="margin-top: 12px;">
+    <button type="button" id="login-report-status-btn" class="pending-drawer-toggle">
+      <span class="pending-drawer-toggle-left"><i data-lucide="activity" class="w-4 h-4"></i>Admin reporting status</span>
+    </button>
+    <div id="login-report-status-body" class="pending-drawer-body hidden">
+      <pre id="login-report-status-text" style="white-space:pre-wrap; font-size:11px; line-height:1.5; margin:0 0 10px;"></pre>
+      <button type="button" id="login-report-retry-btn" class="btn-secondary">Retry sending now</button>
+    </div>
+  </div>
+
   <p class="role-hint" style="margin-top: 24px;">New here? <span id="login-signup-link" style="color:#c084fc; cursor:pointer; font-weight:600;">Create an account</span></p>
   <p class="role-hint" style="margin-top: 10px;">Added as a Landlord by an Agent or MainTown? <span id="claim-landlord-link" style="color:#c084fc; cursor:pointer; font-weight:600;">Claim Landlord Account / Use Temp Code</span></p>
 
@@ -28801,7 +28812,8 @@ available in the Post-Lease Hub and this chat thread.`
   // Rows that cannot be sent are kept on the phone and retried.
   // ==================================================================
   const FinanceFeed = (function () {
-    const QKEY = 'mtr_finance_feed_queue', MAX_Q = 1500, BATCH = 40;
+    const QKEY = 'mtr_finance_feed_queue', MAX_Q = 1500, BATCH = 40, DKEY = 'mtr_finance_feed_diag';
+    function fdiag(ok, st, note) { try { localStorage.setItem(DKEY, JSON.stringify({ at: Date.now(), ok: !!ok, status: st == null ? null : st, note: String(note || '').slice(0, 300) })); } catch (e) {} }
     const META_KEYS = ['held', 'holdKind', 'bookingId', 'companyId', 'salesStaffId', 'escrowStatus'];
     const load = () => { try { return JSON.parse(localStorage.getItem(QKEY)) || []; } catch (e) { return []; } };
     const save = q => { try { localStorage.setItem(QKEY, JSON.stringify(q.slice(-MAX_Q))); } catch (e) {} };
@@ -28847,10 +28859,11 @@ available in the Post-Lease Hub and this chat thread.`
             headers: { apikey: c.key, 'Content-Type': 'application/json', Prefer: 'resolution=ignore-duplicates,return=minimal' },
             body: JSON.stringify(batch)
           });
-          if (!res.ok) break;
+          if (!res.ok) { let t = ''; try { t = await res.clone().text(); } catch (e) {} fdiag(false, res.status, t); break; }
+          fdiag(true, res.status, 'sent ' + batch.length);
           q = q.slice(batch.length); save(q);
         }
-      } catch (e) { /* offline: retried later */ } finally { flushing = false; }
+      } catch (e) { fdiag(false, null, (e && e.message) || 'network error'); /* offline: retried later */ } finally { flushing = false; }
     }
     function enqueue(row) { const q = load(); q.push(row); save(q); flush(); }
     function txn(t) { if (t && t.id) enqueue(rowOf(t, 'created')); }
@@ -28888,7 +28901,7 @@ available in the Post-Lease Hub and this chat thread.`
     setInterval(flush, 60000);
     window.addEventListener('online', flush);
     setTimeout(flush, 4000);
-    const api = { txn, status, revenue, hold, holdClosed, flush };
+    const api = { txn, status, revenue, hold, holdClosed, flush, pending: () => load().length, lastResult: () => { try { return JSON.parse(localStorage.getItem(DKEY)); } catch (e) { return null; } } };
     window.__mtFinanceFeed = api;
     return api;
   })();
@@ -33496,7 +33509,8 @@ available in the Post-Lease Hub and this chat thread.`
       table: 'inspection_events',
       throttleMs: 1200, retryMs: 60000, batch: 40, outboxCap: 500
     };
-    const LS_SEEN = 'mtr_insp_reported', LS_BOX = 'mtr_insp_outbox';
+    const LS_SEEN = 'mtr_insp_reported', LS_BOX = 'mtr_insp_outbox', LS_DIAG = 'mtr_insp_diag';
+    function diag(ok, status, note) { wr(LS_DIAG, { at: Date.now(), ok: !!ok, status: status == null ? null : status, note: String(note || '').slice(0, 300) }); }
     let timer = null, flushing = false;
 
     function rd(k, fb) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? fb : v; } catch (e) { return fb; } }
@@ -33675,6 +33689,8 @@ available in the Post-Lease Hub and this chat thread.`
             body: JSON.stringify(part)
           });
           if (!res.ok) {
+            let bodyTxt = ''; try { bodyTxt = await res.clone().text(); } catch (e) {}
+            diag(false, res.status, bodyTxt);
             if (res.status === 400 || res.status === 409 || res.status === 422) {
               // a malformed row would otherwise block every later report: send one by one, drop only the rejected row(s)
               for (const row of part) {
@@ -33683,11 +33699,12 @@ available in the Post-Lease Hub and this chat thread.`
                 if (!r1.ok) console.warn('inspection_events rejected row', r1.status, row.event_key);
               }
             } else { throw new Error('inspection_events ' + res.status); }
-          }
+          } else { diag(true, res.status, 'sent ' + part.length); }
           const sent = new Set(part.map(p => p.event_key));
           wr(LS_BOX, rd(LS_BOX, []).filter(p => !sent.has(p.event_key)));
         }
       } catch (e) {
+        diag(false, null, (e && e.message) || 'network error');
         setTimeout(flush, CFG.retryMs); // table not created yet / offline: keep the outbox and try again
       } finally { flushing = false; }
     }
@@ -33695,7 +33712,7 @@ available in the Post-Lease Hub and this chat thread.`
     function poke() { if (timer) return; timer = setTimeout(run, CFG.throttleMs); }
 
     function runNow() { if (timer) { clearTimeout(timer); timer = null; } run(); }
-    window.MTRInspReport = { poke: poke, flush: flush, runNow: runNow };
+    window.MTRInspReport = { poke: poke, flush: flush, runNow: runNow, status: function () { return { pending: rd(LS_BOX, []).length, tracked: Object.keys(rd(LS_SEEN, {}) || {}).length, diag: rd(LS_DIAG, null) }; } };
     window.addEventListener('maintown_state_updated', poke);
     window.addEventListener('storage', poke);
     window.addEventListener('online', flush);
@@ -33704,6 +33721,27 @@ available in the Post-Lease Hub and this chat thread.`
   })();
 
   // ==================================================================
+  // ---- Admin reporting status panel (login screen) ----
+  (function () {
+    const btn = document.getElementById('login-report-status-btn'), body = document.getElementById('login-report-status-body');
+    const out = document.getElementById('login-report-status-text'), retry = document.getElementById('login-report-retry-btn');
+    if (!btn || !body || !out || !retry) return;
+    const fmt = d => d ? ((d.ok ? 'OK' : 'FAILED') + (d.status != null ? ' (HTTP ' + d.status + ')' : '') + ' at ' + new Date(d.at).toLocaleTimeString() + (d.note ? '\n  ' + d.note : '')) : 'nothing sent yet';
+    function render() {
+      const I = window.MTRInspReport && window.MTRInspReport.status ? window.MTRInspReport.status() : null;
+      const F = window.__mtFinanceFeed && window.__mtFinanceFeed.pending ? { pending: window.__mtFinanceFeed.pending(), diag: window.__mtFinanceFeed.lastResult() } : null;
+      out.textContent =
+        'INSPECTION LOGS\n' + (I ? ('  items tracked on this phone: ' + I.tracked + '\n  waiting to send: ' + I.pending + '\n  last send: ' + fmt(I.diag)) : '  reporter not loaded') +
+        '\n\nFINANCE LEDGER\n' + (F ? ('  waiting to send: ' + F.pending + '\n  last send: ' + fmt(F.diag)) : '  reporter not loaded');
+    }
+    btn.addEventListener('click', () => { body.classList.toggle('hidden'); if (!body.classList.contains('hidden')) render(); });
+    retry.addEventListener('click', () => {
+      try { window.MTRInspReport && window.MTRInspReport.runNow(); } catch (e) {}
+      try { window.__mtFinanceFeed && window.__mtFinanceFeed.flush(); } catch (e) {}
+      out.textContent = 'Sending...'; setTimeout(render, 3000);
+    });
+  })();
+
   // ---- Account Reporter -> Admin (Supabase `app_signup_events`) ----
   // Every account created inside the app reports to the admin Sign-Ups tab:
   //   * people who sign up themselves (tenant / landlord / agent),
