@@ -4820,8 +4820,8 @@
         <p>Short-let stays don't use inspection scheduling — tenants pick their own check-in/check-out dates directly on the booking screen.</p>
       </div>
       <div class="s5-notice-box" id="tv-event-noinspection-note" style="display:none;">
-        <i data-lucide="calendar-x" class="w-5 h-5"></i>
-        <p>Event centers don't use inspection scheduling — clients pick their event date directly on the booking screen.</p>
+        <i data-lucide="calendar-check" class="w-5 h-5"></i>
+        <p>Guests must inspect your venue before they can book it. Add the dates and times you are free to show it below; after a Satisfied inspection they pick their event date and hours.</p>
       </div>
 
       <label class="agree-row" style="margin: 4px 0 4px;">
@@ -6050,6 +6050,9 @@
   </div>
 
   <h1 class="s5-role-title" style="margin-bottom: 18px;">Manage Your Tenancy</h1>
+
+  <!-- Event center bookings (filled in by renderHubEventBookings) -->
+  <div id="s7-event-bookings" style="display:none;"></div>
 
   <!-- Active Lease & Next Auto-Debit Card -->
   <p class="s5-section-label" style="margin-top:0;"><i data-lucide="home" class="w-4 h-4 text-purple-400"></i>Active Lease</p>
@@ -7595,6 +7598,17 @@
       <label class="field-label">Event Date</label>
       <input class="field-input" id="eb-date" type="date">
     </div>
+    <div id="eb-time-wrap" style="display:flex; gap:10px;">
+      <div class="field" style="flex:1; min-width:0;">
+        <label class="field-label">Start Time</label>
+        <select class="field-input" id="eb-start"></select>
+      </div>
+      <div class="field" style="flex:1; min-width:0;">
+        <label class="field-label">End Time</label>
+        <select class="field-input" id="eb-end"></select>
+      </div>
+    </div>
+    <p class="modal-sub" id="eb-duration" style="display:none; color:#a78bfa; margin:-4px 0 10px;"></p>
     <div class="field">
       <label class="field-label">Type of event</label>
       <select class="field-input" id="eb-type"></select>
@@ -7606,7 +7620,7 @@
     <p class="modal-sub" id="eb-error" style="display:none;color:#f87171;margin:-4px 0 8px;"></p>
 
     <div class="fee-preview-box">
-      <div class="row"><span>Venue Hire Fee (to venue owner)</span><strong id="eb-hire">₦0</strong></div>
+      <div class="row"><span id="eb-hire-label">Venue Hire Fee (to venue owner)</span><strong id="eb-hire">₦0</strong></div>
       <div class="row"><span>MainTown Service Charge (2%)</span><strong id="eb-fee">₦0</strong></div>
       <div class="row"><span>Total Due Now</span><strong id="eb-total">₦0</strong></div>
     </div>
@@ -10690,16 +10704,23 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="txn-row-top">
           <div>
             <p class="txn-title">${shortletEsc(b.listingTitle)} <span style="font-size:11px; color:#64748b; font-weight:500;">\u00b7 Event center</span></p>
-            <p class="txn-date">${shortletEsc(resolveUserName(b.tenantId) || 'Client')}</p>
+            <p class="txn-date">${shortletEsc(b.guestName || resolveUserName(b.tenantId) || 'Client')}${b.bookingRef ? ' \u00b7 ' + shortletEsc(b.bookingRef) : ''}</p>
           </div>
           <span class="txn-status-badge ${ph.cls}">${ph.label}</span>
         </div>
         <div class="txn-breakdown">
+          <div class="txn-breakdown-row"><span>Guest</span><span>${shortletEsc(b.guestName || resolveUserName(b.tenantId) || 'Client')}</span></div>
+          ${b.guestPhone ? `<div class="txn-breakdown-row"><span>Phone</span><span>${shortletEsc(b.guestPhone)}</span></div>` : ''}
+          ${b.guestEmail ? `<div class="txn-breakdown-row"><span>Email</span><span>${shortletEsc(b.guestEmail)}</span></div>` : ''}
+          ${b.inspectionDate ? `<div class="txn-breakdown-row"><span>Inspected on</span><span>${shortletEsc(b.inspectionDate)}</span></div>` : ''}
           <div class="txn-breakdown-row"><span>Event date</span><span>${shortletEsc(fmtEventDate(b.eventDate))}</span></div>
+          ${b.hours ? `<div class="txn-breakdown-row"><span>Hours booked</span><span>${shortletEsc(b.startTime + ' \u2013 ' + b.endTime)} (${b.hours} hr${b.hours === 1 ? '' : 's'} \u00d7 ${formatMoney(b.hourlyRate || 0, 'ngn')}/hr)</span></div>` : ''}
           <div class="txn-breakdown-row"><span>Event type</span><span>${shortletEsc(b.eventType || '\u2014')}</span></div>
           <div class="txn-breakdown-row"><span>Expected guests</span><span>${b.guests || 0}</span></div>
           <div class="txn-breakdown-row net"><span>Venue hire fee (yours)</span><span>${formatMoney(b.hireFee || 0, 'ngn')}</span></div>
-          <div class="txn-breakdown-row"><span>Payout</span><span>${b.heldPayout > 0 ? 'Held until event day' : 'Released to your wallet'}</span></div>
+          <div class="txn-breakdown-row"><span>Guest paid in total</span><span>${formatMoney(b.total || 0, 'ngn')} (${b.paymentMethod === 'WALLET' ? 'wallet' : 'card'})</span></div>
+          ${b.bookedAt ? `<div class="txn-breakdown-row"><span>Booked on</span><span>${shortletEsc(new Date(b.bookedAt).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }))}</span></div>` : ''}
+          <div class="txn-breakdown-row"><span>Payout</span><span>${b.heldPayout > 0 ? 'Held until event day' : 'Paid to your wallet instantly'}</span></div>
         </div>
       </div>`;
     }).join('');
@@ -10993,7 +11014,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <thead><tr><th></th>${list.map(p => `<th>${liEsc(p.title)}</th>`).join('')}</tr></thead>
         <tbody>
           ${row('Price', p => `<strong>${price(p)}</strong>`)}
-          ${row('Type', p => p.type === 'event' ? 'Event center (per event day)' : (p.type === 'shortlet' ? 'Shortlet (nightly)' : 'Long-term rent'))}
+          ${row('Type', p => p.type === 'event' ? (p.hourlyRate > 0 ? 'Event center (per hour)' : 'Event center (per event day)') : (p.type === 'shortlet' ? 'Shortlet (nightly)' : 'Long-term rent'))}
           ${row('Location', p => liEsc(p.location))}
           ${row('Bedrooms', p => liEsc(liBedrooms(p) || '—'))}
           ${row('Listed by', p => liEsc(liListedBy(p)))}
@@ -12594,7 +12615,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
         if (num(l.sqm)) fees.push('Plot Size: ' + num(l.sqm) + 'sqm');
         if (l.landUse) fees.push('Land Use: ' + l.landUse);
       } else if (l.type === 'event') {
-        category = 'event-center'; rent = naira(l.eventPrice) + '/event day'; beds = 0;
+        category = 'event-center'; beds = 0;
+        if (num(l.hourlyRate) > 0) { rent = naira(l.hourlyRate) + '/hour'; fees.push('Price Per Hour: ' + naira(l.hourlyRate)); }
+        else { rent = naira(l.eventPrice) + '/event day'; }
         if (l.venueType) fees.push('Venue Type: ' + l.venueType);
         if (num(l.capacity) > 0) fees.push('Capacity: ' + num(l.capacity) + ' guests');
         if (l.parkingSpaces != null && l.parkingSpaces !== '') fees.push('Parking Spaces: ' + num(l.parkingSpaces));
@@ -12691,9 +12714,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       }
       if (category === 'event') {
         const n = amt(row.rent);
+        // Hourly rate set by the admin ("Price Per Hour"); older listings only have a per-event-day price.
+        const hourlyN = amt(row.hourly_rate) || amt(fm['Price Per Hour']) || (/\/\s*hour/i.test(String(row.rent || '')) ? n : 0);
         const blockedEv = String(fm['Blocked Dates'] || '').split(',').map(x => x.trim()).filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x));
         return Object.assign(base, {
-          type: 'event', eventPrice: n, ngn: naira(n) + ' / event day', usd: '$' + Math.round(n / 1600) + ' / event day',
+          type: 'event', eventPrice: n, hourlyRate: hourlyN,
+          ngn: naira(hourlyN || n) + (hourlyN ? ' / hour' : ' / event day'), usd: '$' + Math.round((hourlyN || n) / 1600) + (hourlyN ? ' / hour' : ' / event day'),
           venueType: fm['Venue Type'] || 'Event Center', capacity: amt(fm['Capacity']) || 0,
           parkingSpaces: fm['Parking Spaces'] !== undefined ? amt(fm['Parking Spaces']) : undefined,
           powerSupply: fm['Power Supply'] || '', eventBlockedDates: blockedEv, description: fm['About This Venue'] || '',
@@ -12965,10 +12991,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
   const EVENT_AMENITIES = ['Air conditioning', 'Stage', 'Sound system', 'Projector / screen', 'Backup generator', 'Parking', 'Catering kitchen', 'Bridal / changing room', 'CCTV & security', 'Restrooms'];
   const EVENT_CLAUSES = [
     { title: 'Clause 1 — Venue Use, Capacity & House Rules', body: 'The booking covers use of the venue on the event date only, for the event type and expected guest count you declared. You agree to stay within the venue’s stated capacity, noise limits, curfew and any house rules set by the Venue Owner, and you are responsible for your guests, vendors and any damage they cause.' },
-    { title: 'Clause 2 — Automated Non-Custodial Split Processing', body: 'Your payment is split by the payment provider at the point of charge into: (1) the Venue Owner (the full venue hire fee) and (2) MainTown Realty (the flat 2% Event Center Service Charge). The Venue Owner’s share is held by the payment provider, not by MainTown, until the event day begins and is then released to the Venue Owner. MainTown operates solely as a non-custodial technology facilitator and does not hold or escrow transaction funds.' },
+    { title: 'Clause 2 — Automated Non-Custodial Split Processing', body: 'Your payment is split by the payment provider at the point of charge into: (1) the Venue Owner (the full venue hire fee) and (2) MainTown Realty (the flat 2% Event Center Service Charge). The Venue Owner’s share is paid to the Venue Owner instantly, with no holding period. MainTown operates solely as a non-custodial technology facilitator and does not hold or escrow transaction funds.' },
     { title: 'Clause 3 — Service Charge & Other Costs', body: 'MainTown’s only fee on an Event Center booking is a flat 2% service charge, calculated on the venue hire fee and paid by you on top of it. No agency commission, legal fee or other MainTown fee applies. Any other costs (catering, decoration, extra hours, security, caution deposit) are agreed directly with the Venue Owner and are not collected by MainTown.' },
     { title: 'Clause 4 — Instant Booking Confirmation', body: 'Your booking is confirmed as soon as payment is authorised, and the event date is blocked for other clients. No signature or Venue Owner countersignature is required; your agreement to these terms at checkout is binding. The Venue Owner is notified immediately.' },
-    { title: 'Clause 5 — Cancellation, Rescheduling & Refunds (draft wording, pending legal review)', body: 'If the Venue Owner cancels or cannot make the venue available on the booked date, you receive a full refund, including the service charge. If you cancel or reschedule, the refund (if any) follows the cancellation terms agreed with the Venue Owner, and the MainTown service charge is not refundable once the booking is confirmed. Refunds before the event day are paid from the amount the payment provider is holding, so the Venue Owner is never asked to repay; MainTown never pays a refund from its own funds.' }
+    { title: 'Clause 5 — Cancellation, Rescheduling & Refunds (draft wording, pending legal review)', body: 'If the Venue Owner cancels or cannot make the venue available on the booked date, you receive a full refund, including the service charge. If you cancel or reschedule, the refund (if any) follows the cancellation terms agreed with the Venue Owner, and the MainTown service charge is not refundable once the booking is confirmed. Because the Venue Owner is paid instantly, any refund owed to you is recovered from the Venue Owner’s payout; MainTown never pays a refund from its own funds.' }
   ];
   let eventBookings = [];
   try {
@@ -12982,43 +13008,109 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function canListEventCenter(role) { return role === 'landlord'; }
   function eventStartInstant(b) { return new Date(String(b.eventDate) + 'T00:00:00+01:00').getTime(); }
   function eventHoldsDate(b) { return !!b && b.status === 'CONFIRMED'; }
-  function computeEventBreakdown(listing, dateIso, eventType, guests) {
-    const hireFee = Math.round(Number(listing && listing.eventPrice) || 0);
-    const serviceCharge = Math.round(hireFee * EVENT_SERVICE_CHARGE_RATE);
-    return { eventDate: dateIso || null, eventType: eventType || '', guests: Number(guests) || 0, hireFee, serviceCharge, totalPayable: hireFee + serviceCharge };
+  // ---- Hourly pricing: Total = hours booked x the venue's hourly rate ----
+  // Times are whole hours (0-24). Older listings with only a per-event-day price keep the flat fee.
+  function evHourNum(v) { return (v === '' || v == null) ? NaN : Number(v); }
+  function evHourLabel(h) {
+    h = Number(h); if (!Number.isFinite(h)) return '';
+    const hh = h % 24, ap = (h >= 12 && h < 24) ? 'PM' : 'AM';
+    return `${hh % 12 === 0 ? 12 : hh % 12}:00 ${ap}`;
   }
-  // Empty string when the date can be booked, otherwise the reason it cannot.
-  function eventUnavailableReason(l, dateIso, guests) {
+  function eventIsHourly(l) { return !!l && Number(l.hourlyRate) > 0; }
+  function computeEventBreakdown(listing, dateIso, eventType, guests, startH, endH) {
+    const rate = eventIsHourly(listing) ? Math.round(Number(listing.hourlyRate)) : 0;
+    const sH = evHourNum(startH), eH = evHourNum(endH);
+    const hours = (rate > 0 && Number.isFinite(sH) && Number.isFinite(eH) && eH > sH) ? (eH - sH) : 0;
+    const hireFee = rate > 0 ? Math.round(rate * hours) : Math.round(Number(listing && listing.eventPrice) || 0);
+    const serviceCharge = Math.round(hireFee * EVENT_SERVICE_CHARGE_RATE);
+    return {
+      eventDate: dateIso || null, eventType: eventType || '', guests: Number(guests) || 0,
+      hourly: rate > 0, hourlyRate: rate, hours,
+      startH: hours ? sH : null, endH: hours ? eH : null,
+      startTime: hours ? evHourLabel(sH) : '', endTime: hours ? evHourLabel(eH) : '',
+      hireFee, serviceCharge, totalPayable: hireFee + serviceCharge
+    };
+  }
+  // "5 hours x N50,000/hr": the line-item wording used on the booking sheet, checkout and the agreement.
+  function eventHoursLine(ev) {
+    if (!ev || !ev.hourly || !ev.hours) return '';
+    return `${ev.hours} hour${ev.hours === 1 ? '' : 's'} \u00d7 ${formatMoney(ev.hourlyRate, 'ngn')}/hr`;
+  }
+  // Empty string when the date (and hours) can be booked, otherwise the reason it cannot.
+  function eventUnavailableReason(l, dateIso, guests, startH, endH) {
     if (!l) return 'This venue is no longer available.';
     if (!dateIso) return 'Pick your event date.';
     if (dateIso <= lagosToday()) return 'Pick a date from tomorrow onwards.';
     if ((l.eventBlockedDates || []).includes(dateIso)) return 'The venue is not available on this date. Choose another date.';
-    if ((eventBookings || []).some(b => String(b.listingId) === String(l.id) && eventHoldsDate(b) && b.eventDate === dateIso)) return 'This date is already booked. Choose another date.';
+    const hourly = eventIsHourly(l);
+    const sH = evHourNum(startH), eH = evHourNum(endH);
+    const haveTimes = Number.isFinite(sH) && Number.isFinite(eH);
+    if (hourly && haveTimes && eH <= sH) return 'Choose an end time that is after the start time.';
+    const clashes = (eventBookings || []).filter(b => String(b.listingId) === String(l.id) && eventHoldsDate(b) && b.eventDate === dateIso);
+    if (clashes.length) {
+      if (!hourly) return 'This date is already booked. Choose another date.';
+      // Hourly venues can host several bookings a day as long as the hours do not overlap.
+      // A booking saved without hours holds the whole day.
+      if (haveTimes && clashes.some(b => !(Number.isFinite(Number(b.startH)) && Number.isFinite(Number(b.endH))) || (sH < Number(b.endH) && eH > Number(b.startH)))) return 'Those hours are already booked on this date. Choose different hours or another date.';
+    }
     const cap = Number(l.capacity) || 0;
     if (guests !== undefined && cap && Number(guests) > cap) return `This venue holds up to ${cap} guests.`;
     return '';
   }
   let ebListing = null;
   let checkoutEvent = null; // { eventDate, eventType, guests, hireFee, serviceCharge, totalPayable }
+  function ebFillTimes(keepStart, keepEnd) {
+    const st = document.getElementById('eb-start');
+    let o = '<option value="">Select time</option>';
+    for (let h = 0; h <= 23; h++) o += `<option value="${h}">${evHourLabel(h)}</option>`;
+    st.innerHTML = o; st.value = keepStart == null ? '' : String(keepStart);
+    ebFillEnd(keepEnd);
+  }
+  // End times can only be later than the chosen start time.
+  function ebFillEnd(keepEnd) {
+    const st = evHourNum(document.getElementById('eb-start').value), en = document.getElementById('eb-end');
+    let o = '<option value="">Select time</option>';
+    for (let h = (Number.isFinite(st) ? st + 1 : 1); h <= 24; h++) o += `<option value="${h}">${h === 24 ? '12:00 AM (midnight)' : evHourLabel(h)}</option>`;
+    en.innerHTML = o;
+    en.value = (keepEnd != null && [...en.options].some(x => x.value === String(keepEnd))) ? String(keepEnd) : '';
+  }
   function ebRecalc() {
     const l = ebListing; if (!l) return;
     const d = document.getElementById('eb-date').value;
     const g = document.getElementById('eb-guests').value;
     const t = document.getElementById('eb-type').value;
-    const b = computeEventBreakdown(l, d, t, g);
+    const sv = document.getElementById('eb-start').value, ev = document.getElementById('eb-end').value;
+    const b = computeEventBreakdown(l, d, t, g, sv, ev);
     document.getElementById('eb-hire').textContent = formatMoney(b.hireFee, 'ngn');
     document.getElementById('eb-fee').textContent = formatMoney(b.serviceCharge, 'ngn');
     document.getElementById('eb-total').textContent = formatMoney(b.totalPayable, 'ngn');
+    const lbl = document.getElementById('eb-hire-label');
+    const dur = document.getElementById('eb-duration');
+    if (eventIsHourly(l)) {
+      lbl.textContent = b.hours ? `Venue Hire: ${eventHoursLine(b)}` : `Venue Hire (${formatMoney(b.hourlyRate, 'ngn')}/hr)`;
+      dur.style.display = b.hours ? 'block' : 'none';
+      dur.textContent = b.hours ? `${b.hours} hour${b.hours === 1 ? '' : 's'} selected (${b.startTime} \u2013 ${b.endTime})` : '';
+    } else {
+      lbl.textContent = 'Venue Hire Fee (to venue owner)';
+      dur.style.display = 'none';
+    }
     const err = document.getElementById('eb-error');
-    const r = (d || g) ? eventUnavailableReason(l, d, g === '' ? undefined : g) : '';
+    const r = (d || g || sv || ev) ? eventUnavailableReason(l, d, g === '' ? undefined : g, sv, ev) : '';
     err.textContent = r; err.style.display = r ? 'block' : 'none';
   }
   function openEventBookingModal(listing) {
     if (blockIfPrivilegesPaused()) return;
+    // Inspection-First gate (same rule as rentals and land): a guest must have a Satisfied inspection of this
+    // venue on file before choosing their hours and paying. Without one, send them into the inspection flow.
+    if (!hasSatisfiedInspectionForListing(listing)) {
+      showToast('Inspect the venue first. Once the inspection is marked Satisfied you can pick your hours and pay.');
+      requireScreening(() => openInspectionModal(listing));
+      return;
+    }
     ebListing = listing;
-    document.getElementById('eb-property-name').textContent = `${listing.title} — ${listing.location}`;
-    const bits = [listing.venueType, listing.capacity ? `up to ${listing.capacity} guests` : ''].filter(Boolean);
-    document.getElementById('eb-venue-meta').textContent = bits.join(' · ');
+    document.getElementById('eb-property-name').textContent = `${listing.title} \u2014 ${listing.location}`;
+    const bits = [listing.venueType, listing.capacity ? `up to ${listing.capacity} guests` : '', eventIsHourly(listing) ? `${formatMoney(listing.hourlyRate, 'ngn')}/hr` : ''].filter(Boolean);
+    document.getElementById('eb-venue-meta').textContent = bits.join(' \u00b7 ');
     const typeSel = document.getElementById('eb-type');
     if (!typeSel.options.length) typeSel.innerHTML = EVENT_TYPES.map(t => `<option>${t}</option>`).join('');
     const tmr = new Date(lagosToday() + 'T00:00:00Z'); tmr.setUTCDate(tmr.getUTCDate() + 1);
@@ -13027,24 +13119,37 @@ This voucher is auto-generated and serves as proof of settlement.`;
     dateEl.value = '';
     document.getElementById('eb-guests').value = '';
     typeSel.selectedIndex = 0;
+    document.getElementById('eb-time-wrap').style.display = eventIsHourly(listing) ? 'flex' : 'none';
+    ebFillTimes(null, null);
     ebRecalc();
     document.getElementById('event-booking-modal').classList.add('open');
     if (window.lucide) lucide.createIcons();
   }
-  ['eb-date', 'eb-guests', 'eb-type'].forEach(id => {
+  ['eb-date', 'eb-guests', 'eb-type', 'eb-start', 'eb-end'].forEach(id => {
     document.getElementById(id).addEventListener('input', ebRecalc);
     document.getElementById(id).addEventListener('change', ebRecalc);
+  });
+  document.getElementById('eb-start').addEventListener('change', () => {
+    const cur = document.getElementById('eb-end').value;
+    ebFillEnd(cur === '' ? null : cur);
+    ebRecalc();
   });
   document.getElementById('eb-cancel-btn').addEventListener('click', () => document.getElementById('event-booking-modal').classList.remove('open'));
   document.getElementById('eb-confirm-btn').addEventListener('click', () => {
     const l = ebListing; if (!l) return;
+    if (!hasSatisfiedInspectionForListing(l)) { document.getElementById('event-booking-modal').classList.remove('open'); openEventBookingModal(l); return; }
     const d = document.getElementById('eb-date').value;
     const g = Math.round(Number(document.getElementById('eb-guests').value) || 0);
     const t = document.getElementById('eb-type').value;
+    const sv = document.getElementById('eb-start').value, ev = document.getElementById('eb-end').value;
     if (!d) { showToast('Please pick your event date'); return; }
+    if (eventIsHourly(l)) {
+      if (sv === '') { showToast('Please choose your start time'); return; }
+      if (ev === '') { showToast('Please choose your end time'); return; }
+    }
     if (g < 1) { showToast('Please enter the number of expected guests'); return; }
-    { const r = eventUnavailableReason(l, d, g); if (r) { showToast(r); return; } }
-    checkoutEvent = computeEventBreakdown(l, d, t, g);
+    { const r = eventUnavailableReason(l, d, g, sv, ev); if (r) { showToast(r); return; } }
+    checkoutEvent = computeEventBreakdown(l, d, t, g, sv, ev);
     document.getElementById('event-booking-modal').classList.remove('open');
     openCheckout(l);
     navigateTo('screen-6');
@@ -13061,43 +13166,44 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const listing = checkoutListing, ev = checkoutEvent;
     if (!listing || !ev) return false;
     const uid = currentDemoUserId();
-    { const r = eventUnavailableReason(listing, ev.eventDate, ev.guests); if (r) { showToast(r); return false; } }
+    { const r = eventUnavailableReason(listing, ev.eventDate, ev.guests, ev.startH, ev.endH); if (r) { showToast(r); return false; } }
     if (checkoutSource === 'wallet') {
       if (!debitWallet(uid, ev.totalPayable)) { showToast('Insufficient wallet balance — payment could not be authorized'); return false; }
     }
     const when = fmtEventDate(ev.eventDate);
+    const whenFull = ev.hours ? `${when}, ${ev.startTime} \u2013 ${ev.endTime}` : when;
     recordTransaction({
       userId: uid, direction: 'debit', category: 'EVENT_BOOKING',
-      title: `Event Center — ${listing.title} (${when})`,
+      title: `Event Center — ${listing.title} (${whenFull})`,
       amount: ev.totalPayable, status: 'SUCCESSFUL',
       meta: { sender: 'You', recipient: listing.title, propertyName: listing.title, feeType: checkoutSource === 'wallet' ? 'Event Center Booking (hire fee + 2% service charge)' : 'Event Center Booking (hire fee + 2% service charge) — Card' }
     });
     const booking = {
       id: Date.now(), listingId: listing.id, listingTitle: listing.title, location: listing.location,
       tenantId: uid, eventDate: ev.eventDate, eventType: ev.eventType, guests: ev.guests,
+      bookingRef: 'EVT-' + String(Date.now()).slice(-8),
+      guestName: ((document.getElementById('reg-fullname')?.value || '').trim()) || resolveUserName(uid),
+      guestPhone: ((document.getElementById('reg-phone')?.value || '').trim()) || null,
+      guestEmail: ((document.getElementById('reg-email')?.value || '').trim()) || null,
+      guestPhoto: (typeof currentUserSelfieDataUrl !== 'undefined' && currentUserSelfieDataUrl) || null,
+      inspectionDate: (function () { const i = (inspections || []).find(x => x.status === 'completed' && (x.listingId != null ? x.listingId === listing.id : x.listingTitle === listing.title)); return i ? `${i.date || ''} ${i.time || ''}`.trim() : ''; })(),
+      startH: ev.startH, endH: ev.endH, startTime: ev.startTime, endTime: ev.endTime, hours: ev.hours, hourlyRate: ev.hourlyRate,
       hireFee: ev.hireFee, serviceCharge: ev.serviceCharge, total: ev.totalPayable,
       status: 'CONFIRMED', paymentMethod: checkoutSource === 'wallet' ? 'WALLET' : 'DEBIT_CARD', bookedAt: Date.now(),
       heldPayout: 0, heldTxnIds: []
     };
     try { if (window.__mtFinanceFeed) window.__mtFinanceFeed.revenue('event_fee', ev.serviceCharge, listing); } catch (e) {}
-    // Venue owner's share (the full hire fee): held by the payment provider until the event day.
+    // Venue owner's share (the full hire fee): paid out instantly, no holding period.
     if (listing.ownerId && ev.hireFee > 0) {
-      const title = `Event Center payout — ${listing.title} (${when})`;
-      if (Date.now() < eventStartInstant(booking)) {
-        const t = recordTransaction({ userId: listing.ownerId, direction: 'credit', category: 'EVENT_PAYOUT', title: title + ' — held until event day', amount: ev.hireFee, status: 'PENDING_ESCROW', meta: { propertyName: listing.title, held: true, bookingId: booking.id } });
-        booking.heldPayout = ev.hireFee;
-        if (t) booking.heldTxnIds.push(t.id);
-      } else {
-        creditWallet(listing.ownerId, ev.hireFee);
-        recordTransaction({ userId: listing.ownerId, direction: 'credit', category: 'EVENT_PAYOUT', title, amount: ev.hireFee, status: 'SUCCESSFUL', meta: { propertyName: listing.title } });
-      }
+      creditWallet(listing.ownerId, ev.hireFee);
+      recordTransaction({ userId: listing.ownerId, direction: 'credit', category: 'EVENT_PAYOUT', title: `Event Center payout \u2014 ${listing.title} (${whenFull})`, amount: ev.hireFee, status: 'SUCCESSFUL', meta: { propertyName: listing.title, bookingId: booking.id } });
     }
     eventBookings.unshift(booking);
     saveEventBookings();
     try { dispatchAgreementToChat(listing); } catch (e) {}
-    showToast(`Venue booked for ${when}`);
-    pushPlatformNotification('tenant', 'booking', 'Event Center Booked', `Your booking of "${listing.title}" for ${when} is confirmed.`, null, 'event', null, uid);
-    if (listing.ownerId) pushPlatformNotification('landlord', 'booking', 'New Event Booking', `"${listing.title}" has been booked for ${when} (${ev.eventType || 'event'}, ${ev.guests} guests). ${formatMoney(ev.hireFee, 'ngn')} is held by the payment provider and released on the event day.`, null, 'event', null, listing.ownerId);
+    showToast(`Venue booked for ${whenFull}`);
+    pushPlatformNotification('tenant', 'booking', 'Event Center Booked', `Your booking of "${listing.title}" for ${whenFull} is confirmed.`, null, 'event', null, uid);
+    if (listing.ownerId) pushPlatformNotification('landlord', 'booking', 'New Event Booking', `"${listing.title}" has been booked for ${whenFull} (${ev.eventType || 'event'}, ${ev.guests} guests). ${formatMoney(ev.hireFee, 'ngn')} has been paid into your wallet instantly.`, null, 'event', null, listing.ownerId);
     window.dispatchEvent(new Event('maintown_state_updated'));
     return true;
   }
@@ -14292,7 +14398,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function listingCta(p) {
     const isLand = p.type === 'land', isShortlet = p.type === 'shortlet';
     const isCommercial = !isLand && !isShortlet && p.usage === 'commercial';
-    if (p.type === 'event') return { label: 'Book Venue', icon: 'calendar-check' };
+    if (p.type === 'event') {
+      // Guests inspect the venue first (same flow as rentals); the button turns into "Book Venue" once the inspection is Satisfied.
+      let inspected = false; try { inspected = hasSatisfiedInspectionForListing(p); } catch (e) {}
+      return inspected ? { label: 'Book Venue', icon: 'calendar-check' } : { label: 'Book Inspection', icon: 'calendar-check' };
+    }
     if (isLand) return { label: 'Buy Now', icon: 'shopping-bag' };
     if (isShortlet) return { label: 'Reserve Stay', icon: 'calendar-days' };
     if (isCommercial) return { label: 'Lease Now', icon: 'building-2' };
@@ -14348,7 +14458,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       offerBtn = `<button type="button" class="reel-cta secondary" data-reel-act="details"><i data-lucide="images"></i>${galleryLabel}</button>`;
     }
     // Short-let stays don't use inspection scheduling anywhere else in the app, so no Set Inspection here either.
-    const inspectBtn = (isShortlet || p.type === 'event') ? '' : `
+    const inspectBtn = isShortlet ? '' : `
         <div class="reel-act"><button type="button" class="reel-act-btn" data-reel-act="inspect" aria-label="Set Inspection"><i data-lucide="calendar-check"></i></button><span>Set inspection</span></div>`;
     return `
     <section class="reel-slide" data-listing-id="${liEsc(p.id)}" style="background-image:url('${liEsc(p.img)}')" aria-label="${liEsc(p.title)}">
@@ -14687,7 +14797,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       priceUnit = 'total price' + (usdMode ? ` \u00B7 ${formatMoney(p.totalPrice, 'ngn')}` : '');
     } else {
       priceMain = String(listingPriceFull(p)).replace(/\s*\/.*$/, '');
-      const per = isEvent ? 'per event day' : /night/i.test(p.ngn || '') ? 'per night' : (/yr/i.test(p.ngn || '') ? 'per year' : 'per month');
+      const per = isEvent ? (p.hourlyRate > 0 ? 'per hour' : 'per event day') : /night/i.test(p.ngn || '') ? 'per night' : (/yr/i.test(p.ngn || '') ? 'per year' : 'per month');
       priceUnit = per + (usdMode ? ` \u00B7 ${p.ngn}` : (p.usd ? ` \u00B7 ${p.usd}` : ''));
     }
 
@@ -16806,7 +16916,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
     checkoutListing = listing;
-    { const pn = document.getElementById('s6-protect-note'); if (pn) { if (!pn.dataset.orig) pn.dataset.orig = pn.innerHTML; pn.innerHTML = listing.type === 'land' ? mktSaleProtectionText() : (listing.type === 'event' ? 'Payment is split automatically at the point of charge through <span class="js-provider">' + PAYMENT_PROVIDER + '</span> \u2014 MainTown never holds your funds. The venue owner\u2019s share is held by the payment provider until the event day and then released to them; MainTown\u2019s 2% service charge is credited at once.' : pn.dataset.orig); } }
+    { const pn = document.getElementById('s6-protect-note'); if (pn) { if (!pn.dataset.orig) pn.dataset.orig = pn.innerHTML; pn.innerHTML = listing.type === 'land' ? mktSaleProtectionText() : (listing.type === 'event' ? 'Payment is split automatically at the point of charge through <span class="js-provider">' + PAYMENT_PROVIDER + '</span> \u2014 MainTown never holds your funds. The venue owner\u2019s share is paid to them instantly, and MainTown\u2019s 2% service charge is credited at once.' : pn.dataset.orig); } }
     { const vb = document.getElementById('s6-verified-badge-text'); if (vb) vb.textContent = listing.type === 'event' ? 'Event Center' : 'Inspection Verified'; }
     checkoutLandPayment = landPayment || null;
     checkoutAuthSubmitting = false;
@@ -16947,11 +17057,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       document.getElementById('s6-title-ack-row').style.display = 'none';
       document.getElementById('s6-adr-ack-row').style.display = 'flex';
       document.getElementById('s6-adr-ack').checked = false;
-      signoffBox.innerHTML = `<p>By proceeding, you acknowledge and agree to the following binding Event Center Hire Terms for <strong>${escHtmlLite(listing.title)}</strong> on <strong>${escHtmlLite(fmtEventDate(ev.eventDate))}</strong> (${escHtmlLite(ev.eventType || 'event')}, ${Number(ev.guests) || 0} guests):</p>`
+      signoffBox.innerHTML = `<p>By proceeding, you acknowledge and agree to the following binding Event Center Hire Terms for <strong>${escHtmlLite(listing.title)}</strong> on <strong>${escHtmlLite(fmtEventDate(ev.eventDate))}</strong>${ev.hours ? ` from <strong>${escHtmlLite(ev.startTime)} to ${escHtmlLite(ev.endTime)}</strong> (${escHtmlLite(eventHoursLine(ev))})` : ''} (${escHtmlLite(ev.eventType || 'event')}, ${Number(ev.guests) || 0} guests):</p>`
         + EVENT_CLAUSES.map(c => `<p><strong>${escHtmlLite(c.title)}:</strong> ${escHtmlLite(c.body)}</p>`).join('')
         + `<p><strong>Clause 6 \u2014 Dispute Resolution (Mediation, then LCA Arbitration):</strong> ${ADR_CLAUSE_TEXT}</p>`;
       document.getElementById('s6-breakdown-label').innerHTML = '<i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Event Center Booking Breakdown';
-      document.getElementById('s6-row1-label').textContent = `Venue Hire Fee (to ${payeeName || 'Venue Owner'})`;
+      document.getElementById('s6-row1-label').textContent = (ev.hourly && ev.hours) ? `Venue Hire: ${eventHoursLine(ev)}` : `Venue Hire Fee (to ${payeeName || 'Venue Owner'})`;
       document.getElementById('s6-rent-amount').textContent = formatMoney(ev.hireFee, 'ngn');
       document.getElementById('s6-caution-row').style.display = 'none';
       document.getElementById('s6-service-row').style.display = 'none';
@@ -16964,7 +17074,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       document.getElementById('s6-total-amount').textContent = formatMoney(ev.totalPayable, 'ngn') + ' due now';
       document.getElementById('s6-shortlet-autodebit-notice').style.display = 'none';
       document.getElementById('s6-shortlet-cancel-notice').style.display = 'flex';
-      document.getElementById('s6-shortlet-cancel-text').textContent = `Event date: ${fmtEventDate(ev.eventDate)}. Your payment is split at the point of charge: the venue's share is held by ${PAYMENT_PROVIDER}, not MainTown, until the event day and then released to the venue owner. The 2% service charge is MainTown's only fee.`;
+      document.getElementById('s6-shortlet-cancel-text').textContent = `Event date: ${fmtEventDate(ev.eventDate)}${(ev.hourly && ev.hours) ? `, ${ev.startTime} \u2013 ${ev.endTime} (${eventHoursLine(ev)} = ${formatMoney(ev.hireFee, 'ngn')})` : ''}. Your payment is split at the point of charge: the venue owner's share is paid to them instantly, with no holding period. The 2% service charge is MainTown's only fee.`;
     } else if (isShortlet) {
       // ---- Short-Let Checkout Revamp: itemized breakdown from checkoutShortlet ----
       // checkoutShortlet is populated by the Step 1 date-range picker
@@ -17563,7 +17673,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const hostName = payeeCompany || (listing.listedBy === 'agent' ? (listing.agentName || 'Agent') : (listing.landlordName || 'Landlord'));
     const hostRoleWord = isCompanyOwnedListing(listing) ? 'Company' : (listing.type === 'land' ? 'Seller' : (listing.type === 'event' ? 'Venue Owner' : (listing.type === 'shortlet' ? 'Host' : 'Landlord')));
     const fileName = `${agrP.fileBase}_${listing.title.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '')}.pdf`;
-    const rentLabel = (listing.type === 'event' && checkoutEvent) ? `${formatMoney(checkoutEvent.hireFee, 'ngn')} hire fee + ${formatMoney(checkoutEvent.serviceCharge, 'ngn')} service charge (2%)` : checkoutRentBreakdown ? (agrP.commercial ? `${formatMoney(checkoutRentBreakdown.monthly, 'ngn')} / year (paid in full)` : `${formatMoney(checkoutRentBreakdown.monthly, 'ngn')} / month`) : (listing.ngn || 'See agreement for terms');
+    const rentLabel = (listing.type === 'event' && checkoutEvent) ? `${(checkoutEvent.hourly && checkoutEvent.hours) ? eventHoursLine(checkoutEvent) + ' = ' : ''}${formatMoney(checkoutEvent.hireFee, 'ngn')} hire fee + ${formatMoney(checkoutEvent.serviceCharge, 'ngn')} service charge (2%)` : checkoutRentBreakdown ? (agrP.commercial ? `${formatMoney(checkoutRentBreakdown.monthly, 'ngn')} / year (paid in full)` : `${formatMoney(checkoutRentBreakdown.monthly, 'ngn')} / month`) : (listing.ngn || 'See agreement for terms');
     conv.messages.push({
       from: 'system',
       type: 'lease-doc',
@@ -17585,6 +17695,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
       dailyDebitLabel: (listing.type === 'shortlet' && checkoutShortlet && checkoutShortlet.remainingNights > 0) ? formatMoney(checkoutShortlet.dailyDebitAmount, 'ngn') : undefined,
       eventDate: (listing.type === 'event' && checkoutEvent) ? checkoutEvent.eventDate : undefined,
       eventType: (listing.type === 'event' && checkoutEvent) ? checkoutEvent.eventType : undefined,
+      eventStartTime: (listing.type === 'event' && checkoutEvent && checkoutEvent.hours) ? checkoutEvent.startTime : undefined,
+      eventEndTime: (listing.type === 'event' && checkoutEvent && checkoutEvent.hours) ? checkoutEvent.endTime : undefined,
+      eventHours: (listing.type === 'event' && checkoutEvent && checkoutEvent.hours) ? checkoutEvent.hours : undefined,
       guests: (listing.type === 'event' && checkoutEvent) ? checkoutEvent.guests : undefined
     });
     conv.status = 'active';
@@ -18323,7 +18436,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const sub = t => `<span style="display:block; font-size:11px; font-weight:400; color:#64748b; margin-top:1px;">${t}</span>`;
       const payeeEv = listingPayeeName(checkoutListing);
       el.innerHTML = [
-        `<div class="s5-hold-row"><span>${payeeEv ? escHtmlLite(payeeEv) + "'s Share" : "Venue Owner's Share"}${sub('Full venue hire fee, held by the payment provider until the event day, then released')}</span><strong>${formatMoney(ev.hireFee, 'ngn')}</strong></div>`,
+        `<div class="s5-hold-row"><span>${payeeEv ? escHtmlLite(payeeEv) + "'s Share" : "Venue Owner's Share"}${sub('Full venue hire fee, paid to the venue owner instantly')}</span><strong>${formatMoney(ev.hireFee, 'ngn')}</strong></div>`,
         `<div class="s5-hold-row"><span>MainTown's Share${sub('Flat 2% service charge, paid at once')}</span><strong>${formatMoney(ev.serviceCharge, 'ngn')}</strong></div>`,
         '<div class="s5-hold-divider"></div>',
         `<div class="s5-hold-row"><span>Total Charged</span><strong style="color:#c084fc; font-size:15px;">${formatMoney(ev.totalPayable, 'ngn')}</strong></div>`
@@ -19500,7 +19613,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const monthly = Math.round(annual / 12);
       listingsFeed.unshift({ ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent'), ...commercialRentPatch('tv', annual) });
     } else if (type === 'event') {
-      listingsFeed.unshift({ ...baseFields, type: 'event', eventPrice: annual, ngn: `${formatMoney(annual, 'ngn')} / event day`, usd: `$${Math.round(annual / 1600)} / event day`, img: listingCoverImg(baseFields, 'event'), ...eventListingFields() });
+      listingsFeed.unshift({ ...baseFields, type: 'event', eventPrice: annual, hourlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / hour`, usd: `$${Math.round(annual / 1600)} / hour`, img: listingCoverImg(baseFields, 'event'), ...eventListingFields() });
     } else if (type === 'shortlet') {
       listingsFeed.unshift({ ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: listingCoverImg(baseFields, 'shortlet'), ...shortletAvailFields('tv') });
     } else {
@@ -20087,8 +20200,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // always matches what's actually being collected.
     const priceLabel = document.getElementById(`${prefix}-listing-annual-label`) || document.getElementById(`${prefix}-annual-label`);
     const priceInput = document.getElementById(`${prefix}-annual`) || document.getElementById(`${prefix}-listing-annual`);
-    if (priceLabel) priceLabel.textContent = type === 'shortlet' ? 'Nightly Rate (NGN)' : (type === 'event' ? 'Venue Hire Price per Event Day (NGN)' : 'Annual Price (NGN)');
-    if (priceInput) priceInput.placeholder = type === 'shortlet' ? 'e.g. 45000' : (type === 'event' ? 'e.g. 1500000' : 'e.g. 2400000');
+    if (priceLabel) priceLabel.textContent = type === 'shortlet' ? 'Nightly Rate (NGN)' : (type === 'event' ? 'Venue Hire Price per Hour (NGN)' : 'Annual Price (NGN)');
+    if (priceInput) priceInput.placeholder = type === 'shortlet' ? 'e.g. 45000' : (type === 'event' ? 'e.g. 50000' : 'e.g. 2400000');
     // Shortlet listings carry no Agency/Listing Commission — only the
     // MainTown Platform Fee (5%) below, auto-calculated off the nightly rate.
     const commissionRow = document.getElementById(`${prefix}-fee-commission-row`);
@@ -20120,7 +20233,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // so the Host/Agent/Landlord never needs to set inspection slots for it.
     const availSection = document.getElementById(`${prefix}-availability-section`);
     const noInspectionNote = document.getElementById(`${prefix}-shortlet-noinspection-note`);
-    if (availSection) availSection.style.display = (type === 'shortlet' || type === 'event') ? 'none' : 'block';
+    if (availSection) availSection.style.display = (type === 'shortlet') ? 'none' : 'block';
     if (noInspectionNote) noInspectionNote.style.display = type === 'shortlet' ? 'flex' : 'none';
     { const en = document.getElementById(`${prefix}-event-noinspection-note`); if (en) en.style.display = type === 'event' ? 'flex' : 'none'; }
 
@@ -22026,12 +22139,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       : (rentListings().find(p => p.title === listingOrTitle) || null);
     if (!inspectionListing) return;
     const isLand = inspectionListing.type === 'land';
+    const isEventInsp = inspectionListing.type === 'event';
     const title = inspectionListing.title;
 
-    document.getElementById('ib-modal-title').textContent = isLand ? 'Schedule Site Inspection' : 'Book Inspection';
+    document.getElementById('ib-modal-title').textContent = isLand ? 'Schedule Site Inspection' : (isEventInsp ? 'Book Venue Inspection' : 'Book Inspection');
     document.getElementById('ib-property-name').textContent = isLand
       ? `Choose a date, time & escrow method to inspect ${title}`
-      : `Choose a date & time to inspect ${title}`;
+      : (isEventInsp ? `Choose a date & time to inspect ${title}. After a Satisfied inspection you can pick your event date and hours, then pay.` : `Choose a date & time to inspect ${title}`);
 
     // Escrow payment mode selector: Land/Property Sale bookings only (per the
     // Unified Site Inspection Requests spec). Reset to Wallet on every open.
@@ -25903,7 +26017,41 @@ available in the Post-Lease Hub and this chat thread.`
 
   let s7PropertyListing = null;
 
+  // Event center bookings the signed-in guest has paid for, with the full details.
+  function renderHubEventBookings() {
+    const wrap = document.getElementById('s7-event-bookings'); if (!wrap) return;
+    let uid = null; try { uid = currentDemoUserId(); } catch (e) {}
+    const rows = (eventBookings || []).filter(b => String(b.tenantId) === String(uid) && b.status === 'CONFIRMED')
+      .sort((a, b) => String(a.eventDate).localeCompare(String(b.eventDate)));
+    if (!rows.length) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+    wrap.style.display = 'block';
+    const row = (k, v) => `<div class="txn-breakdown-row"><span>${k}</span><span>${v}</span></div>`;
+    wrap.innerHTML = `<p class="s5-section-label" style="margin-top:0;"><i data-lucide="party-popper" class="w-4 h-4 text-purple-400"></i>Your Event Bookings</p>` + rows.map(b => {
+      const l = listings.find(x => String(x.id) === String(b.listingId)) || {};
+      const ph = eventPhase(b);
+      return `<div class="txn-row">
+        <div class="txn-row-top"><div><p class="txn-title">${shortletEsc(b.listingTitle)}</p><p class="txn-date">${shortletEsc(b.location || '')}${b.bookingRef ? ' \u00b7 ' + shortletEsc(b.bookingRef) : ''}</p></div><span class="txn-status-badge ${ph.cls}">${ph.label}</span></div>
+        <div class="txn-breakdown">
+          ${row('Booked by', shortletEsc(b.guestName || resolveUserName(b.tenantId)))}
+          ${b.guestPhone ? row('Phone', shortletEsc(b.guestPhone)) : ''}
+          ${b.guestEmail ? row('Email', shortletEsc(b.guestEmail)) : ''}
+          ${b.inspectionDate ? row('Venue inspected on', shortletEsc(b.inspectionDate)) : ''}
+          ${row('Event date', shortletEsc(fmtEventDate(b.eventDate)))}
+          ${b.hours ? row('Hours', shortletEsc(b.startTime + ' \u2013 ' + b.endTime) + ' (' + b.hours + ' hr' + (b.hours === 1 ? '' : 's') + ')') : ''}
+          ${row('Event type', shortletEsc(b.eventType || '\u2014'))}
+          ${row('Expected guests', String(b.guests || 0))}
+          ${b.hours ? row('Venue hire', shortletEsc(b.hours + ' hour' + (b.hours === 1 ? '' : 's') + ' \u00d7 ' + formatMoney(b.hourlyRate || 0, 'ngn') + '/hr = ' + formatMoney(b.hireFee || 0, 'ngn'))) : row('Venue hire fee', formatMoney(b.hireFee || 0, 'ngn'))}
+          ${row('MainTown service charge (2%)', formatMoney(b.serviceCharge || 0, 'ngn'))}
+          <div class="txn-breakdown-row net"><span>Total paid</span><span>${formatMoney(b.total || 0, 'ngn')} (${b.paymentMethod === 'WALLET' ? 'wallet' : 'card'})</span></div>
+          ${l.ownerId ? row('Venue owner', shortletEsc(resolveUserName(l.ownerId))) : ''}
+        </div></div>`;
+    }).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+  window.addEventListener('maintown_state_updated', () => { try { renderHubEventBookings(); } catch (e) {} });
+
   function populateScreen7() {
+    try { renderHubEventBookings(); } catch (e) {}
     const fallback = { title: firstRentListing() ? firstRentListing().title : 'Your Active Lease', amountLabel: '₦180,000 / mo', dueLabel: 'Move-in date pending — schedule below', card: 'Card ending in 4321' };
     const lease = activeLease || fallback;
     document.getElementById('s7-lease-title').textContent = lease.title;
