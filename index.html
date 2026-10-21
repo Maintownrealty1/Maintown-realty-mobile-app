@@ -2132,6 +2132,23 @@
     display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #c084fc;
   }
   .s5-list-text { flex: 1; min-width: 0; }
+  /* Property card (My Properties): header on top, actions on one aligned row below */
+  .s5-prop-card { flex-direction: column; align-items: stretch; gap: 12px; }
+  .s5-prop-head { display: flex; align-items: flex-start; gap: 12px; }
+  .s5-prop-head .s5-list-title { font-size: 14px; line-height: 1.3; overflow-wrap: anywhere; }
+  .s5-prop-head .s5-list-sub { line-height: 1.4; }
+  .s5-prop-head .s5-status-badge { margin-left: auto; align-self: flex-start; white-space: nowrap; }
+  .s5-prop-actions { display: flex; align-items: center; gap: 8px; padding-top: 12px; border-top: 1px solid #1e293b; }
+  .s5-prop-actions .s5-list-action-btn { flex: 1 1 0; min-height: 36px; justify-content: center; white-space: nowrap; padding: 8px 10px; }
+  .s5-prop-actions .s5-list-delete-btn { flex: 0 0 36px; width: 36px; height: 36px; min-height: 36px; padding: 0; }
+  body.light-theme .s5-prop-actions { border-top-color: #e2e8f0; }
+  /* Features drawer trigger + sheet */
+  .feat-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 14px; border-radius: 12px; border: 1px solid #334155; background: rgba(15,23,42,0.6); color: #cbd5e1; font-size: 13.5px; cursor: pointer; text-align: left; }
+  .feat-trigger .feat-count { font-size: 11.5px; color: #c084fc; font-weight: 600; }
+  .feat-selected { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .feat-selected .sl-offer-chip { padding: 5px 10px; font-size: 11.5px; }
+  .feat-sheet-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  body.light-theme .feat-trigger { background: #f8fafc; border-color: #e2e8f0; color: #334155; }
   .s5-list-title { font-size: 13px; font-weight: 500; color: #fff; margin: 0 0 2px; }
   .s5-list-sub { font-size: 11.5px; color: #64748b; margin: 0; }
 
@@ -4615,6 +4632,7 @@
           <option value="rent">For Rent (Flex-Rent)</option>
           <option value="shortlet">Shortlet (Daily Booking)</option>
           <option value="land">Buy — Land &amp; Property</option>
+          <option value="event">Event Center (Venue Hire)</option>
         </select>
       </div>
 
@@ -4628,6 +4646,43 @@
           <div class="field"><label class="field-label">Parking spaces</label><input class="field-input" id="tv-commercial-parking" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 5"></div>
           <div class="field"><label class="field-label">Power supply</label>
             <select class="field-input" id="tv-commercial-power"><option>Public grid</option><option>Grid + generator</option><option>Grid + inverter/solar</option><option>Generator only</option></select></div>
+        </div>
+      </div>
+      <!-- Event Center (venue hire): offered to verified Landlords / venue owners only.
+           Agents never see this option (see canListEventCenter). -->
+      <div id="tv-event-fields" style="display:none;">
+        <div class="field">
+          <label class="field-label">Venue type</label>
+          <select class="field-input" id="tv-event-venue-type"></select>
+        </div>
+        <div class="field">
+          <label class="field-label">Capacity (maximum guests)</label>
+          <input class="field-input" id="tv-event-capacity" type="number" min="1" step="1" inputmode="numeric" placeholder="e.g. 500">
+        </div>
+        <div class="field">
+          <label class="field-label">Parking spaces — optional</label>
+          <input class="field-input" id="tv-event-parking" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 80">
+        </div>
+        <div class="field">
+          <label class="field-label">Power supply</label>
+          <select class="field-input" id="tv-event-power"><option>Public grid</option><option selected>Grid + generator</option><option>Grid + inverter/solar</option><option>Generator only</option></select>
+        </div>
+        <div class="field">
+          <label class="field-label">What the venue offers (tap all that apply)</label>
+          <div class="sl-offer-grid" id="tv-event-amen"></div>
+        </div>
+        <div class="field">
+          <label class="field-label">About this venue</label>
+          <textarea class="field-input" id="tv-event-about" rows="4" maxlength="500" placeholder="e.g. A elegant 500-seater hall in Ikeja GRA with an indoor stage, bridal suite and ample secure parking..."></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label">Blocked dates (optional)</label>
+          <div style="display:flex;gap:8px;"><input class="field-input" id="tv-event-block-input" type="date" style="flex:1;"><button type="button" class="btn-secondary" id="tv-event-block-add" style="width:auto;padding:0 18px;margin:0;">Block</button></div>
+          <div id="tv-event-block-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
+        </div>
+        <div class="rent-badge" style="align-items:flex-start; gap:6px; display:flex;">
+          <i data-lucide="info" class="w-3.5 h-3.5" style="margin-top:2px; flex-shrink:0;"></i>
+          <span>You receive 100% of your hire price. MainTown adds a flat 2% service charge on top, paid by the person booking. No agency commission or legal fee applies. Booked dates are blocked automatically.</span>
         </div>
       </div>
       <div class="field">
@@ -4763,6 +4818,10 @@
       <div class="s5-notice-box" id="tv-shortlet-noinspection-note" style="display:none;">
         <i data-lucide="calendar-x" class="w-5 h-5"></i>
         <p>Short-let stays don't use inspection scheduling — tenants pick their own check-in/check-out dates directly on the booking screen.</p>
+      </div>
+      <div class="s5-notice-box" id="tv-event-noinspection-note" style="display:none;">
+        <i data-lucide="calendar-x" class="w-5 h-5"></i>
+        <p>Event centers don't use inspection scheduling — clients pick their event date directly on the booking screen.</p>
       </div>
 
       <label class="agree-row" style="margin: 4px 0 4px;">
@@ -5525,7 +5584,7 @@
   <div class="s5-card" style="margin-bottom: 20px;">
     <div class="s5-card-img-wrap">
       <img id="s6-property-img" src="" alt="">
-      <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Inspection Verified</span>
+      <span class="s5-verified-badge" id="s6-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i><span id="s6-verified-badge-text">Inspection Verified</span></span>
     </div>
     <div class="s5-card-body">
       <p class="s5-card-title" id="s6-property-title">—</p>
@@ -7520,6 +7579,48 @@
   </div>
 </div>
 
+<!-- Event Center booking: the client picks one event date, the event type and the
+     expected guest count; hire fee + flat 2% MainTown service charge are shown
+     before "Continue to Checkout" hands off to the shared checkout (screen-6). -->
+<div id="event-booking-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap">
+      <i data-lucide="calendar-check" class="w-6 h-6 text-purple-400"></i>
+    </div>
+    <h2 class="modal-title">Book This Venue</h2>
+    <p class="modal-sub" id="eb-property-name">—</p>
+    <p class="modal-sub" id="eb-venue-meta" style="color:#a78bfa;margin-top:-6px;"></p>
+
+    <div class="field">
+      <label class="field-label">Event Date</label>
+      <input class="field-input" id="eb-date" type="date">
+    </div>
+    <div class="field">
+      <label class="field-label">Type of event</label>
+      <select class="field-input" id="eb-type"></select>
+    </div>
+    <div class="field">
+      <label class="field-label">Expected guests</label>
+      <input class="field-input" id="eb-guests" type="number" min="1" step="1" inputmode="numeric" placeholder="e.g. 250">
+    </div>
+    <p class="modal-sub" id="eb-error" style="display:none;color:#f87171;margin:-4px 0 8px;"></p>
+
+    <div class="fee-preview-box">
+      <div class="row"><span>Venue Hire Fee (to venue owner)</span><strong id="eb-hire">₦0</strong></div>
+      <div class="row"><span>MainTown Service Charge (2%)</span><strong id="eb-fee">₦0</strong></div>
+      <div class="row"><span>Total Due Now</span><strong id="eb-total">₦0</strong></div>
+    </div>
+
+    <div class="rent-badge" style="align-items:flex-start; gap:6px; display:flex;">
+      <i data-lucide="info" class="w-3.5 h-3.5" style="margin-top:2px; flex-shrink:0;"></i>
+      <span>The 2% service charge is MainTown's only fee. Catering, decoration and any other extras are agreed directly with the venue owner.</span>
+    </div>
+
+    <button type="button" id="eb-confirm-btn" class="btn-primary" style="margin-top:14px; margin-bottom:12px;">Continue to Checkout</button>
+    <button type="button" id="eb-cancel-btn" class="btn-secondary">Cancel</button>
+  </div>
+</div>
+
 <!-- Shortlet Extension / Terminate Prompt — fires once a tenant's paid
      nights run out. Toggle between paying for another night (stay
      continues, auto-debit resumes for one more night) or terminating the
@@ -8662,6 +8763,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---- Property image fallback system ----
   // Inline SVG data-URIs so a fallback ALWAYS renders even with no network access.
   const PROPERTY_IMG_FALLBACK = {
+    event: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240">' +
+      '<rect width="400" height="240" fill="#1e293b"/>' +
+      '<path d="M96 96 L200 56 L304 96 Z" fill="none" stroke="#a78bfa" stroke-width="4" stroke-linejoin="round"/>' +
+      '<path d="M120 104 V176 M160 104 V176 M200 104 V176 M240 104 V176 M280 104 V176 M104 176 H296" fill="none" stroke="#a78bfa" stroke-width="4" stroke-linecap="round"/>' +
+      '<text x="200" y="216" font-family="Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">Image unavailable</text>' +
+      '</svg>'
+    ),
     rent: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
       '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240">' +
       '<rect width="400" height="240" fill="#1e293b"/>' +
@@ -10560,13 +10669,49 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>`;
     }).join('');
   }
+  // Event center bookings on the signed-in venue owner's listings (landlords only).
+  function getEventBookingsFor(role) {
+    if (role !== 'landlord') return [];
+    const uid = getCurrentUserId();
+    return (eventBookings || []).filter(b => { const l = listings.find(x => String(x.id) === String(b.listingId)); return l && l.ownerId === uid; })
+      .sort((a, b) => String(a.eventDate).localeCompare(String(b.eventDate)));
+  }
+  function eventPhase(b) {
+    const today = lagosToday();
+    if (b.eventDate > today) return { cls: 'pending', label: 'Upcoming' };
+    if (b.eventDate === today) return { cls: 'settled', label: 'Event Today' };
+    return { cls: 'settled', label: 'Completed' };
+  }
+  function eventBookingsHTML(rows) {
+    return rows.map(b => {
+      const ph = eventPhase(b);
+      return `
+      <div class="txn-row">
+        <div class="txn-row-top">
+          <div>
+            <p class="txn-title">${shortletEsc(b.listingTitle)} <span style="font-size:11px; color:#64748b; font-weight:500;">\u00b7 Event center</span></p>
+            <p class="txn-date">${shortletEsc(resolveUserName(b.tenantId) || 'Client')}</p>
+          </div>
+          <span class="txn-status-badge ${ph.cls}">${ph.label}</span>
+        </div>
+        <div class="txn-breakdown">
+          <div class="txn-breakdown-row"><span>Event date</span><span>${shortletEsc(fmtEventDate(b.eventDate))}</span></div>
+          <div class="txn-breakdown-row"><span>Event type</span><span>${shortletEsc(b.eventType || '\u2014')}</span></div>
+          <div class="txn-breakdown-row"><span>Expected guests</span><span>${b.guests || 0}</span></div>
+          <div class="txn-breakdown-row net"><span>Venue hire fee (yours)</span><span>${formatMoney(b.hireFee || 0, 'ngn')}</span></div>
+          <div class="txn-breakdown-row"><span>Payout</span><span>${b.heldPayout > 0 ? 'Held until event day' : 'Released to your wallet'}</span></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
   function openGuestsModal(role) {
     document.getElementById('cd-title').textContent = 'Bookings';
-    document.getElementById('cd-subtitle').textContent = 'Shortlet stays that guests have booked and paid for on your listings';
+    const evRows = getEventBookingsFor(role);
+    document.getElementById('cd-subtitle').textContent = evRows.length ? 'Shortlet stays and event center bookings that clients have paid for on your listings' : 'Shortlet stays that guests have booked and paid for on your listings';
     const rows = getShortletGuests(role);
-    document.getElementById('cd-list').innerHTML = rows.length
-      ? shortletGuestsHTML(rows)
-      : `<p class="role-hint" style="text-align:left;">No bookings yet — they appear here the moment a guest pays for one of your shortlets.</p>`;
+    document.getElementById('cd-list').innerHTML = (rows.length || evRows.length)
+      ? ((rows.length ? shortletGuestsHTML(rows) : '') + eventBookingsHTML(evRows))
+      : `<p class="role-hint" style="text-align:left;">No bookings yet — they appear here the moment a guest pays for one of your shortlets${role === 'landlord' ? ' or event centers' : ''}.</p>`;
     closedDealsModal.classList.add('open');
     if (window.lucide) lucide.createIcons();
   }
@@ -10833,7 +10978,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <input type="checkbox" data-as-pick="${p.id}" ${assistCompareSel.includes(String(p.id)) ? 'checked' : ''}>
         <span style="min-width:0;">
           <span class="as-card-title" style="display:block;">${liEsc(p.title)}</span>
-          <span class="as-card-body" style="display:block;">${p.type === 'shortlet' ? 'Shortlet' : 'Rent'} · ${currentCurrency === 'usd' ? p.usd : p.ngn}</span>
+          <span class="as-card-body" style="display:block;">${p.type === 'event' ? 'Event center' : (p.type === 'shortlet' ? 'Shortlet' : 'Rent')} · ${currentCurrency === 'usd' ? p.usd : p.ngn}</span>
         </span>
       </label>`).join('');
     assistOpen('Compare listings', 'Pick 2 or 3', rows + `<button type="button" class="btn-primary" id="as-compare-go" style="margin-top:4px;" ${assistCompareSel.length < 2 ? 'disabled' : ''}>Compare selected (${assistCompareSel.length})</button>`);
@@ -10848,7 +10993,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <thead><tr><th></th>${list.map(p => `<th>${liEsc(p.title)}</th>`).join('')}</tr></thead>
         <tbody>
           ${row('Price', p => `<strong>${price(p)}</strong>`)}
-          ${row('Type', p => p.type === 'shortlet' ? 'Shortlet (nightly)' : 'Long-term rent')}
+          ${row('Type', p => p.type === 'event' ? 'Event center (per event day)' : (p.type === 'shortlet' ? 'Shortlet (nightly)' : 'Long-term rent'))}
           ${row('Location', p => liEsc(p.location))}
           ${row('Bedrooms', p => liEsc(liBedrooms(p) || '—'))}
           ${row('Listed by', p => liEsc(liListedBy(p)))}
@@ -10933,18 +11078,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (salePool[i] && rents.length < 10) rents.push(salePool[i]);
     }
     const shorts = available.filter(p => p.type === 'shortlet').slice(0, 8);
+    const events = available.filter(p => p.type === 'event').slice(0, 8);
     const favOn = (id) => { try { return cart.some(c => String(c.listingId) === String(id)); } catch (e) { return false; } };
     const card = (p) => {
       const isShortlet = p.type === 'shortlet';
+      const isEventC = p.type === 'event';
       const isSale = p.type === 'land';
       const price = listingPriceFull(p);
       const kind = isSale ? (p.propertyKind === 'house' ? 'For sale \u00b7 House' : 'For sale \u00b7 Land')
-        : (isShortlet ? '' : (p.usage === 'commercial' ? 'Commercial lease' : 'For rent'));
+        : ((isShortlet || isEventC) ? '' : (p.usage === 'commercial' ? 'Commercial lease' : 'For rent'));
       return `
       <div class="dl-card" data-listing-id="${p.id}">
         <div class="dl-img-wrap">
-          <img src="${p.img}" alt="${liEsc(p.title)}" loading="lazy" onerror="handleImgError(this,'${isShortlet ? 'shortlet' : 'rent'}')">
-          ${isShortlet ? '<span class="dl-badge"><i data-lucide="calendar-days" class="w-3 h-3"></i>Shortlet</span>' : '<span class="dl-badge"><i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i>Preliminary Verification</span>'}
+          <img src="${p.img}" alt="${liEsc(p.title)}" loading="lazy" onerror="handleImgError(this,'${isEventC ? 'event' : (isShortlet ? 'shortlet' : 'rent')}')">
+          ${isEventC ? '<span class="dl-badge"><i data-lucide="party-popper" class="w-3 h-3"></i>Event Center</span>' : isShortlet ? '<span class="dl-badge"><i data-lucide="calendar-days" class="w-3 h-3"></i>Shortlet</span>' : '<span class="dl-badge"><i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i>Preliminary Verification</span>'}
           ${kind ? `<span class="dl-kind">${kind}</span>` : ''}
           ${mtlFavBtn(p)}
         </div>
@@ -10967,7 +11114,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     wrap.innerHTML = marketBarHTML() + '<button type="button" class="as-link" data-assist="todo"><i data-lucide="list-checks" class="w-3.5 h-3.5"></i>What do I need to complete?</button>'
                    + section('Properties in ' + currentMarket().name, 'View all properties', rents)
-                   + section('Shortlets, stay by the night', 'View all shortlets', shorts, 'shortlet');
+                   + section('Shortlets, stay by the night', 'View all shortlets', shorts, 'shortlet')
+                   + section('Event centers, book a venue', 'View all event centers', events, 'event');
     if (window.lucide) lucide.createIcons();
     startDashListingSlides();
   }
@@ -11007,7 +11155,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (e.target.closest('.dl-viewall')) {
       currentListingType = 'rent';
       // Shortlets have their own row; the Properties row opens the All tab.
-      s5AllMode = !e.target.closest('.dl-section[data-kind="shortlet"]');
+      const evSection = !!e.target.closest('.dl-section[data-kind="event"]');
+      s5AllMode = !(e.target.closest('.dl-section[data-kind="shortlet"]') || evSection);
+      if (evSection) { clearS5Filters(true); s5Filters.rentType = 'event'; }
       navigateTo('screen-5');
       setTimeout(() => { s5SyncTabs(); updateS5RoleHeaderForListingType(); rerenderS5Feed(); }, 0);
       return;
@@ -11862,6 +12012,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   //   House for sale   -> Property Sale Agreement (house type)
   function listingAgreementProfile(l) {
     l = l || {};
+    if (l.type === 'event') return { kind: 'event', title: 'Event Center Booking Confirmation', fileBase: 'Event_Booking_Confirmation', detail: l.venueType || '' };
     if (l.type === 'shortlet') return { kind: 'shortlet', title: 'Short-Let Booking Confirmation', fileBase: 'Booking_Confirmation', detail: '' };
     if (l.type === 'land') {
       const pk = l.propertyKind || (/\bland\b/i.test(l.title || '') ? 'land' : 'house');
@@ -12442,6 +12593,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
         if (num(l.legalFeePct)) fees.push('Legal Fee: ' + num(l.legalFeePct) + '% (' + naira(num(l.totalPrice) * num(l.legalFeePct) / 100) + ')');
         if (num(l.sqm)) fees.push('Plot Size: ' + num(l.sqm) + 'sqm');
         if (l.landUse) fees.push('Land Use: ' + l.landUse);
+      } else if (l.type === 'event') {
+        category = 'event-center'; rent = naira(l.eventPrice) + '/event day'; beds = 0;
+        if (l.venueType) fees.push('Venue Type: ' + l.venueType);
+        if (num(l.capacity) > 0) fees.push('Capacity: ' + num(l.capacity) + ' guests');
+        if (l.parkingSpaces != null && l.parkingSpaces !== '') fees.push('Parking Spaces: ' + num(l.parkingSpaces));
+        if (l.powerSupply) fees.push('Power Supply: ' + l.powerSupply);
+        if (Array.isArray(l.eventBlockedDates) && l.eventBlockedDates.length) fees.push('Blocked Dates: ' + l.eventBlockedDates.join(', '));
+        fees.push('MainTown Service Charge: 2% of hire fee (paid by the booker)');
+        { const about = String(l.description || '').replace(/\s+/g, ' ').trim().slice(0, 600); if (about) fees.push('About This Venue: ' + about); }
       } else if (l.type === 'shortlet') {
         category = 'short-let'; rent = naira(l.nightlyRate) + '/night';
         if (num(l.minStay) > 0) fees.push('Minimum Stay: ' + num(l.minStay) + ' night' + (num(l.minStay) > 1 ? 's' : ''));
@@ -12488,7 +12648,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const imgs = (Array.isArray(row.images) ? row.images : []).map(absUrl).filter(Boolean);
       const video = absUrl(row.video);
       const st = row.status === 'sold' ? 'SOLD' : (row.status === 'rented' || row.status === 'booked') ? 'RENTED' : 'live';
-      const category = row.category === 'land' ? 'land' : row.category === 'short-let' ? 'shortlet' : 'rent';
+      const category = row.category === 'land' ? 'land' : row.category === 'short-let' ? 'shortlet' : row.category === 'event-center' ? 'event' : 'rent';
       // "Listed by" as chosen in the admin: MainTown Realty (default) / owner / company.
       const lbType = (row.listed_by_type === 'owner' || row.listed_by_type === 'company') && row.listed_by_name ? row.listed_by_type : 'maintown';
       const hostInfo = lbType === 'maintown'
@@ -12528,6 +12688,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
           legalFeePct: amt(fm['Legal Fee']) ? (String(fm['Legal Fee']).indexOf('10%') === 0 ? 10 : 5) : 5
         }, house ? { houseType: pt, bedrooms: num(row.beds), bathrooms: amt(fm['Bathrooms']), toilets: amt(fm['Toilets']), parkingSpaces: amt(fm['Parking Spaces']) } : {},
           amt(fm['Plot Size']) ? { sqm: amt(fm['Plot Size']) } : {});
+      }
+      if (category === 'event') {
+        const n = amt(row.rent);
+        const blockedEv = String(fm['Blocked Dates'] || '').split(',').map(x => x.trim()).filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x));
+        return Object.assign(base, {
+          type: 'event', eventPrice: n, ngn: naira(n) + ' / event day', usd: '$' + Math.round(n / 1600) + ' / event day',
+          venueType: fm['Venue Type'] || 'Event Center', capacity: amt(fm['Capacity']) || 0,
+          parkingSpaces: fm['Parking Spaces'] !== undefined ? amt(fm['Parking Spaces']) : undefined,
+          powerSupply: fm['Power Supply'] || '', eventBlockedDates: blockedEv, description: fm['About This Venue'] || '',
+          cautionFee: 0, serviceChargeFee: 0, serviceChargeMode: 'self'
+        });
       }
       if (category === 'shortlet') {
         const n = amt(row.rent);
@@ -12778,9 +12949,240 @@ This voucher is auto-generated and serves as proof of settlement.`;
     window.MTRInspReport && window.MTRInspReport.poke();
   }
 
+  // ==================================================================
+  // ---- Event Centers (venue hire) ----
+  // A one-off booking of a venue for a single event date. Only Landlords /
+  // venue owners can list an event center (canListEventCenter); Agents and
+  // Enterprise sales staff cannot. The client pays the venue's hire fee plus
+  // a flat 2% MainTown service charge on top (no agency commission, no legal
+  // fee, no AI fee). The venue owner's share (100% of the hire fee) is held
+  // by the payment provider, not MainTown, until the event day begins (same
+  // non-custodial model as short-let), and MainTown's 2% is earned at once.
+  // ==================================================================
+  const EVENT_SERVICE_CHARGE_RATE = 0.02;
+  const EVENT_VENUE_TYPES = ['Banquet / Event Hall', 'Conference Hall', 'Outdoor Garden / Lawn', 'Rooftop / Terrace', 'Hotel Ballroom', 'Multi-purpose Hall'];
+  const EVENT_TYPES = ['Wedding reception', 'Birthday / Anniversary', 'Corporate event', 'Conference / Seminar', 'Religious programme', 'Naming / Burial / Memorial', 'Other'];
+  const EVENT_AMENITIES = ['Air conditioning', 'Stage', 'Sound system', 'Projector / screen', 'Backup generator', 'Parking', 'Catering kitchen', 'Bridal / changing room', 'CCTV & security', 'Restrooms'];
+  const EVENT_CLAUSES = [
+    { title: 'Clause 1 — Venue Use, Capacity & House Rules', body: 'The booking covers use of the venue on the event date only, for the event type and expected guest count you declared. You agree to stay within the venue’s stated capacity, noise limits, curfew and any house rules set by the Venue Owner, and you are responsible for your guests, vendors and any damage they cause.' },
+    { title: 'Clause 2 — Automated Non-Custodial Split Processing', body: 'Your payment is split by the payment provider at the point of charge into: (1) the Venue Owner (the full venue hire fee) and (2) MainTown Realty (the flat 2% Event Center Service Charge). The Venue Owner’s share is held by the payment provider, not by MainTown, until the event day begins and is then released to the Venue Owner. MainTown operates solely as a non-custodial technology facilitator and does not hold or escrow transaction funds.' },
+    { title: 'Clause 3 — Service Charge & Other Costs', body: 'MainTown’s only fee on an Event Center booking is a flat 2% service charge, calculated on the venue hire fee and paid by you on top of it. No agency commission, legal fee or other MainTown fee applies. Any other costs (catering, decoration, extra hours, security, caution deposit) are agreed directly with the Venue Owner and are not collected by MainTown.' },
+    { title: 'Clause 4 — Instant Booking Confirmation', body: 'Your booking is confirmed as soon as payment is authorised, and the event date is blocked for other clients. No signature or Venue Owner countersignature is required; your agreement to these terms at checkout is binding. The Venue Owner is notified immediately.' },
+    { title: 'Clause 5 — Cancellation, Rescheduling & Refunds (draft wording, pending legal review)', body: 'If the Venue Owner cancels or cannot make the venue available on the booked date, you receive a full refund, including the service charge. If you cancel or reschedule, the refund (if any) follows the cancellation terms agreed with the Venue Owner, and the MainTown service charge is not refundable once the booking is confirmed. Refunds before the event day are paid from the amount the payment provider is holding, so the Venue Owner is never asked to repay; MainTown never pays a refund from its own funds.' }
+  ];
+  let eventBookings = [];
+  try {
+    const storedEvB = JSON.parse(localStorage.getItem('mtr_event_bookings'));
+    eventBookings = Array.isArray(storedEvB) ? storedEvB : [];
+  } catch (e) { eventBookings = []; }
+  function saveEventBookings() {
+    try { localStorage.setItem('mtr_event_bookings', JSON.stringify(eventBookings)); } catch (e) {}
+  }
+  // Only Landlords / venue owners may list an event center. (MainTown staff list them from the admin panel.)
+  function canListEventCenter(role) { return role === 'landlord'; }
+  function eventStartInstant(b) { return new Date(String(b.eventDate) + 'T00:00:00+01:00').getTime(); }
+  function eventHoldsDate(b) { return !!b && b.status === 'CONFIRMED'; }
+  function computeEventBreakdown(listing, dateIso, eventType, guests) {
+    const hireFee = Math.round(Number(listing && listing.eventPrice) || 0);
+    const serviceCharge = Math.round(hireFee * EVENT_SERVICE_CHARGE_RATE);
+    return { eventDate: dateIso || null, eventType: eventType || '', guests: Number(guests) || 0, hireFee, serviceCharge, totalPayable: hireFee + serviceCharge };
+  }
+  // Empty string when the date can be booked, otherwise the reason it cannot.
+  function eventUnavailableReason(l, dateIso, guests) {
+    if (!l) return 'This venue is no longer available.';
+    if (!dateIso) return 'Pick your event date.';
+    if (dateIso <= lagosToday()) return 'Pick a date from tomorrow onwards.';
+    if ((l.eventBlockedDates || []).includes(dateIso)) return 'The venue is not available on this date. Choose another date.';
+    if ((eventBookings || []).some(b => String(b.listingId) === String(l.id) && eventHoldsDate(b) && b.eventDate === dateIso)) return 'This date is already booked. Choose another date.';
+    const cap = Number(l.capacity) || 0;
+    if (guests !== undefined && cap && Number(guests) > cap) return `This venue holds up to ${cap} guests.`;
+    return '';
+  }
+  let ebListing = null;
+  let checkoutEvent = null; // { eventDate, eventType, guests, hireFee, serviceCharge, totalPayable }
+  function ebRecalc() {
+    const l = ebListing; if (!l) return;
+    const d = document.getElementById('eb-date').value;
+    const g = document.getElementById('eb-guests').value;
+    const t = document.getElementById('eb-type').value;
+    const b = computeEventBreakdown(l, d, t, g);
+    document.getElementById('eb-hire').textContent = formatMoney(b.hireFee, 'ngn');
+    document.getElementById('eb-fee').textContent = formatMoney(b.serviceCharge, 'ngn');
+    document.getElementById('eb-total').textContent = formatMoney(b.totalPayable, 'ngn');
+    const err = document.getElementById('eb-error');
+    const r = (d || g) ? eventUnavailableReason(l, d, g === '' ? undefined : g) : '';
+    err.textContent = r; err.style.display = r ? 'block' : 'none';
+  }
+  function openEventBookingModal(listing) {
+    if (blockIfPrivilegesPaused()) return;
+    ebListing = listing;
+    document.getElementById('eb-property-name').textContent = `${listing.title} — ${listing.location}`;
+    const bits = [listing.venueType, listing.capacity ? `up to ${listing.capacity} guests` : ''].filter(Boolean);
+    document.getElementById('eb-venue-meta').textContent = bits.join(' · ');
+    const typeSel = document.getElementById('eb-type');
+    if (!typeSel.options.length) typeSel.innerHTML = EVENT_TYPES.map(t => `<option>${t}</option>`).join('');
+    const tmr = new Date(lagosToday() + 'T00:00:00Z'); tmr.setUTCDate(tmr.getUTCDate() + 1);
+    const dateEl = document.getElementById('eb-date');
+    dateEl.min = tmr.toISOString().slice(0, 10);
+    dateEl.value = '';
+    document.getElementById('eb-guests').value = '';
+    typeSel.selectedIndex = 0;
+    ebRecalc();
+    document.getElementById('event-booking-modal').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  }
+  ['eb-date', 'eb-guests', 'eb-type'].forEach(id => {
+    document.getElementById(id).addEventListener('input', ebRecalc);
+    document.getElementById(id).addEventListener('change', ebRecalc);
+  });
+  document.getElementById('eb-cancel-btn').addEventListener('click', () => document.getElementById('event-booking-modal').classList.remove('open'));
+  document.getElementById('eb-confirm-btn').addEventListener('click', () => {
+    const l = ebListing; if (!l) return;
+    const d = document.getElementById('eb-date').value;
+    const g = Math.round(Number(document.getElementById('eb-guests').value) || 0);
+    const t = document.getElementById('eb-type').value;
+    if (!d) { showToast('Please pick your event date'); return; }
+    if (g < 1) { showToast('Please enter the number of expected guests'); return; }
+    { const r = eventUnavailableReason(l, d, g); if (r) { showToast(r); return; } }
+    checkoutEvent = computeEventBreakdown(l, d, t, g);
+    document.getElementById('event-booking-modal').classList.remove('open');
+    openCheckout(l);
+    navigateTo('screen-6');
+  });
+  function fmtEventDate(iso) {
+    try { return new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }); } catch (e) { return iso; }
+  }
+
+  // Called from approveCheckoutPayment() once the PIN is verified. Charges the hire fee + 2% service charge
+  // in one debit, reports MainTown's 2% to Finance, holds the venue's share with the payment provider until
+  // the event day, records the booking and sends the agreement/confirmation to the chat.
+  function finalizeEventCheckout() {
+    if (blockIfPrivilegesPaused()) return false;
+    const listing = checkoutListing, ev = checkoutEvent;
+    if (!listing || !ev) return false;
+    const uid = currentDemoUserId();
+    { const r = eventUnavailableReason(listing, ev.eventDate, ev.guests); if (r) { showToast(r); return false; } }
+    if (checkoutSource === 'wallet') {
+      if (!debitWallet(uid, ev.totalPayable)) { showToast('Insufficient wallet balance — payment could not be authorized'); return false; }
+    }
+    const when = fmtEventDate(ev.eventDate);
+    recordTransaction({
+      userId: uid, direction: 'debit', category: 'EVENT_BOOKING',
+      title: `Event Center — ${listing.title} (${when})`,
+      amount: ev.totalPayable, status: 'SUCCESSFUL',
+      meta: { sender: 'You', recipient: listing.title, propertyName: listing.title, feeType: checkoutSource === 'wallet' ? 'Event Center Booking (hire fee + 2% service charge)' : 'Event Center Booking (hire fee + 2% service charge) — Card' }
+    });
+    const booking = {
+      id: Date.now(), listingId: listing.id, listingTitle: listing.title, location: listing.location,
+      tenantId: uid, eventDate: ev.eventDate, eventType: ev.eventType, guests: ev.guests,
+      hireFee: ev.hireFee, serviceCharge: ev.serviceCharge, total: ev.totalPayable,
+      status: 'CONFIRMED', paymentMethod: checkoutSource === 'wallet' ? 'WALLET' : 'DEBIT_CARD', bookedAt: Date.now(),
+      heldPayout: 0, heldTxnIds: []
+    };
+    try { if (window.__mtFinanceFeed) window.__mtFinanceFeed.revenue('event_fee', ev.serviceCharge, listing); } catch (e) {}
+    // Venue owner's share (the full hire fee): held by the payment provider until the event day.
+    if (listing.ownerId && ev.hireFee > 0) {
+      const title = `Event Center payout — ${listing.title} (${when})`;
+      if (Date.now() < eventStartInstant(booking)) {
+        const t = recordTransaction({ userId: listing.ownerId, direction: 'credit', category: 'EVENT_PAYOUT', title: title + ' — held until event day', amount: ev.hireFee, status: 'PENDING_ESCROW', meta: { propertyName: listing.title, held: true, bookingId: booking.id } });
+        booking.heldPayout = ev.hireFee;
+        if (t) booking.heldTxnIds.push(t.id);
+      } else {
+        creditWallet(listing.ownerId, ev.hireFee);
+        recordTransaction({ userId: listing.ownerId, direction: 'credit', category: 'EVENT_PAYOUT', title, amount: ev.hireFee, status: 'SUCCESSFUL', meta: { propertyName: listing.title } });
+      }
+    }
+    eventBookings.unshift(booking);
+    saveEventBookings();
+    try { dispatchAgreementToChat(listing); } catch (e) {}
+    showToast(`Venue booked for ${when}`);
+    pushPlatformNotification('tenant', 'booking', 'Event Center Booked', `Your booking of "${listing.title}" for ${when} is confirmed.`, null, 'event', null, uid);
+    if (listing.ownerId) pushPlatformNotification('landlord', 'booking', 'New Event Booking', `"${listing.title}" has been booked for ${when} (${ev.eventType || 'event'}, ${ev.guests} guests). ${formatMoney(ev.hireFee, 'ngn')} is held by the payment provider and released on the event day.`, null, 'event', null, listing.ownerId);
+    window.dispatchEvent(new Event('maintown_state_updated'));
+    return true;
+  }
+  // The event day has begun: the payment provider releases the venue's held share to the Venue Owner.
+  function releaseDueEventPayouts() {
+    let changed = false;
+    (Array.isArray(eventBookings) ? eventBookings : []).forEach(b => {
+      if (!(b.heldPayout > 0) || b.status !== 'CONFIRMED') return;
+      if (Date.now() < eventStartInstant(b)) return;
+      const l = listings.find(x => String(x.id) === String(b.listingId));
+      const amount = b.heldPayout;
+      b.heldPayout = 0;
+      setHeldTxnStatus(b, 'SUCCESSFUL');
+      b.heldTxnIds = [];
+      if (l && l.ownerId) {
+        creditWallet(l.ownerId, amount);
+        pushPlatformNotification('landlord', 'payment', 'Event Payout Released', `The event at "${b.listingTitle}" is today. ${formatMoney(amount, 'ngn')} has been released to your wallet.`, null, 'event', null, l.ownerId);
+      }
+      changed = true;
+    });
+    if (changed) { saveEventBookings(); window.dispatchEvent(new Event('maintown_state_updated')); }
+  }
+  setTimeout(releaseDueEventPayouts, 1500);
+  setInterval(releaseDueEventPayouts, 30000);
+
+  // ---- Landlord form: Event Center fields (venue type, capacity, amenities, blocked dates) ----
+  const evHost = { tv: { amen: new Set(), blocked: [] } };
+  function evHostInit() {
+    const vt = document.getElementById('tv-event-venue-type');
+    if (vt && !vt.options.length) vt.innerHTML = EVENT_VENUE_TYPES.map(t => `<option>${t}</option>`).join('');
+    const am = document.getElementById('tv-event-amen');
+    if (am && !am.children.length) am.innerHTML = EVENT_AMENITIES.map(a => `<button type="button" class="sl-offer-chip" data-ev-amen="${a}">${a}</button>`).join('');
+  }
+  function evHostRenderBlocked() {
+    const box = document.getElementById('tv-event-block-chips'); if (!box) return;
+    box.innerHTML = evHost.tv.blocked.map(d => `<span class="sl-offer-chip on" style="cursor:pointer;" data-ev-unblock="${d}">${d} &times;</span>`).join('');
+  }
+  function evHostReset() {
+    evHost.tv.amen.clear(); evHost.tv.blocked = [];
+    evHostInit();
+    document.querySelectorAll('#tv-event-amen .sl-offer-chip').forEach(b => b.classList.remove('on'));
+    ['tv-event-capacity', 'tv-event-parking', 'tv-event-about', 'tv-event-block-input'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    const vt = document.getElementById('tv-event-venue-type'); if (vt) vt.selectedIndex = 0;
+    const pw = document.getElementById('tv-event-power'); if (pw) pw.value = 'Grid + generator';
+    evHostRenderBlocked();
+  }
+  evHostInit();
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('[data-ev-amen]');
+    if (a) { const k = a.dataset.evAmen, st = evHost.tv.amen; if (st.has(k)) st.delete(k); else st.add(k); a.classList.toggle('on', st.has(k)); return; }
+    if (e.target.closest('#tv-event-block-add')) {
+      const inp = document.getElementById('tv-event-block-input'), v = inp.value;
+      if (v && !evHost.tv.blocked.includes(v)) { evHost.tv.blocked.push(v); evHost.tv.blocked.sort(); evHostRenderBlocked(); }
+      inp.value = ''; return;
+    }
+    const u = e.target.closest('[data-ev-unblock]');
+    if (u) { evHost.tv.blocked = evHost.tv.blocked.filter(d => d !== u.dataset.evUnblock); evHostRenderBlocked(); }
+  });
+  // Error message when the Event Center fields on the Landlord form are incomplete, else ''.
+  function eventFormError() {
+    const cap = Math.round(Number((document.getElementById('tv-event-capacity') || {}).value) || 0);
+    if (cap < 1) return 'Enter the maximum number of guests the venue can hold';
+    const about = ((document.getElementById('tv-event-about') || {}).value || '').trim();
+    if (about.length < 20) return 'Add an "About this venue" description (at least 20 characters)';
+    return '';
+  }
+  function eventListingFields() {
+    const g = (id) => (document.getElementById(id) || {}).value;
+    const parking = g('tv-event-parking');
+    return {
+      venueType: g('tv-event-venue-type') || EVENT_VENUE_TYPES[0],
+      capacity: Math.round(Number(g('tv-event-capacity')) || 0),
+      parkingSpaces: parking === '' || parking == null ? undefined : Math.max(0, Math.round(Number(parking) || 0)),
+      powerSupply: g('tv-event-power') || '',
+      description: (g('tv-event-about') || '').trim(),
+      amenities: Array.from(evHost.tv.amen),
+      eventBlockedDates: evHost.tv.blocked.slice()
+    };
+  }
+
   // Media Uploads visibility rule: draft/private listings (status: 'draft') are stored
   // but never surfaced on the tenant-facing feeds below until explicitly published.
-  function rentListings() { return listings.filter(l => (l.type === 'rent' || l.type === 'shortlet') && !isListingHiddenFromFeed(l)); }
+  function rentListings() { return listings.filter(l => (l.type === 'rent' || l.type === 'shortlet' || l.type === 'event') && !isListingHiddenFromFeed(l)); }
+  // First rentable listing that is a plain rental / shortlet (never an event center): used as a safe fallback.
+  function firstRentListing() { return rentListings().find(l => l.type !== 'event') || null; }
   function landListingsList() { return listings.filter(l => l.type === 'land' && !isListingHiddenFromFeed(l)); }
 
   // ==================================================================
@@ -12985,7 +13387,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     f.areas.forEach(id => { const a = list.find(x => x.id === id); if (a) chips.push(['area:' + id, a.n]); });
     if (f.areaType) chips.push(['atype', f.areaType === 'urban' ? 'Urban areas' : 'Local communities']);
     if (f.minPrice || f.maxPrice) chips.push(['price', f.minPrice && f.maxPrice ? fltFmtMoney(f.minPrice) + ' – ' + fltFmtMoney(f.maxPrice) : (f.minPrice ? 'From ' + fltFmtMoney(f.minPrice) : 'Up to ' + fltFmtMoney(f.maxPrice))]);
-    if (f.rentType !== 'all') chips.push(['rtype', f.rentType === 'shortlet' ? 'Shortlet' : 'Rent']);
+    if (f.rentType !== 'all') chips.push(['rtype', f.rentType === 'shortlet' ? 'Shortlet' : (f.rentType === 'event' ? 'Event Center' : 'Rent')]);
     if (f.usage && f.usage !== 'all') chips.push(['usage', f.usage === 'commercial' ? 'Commercial' : 'Residential']);
     if (f.propType && f.propType !== 'all') chips.push(['ptype', f.propType === 'land' ? 'Land only' : (f.propType === 'house' ? 'Any house' : f.propType)]);
     if (f.hasVideo) chips.push(['video', 'Walkthrough video']);
@@ -13088,7 +13490,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           </div>
         </div>
         ${(!isRent && !isAll) ? `<div class="flt-sec"><p class="flt-h">Property type</p><div class="flt-wrap">${[['all', 'All'], ['land', 'Land only'], ['house', 'Any house'], ['Bungalow', 'Bungalow'], ['Duplex', 'Duplex'], ['Detached Duplex', 'Detached Duplex'], ['Semi-Detached Duplex', 'Semi-Detached'], ['Terrace', 'Terrace'], ['Block of Flats', 'Block of Flats'], ['Mansion', 'Mansion'], ['Commercial Building', 'Commercial']].map(x => opt('data-flt-ptype', x[0], x[1], (d.propType || 'all') === x[0])).join('')}</div></div>` : ''}
-        ${isRent ? `<div class="flt-sec"><p class="flt-h">Residential or Commercial</p><div class="flt-wrap">${opt('data-flt-usage', 'all', 'All', (d.usage || 'all') === 'all')}${opt('data-flt-usage', 'residential', 'Residential', d.usage === 'residential')}${opt('data-flt-usage', 'commercial', 'Commercial', d.usage === 'commercial')}</div></div><div class="flt-sec"><p class="flt-h">Property type</p><div class="flt-wrap">${opt('data-flt-rtype', 'all', 'All', d.rentType === 'all')}${opt('data-flt-rtype', 'rent', 'Rent', d.rentType === 'rent')}${opt('data-flt-rtype', 'shortlet', 'Shortlet', d.rentType === 'shortlet')}</div></div>` : ''}
+        ${isRent ? `<div class="flt-sec"><p class="flt-h">Residential or Commercial</p><div class="flt-wrap">${opt('data-flt-usage', 'all', 'All', (d.usage || 'all') === 'all')}${opt('data-flt-usage', 'residential', 'Residential', d.usage === 'residential')}${opt('data-flt-usage', 'commercial', 'Commercial', d.usage === 'commercial')}</div></div><div class="flt-sec"><p class="flt-h">Property type</p><div class="flt-wrap">${opt('data-flt-rtype', 'all', 'All', d.rentType === 'all')}${opt('data-flt-rtype', 'rent', 'Rent', d.rentType === 'rent')}${opt('data-flt-rtype', 'shortlet', 'Shortlet', d.rentType === 'shortlet')}${opt('data-flt-rtype', 'event', 'Event Center', d.rentType === 'event')}</div></div>` : ''}
         <div class="flt-sec"><p class="flt-h">Extras</p><div class="flt-wrap">${opt('data-flt-video', '1', 'Has walkthrough video', d.hasVideo)}</div></div>
         <div class="flt-sec"><p class="flt-h">Sort by</p><div class="flt-wrap">${FLT_SORTS.map(x => opt('data-flt-sort', x[0], x[1], d.sort === x[0])).join('')}</div></div>
       </div>
@@ -13677,6 +14079,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
   function s5RentCardHtml(p, currency) {
       const isShortlet = p.type === 'shortlet';
+      const isEvent = p.type === 'event';
       // BUGFIX: this used to hard-exclude shortlets from ever being treated
       // as unavailable (`!isShortlet && ...`), so a shortlet that had
       // already been paid for and flipped to RENTED still rendered its
@@ -13687,22 +14090,26 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return `
       <div class="s5-card${unavailable ? ' is-unavailable' : ''}" data-listing-id="${p.id}">
         <div class="s5-card-img-wrap">
-          <img src="${p.img}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'${isShortlet ? 'shortlet' : 'rent'}')">
+          <img src="${p.img}" alt="${p.title}" loading="lazy" onerror="handleImgError(this,'${isEvent ? 'event' : (isShortlet ? 'shortlet' : 'rent')}')">
           <span class="s5-verified-badge"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Preliminary Verification</span>
           ${unavailable ? '' : mtlFavBtn(p)}
           ${isShortlet ? `<span class="s5-live-media-badge"><i data-lucide="calendar-days" class="w-3 h-3"></i>Shortlet</span>` : ''}
+          ${isEvent ? `<span class="s5-live-media-badge"><i data-lucide="party-popper" class="w-3 h-3"></i>Event Center</span>` : ''}
           ${unavailable ? `<div class="s5-status-banner-overlay"><span class="s5-status-banner-tag rented">RENTED</span></div>` : ''}
         </div>
         <div class="s5-card-body">
           <div class="s5-card-titlerow"><p class="s5-card-title">${p.title}</p><button type="button" class="s5-info-btn" data-listing-id="${p.id}" aria-label="View listing details"><i data-lucide="info" class="w-3.5 h-3.5"></i>Details</button></div>
           <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
-          <p class="s5-card-price">${currency === 'usd' ? p.usd : p.ngn} <span>${isShortlet ? 'shortlet' : (p.usage === 'commercial' ? String(p.commercialType || 'commercial').toLowerCase() : 'rent')}</span></p>
+          <p class="s5-card-price">${currency === 'usd' ? p.usd : p.ngn} <span>${isEvent ? 'venue hire' : (isShortlet ? 'shortlet' : (p.usage === 'commercial' ? String(p.commercialType || 'commercial').toLowerCase() : 'rent'))}</span></p>
           ${p._deal ? dxMetaHtml(p) : ''}
           ${isShortlet ? slCardRatingHTML(p) : ''}
+          ${isEvent ? `<p class="s5-card-location" style="margin-top:2px;"><i data-lucide="users" class="w-3.5 h-3.5"></i>${[p.venueType, p.capacity ? 'up to ' + p.capacity + ' guests' : ''].filter(Boolean).map(x => liEsc(x)).join(' · ')}</p>` : ''}
           <div class="s5-card-actions">
             <button type="button" class="s5-action-btn wt-btn" data-title="${p.title}"><i data-lucide="video" class="w-4 h-4"></i>Virtual Walkthrough</button>
           </div>
-          ${isShortlet
+          ${isEvent
+            ? `<button type="button" class="s5-action-btn primary event-book-btn" data-listing-id="${p.id}" style="width:100%; margin-top:8px;"><i data-lucide="calendar-check" class="w-4 h-4"></i>${listingCta(p).label}</button>`
+            : isShortlet
             ? `<button type="button" class="s5-action-btn primary shortlet-book-btn${unavailable ? ' status-disabled' : ''}" data-listing-id="${p.id}" style="width:100%; margin-top:8px;" ${unavailable ? 'disabled' : ''}><i data-lucide="calendar-days" class="w-4 h-4"></i>${listingCta(p).label}</button>
           ${unavailable ? `<p class="s5-unavailable-notice rented"><i data-lucide="info" class="w-3.5 h-3.5" style="flex-shrink:0; margin-top:1px;"></i>This property is no longer available as it has been successfully RENTED.</p>` : ''}`
             : `
@@ -13784,6 +14191,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const landBtn = e.target.closest('.land-pay-btn');
     const paymentOptionsBtn = e.target.closest('.payment-options-btn');
     const shortletBtn = e.target.closest('.shortlet-book-btn');
+    const eventBtn = e.target.closest('.event-book-btn');
     const videoBtn = e.target.closest('.s5-video-preview-btn');
     const slideNavBtn = e.target.closest('.s5-slide-nav');
     const infoBtn = e.target.closest('.s5-info-btn');
@@ -13816,6 +14224,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // routing to inspection booking first if this listing has no Satisfied
       // inspection on file yet, or straight to checkout once it does.
       if (listing && !isListingUnavailable(listing)) requireScreening(() => openLandPaymentModal(listing));
+    } else if (eventBtn) {
+      if (eventBtn.disabled) return;
+      const listing = rentListings().find(l => String(l.id) === eventBtn.dataset.listingId);
+      if (!listing) return;
+      // Landlords / Agents never go through the client checkout: show the payout status instead.
+      if ((currentUserRole || 'tenant') !== 'tenant') { openEscrowStatusModal(listing); return; }
+      openEventBookingModal(listing);
     } else if (shortletBtn) {
       if (shortletBtn.disabled) return;
       const listing = rentListings().find(l => String(l.id) === shortletBtn.dataset.listingId);
@@ -13877,6 +14292,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function listingCta(p) {
     const isLand = p.type === 'land', isShortlet = p.type === 'shortlet';
     const isCommercial = !isLand && !isShortlet && p.usage === 'commercial';
+    if (p.type === 'event') return { label: 'Book Venue', icon: 'calendar-check' };
     if (isLand) return { label: 'Buy Now', icon: 'shopping-bag' };
     if (isShortlet) return { label: 'Reserve Stay', icon: 'calendar-days' };
     if (isCommercial) return { label: 'Lease Now', icon: 'building-2' };
@@ -13916,7 +14332,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function reelSlideHtml(p) {
     const isLand = p.type === 'land', isShortlet = p.type === 'shortlet';
     const price = listingPriceFull(p);
-    const unit = isLand ? 'total price' : (isShortlet ? 'shortlet' : (p.usage === 'commercial' ? String(p.commercialType || 'commercial').toLowerCase() : 'rent'));
+    const unit = isLand ? 'total price' : (p.type === 'event' ? 'venue hire' : (isShortlet ? 'shortlet' : (p.usage === 'commercial' ? String(p.commercialType || 'commercial').toLowerCase() : 'rent')));
     const isCommercial = !isLand && !isShortlet && p.usage === 'commercial';
     const ctaLabel = listingCta(p).label;
     const ctaIcon = listingCta(p).icon;
@@ -13932,7 +14348,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       offerBtn = `<button type="button" class="reel-cta secondary" data-reel-act="details"><i data-lucide="images"></i>${galleryLabel}</button>`;
     }
     // Short-let stays don't use inspection scheduling anywhere else in the app, so no Set Inspection here either.
-    const inspectBtn = isShortlet ? '' : `
+    const inspectBtn = (isShortlet || p.type === 'event') ? '' : `
         <div class="reel-act"><button type="button" class="reel-act-btn" data-reel-act="inspect" aria-label="Set Inspection"><i data-lucide="calendar-check"></i></button><span>Set inspection</span></div>`;
     return `
     <section class="reel-slide" data-listing-id="${liEsc(p.id)}" style="background-image:url('${liEsc(p.img)}')" aria-label="${liEsc(p.title)}">
@@ -13992,7 +14408,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     let items = [];
     try { items = reelListings(); } catch (e) { items = []; }
     if (!items.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
-    const tagOf = (p) => p.type === 'land' ? 'Buy' : (p.type === 'shortlet' ? 'Stay' : (p.usage === 'commercial' ? 'Lease' : 'Rent'));
+    const tagOf = (p) => p.type === 'land' ? 'Buy' : (p.type === 'event' ? 'Event' : (p.type === 'shortlet' ? 'Stay' : (p.usage === 'commercial' ? 'Lease' : 'Rent')));
     const thumbs = items.slice(0, 10).map(p => {
       const price = listingPriceFull(p);
       return `<button type="button" class="reel-thumb" data-strip-id="${liEsc(p.id)}" style="background-image:url('${liEsc(p.img)}')" aria-label="Watch walkthrough: ${liEsc(p.title)}">
@@ -14089,7 +14505,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       case 'inspect': requireScreening(() => openInspectionModal(p)); break;
       case 'offer': mktOpenOffer(p.id); break;
       case 'offer-view': navigateTo('screen-offers'); break;
-      case 'cta': liProxyClick(p.id, p.type === 'land' ? '.land-pay-btn' : (p.type === 'shortlet' ? '.shortlet-book-btn' : '.payment-options-btn')); break;
+      case 'cta': liProxyClick(p.id, p.type === 'land' ? '.land-pay-btn' : (p.type === 'event' ? '.event-book-btn' : (p.type === 'shortlet' ? '.shortlet-book-btn' : '.payment-options-btn'))); break;
     }
   });
 
@@ -14141,6 +14557,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
       bits.push(`${p.title}.`);
       bits.push(p.titleTypeLabel ? `The title is documented as ${p.titleTypeLabel}${p.requiresConsent ? ", and a Governor's Consent is required before transfer" : ''}.` : 'Title documents are screened by MainTown before a listing reaches you. This is a preliminary check only, so complete your own legal due diligence and Land Registry search before you sign.');
       bits.push(p.hasVideo ? 'A site walkthrough video is available so you can see the boundary and access roads before you travel.' : 'Book an inspection to see the plot in person before you commit.');
+    } else if (p.type === 'event') {
+      bits.push(`${p.title}, available for hire at ${p.ngn}${p.capacity ? ` and holds up to ${p.capacity} guests` : ''}.`);
+      bits.push('Pick your event date, pay once, and the date is blocked for you. MainTown adds a flat 2% service charge, with no agency or legal fee.');
     } else if (p.type === 'shortlet') {
       bits.push(`${p.title}, available as a short stay at ${p.ngn}.`);
       bits.push('Night one is paid when you book and the remaining nights are debited daily, so you never pay the full stay up front.');
@@ -14246,10 +14665,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     liPreviewStatus = preview ? (opts.statusLabel || '') : '';
     const isLand = p.type === 'land';
     const isShortlet = p.type === 'shortlet';
+    const isEvent = p.type === 'event';
     const unavailable = isListingUnavailable(p);
     const photos = (p.photos && p.photos.length) ? p.photos : [p.img];
 
-    liHeroType = isLand ? 'land' : (isShortlet ? 'shortlet' : 'rent');
+    liHeroType = isLand ? 'land' : (isEvent ? 'event' : (isShortlet ? 'shortlet' : 'rent'));
     liPhotos = photos;
     liShowPhoto(0);
     const multi = photos.length > 1;
@@ -14267,7 +14687,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       priceUnit = 'total price' + (usdMode ? ` \u00B7 ${formatMoney(p.totalPrice, 'ngn')}` : '');
     } else {
       priceMain = String(listingPriceFull(p)).replace(/\s*\/.*$/, '');
-      const per = /night/i.test(p.ngn || '') ? 'per night' : (/yr/i.test(p.ngn || '') ? 'per year' : 'per month');
+      const per = isEvent ? 'per event day' : /night/i.test(p.ngn || '') ? 'per night' : (/yr/i.test(p.ngn || '') ? 'per year' : 'per month');
       priceUnit = per + (usdMode ? ` \u00B7 ${p.ngn}` : (p.usd ? ` \u00B7 ${p.usd}` : ''));
     }
 
@@ -14275,6 +14695,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (p.hasVideo) chips.push('<span class="li-chip"><i data-lucide="video"></i>Walkthrough video</span>');
     if (photos.length > 1) chips.push(`<span class="li-chip"><i data-lucide="images"></i>${photos.length} photos</span>`);
     if (isShortlet) chips.push('<span class="li-chip"><i data-lucide="calendar-days"></i>Shortlet</span>');
+    if (isEvent) { chips.push('<span class="li-chip"><i data-lucide="party-popper"></i>Event center</span>'); if (p.capacity) chips.push(`<span class="li-chip"><i data-lucide="users"></i>Up to ${liEsc(p.capacity)} guests</span>`); }
     if (isLand && p.titleTypeLabel) chips.push(`<span class="li-chip"><i data-lucide="scroll-text"></i>${liEsc(p.titleTypeLabel)}</span>`);
     if (mktOfferKind(p) && !unavailable) chips.push('<span class="li-chip"><i data-lucide="handshake"></i>Price offers accepted</span>');
     if (mktLockFor(p)) chips.push('<span class="li-chip"><i data-lucide="lock"></i>Under offer</span>');
@@ -14285,8 +14706,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const dates = Array.isArray(p.availability) ? p.availability.length : 0;
     const details = [
       row('Location', liEsc(p.location || '\u2014')),
-      row('Property type', liEsc(isLand ? (listingPropKind(p) === 'house' ? (p.houseType || 'House') : 'Land only') : (String(p.title || '').split(',')[0] || '\u2014'))),
+      row('Property type', liEsc(isLand ? (listingPropKind(p) === 'house' ? (p.houseType || 'House') : 'Land only') : (isEvent ? (p.venueType || 'Event center') : (String(p.title || '').split(',')[0] || '\u2014')))),
     ];
+    if (isEvent) {
+      if (p.capacity) details.push(row('Capacity', liEsc(p.capacity + ' guests')));
+      if (p.parkingSpaces !== undefined && p.parkingSpaces !== null) details.push(row('Parking', liEsc(p.parkingSpaces + ' space' + (p.parkingSpaces === 1 ? '' : 's'))));
+      if (p.powerSupply) details.push(row('Power', liEsc(p.powerSupply)));
+      details.push(row('Booking', 'One event date, paid in full'));
+    }
     if (isLand && listingPropKind(p) === 'land' && p.landUse) details.push(row('Land use', liEsc(p.landUse)));
     if (beds) details.push(row('Bedrooms', liEsc(beds)));
     if (p.bathrooms) details.push(row('Bathrooms', liEsc(p.bathrooms)));
@@ -14309,6 +14736,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       fees.push(row('Total price', money(p.totalPrice)));
       if (p.legalFeePct) fees.push(row('Deed of Assignment fee', `${p.legalFeePct}% (paid with first installment)`));
       fees.push(row('Agency commission', '5% buyer-paid'));
+    } else if (isEvent) {
+      fees.push(row('Venue hire fee', liEsc(p.ngn || '\u2014')));
+      fees.push(row('MainTown service charge', '2% of the hire fee, added at checkout'));
+      fees.push(row('Agency commission', 'None'));
+      fees.push(row('Legal fee', 'None'));
     } else {
       fees.push(row(isShortlet ? 'Nightly rate' : 'Rent', liEsc(p.ngn || '\u2014')));
       if (!isShortlet && p.annualPrice) fees.push(row('Annual equivalent', money(p.annualPrice)));
@@ -14340,7 +14772,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ${isShortlet ? '' : amenHtml}
       ${unavailable ? `<p class="li-note" style="margin-bottom:12px;">This property is no longer available.</p>` : ''}`;
 
-    const primarySel = isLand ? '.land-pay-btn' : (isShortlet ? '.shortlet-book-btn' : '.payment-options-btn');
+    const primarySel = isLand ? '.land-pay-btn' : (isEvent ? '.event-book-btn' : (isShortlet ? '.shortlet-book-btn' : '.payment-options-btn'));
     const primaryLabel = listingCta(p).label;
     const primaryIcon = listingCta(p).icon;
     let secondary = '';
@@ -15967,6 +16399,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         localStorage.setItem('mtr_checkout_resume', JSON.stringify({
           listingId: checkoutListing.id,
           landPayment: checkoutLandPayment || null,
+          event: checkoutEvent || null,
           notifPushed: checkoutResumeNotifPushed
         }));
       } else {
@@ -15985,6 +16418,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     checkoutListing = listing;
     checkoutLandPayment = stored.landPayment || null;
+    checkoutEvent = stored.event || null;
     checkoutPaymentPending = true;
     checkoutResumeNotifPushed = !!stored.notifPushed;
   }
@@ -16316,7 +16750,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       else if (!titleAck) landReason = 'Tick the Title Verification & Due Diligence acknowledgement to continue.';
       else if (!adrAck) landReason = 'Tick the Dispute Resolution acknowledgement to continue.';
       else if (!signed) landReason = 'Type the exact phrase to sign the Land Allocation & Payment Terms.';
-    } else if (checkoutListing && checkoutListing.type === 'shortlet') {
+    } else if (checkoutListing && (checkoutListing.type === 'shortlet' || checkoutListing.type === 'event')) {
       landOk = document.getElementById('s6-adr-ack').checked;
       if (!landOk) landReason = 'Tick the box to agree to the house rules, cancellation policy and booking terms.';
     }
@@ -16372,7 +16806,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
     checkoutListing = listing;
-    { const pn = document.getElementById('s6-protect-note'); if (pn) { if (!pn.dataset.orig) pn.dataset.orig = pn.innerHTML; pn.innerHTML = listing.type === 'land' ? mktSaleProtectionText() : pn.dataset.orig; } }
+    { const pn = document.getElementById('s6-protect-note'); if (pn) { if (!pn.dataset.orig) pn.dataset.orig = pn.innerHTML; pn.innerHTML = listing.type === 'land' ? mktSaleProtectionText() : (listing.type === 'event' ? 'Payment is split automatically at the point of charge through <span class="js-provider">' + PAYMENT_PROVIDER + '</span> \u2014 MainTown never holds your funds. The venue owner\u2019s share is held by the payment provider until the event day and then released to them; MainTown\u2019s 2% service charge is credited at once.' : pn.dataset.orig); } }
+    { const vb = document.getElementById('s6-verified-badge-text'); if (vb) vb.textContent = listing.type === 'event' ? 'Event Center' : 'Inspection Verified'; }
     checkoutLandPayment = landPayment || null;
     checkoutAuthSubmitting = false;
     checkoutPaymentPending = false;
@@ -16400,6 +16835,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const signoffBox = document.getElementById('s6-signoff-box');
     const isLand = listing.type === 'land';
     const isShortlet = listing.type === 'shortlet';
+    const isEvent = listing.type === 'event';
 
     // ---- Dynamic Contract Card Routing ----
     // Swaps the agreement execution card between the Land Purchase Agreement
@@ -16412,24 +16848,25 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // being paid for, and the counter-party is the company when it is a company listing.
     const agrProfile = listingAgreementProfile(listing);
     const payeeName = listingPayeeName(listing);
-    document.getElementById('s6-agreement-title-text').textContent = isLand ? `Accept ${agrProfile.title}` : (isShortlet ? 'Booking Terms & Confirmation' : `Execute ${agrProfile.title}`);
+    document.getElementById('s6-agreement-title-text').textContent = isLand ? `Accept ${agrProfile.title}` : ((isShortlet || isEvent) ? 'Booking Terms & Confirmation' : `Execute ${agrProfile.title}`);
     document.getElementById('s6-agreement-doc-name').textContent = `${agrProfile.fileBase}.pdf`;
-    document.getElementById('s6-agreement-doc-sub').textContent = isLand ? `${agrProfile.title}: MainTown Land Allocation & Title Transfer Terms` : (isShortlet ? 'Instant booking: no signature needed. Your confirmation is issued after payment.' : (listing.usage === 'commercial' ? 'Commercial lease terms: annual rent paid in full upfront (draft wording, pending legal review)' : 'Standard MainTown Realty lease terms'));
-    document.getElementById('s6-agreement-cosign-label').textContent = `${payeeName || (isLand ? 'Seller' : (isShortlet ? 'Host/Landlord' : 'Landlord'))} Signature`;
+    document.getElementById('s6-agreement-doc-sub').textContent = isLand ? `${agrProfile.title}: MainTown Land Allocation & Title Transfer Terms` : ((isShortlet || isEvent) ? 'Instant booking: no signature needed. Your confirmation is issued after payment.' : (listing.usage === 'commercial' ? 'Commercial lease terms: annual rent paid in full upfront (draft wording, pending legal review)' : 'Standard MainTown Realty lease terms'));
+    document.getElementById('s6-agreement-cosign-label').textContent = `${payeeName || (isLand ? 'Seller' : (isEvent ? 'Venue Owner' : (isShortlet ? 'Host/Landlord' : 'Landlord')))} Signature`;
     // Pre-attached status: same demo convention as before (the counter-party's
     // signature ships pre-attached on every listing) — driven off the
     // listing's own signature flag when present, defaulting to pre-attached.
     const cosignPreattached = listing.landlordSignature !== 'Pending';
     document.getElementById('s6-agreement-cosign-status').textContent = cosignPreattached ? '✓ Pre-attached' : 'Pending';
 
-    { const h = document.getElementById('s6-signoff-heading'); if (h) h.textContent = isLand ? (agrProfile.isHouse ? 'Property Purchase & Payment Sign-Off' : 'Land Allocation & Payment Sign-Off') : (isShortlet ? 'Booking Terms' : (listing.usage === 'commercial' ? `Commercial Lease (${agrProfile.detail}) & Payment Sign-Off` : 'Tenancy & Payment Sign-Off')); }
+    { const h = document.getElementById('s6-signoff-heading'); if (h) h.textContent = isLand ? (agrProfile.isHouse ? 'Property Purchase & Payment Sign-Off' : 'Land Allocation & Payment Sign-Off') : ((isShortlet || isEvent) ? 'Booking Terms' : (listing.usage === 'commercial' ? `Commercial Lease (${agrProfile.detail}) & Payment Sign-Off` : 'Tenancy & Payment Sign-Off')); }
     { // Shortlets: Airbnb-style click-to-accept, no signature, no host countersign.
-      const sf = signInput.closest('.field'); if (sf) sf.style.display = isShortlet ? 'none' : '';
+      const clickAccept = isShortlet || isEvent;
+      const sf = signInput.closest('.field'); if (sf) sf.style.display = clickAccept ? 'none' : '';
       const at = document.getElementById('s6-adr-ack-text');
-      if (at) at.textContent = isShortlet ? 'I agree to the house rules, cancellation policy and booking terms (including the 14-day mediation, then Lagos arbitration, dispute clause).' : 'I have read and agree to the Dispute Resolution clause: 14-day mediation first, then arbitration under the Lagos Court of Arbitration Rules in Lagos.';
-      const sr = document.getElementById('s6-agreement-cosign-label').closest('.agreement-sig-row'); if (sr) sr.style.display = isShortlet ? 'none' : '';
-      const sb = document.getElementById('s6-sign-agreement-btn'); if (sb) sb.style.display = isShortlet ? 'none' : '';
-      if (isShortlet) checkoutAgreementUploaded = true;
+      if (at) at.textContent = isEvent ? 'I agree to the venue rules, cancellation policy and booking terms (including the 14-day mediation, then Lagos arbitration, dispute clause).' : isShortlet ? 'I agree to the house rules, cancellation policy and booking terms (including the 14-day mediation, then Lagos arbitration, dispute clause).' : 'I have read and agree to the Dispute Resolution clause: 14-day mediation first, then arbitration under the Lagos Court of Arbitration Rules in Lagos.';
+      const sr = document.getElementById('s6-agreement-cosign-label').closest('.agreement-sig-row'); if (sr) sr.style.display = clickAccept ? 'none' : '';
+      const sb = document.getElementById('s6-sign-agreement-btn'); if (sb) sb.style.display = clickAccept ? 'none' : '';
+      if (clickAccept) checkoutAgreementUploaded = true;
     }
     if (isLand) {
       signoffSection.style.display = 'block';
@@ -16445,6 +16882,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       document.getElementById('s6-row2').style.display = 'flex';
       document.getElementById('s6-row3').style.display = 'flex';
       document.getElementById('s6-shortlet-autodebit-notice').style.display = 'none';
+      document.getElementById('s6-shortlet-cancel-notice').style.display = 'none';
       // Restore the Land clauses explicitly — the shortlet checkout branch
       // below overwrites this shared box's innerHTML in place, so a land
       // checkout opened afterward must not inherit stale short-let clauses.
@@ -16498,6 +16936,35 @@ This voucher is auto-generated and serves as proof of settlement.`;
         document.getElementById('s6-ai-fee-amount').textContent = formatMoney(checkoutAiFeeNgn, 'ngn');
         document.getElementById('s6-total-amount').textContent = formatMoney(checkoutLandPayment.upfront + checkoutAiFeeNgn, 'ngn') + ' due now';
       }
+    } else if (isEvent) {
+      // ---- Event Center checkout: venue hire fee + flat 2% MainTown service charge ----
+      if (!checkoutEvent) checkoutEvent = computeEventBreakdown(listing, null, '', 0);
+      const ev = checkoutEvent;
+      signoffSection.style.display = 'block';
+      signInput.value = '';
+      signInput.disabled = true;
+      signoffBox.scrollTop = 0;
+      document.getElementById('s6-title-ack-row').style.display = 'none';
+      document.getElementById('s6-adr-ack-row').style.display = 'flex';
+      document.getElementById('s6-adr-ack').checked = false;
+      signoffBox.innerHTML = `<p>By proceeding, you acknowledge and agree to the following binding Event Center Hire Terms for <strong>${escHtmlLite(listing.title)}</strong> on <strong>${escHtmlLite(fmtEventDate(ev.eventDate))}</strong> (${escHtmlLite(ev.eventType || 'event')}, ${Number(ev.guests) || 0} guests):</p>`
+        + EVENT_CLAUSES.map(c => `<p><strong>${escHtmlLite(c.title)}:</strong> ${escHtmlLite(c.body)}</p>`).join('')
+        + `<p><strong>Clause 6 \u2014 Dispute Resolution (Mediation, then LCA Arbitration):</strong> ${ADR_CLAUSE_TEXT}</p>`;
+      document.getElementById('s6-breakdown-label').innerHTML = '<i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Event Center Booking Breakdown';
+      document.getElementById('s6-row1-label').textContent = `Venue Hire Fee (to ${payeeName || 'Venue Owner'})`;
+      document.getElementById('s6-rent-amount').textContent = formatMoney(ev.hireFee, 'ngn');
+      document.getElementById('s6-caution-row').style.display = 'none';
+      document.getElementById('s6-service-row').style.display = 'none';
+      document.getElementById('s6-row2').style.display = 'none';
+      document.getElementById('s6-row3').style.display = 'none';
+      checkoutAiFeeNgn = 0; // no AI fee on event center bookings: the 2% service charge below is MainTown's only fee
+      document.getElementById('s6-ai-fee-label').innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown Service Charge (2%)';
+      document.getElementById('s6-ai-fee-row').style.display = '';
+      document.getElementById('s6-ai-fee-amount').textContent = formatMoney(ev.serviceCharge, 'ngn');
+      document.getElementById('s6-total-amount').textContent = formatMoney(ev.totalPayable, 'ngn') + ' due now';
+      document.getElementById('s6-shortlet-autodebit-notice').style.display = 'none';
+      document.getElementById('s6-shortlet-cancel-notice').style.display = 'flex';
+      document.getElementById('s6-shortlet-cancel-text').textContent = `Event date: ${fmtEventDate(ev.eventDate)}. Your payment is split at the point of charge: the venue's share is held by ${PAYMENT_PROVIDER}, not MainTown, until the event day and then released to the venue owner. The 2% service charge is MainTown's only fee.`;
     } else if (isShortlet) {
       // ---- Short-Let Checkout Revamp: itemized breakdown from checkoutShortlet ----
       // checkoutShortlet is populated by the Step 1 date-range picker
@@ -17094,9 +17561,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const payeeCompany = listingPayeeName(listing);
     const agrP = listingAgreementProfile(listing);
     const hostName = payeeCompany || (listing.listedBy === 'agent' ? (listing.agentName || 'Agent') : (listing.landlordName || 'Landlord'));
-    const hostRoleWord = isCompanyOwnedListing(listing) ? 'Company' : (listing.type === 'land' ? 'Seller' : (listing.type === 'shortlet' ? 'Host' : 'Landlord'));
+    const hostRoleWord = isCompanyOwnedListing(listing) ? 'Company' : (listing.type === 'land' ? 'Seller' : (listing.type === 'event' ? 'Venue Owner' : (listing.type === 'shortlet' ? 'Host' : 'Landlord')));
     const fileName = `${agrP.fileBase}_${listing.title.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '')}.pdf`;
-    const rentLabel = checkoutRentBreakdown ? (agrP.commercial ? `${formatMoney(checkoutRentBreakdown.monthly, 'ngn')} / year (paid in full)` : `${formatMoney(checkoutRentBreakdown.monthly, 'ngn')} / month`) : (listing.ngn || 'See agreement for terms');
+    const rentLabel = (listing.type === 'event' && checkoutEvent) ? `${formatMoney(checkoutEvent.hireFee, 'ngn')} hire fee + ${formatMoney(checkoutEvent.serviceCharge, 'ngn')} service charge (2%)` : checkoutRentBreakdown ? (agrP.commercial ? `${formatMoney(checkoutRentBreakdown.monthly, 'ngn')} / year (paid in full)` : `${formatMoney(checkoutRentBreakdown.monthly, 'ngn')} / month`) : (listing.ngn || 'See agreement for terms');
     conv.messages.push({
       from: 'system',
       type: 'lease-doc',
@@ -17115,7 +17582,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       agreementTitle: agrP.title, usage: listing.usage || undefined, commercialType: listing.commercialType || undefined,
       propertyAddress: listing.location, checkIn: (listing.type === 'shortlet' && checkoutShortlet) ? checkoutShortlet.checkIn : undefined, checkOut: (listing.type === 'shortlet' && checkoutShortlet) ? checkoutShortlet.checkOut : undefined,
       nights: (listing.type === 'shortlet' && checkoutShortlet) ? checkoutShortlet.nights : undefined,
-      dailyDebitLabel: (listing.type === 'shortlet' && checkoutShortlet && checkoutShortlet.remainingNights > 0) ? formatMoney(checkoutShortlet.dailyDebitAmount, 'ngn') : undefined
+      dailyDebitLabel: (listing.type === 'shortlet' && checkoutShortlet && checkoutShortlet.remainingNights > 0) ? formatMoney(checkoutShortlet.dailyDebitAmount, 'ngn') : undefined,
+      eventDate: (listing.type === 'event' && checkoutEvent) ? checkoutEvent.eventDate : undefined,
+      eventType: (listing.type === 'event' && checkoutEvent) ? checkoutEvent.eventType : undefined,
+      guests: (listing.type === 'event' && checkoutEvent) ? checkoutEvent.guests : undefined
     });
     conv.status = 'active';
     saveConversations();
@@ -17727,6 +18197,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (checkoutListing.type === 'shortlet') {
       return checkoutShortlet ? checkoutShortlet.totalPayable : 0;
     }
+    if (checkoutListing.type === 'event') {
+      return checkoutEvent ? checkoutEvent.totalPayable : 0;
+    }
     if (!checkoutRentBreakdown) return 0;
     // Caution Deposit & Service Charge (if the Landlord/Agent set them) are
     // due alongside the first rent installment — see applySplitPaymentSettlement.
@@ -17843,6 +18316,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function renderDisbursementBreakdown(targetId, aiFeeNgn) {
     const el = document.getElementById(targetId);
     if (!el || !checkoutListing) return;
+    if (checkoutListing.type === 'event') {
+      // Event center: the venue owner gets the full hire fee; MainTown's only share is the flat 2% service charge.
+      const ev = checkoutEvent;
+      if (!ev) { el.innerHTML = ''; return; }
+      const sub = t => `<span style="display:block; font-size:11px; font-weight:400; color:#64748b; margin-top:1px;">${t}</span>`;
+      const payeeEv = listingPayeeName(checkoutListing);
+      el.innerHTML = [
+        `<div class="s5-hold-row"><span>${payeeEv ? escHtmlLite(payeeEv) + "'s Share" : "Venue Owner's Share"}${sub('Full venue hire fee, held by the payment provider until the event day, then released')}</span><strong>${formatMoney(ev.hireFee, 'ngn')}</strong></div>`,
+        `<div class="s5-hold-row"><span>MainTown's Share${sub('Flat 2% service charge, paid at once')}</span><strong>${formatMoney(ev.serviceCharge, 'ngn')}</strong></div>`,
+        '<div class="s5-hold-divider"></div>',
+        `<div class="s5-hold-row"><span>Total Charged</span><strong style="color:#c084fc; font-size:15px;">${formatMoney(ev.totalPayable, 'ngn')}</strong></div>`
+      ].join('');
+      return;
+    }
     const b = getActiveClosingBreakdown();
     if (!b) { el.innerHTML = ''; return; }
     const isLand = checkoutListing.type === 'land';
@@ -18055,6 +18542,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // scheduleShortletAutoDebit) — same mechanism as before, just entered
     // through the new checkout flow with dates, breakdown, clauses and
     // agreement sign-off captured up front.
+    if (checkoutListing && checkoutListing.type === 'event') {
+      // Event centers stay on the feed: availability is decided by the event date, never by a RENTED flag.
+      if (!finalizeEventCheckout()) { checkoutAuthSubmitting = false; return; }
+      checkoutPaymentPending = false;
+      saveCheckoutResumeState();
+      checkoutAuthSubmitting = false;
+      checkoutEvent = null;
+      navigateTo('screen-5');
+      return;
+    }
     if (checkoutListing && checkoutListing.type === 'shortlet') {
       if (!finalizeShortletCheckout()) { checkoutAuthSubmitting = false; return; }
       // BUGFIX: this branch used to return before the two steps every other
@@ -18520,84 +19017,61 @@ This voucher is auto-generated and serves as proof of settlement.`;
       renderLandlordInspectionsManager();
       return;
     }
+    const propCard = (title, sub, badgeHtml, buttonsHtml, delHtml) => `
+        <div class="s5-list-item s5-prop-card">
+          <div class="s5-prop-head">
+            <div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+            <div class="s5-list-text">
+              <p class="s5-list-title">${title}</p>
+              <p class="s5-list-sub">${sub}</p>
+            </div>
+            ${badgeHtml || ''}
+          </div>
+          ${(buttonsHtml || delHtml) ? `<div class="s5-prop-actions">${buttonsHtml || ''}${delHtml || ''}</div>` : ''}
+        </div>`;
+    const liveBtn = (title) => `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live</button>`;
+    const previewBtn = (id) => `<button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="preview" data-listing-id="${id}"><i data-lucide="eye" class="w-3 h-3"></i>Preview</button>`;
     list.innerHTML = myProps.map(p => {
-      let rightHtml;
+      let badgeHtml = '', btnHtml = '';
       const soldListing = listings.find(l => p.listingId ? l.id === p.listingId : l.title === p.title);
       const soldBadge = soldStatusBadgeHtml(soldListing);
       if (soldBadge) {
-        rightHtml = soldBadge;
+        badgeHtml = soldBadge;
       } else if (p.status === 'escrow') {
-        // Inventory Card: instead of a static "Escrow Pending" badge, surface an
-        // actionable button that routes straight to the live/published listing (or,
-        // if it's still a private draft, lets the landlord publish it in one tap).
+        // Actionable button: routes to the live listing, or lets the landlord publish a private draft in one tap.
         const linkedListing = listings.find(l => l.listedBy === 'landlord' && (p.listingId ? l.id === p.listingId : l.title === p.title));
         if (linkedListing && linkedListing.status !== 'draft') {
-          rightHtml = `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${p.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`;
+          btnHtml = liveBtn(p.title);
         } else if (linkedListing) {
-          rightHtml = `<button type="button" class="s5-list-action-btn s5-list-publish-btn" data-action="publish" data-title="${p.title}"><i data-lucide="upload-cloud" class="w-3 h-3"></i>Publish Listing</button>`;
+          btnHtml = `<button type="button" class="s5-list-action-btn s5-list-publish-btn" data-action="publish" data-title="${p.title}"><i data-lucide="upload-cloud" class="w-3 h-3"></i>Publish</button>`;
         } else {
-          rightHtml = `<span class="s5-status-badge s5-status-escrow">Payment Pending</span>`;
+          badgeHtml = `<span class="s5-status-badge s5-status-escrow">Payment Pending</span>`;
         }
       } else {
         const s = statusMap[p.status];
-        rightHtml = `<span class="s5-status-badge ${s.cls}">${s.label}</span>`;
+        badgeHtml = `<span class="s5-status-badge ${s.cls}">${s.label}</span>`;
       }
       const previewListing = listings.find(l => p.listingId ? l.id === p.listingId : l.title === p.title);
-      const previewHtml = previewListing
-        ? `<button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="preview" data-listing-id="${previewListing.id}"><i data-lucide="eye" class="w-3 h-3"></i>Preview</button>`
-        : '';
-      return `
-        <div class="s5-list-item">
-          <div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
-          <div class="s5-list-text">
-            <p class="s5-list-title">${p.title}</p>
-            <p class="s5-list-sub">${p.address}</p>
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">${previewHtml}${(previewListing && previewListing.type === 'rent' && previewListing.usage === 'commercial' && previewListing.ownerId === getCurrentUserId()) ? `<button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="rentReview" data-listing-id="${previewListing.id}"><i data-lucide="trending-up" class="w-3 h-3"></i>Update rent</button>` : ''}</div>
-          </div>
-          <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
-            ${rightHtml}
-            ${soldBadge ? '' : `<button type="button" class="s5-list-action-btn s5-list-delete-btn" data-action="delete" data-title="${p.title}" title="Delete listing"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>`}
-          </div>
-        </div>`;
+      const previewHtml = previewListing ? previewBtn(previewListing.id) : '';
+      const rentBtn = (previewListing && previewListing.type === 'rent' && previewListing.usage === 'commercial' && previewListing.ownerId === getCurrentUserId())
+        ? `<button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="rentReview" data-listing-id="${previewListing.id}"><i data-lucide="trending-up" class="w-3 h-3"></i>Update rent</button>` : '';
+      const delHtml = soldBadge ? '' : `<button type="button" class="s5-list-action-btn s5-list-delete-btn" data-action="delete" data-title="${p.title}" title="Delete listing"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>`;
+      return propCard(p.title, p.address, badgeHtml, previewHtml + btnHtml + rentBtn, delHtml);
     }).join('');
     // Agent-submitted listings that have passed legal review and are live.
-    list.insertAdjacentHTML('beforeend', liveAgentListings.map(l => `
-        <div class="s5-list-item">
-          <div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
-          <div class="s5-list-text">
-            <p class="s5-list-title">${l.title}</p>
-            <p class="s5-list-sub">${l.address} \u00b7 Agent: ${l.agentName || 'MainTown Agent'}</p>
-            <button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="preview" data-listing-id="${l.listingId}"><i data-lucide="eye" class="w-3 h-3"></i>Preview</button>
-          </div>
-          <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
-            ${soldStatusBadgeHtml(listings.find(x => String(x.id) === String(l.listingId))) || `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`}
-          </div>
-        </div>`).join(''));
+    list.insertAdjacentHTML('beforeend', liveAgentListings.map(l => {
+      const sb = soldStatusBadgeHtml(listings.find(x => String(x.id) === String(l.listingId)));
+      return propCard(l.title, `${l.address} · Agent: ${l.agentName || 'MainTown Agent'}`, sb, previewBtn(l.listingId) + (sb ? '' : liveBtn(l.title)), '');
+    }).join(''));
     // CEO only: listings added by the company's Sales staff.
-    list.insertAdjacentHTML('beforeend', salesRows.map(l => `
-        <div class="s5-list-item">
-          <div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
-          <div class="s5-list-text">
-            <p class="s5-list-title">${l.title}</p>
-            <p class="s5-list-sub">${l.location || ''} \u00b7 Listed by Sales${l.agentName ? ': ' + l.agentName : ''}</p>
-            <button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="preview" data-listing-id="${l.id}"><i data-lucide="eye" class="w-3 h-3"></i>Preview</button>
-          </div>
-          <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
-            ${soldStatusBadgeHtml(l) || `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`}
-          </div>
-        </div>`).join(''));
-    list.insertAdjacentHTML('beforeend', managedRows.map(l => `
-        <div class="s5-list-item">
-          <div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
-          <div class="s5-list-text">
-            <p class="s5-list-title">${l.title}</p>
-            <p class="s5-list-sub">${l.location || ''} \u00b7 Listed and managed by MainTown Realty</p>
-            <button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="preview" data-listing-id="${l.id}"><i data-lucide="eye" class="w-3 h-3"></i>Preview</button>
-          </div>
-          <div class="s5-list-status-col" style="flex-direction:row; align-items:center;">
-            ${soldStatusBadgeHtml(l) || `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${l.title}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>`}
-          </div>
-        </div>`).join(''));
+    list.insertAdjacentHTML('beforeend', salesRows.map(l => {
+      const sb = soldStatusBadgeHtml(l);
+      return propCard(l.title, `${l.location || ''} · Listed by Sales${l.agentName ? ': ' + l.agentName : ''}`, sb, previewBtn(l.id) + (sb ? '' : liveBtn(l.title)), '');
+    }).join(''));
+    list.insertAdjacentHTML('beforeend', managedRows.map(l => {
+      const sb = soldStatusBadgeHtml(l);
+      return propCard(l.title, `${l.location || ''} · Listed and managed by MainTown Realty`, sb, previewBtn(l.id) + (sb ? '' : liveBtn(l.title)), '');
+    }).join(''));
     if (window.lucide) lucide.createIcons();
     renderLandlordInspectionsManager();
   }
@@ -18759,7 +19233,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     populateAreaSelect('tv-city', 'tv-area');
     document.getElementById('tv-city-hint').className = 'mkt-city-hint';
     document.getElementById('tv-listing-type').value = 'rent'; { const u = document.getElementById('tv-usage'); if (u) u.value = 'residential'; }
-    document.getElementById('tv-annual').value = ''; slHostReset('tv');
+    document.getElementById('tv-annual').value = ''; slHostReset('tv'); evHostReset();
     const tvSqmEl = document.getElementById('tv-sqm'); if (tvSqmEl) tvSqmEl.value = '';
     propKindState.tv = 'land'; ['tv-house-type', 'tv-bedrooms', 'tv-bathrooms'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     applyPropKindUI('tv');
@@ -18962,6 +19436,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
     if (type === 'land') { const pe = landPropertyError('tv'); if (pe) { showToast(pe); return; } }
+    if (type === 'event') {
+      // Event centers are for verified venue owners (Landlords) only; Agents and Sales staff cannot list them.
+      if (!canListEventCenter(currentUserRole)) { showToast('Only venue owners (landlords) can list an event center'); return; }
+      const evErr = eventFormError(); if (evErr) { showToast(evErr); return; }
+    }
     if (!cityId) { showToast('Please select the city this property is in'); return; }
     if (!areaId && marketAreaList(cityId).length) { showToast('Please select the area this property is in'); return; }
     if (!document.getElementById('tv-listing-auth-toggle').checked) {
@@ -19020,6 +19499,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
       listingsFeed.unshift({ ...baseFields, type: 'rent', annualPrice: annual, ngn: `${formatMoney(monthly, 'ngn')} / mo`, usd: `$${Math.round(monthly / 1600)} / mo`, img: listingCoverImg(baseFields, 'rent'), ...commercialRentPatch('tv', annual) });
+    } else if (type === 'event') {
+      listingsFeed.unshift({ ...baseFields, type: 'event', eventPrice: annual, ngn: `${formatMoney(annual, 'ngn')} / event day`, usd: `$${Math.round(annual / 1600)} / event day`, img: listingCoverImg(baseFields, 'event'), ...eventListingFields() });
     } else if (type === 'shortlet') {
       listingsFeed.unshift({ ...baseFields, type: 'shortlet', nightlyRate: annual, ngn: `${formatMoney(annual, 'ngn')} / night`, usd: `$${Math.round(annual / 1600)} / night`, img: listingCoverImg(baseFields, 'shortlet'), ...shortletAvailFields('tv') });
     } else {
@@ -19429,14 +19910,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const feats = document.createElement('div');
     feats.id = `${prefix}-host-features`; feats.className = 'field';
     feats.innerHTML = `
-      <label class="field-label">Features (tap all that apply)</label>
-      <div id="${prefix}-feat-chips" style="display:flex;flex-wrap:wrap;gap:8px;">${HOST_FEATURES.map(f => `<button type="button" class="sl-offer-chip" data-hx-feat="${prefix}" data-label="${f}">${f}</button>`).join('')}</div>
-      <div style="display:flex;gap:8px;margin-top:10px;">
-        <input class="field-input" id="${prefix}-feat-custom" type="text" maxlength="40" placeholder="Add your own feature" style="flex:1;">
-        <button type="button" class="toggle-pill" data-hx-addfeat="${prefix}">Add</button>
-      </div>
-      <div id="${prefix}-feat-custom-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>`;
-    photoBox.parentNode.insertBefore(feats, photoBox);
+      <label class="field-label">Features</label>
+      <button type="button" class="feat-trigger" data-hx-opensheet="${prefix}">
+        <span id="${prefix}-feat-summary">Select features</span>
+        <span class="feat-count" id="${prefix}-feat-count">Choose <i data-lucide="chevron-right" class="w-3.5 h-3.5" style="display:inline-block;vertical-align:-2px;"></i></span>
+      </button>
+      <div class="feat-selected" id="${prefix}-feat-selected"></div>`;
+    // The photo/video boxes sit in a flex row (.dual-drop); insert before that row, never inside it.
+    const anchorEl = (photoBox.parentNode && photoBox.parentNode.classList.contains('dual-drop')) ? photoBox.parentNode : photoBox;
+    anchorEl.parentNode.insertBefore(feats, anchorEl);
+    renderHostFeatSummary(prefix);
   }
   function hostExtrasUI(prefix, type) {
     injectHostExtras(prefix);
@@ -19459,18 +19942,65 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (hint) hint.textContent = (ip && price && ip < price) ? 'The installment price cannot be lower than the outright price.' : (price ? `Outright price: ${formatMoney(price, 'ngn')}. Buyers who choose installments pay the installment price in equal parts.` : '');
   }
   function renderHostCustomFeats(prefix) {
-    const st = hostExtraGet(prefix), box = document.getElementById(`${prefix}-feat-custom-list`);
+    const st = hostExtraGet(prefix), box = document.getElementById('hx-sheet-custom');
     if (box) box.innerHTML = st.custom.map((c, i) => `<button type="button" class="sl-offer-chip on" data-hx-rmfeat="${prefix}" data-i="${i}">${String(c).replace(/[<>&"]/g, '')} ✕</button>`).join('');
+    renderHostFeatSummary(prefix);
+  }
+  function renderHostFeatSummary(prefix) {
+    const st = hostExtraGet(prefix);
+    const all = Array.from(st.feats).concat(st.custom);
+    const sum = document.getElementById(`${prefix}-feat-summary`), cnt = document.getElementById(`${prefix}-feat-count`), sel = document.getElementById(`${prefix}-feat-selected`);
+    if (sum) sum.textContent = all.length ? `${all.length} feature${all.length === 1 ? '' : 's'} selected` : 'Select features';
+    if (cnt) { cnt.innerHTML = `${all.length ? 'Edit' : 'Choose'} <i data-lucide="chevron-right" class="w-3.5 h-3.5" style="display:inline-block;vertical-align:-2px;"></i>`; if (window.lucide) lucide.createIcons(); }
+    if (sel) sel.innerHTML = all.map(x => `<span class="sl-offer-chip on">${String(x).replace(/[<>&"]/g, '')}</span>`).join('');
+  }
+  let hxSheetPrefix = null;
+  function openHostFeatSheet(prefix) {
+    hxSheetPrefix = prefix;
+    let ov = document.getElementById('hx-feat-sheet');
+    if (!ov) {
+      ov = document.createElement('div');
+      ov.id = 'hx-feat-sheet'; ov.className = 'sheet-overlay'; ov.style.zIndex = '95';
+      ov.innerHTML = `
+        <div class="sheet-card">
+          <div class="sheet-handle"></div>
+          <div class="sheet-header">
+            <div><p class="sheet-title">Property features</p><p class="sheet-subtitle">Tap every feature that applies</p></div>
+            <button type="button" class="sheet-close-btn" id="hx-sheet-x" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+          <div class="feat-sheet-grid" id="hx-sheet-grid"></div>
+          <label class="field-label">Add your own</label>
+          <div style="display:flex;gap:8px;">
+            <input class="field-input" id="hx-sheet-custom-input" type="text" maxlength="40" placeholder="e.g. Rooftop terrace" style="flex:1;">
+            <button type="button" class="toggle-pill active" id="hx-sheet-add" style="flex:0 0 auto;padding:0 20px;border-radius:12px;">Add</button>
+          </div>
+          <div class="feat-sheet-grid" id="hx-sheet-custom" style="margin-top:10px;"></div>
+          <button type="button" class="btn-primary" id="hx-sheet-done" style="margin-top:6px;">Done</button>
+        </div>`;
+      document.body.appendChild(ov);
+      const close = () => { ov.classList.remove('open'); renderHostFeatSummary(hxSheetPrefix); };
+      ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+      ov.querySelector('#hx-sheet-x').addEventListener('click', close);
+      ov.querySelector('#hx-sheet-done').addEventListener('click', close);
+      const add = () => {
+        const inp = ov.querySelector('#hx-sheet-custom-input'), v = inp.value.trim().slice(0, 40), st = hostExtraGet(hxSheetPrefix);
+        if (v && st.custom.length < 10 && !st.custom.some(c => c.toLowerCase() === v.toLowerCase()) && !HOST_FEATURES.some(f => f.toLowerCase() === v.toLowerCase())) { st.custom.push(v); renderHostCustomFeats(hxSheetPrefix); }
+        inp.value = '';
+      };
+      ov.querySelector('#hx-sheet-add').addEventListener('click', add);
+      ov.querySelector('#hx-sheet-custom-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+    }
+    const st = hostExtraGet(prefix);
+    ov.querySelector('#hx-sheet-grid').innerHTML = HOST_FEATURES.map(f => `<button type="button" class="sl-offer-chip${st.feats.has(f) ? ' on' : ''}" data-hx-feat="${prefix}" data-label="${f}">${f}</button>`).join('');
+    renderHostCustomFeats(prefix);
+    ov.classList.add('open');
+    if (window.lucide) lucide.createIcons();
   }
   document.addEventListener('click', (e) => {
     const f = e.target.closest('[data-hx-feat]');
     if (f) { const st = hostExtraGet(f.dataset.hxFeat), l = f.dataset.label; if (st.feats.has(l)) st.feats.delete(l); else st.feats.add(l); f.classList.toggle('on', st.feats.has(l)); return; }
-    const add = e.target.closest('[data-hx-addfeat]');
-    if (add) {
-      const p = add.dataset.hxAddfeat, inp = document.getElementById(`${p}-feat-custom`), v = inp.value.trim().slice(0, 40), st = hostExtraGet(p);
-      if (v && st.custom.length < 10 && !st.custom.some(c => c.toLowerCase() === v.toLowerCase())) { st.custom.push(v); renderHostCustomFeats(p); }
-      inp.value = ''; return;
-    }
+    const openS = e.target.closest('[data-hx-opensheet]');
+    if (openS) { openHostFeatSheet(openS.dataset.hxOpensheet); return; }
     const rm = e.target.closest('[data-hx-rmfeat]');
     if (rm) { const p = rm.dataset.hxRmfeat; hostExtraGet(p).custom.splice(Number(rm.dataset.i), 1); renderHostCustomFeats(p); return; }
     const it = e.target.closest('[data-hx-inst]');
@@ -19557,13 +20087,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // always matches what's actually being collected.
     const priceLabel = document.getElementById(`${prefix}-listing-annual-label`) || document.getElementById(`${prefix}-annual-label`);
     const priceInput = document.getElementById(`${prefix}-annual`) || document.getElementById(`${prefix}-listing-annual`);
-    if (priceLabel) priceLabel.textContent = type === 'shortlet' ? 'Nightly Rate (NGN)' : 'Annual Price (NGN)';
-    if (priceInput) priceInput.placeholder = type === 'shortlet' ? 'e.g. 45000' : 'e.g. 2400000';
+    if (priceLabel) priceLabel.textContent = type === 'shortlet' ? 'Nightly Rate (NGN)' : (type === 'event' ? 'Venue Hire Price per Event Day (NGN)' : 'Annual Price (NGN)');
+    if (priceInput) priceInput.placeholder = type === 'shortlet' ? 'e.g. 45000' : (type === 'event' ? 'e.g. 1500000' : 'e.g. 2400000');
     // Shortlet listings carry no Agency/Listing Commission — only the
     // MainTown Platform Fee (5%) below, auto-calculated off the nightly rate.
     const commissionRow = document.getElementById(`${prefix}-fee-commission-row`);
-    if (commissionRow) commissionRow.style.display = type === 'shortlet' ? 'none' : 'flex';
-    document.getElementById(`${prefix}-fee-commission`).textContent = (type !== 'shortlet' && annual > 0) ? formatMoney(annual * 0.10, 'ngn') : '₦0';
+    if (commissionRow) commissionRow.style.display = (type === 'shortlet' || type === 'event') ? 'none' : 'flex';
+    document.getElementById(`${prefix}-fee-commission`).textContent = (type !== 'shortlet' && type !== 'event' && annual > 0) ? formatMoney(annual * 0.10, 'ngn') : '₦0';
 
     // Listing Type Section Visibility: Deed of Assignment % selector is
     // Land-only; Caution Fee/Service Charge are Rent & Shortlet-only. Legal
@@ -19583,14 +20113,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (cautionServiceFields) cautionServiceFields.style.display = (type === 'rent' || type === 'shortlet') ? 'block' : 'none';
     applyCommercialUI(prefix, type, annual);
     { const sa = document.getElementById(`${prefix}-sl-avail`); if (sa) sa.style.display = type === 'shortlet' ? 'block' : 'none'; }
+    { const ef = document.getElementById(`${prefix}-event-fields`); if (ef) { ef.style.display = type === 'event' ? 'block' : 'none'; if (type === 'event') evHostInit(); } }
 
     // Inspection Availability is a Land/Rent-only concept — Short-Let tenants
     // pick their own check-in/check-out dates directly on the booking screen,
     // so the Host/Agent/Landlord never needs to set inspection slots for it.
     const availSection = document.getElementById(`${prefix}-availability-section`);
     const noInspectionNote = document.getElementById(`${prefix}-shortlet-noinspection-note`);
-    if (availSection) availSection.style.display = type === 'shortlet' ? 'none' : 'block';
+    if (availSection) availSection.style.display = (type === 'shortlet' || type === 'event') ? 'none' : 'block';
     if (noInspectionNote) noInspectionNote.style.display = type === 'shortlet' ? 'flex' : 'none';
+    { const en = document.getElementById(`${prefix}-event-noinspection-note`); if (en) en.style.display = type === 'event' ? 'flex' : 'none'; }
 
     let legalAmount = 0;
     if (type === 'land') {
@@ -19601,6 +20133,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } else if (type === 'shortlet') {
       legalAmount = annual * 0.05;
       if (feeLegalLabel) feeLegalLabel.textContent = 'MainTown Platform Fee (5%)';
+    } else if (type === 'event') {
+      legalAmount = annual * EVENT_SERVICE_CHARGE_RATE;
+      if (feeLegalLabel) feeLegalLabel.textContent = 'MainTown Service Charge (2% — paid by the booker, on top of your price)';
     } else {
       legalAmount = annual * 0.05;
       if (feeLegalLabel) feeLegalLabel.textContent = 'Legal & Title Agreement Fee (5% — to MainTown)';
@@ -20102,6 +20637,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const cityId = document.getElementById('s5-listing-city').value;
     const areaId = document.getElementById('s5-listing-area').value;
     const type = document.getElementById('s5-listing-type').value;
+    // Event centers can only be listed by venue owners (Landlords), never by Agents or Sales staff.
+    if (type === 'event') { showToast('Event centers can only be listed by venue owners (landlords)'); return; }
     { const hxErr = validateHostExtras('s5', type); if (hxErr) { showToast(hxErr); return; } }
     if (type === 'shortlet' && shortletAvailError('s5')) { showToast(shortletAvailError('s5')); return; }
     const annual = parseFloat(document.getElementById('s5-listing-annual').value) || 0;
@@ -24646,6 +25183,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
       out.push({ title: `Clause ${n} \u2014 Dispute Resolution (Mediation, then LCA Arbitration)`, body: ADR_CLAUSE_TEXT });
       return out;
     }
+    if (kind === 'event') {
+      return EVENT_CLAUSES.map(c => ({ title: c.title, body: c.body })).concat([{ title: 'Clause 6 \u2014 Dispute Resolution (Mediation, then LCA Arbitration)', body: ADR_CLAUSE_TEXT }]);
+    }
     const metaS = agreementMeta(m);
     if (metaS && metaS.commercial) {
       return [{ title: `Commercial Use & Annual Rent (${metaS.commercialType || 'Commercial Space'})`, body: `This is a commercial lease. The Property may only be used for lawful ${String(metaS.commercialType || 'commercial').toLowerCase()} purposes. Rent is one outright annual payment made in full at checkout; no monthly instalments or auto-debits apply. Any Caution Deposit and Service Charge are paid directly to the ${m.hostLabel || 'Landlord'} alongside the rent.` }, ...legalContent.tenant.sections];
@@ -24664,6 +25204,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const kind = agreementKind(m);
     const meta = agreementMeta(m);
     if (kind === 'land') return { doc: meta ? `EXECUTED ${meta.title.toUpperCase()}` : 'EXECUTED CONTRACT OF SALE (LAND & PROPERTY PURCHASE)', tenant: 'Buyer', heading: 'Property & Price', header: meta ? meta.title : 'Purchase Agreement', priceWord: 'Price' };
+    if (kind === 'event') return { doc: 'EVENT CENTER BOOKING CONFIRMATION', tenant: 'Client', heading: 'Venue & Event', header: 'Event Center Booking Confirmation', priceWord: 'Hire Fee' };
     if (kind === 'shortlet') return { doc: 'BOOKING CONFIRMATION', tenant: 'Guest', heading: 'Property & Stay', header: 'Booking Confirmation', priceWord: 'Rate' };
     if (meta && meta.commercial) return { doc: `EXECUTED ${meta.title.toUpperCase()}`, tenant: 'Tenant', heading: 'Property & Annual Rent', header: meta.title, priceWord: 'Annual Rent' };
     return { doc: 'EXECUTED TENANCY AGREEMENT', tenant: 'Tenant', heading: 'Property & Rent', header: 'Lease Agreement', priceWord: 'Rent' };
@@ -24674,7 +25215,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const stay = [m.checkIn ? `Check-in: ${m.checkIn}` : '', m.checkOut ? `Check-out: ${m.checkOut}` : '', m.nights ? `Nights: ${m.nights}` : ''].filter(Boolean).join('\n');
     return `MAINTOWN REALTY - BOOKING CONFIRMATION\n=====================================\nStatus: Confirmed - payment received\nConfirmation date: ${m.dateSigned}\n\nProperty: ${m.listingTitle}\nProperty address: ${m.propertyAddress || 'See listing'}\nRate: ${m.rentLabel}\n${stay}\n\nGuest: ${m.tenantName}\n${m.hostLabel}: ${m.hostName}\n\n-------------------------------------\nHOUSE RULES & BOOKING TERMS\n-------------------------------------\n${clauses}\n\n=====================================\nThis is an instant booking. No signature is required: the guest accepted these terms at checkout. Permanently available in the Post-Lease Hub and this chat thread.`;
   }
+  function buildEventConfirmationText(m) {
+    const clauses = agreementSections(m).map(s => `${s.title}\n${s.body}`).join('\n\n');
+    const ev = [m.eventDate ? `Event date: ${fmtEventDate(m.eventDate)}` : '', m.eventType ? `Event type: ${m.eventType}` : '', m.guests ? `Expected guests: ${m.guests}` : ''].filter(Boolean).join('\n');
+    return `MAINTOWN REALTY - EVENT CENTER BOOKING CONFIRMATION\n=====================================\nStatus: Confirmed - payment received\nConfirmation date: ${m.dateSigned}\n\nVenue: ${m.listingTitle}\nVenue address: ${m.propertyAddress || 'See listing'}\nAmount paid: ${m.rentLabel}\n${ev}\n\nClient: ${m.tenantName}\n${m.hostLabel}: ${m.hostName}\n\n-------------------------------------\nVENUE RULES & BOOKING TERMS\n-------------------------------------\n${clauses}\n\n=====================================\nThis is an instant booking. No signature is required: the client accepted these terms at checkout. Permanently available in the Post-Lease Hub and this chat thread.`;
+  }
   function buildLeaseAgreementText(m) {
+    if (agreementKind(m) === 'event') return buildEventConfirmationText(m);
     if (agreementKind(m) === 'shortlet') return buildBookingConfirmationText(m);
     const clauses = agreementSections(m)
       .map((s, i) => `${s.title}\n${s.body}`)
@@ -25357,7 +25904,7 @@ available in the Post-Lease Hub and this chat thread.`
   let s7PropertyListing = null;
 
   function populateScreen7() {
-    const fallback = { title: rentListings()[0] ? rentListings()[0].title : 'Your Active Lease', amountLabel: '₦180,000 / mo', dueLabel: 'Move-in date pending — schedule below', card: 'Card ending in 4321' };
+    const fallback = { title: firstRentListing() ? firstRentListing().title : 'Your Active Lease', amountLabel: '₦180,000 / mo', dueLabel: 'Move-in date pending — schedule below', card: 'Card ending in 4321' };
     const lease = activeLease || fallback;
     document.getElementById('s7-lease-title').textContent = lease.title;
     document.getElementById('s7-lease-amount').textContent = lease.amountLabel;
@@ -25366,7 +25913,7 @@ available in the Post-Lease Hub and this chat thread.`
 
     // Assigned Agent & Landlord card: Full Name + Profile Photo ONLY, sourced from
     // the actual listing (identity fields set at submission — see requirement 4).
-    const propertyListing = checkoutListing || rentListings()[0] || null;
+    const propertyListing = checkoutListing || firstRentListing() || null;
     s7PropertyListing = propertyListing; // exposed for the Agent/Landlord card tap handlers below
     const agentAvatar = document.getElementById('s7-agent-avatar');
     const agentAvatarFallback = document.getElementById('s7-agent-avatar-fallback');
@@ -25969,7 +26516,7 @@ available in the Post-Lease Hub and this chat thread.`
   // ==================================================================
   function populateMyLeaseScreen() {
     renderSignedAgreements('ml-agreements-section', 'ml-agreements-list', 'lease');
-    const listing = checkoutListing || rentListings()[0] || null;
+    const listing = checkoutListing || firstRentListing() || null;
     const lease = activeLease || {};
 
     document.getElementById('ml-property-title').textContent = (lease.title) || (listing && listing.title) || 'Your Active Lease';
@@ -26136,7 +26683,7 @@ available in the Post-Lease Hub and this chat thread.`
 
   // routing_rules.agent_listed_property / direct_landlord_property from the spec
   function routeMaintenanceTicket(ticket) {
-    const listing = checkoutListing || rentListings()[0] || null;
+    const listing = checkoutListing || firstRentListing() || null;
     const isAgentListed = !!(listing && listing.listedBy === 'agent');
     const unitName = ticket.propertyTitle;
     const message = `⚠️ Maintenance Alert: Unit ${unitName} reported a ${ticket.category} issue [${ticket.urgency}]. Tap to review proof and assign action.`;
@@ -28114,10 +28661,10 @@ available in the Post-Lease Hub and this chat thread.`
       const ref = 'REV-' + rnd().toUpperCase();
       enqueue({
         event_key: 'rev-' + ref, event_type: 'created', txn_ref: ref, user_id: 'maintown', party_name: 'MainTown Realty', party_role: 'platform',
-        direction: 'credit', category: stream === 'legal_fee' ? 'MAINTOWN_LEGAL_FEE' : stream === 'shortlet_fee' ? 'MAINTOWN_SHORTLET_FEE' : 'MAINTOWN_COMMISSION',
-        title: (stream === 'legal_fee' ? 'Legal fee' : stream === 'shortlet_fee' ? 'Short-let platform fee' : 'Commission') + ' - ' + String((listing && listing.title) || 'Property').slice(0, 120),
+        direction: 'credit', category: stream === 'legal_fee' ? 'MAINTOWN_LEGAL_FEE' : stream === 'shortlet_fee' ? 'MAINTOWN_SHORTLET_FEE' : stream === 'event_fee' ? 'MAINTOWN_EVENT_FEE' : 'MAINTOWN_COMMISSION',
+        title: (stream === 'legal_fee' ? 'Legal fee' : stream === 'shortlet_fee' ? 'Short-let platform fee' : stream === 'event_fee' ? 'Event center service charge' : 'Commission') + ' - ' + String((listing && listing.title) || 'Property').slice(0, 120),
         amount: amt, status: 'SUCCESSFUL', property_name: (listing && listing.title) ? String(listing.title).slice(0, 160) : null,
-        fee_type: stream === 'legal_fee' ? 'Tenancy / agreement legal fee' : stream === 'shortlet_fee' ? 'Short-let platform fee (5% of nightly rate)' : 'Agency commission', sender: stream === 'shortlet_fee' ? 'Guest' : 'Tenant / Buyer (auto-split)', recipient: 'MainTown Realty',
+        fee_type: stream === 'legal_fee' ? 'Tenancy / agreement legal fee' : stream === 'shortlet_fee' ? 'Short-let platform fee (5% of nightly rate)' : stream === 'event_fee' ? 'Event center service charge (2% of hire fee)' : 'Agency commission', sender: stream === 'shortlet_fee' ? 'Guest' : stream === 'event_fee' ? 'Client' : 'Tenant / Buyer (auto-split)', recipient: 'MainTown Realty',
         stream, meta: {}, occurred_at: new Date().toISOString()
       });
     }
