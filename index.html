@@ -4817,7 +4817,7 @@
       </div>
       <div class="s5-notice-box" id="tv-shortlet-noinspection-note" style="display:none;">
         <i data-lucide="calendar-x" class="w-5 h-5"></i>
-        <p>Short-let stays don't use inspection scheduling — tenants pick their own check-in/check-out dates directly on the booking screen.</p>
+        <p>Guests must inspect your shortlet before they can book it. Add the dates and times you are free to show it below; after a Satisfied inspection they pick their check-in and check-out dates.</p>
       </div>
       <div class="s5-notice-box" id="tv-event-noinspection-note" style="display:none;">
         <i data-lucide="calendar-check" class="w-5 h-5"></i>
@@ -5064,7 +5064,7 @@
         </div>
         <div class="s5-notice-box" id="s5-shortlet-noinspection-note" style="display:none;">
           <i data-lucide="calendar-x" class="w-5 h-5"></i>
-          <p>Short-let stays don't use inspection scheduling — tenants pick their own check-in/check-out dates directly on the booking screen.</p>
+          <p>Guests must inspect your shortlet before they can book it. Add the dates and times you are free to show it below; after a Satisfied inspection they pick their check-in and check-out dates.</p>
         </div>
 
         <label class="agree-row" style="margin: 4px 0 10px;">
@@ -14348,6 +14348,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // Action Button Guard: Landlord/Agent never proceeds through their own
       // tenant-facing checkout — show Verification & Escrow Status instead.
       if ((currentUserRole || 'tenant') !== 'tenant') { openEscrowStatusModal(listing); return; }
+      // Inspection-First: a Shortlet can only be booked after a Satisfied inspection is on file.
+      if (!requireInspectionBeforeCheckout(listing)) return;
       openShortletBookingModal(listing);
     } else if (paymentOptionsBtn) {
       if (paymentOptionsBtn.disabled) return;
@@ -14457,8 +14459,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // Rentals, shortlets and commercial spaces: a secondary button that opens the full detail sheet / gallery.
       offerBtn = `<button type="button" class="reel-cta secondary" data-reel-act="details"><i data-lucide="images"></i>${galleryLabel}</button>`;
     }
-    // Short-let stays don't use inspection scheduling anywhere else in the app, so no Set Inspection here either.
-    const inspectBtn = isShortlet ? '' : `
+    // Shortlets now require an inspection first, so Set Inspection shows for every listing type.
+    const inspectBtn = `
         <div class="reel-act"><button type="button" class="reel-act-btn" data-reel-act="inspect" aria-label="Set Inspection"><i data-lucide="calendar-check"></i></button><span>Set inspection</span></div>`;
     return `
     <section class="reel-slide" data-listing-id="${liEsc(p.id)}" style="background-image:url('${liEsc(p.img)}')" aria-label="${liEsc(p.title)}">
@@ -15601,6 +15603,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
   function openShortletBookingModal(listing) {
     if (blockIfPrivilegesPaused()) return;
+    if (!requireInspectionBeforeCheckout(listing)) return;
     sbListing = listing;
     document.getElementById('sb-property-name').textContent = `${listing.title} — ${listing.location}`;
     const todayIso = lagosToday();
@@ -15696,7 +15699,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       status: 'ACTIVE',
       paymentMethod: checkoutSource === 'wallet' ? 'WALLET' : 'DEBIT_CARD',
       cautionFee: sl.cautionFee || 0, cautionHeld: sl.cautionFee || 0, serviceChargeFee: sl.serviceChargeFee || 0,
-      agreementSignedTenant: true, agreementSignedTenantAt: Date.now()
+      agreementSignedTenant: true, agreementSignedTenantAt: Date.now(),
+      inspectionDate: sl.inspectionDate || ''
     };
     try { if (window.__mtFinanceFeed) {
       window.__mtFinanceFeed.revenue('shortlet_fee', Math.round((sl.nightlyRate || 0) * 0.05), listing);
@@ -16389,6 +16393,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // replaced by the single itemized-total checkout on screen-6.
   document.getElementById('sb-confirm-btn').addEventListener('click', () => {
     if (!sbListing) return;
+    // Hard stop: never reach Checkout for a Shortlet without a Satisfied inspection on file.
+    if (!hasSatisfiedInspectionForListing(sbListing)) { shortletBookingModal.classList.remove('open'); requireInspectionBeforeCheckout(sbListing); return; }
     const checkIn = document.getElementById('sb-checkin-date').value;
     const checkOut = document.getElementById('sb-checkout-date').value;
     if (!checkIn || !checkOut || checkOut <= checkIn) {
@@ -16397,6 +16403,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     { const r = shortletUnavailableReason(sbListing, checkIn, checkOut); if (r) { showToast(r); return; } }
     checkoutShortlet = computeShortletBreakdown(sbListing, checkIn, checkOut);
+    checkoutShortlet.inspectionDate = (function () { const i = (inspections || []).find(x => x.status === 'completed' && (x.listingId != null ? x.listingId === sbListing.id : x.listingTitle === sbListing.title)); return i ? `${i.date || ''} ${i.time || ''}`.trim() : ''; })();
     shortletBookingModal.classList.remove('open');
     openCheckout(sbListing);
     navigateTo('screen-6');
@@ -18349,6 +18356,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function checkoutPreflight() {
     const l = checkoutListing;
     if (!l) return true;
+    // Payment gate: a Shortlet cannot be paid for without a Satisfied inspection record for this listing.
+    if (l.type === 'shortlet' && !hasSatisfiedInspectionForListing(l)) {
+      showToast('Payment blocked: this Shortlet has no Satisfied inspection on file.');
+      return false;
+    }
     const fresh = (Array.isArray(listings) ? listings.find(x => String(x.id) === String(l.id)) : null) || l;
     if (l.type !== 'shortlet' && (isListingUnavailable(fresh) || isListingUnavailable(l))) {
       showToast('This property is no longer available.');
@@ -20233,7 +20245,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // so the Host/Agent/Landlord never needs to set inspection slots for it.
     const availSection = document.getElementById(`${prefix}-availability-section`);
     const noInspectionNote = document.getElementById(`${prefix}-shortlet-noinspection-note`);
-    if (availSection) availSection.style.display = (type === 'shortlet') ? 'none' : 'block';
+    if (availSection) availSection.style.display = 'block'; // every category (incl. Shortlet) now requires an inspection first
     if (noInspectionNote) noInspectionNote.style.display = type === 'shortlet' ? 'flex' : 'none';
     { const en = document.getElementById(`${prefix}-event-noinspection-note`); if (en) en.style.display = type === 'event' ? 'flex' : 'none'; }
 
@@ -21327,6 +21339,24 @@ This voucher is auto-generated and serves as proof of settlement.`;
     ));
   }
 
+  // Category tag for inspection logs (Admin > Inspection Logs filters on this).
+  function inspectionCategoryOf(l) {
+    if (!l) return null;
+    if (l.type === 'shortlet') return 'shortlet';
+    if (l.type === 'event') return 'event_hall';
+    if (l.type === 'land') return 'land_property';
+    if (l.type === 'rent') return l.usage === 'commercial' ? 'commercial' : 'rental';
+    return null;
+  }
+  // Inspection-First gate used by Shortlet booking: returns true only when a Satisfied inspection is on file
+  // for this listing; otherwise sends the guest into the inspection flow and returns false.
+  function requireInspectionBeforeCheckout(listing, msg) {
+    if (hasSatisfiedInspectionForListing(listing)) return true;
+    showToast(msg || 'Inspect this property first. Booking and checkout unlock once the inspection is marked Satisfied.');
+    requireScreening(() => openInspectionModal(listing));
+    return false;
+  }
+
   function dxOutrightOnly(l) { return !!(l && l._agreedOfferId) || !!(l && l.type === 'land' && l._deal && l._deal.dealType === 'distress' && l._deal.endsAt > Date.now()) || !!(l && l.type === 'land' && l.installmentOffered === false); } // last clause: host chose outright-only
   // Half-plot option (host sets it on the listing): buyer picks the size; the modal then prices off the chosen part.
   function lpPartListing(base, part) {
@@ -22142,10 +22172,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const isEventInsp = inspectionListing.type === 'event';
     const title = inspectionListing.title;
 
-    document.getElementById('ib-modal-title').textContent = isLand ? 'Schedule Site Inspection' : (isEventInsp ? 'Book Venue Inspection' : 'Book Inspection');
+    document.getElementById('ib-modal-title').textContent = isLand ? 'Schedule Site Inspection' : (isEventInsp ? 'Book Venue Inspection' : (inspectionListing.type === 'shortlet' ? 'Book Shortlet Inspection' : 'Book Inspection'));
     document.getElementById('ib-property-name').textContent = isLand
       ? `Choose a date, time & escrow method to inspect ${title}`
-      : (isEventInsp ? `Choose a date & time to inspect ${title}. After a Satisfied inspection you can pick your event date and hours, then pay.` : `Choose a date & time to inspect ${title}`);
+      : (isEventInsp ? `Choose a date & time to inspect ${title}. After a Satisfied inspection you can pick your event date and hours, then pay.` : (inspectionListing.type === 'shortlet' ? `Choose a date & time to inspect ${title}. After a Satisfied inspection you can pick your check-in and check-out dates, then pay.` : `Choose a date & time to inspect ${title}`));
 
     // Escrow payment mode selector: Land/Property Sale bookings only (per the
     // Unified Site Inspection Requests spec). Reset to Wallet on every open.
@@ -22295,6 +22325,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       date, time, feeType: isAgent ? 'agent' : (salesStaffId ? 'enterprise' : 'landlord'), fee,
       status: 'Pending Approval', conversationId: null, inspectionId: inspId,
       transactionType: isLand ? 'LAND_SALE' : 'RENTAL',
+      category: inspectionCategoryOf(inspectionListing),
       escrowMode: isLand ? ibEscrowMode : null,
       tenantName: buyerName,
       tenantOccupation: (document.getElementById('reg-occupation')?.value || '').trim() || 'Not specified',
@@ -22805,7 +22836,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const convId = inspId + 1;
 
       inspections.unshift({
-        id: inspId, listingTitle: item.title, listingImg: item.img,
+        id: inspId, listingId: item.listingId != null ? item.listingId : item.id, listingTitle: item.title, listingImg: item.img,
         date: item.date, time: item.time, feeType: cartFeeType, fee,
         status: 'accepted'
       });
@@ -22834,7 +22865,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         tenantPhone: (document.getElementById('reg-phone')?.value || '').trim() || null,
         tenantEmail: (document.getElementById('reg-email')?.value || '').trim() || null,
         // ---- Persistence-spec aliases (see Inspection & Walkthrough data model) ----
-        inspection_id: `insp_${inspId}`, property_id: item.id, property_title: item.title,
+        inspection_id: `insp_${inspId}`, property_id: (item.listingId != null ? item.listingId : item.id), property_title: item.title,
+        category: inspectionCategoryOf((listings || []).find(l => String(l.id) === String(item.listingId != null ? item.listingId : item.id))),
         address: item.location, scheduled_date: item.date, scheduled_time: item.time, escrow_amount: fee,
         tenant_id: (typeof currentDemoUserId === 'function' && currentDemoUserId()) || 'user_tenant_01',
         landlord_id: isAgent ? null : (salesStaffId ? null : itemOwnerId),
@@ -25733,6 +25765,9 @@ available in the Post-Lease Hub and this chat thread.`
   function mktProceedCheckout(listing) {
     if (listing.type === 'land') {
       openLandPaymentModal(listing); // -> LandPurchaseCheckoutModal -> HandoverView
+    } else if (listing.type === 'shortlet') {
+      // Shortlets: once Satisfied, the guest picks check-in / check-out, then proceeds to checkout.
+      openShortletBookingModal(listing);
     } else if (listing.type === 'event') {
       // Event centers need their date and hours first: the booking sheet builds the hire fee, then hands off to checkout.
       openEventBookingModal(listing);
@@ -33477,6 +33512,10 @@ available in the Post-Lease Hub and this chat thread.`
       const u = ((rd('maintown_app_state', {}).users) || {})[id];
       return (u && u.role) ? String(u.role).toLowerCase() : null;
     }
+    function categoryOfListing(id) {
+      if (id == null) return null;
+      try { const l = (typeof listings !== 'undefined' ? listings : []).find(x => String(x.id) === String(id)); return (l && typeof inspectionCategoryOf === 'function') ? inspectionCategoryOf(l) : null; } catch (e) { return null; }
+    }
     function ownerOfListing(listingId) {
       try { const l = (typeof listings !== 'undefined' ? listings : []).find(x => String(x.id) === String(listingId)); return l ? (l.ownerId || l.agentId || null) : null; } catch (e) { return null; }
     }
@@ -33521,7 +33560,7 @@ available in the Post-Lease Hub and this chat thread.`
           host_role: s.agent_id ? 'agent' : (s.sales_staff_id ? 'sales_staff' : 'landlord'),
           scheduled_date: s.scheduled_date || s.date || null, scheduled_time: s.scheduled_time || s.time || null,
           status: s.status || null,
-          details: { fee: s.fee != null ? s.fee : null, escrow_mode: s.escrowMode || null, cancellation_reason: s.cancellationReason || null },
+          details: { category: s.category || categoryOfListing(s.property_id), fee: s.fee != null ? s.fee : null, escrow_mode: s.escrowMode || null, cancellation_reason: s.cancellationReason || null },
           fp: [s.status, s.scheduled_date || s.date, s.scheduled_time || s.time].join('|')
         });
       });
@@ -33536,7 +33575,7 @@ available in the Post-Lease Hub and this chat thread.`
           host_id: hostId, host_name: nameOf(hostId), host_role: roleOf(hostId) || 'host',
           scheduled_date: b.checkIn || null, scheduled_time: null,
           status: b.status || null,
-          details: { check_in: b.checkIn || null, check_out: b.checkOut || null, nights: b.nights || null },
+          details: { category: 'shortlet', inspection_date: b.inspectionDate || null, check_in: b.checkIn || null, check_out: b.checkOut || null, nights: b.nights || null },
           fp: [b.status, b.checkIn, b.checkOut].join('|')
         });
       });
@@ -33550,7 +33589,7 @@ available in the Post-Lease Hub and this chat thread.`
           host_id: a.sellerId || null, host_name: nameOf(a.sellerId), host_role: roleOf(a.sellerId) || 'seller',
           scheduled_date: isoFromLabel(a.allocationDateLabel), scheduled_time: timeFromLabel(a.allocationDateLabel),
           status: a.allocationRequestStatus,
-          details: { date_label: a.allocationDateLabel || null },
+          details: { category: 'land_property', date_label: a.allocationDateLabel || null },
           fp: [a.allocationRequestStatus, a.allocationDateLabel].join('|')
         });
       });
@@ -33565,7 +33604,7 @@ available in the Post-Lease Hub and this chat thread.`
           host_id: hostId, host_name: nameOf(hostId), host_role: l.agentId ? 'agent' : 'landlord',
           scheduled_date: l.moveInDate, scheduled_time: timeFromLabel(l.moveInDateLabel),
           status: l.moveInStatus || 'SCHEDULED',
-          details: { date_label: l.moveInDateLabel || null },
+          details: { category: categoryOfListing(l.listingId), date_label: l.moveInDateLabel || null },
           fp: [l.moveInStatus, l.moveInDate, l.moveInDateLabel].join('|')
         });
       });
