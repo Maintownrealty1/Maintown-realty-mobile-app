@@ -25720,6 +25720,9 @@ available in the Post-Lease Hub and this chat thread.`
   function mktProceedCheckout(listing) {
     if (listing.type === 'land') {
       openLandPaymentModal(listing); // -> LandPurchaseCheckoutModal -> HandoverView
+    } else if (listing.type === 'event') {
+      // Event centers need their date and hours first: the booking sheet builds the hire fee, then hands off to checkout.
+      openEventBookingModal(listing);
     } else {
       openCheckout(listing); // -> RentCheckoutModal
       navigateTo('screen-6');
