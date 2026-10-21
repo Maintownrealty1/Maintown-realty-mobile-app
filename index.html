@@ -22259,7 +22259,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // regardless of owner type — that bug is fixed here).
     const fee = isLand ? 15000 : (isAgent ? 12000 : 5000);
     const inspId = Date.now();
-    const buyerName = (document.getElementById('reg-fullname')?.value || '').trim() || (isLand ? 'Client' : 'Tenant');
+    const buyerName = (document.getElementById('reg-fullname')?.value || '').trim() || ((() => { try { const u = (typeof currentDemoUserId === 'function') ? currentDemoUserId() : null; return u ? (((appState && appState.users && appState.users[u]) || (typeof DEMO_USERS !== 'undefined' && DEMO_USERS[u]) || {}).name || '') : ''; } catch (e) { return ''; } })()) || (isLand ? 'Client' : 'Tenant');
 
     // Ledger: Phase 2, Step 2A — hold inspection deposit in escrow.
     logTransaction({
@@ -22304,7 +22304,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // ---- Persistence-spec aliases (see Inspection & Walkthrough data model) ----
       inspection_id: `insp_${inspId}`, property_id: inspectionListing.id, property_title: inspectionListing.title,
       address: inspectionListing.location, scheduled_date: date, scheduled_time: time, escrow_amount: fee,
-      tenant_id: isLand ? 'user_client_01' : 'user_tenant_01',
+      tenant_id: (typeof currentDemoUserId === 'function' && currentDemoUserId()) || (isLand ? 'user_client_01' : 'user_tenant_01'),
       // Enterprise listings route exclusively to the Sales staff who posted
       // them (on the CEO's behalf) — landlord_id/agent_id are left null so
       // this never leaks onto the CEO's or an unrelated Agent's Inspections
@@ -22828,7 +22828,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         id: inspId, title: item.title, img: item.img, location: item.location,
         date: item.date, time: item.time, feeType: cartFeeType, fee,
         status: 'Confirmed', conversationId: convId, inspectionId: inspId,
-        tenantName: (document.getElementById('reg-fullname')?.value || '').trim() || 'Tenant',
+        tenantName: (document.getElementById('reg-fullname')?.value || '').trim() || ((() => { try { const u = (typeof currentDemoUserId === 'function') ? currentDemoUserId() : null; return u ? (((appState && appState.users && appState.users[u]) || (typeof DEMO_USERS !== 'undefined' && DEMO_USERS[u]) || {}).name || '') : ''; } catch (e) { return ''; } })()) || 'Tenant',
         tenantOccupation: (document.getElementById('reg-occupation')?.value || '').trim() || 'Not specified',
         tenantPhoto: currentUserSelfieDataUrl || null,
         tenantPhone: (document.getElementById('reg-phone')?.value || '').trim() || null,
@@ -22836,7 +22836,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         // ---- Persistence-spec aliases (see Inspection & Walkthrough data model) ----
         inspection_id: `insp_${inspId}`, property_id: item.id, property_title: item.title,
         address: item.location, scheduled_date: item.date, scheduled_time: item.time, escrow_amount: fee,
-        tenant_id: 'user_tenant_01',
+        tenant_id: (typeof currentDemoUserId === 'function' && currentDemoUserId()) || 'user_tenant_01',
         landlord_id: isAgent ? null : (salesStaffId ? null : itemOwnerId),
         agent_id: isAgent ? itemOwnerId : null,
         sales_staff_id: salesStaffId,
@@ -25611,6 +25611,18 @@ available in the Post-Lease Hub and this chat thread.`
   const inspectionDecisionModal = document.getElementById('inspection-decision-modal');
   document.getElementById('id-cancel-btn').addEventListener('click', () => inspectionDecisionModal.classList.remove('open'));
 
+  // Report the user's inspection verdict to admin BEFORE the item is removed from the schedules list:
+  // Satisfied -> "Completed", Not Satisfied -> "Uncompleted".
+  function reportInspectionVerdict(inspectionId, status) {
+    try {
+      const sc = schedules.find(x => x.inspectionId === inspectionId);
+      if (!sc) return;
+      sc.status = status;
+      saveSchedules();
+      if (window.MTRInspReport && window.MTRInspReport.runNow) window.MTRInspReport.runNow();
+    } catch (e) {}
+  }
+
   document.getElementById('id-satisfied-btn').addEventListener('click', () => {
     if ((currentUserRole || 'tenant') !== 'tenant') return; // tenant-only: proceeds into the payment flow
     const conv = conversations.find(c => c.id === activeThreadId);
@@ -25654,6 +25666,7 @@ available in the Post-Lease Hub and this chat thread.`
     }
     const insp = inspections.find(i => i.id === conv.inspectionId);
     if (insp) insp.status = 'completed';
+    reportInspectionVerdict(conv.inspectionId, 'Completed');
     saveInspections();
     saveConversations();
     // Remove the now-resolved item from the shared Schedules Hub / Inspections Manager
@@ -25771,6 +25784,7 @@ available in the Post-Lease Hub and this chat thread.`
     conv.status = 'archived';
     const insp = inspections.find(i => i.id === conv.inspectionId);
     if (insp) insp.status = 'archived';
+    reportInspectionVerdict(conv.inspectionId, 'Uncompleted');
     saveInspections();
     saveConversations();
     // Remove the now-resolved item from the shared Schedules Hub / Inspections Manager
@@ -33477,7 +33491,9 @@ available in the Post-Lease Hub and this chat thread.`
       if (/pending/.test(s)) return 'requested';
       if (/declin/.test(s)) return 'declined';
       if (/cancel/.test(s)) return 'cancelled';
-      if (/conduct|attend|complet|checked.?out|ended|closed/.test(s)) return 'completed';
+      if (/uncomplet|not.?satisf/.test(s)) return 'uncompleted';
+      if (/^conduct/.test(s)) return 'conducted';
+      if (/attend|complet|checked.?out|ended|closed/.test(s)) return 'completed';
       if (/confirm/.test(s)) return 'confirmed';
       if (/check.?in/.test(s)) return 'checked_in';
       if (/active|booked/.test(s)) return 'booked';
@@ -33619,7 +33635,16 @@ available in the Post-Lease Hub and this chat thread.`
             headers: { apikey: CFG.key, 'Content-Type': 'application/json', Prefer: 'resolution=ignore-duplicates,return=minimal' },
             body: JSON.stringify(part)
           });
-          if (!res.ok) throw new Error('inspection_events ' + res.status);
+          if (!res.ok) {
+            if (res.status === 400 || res.status === 409 || res.status === 422) {
+              // a malformed row would otherwise block every later report: send one by one, drop only the rejected row(s)
+              for (const row of part) {
+                const r1 = await fetch(CFG.url + '/rest/v1/' + CFG.table + '?on_conflict=event_key', { method: 'POST', headers: { apikey: CFG.key, 'Content-Type': 'application/json', Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify([row]) });
+                if (!r1.ok && r1.status !== 400 && r1.status !== 409 && r1.status !== 422) throw new Error('inspection_events ' + r1.status);
+                if (!r1.ok) console.warn('inspection_events rejected row', r1.status, row.event_key);
+              }
+            } else { throw new Error('inspection_events ' + res.status); }
+          }
           const sent = new Set(part.map(p => p.event_key));
           wr(LS_BOX, rd(LS_BOX, []).filter(p => !sent.has(p.event_key)));
         }
@@ -33630,7 +33655,8 @@ available in the Post-Lease Hub and this chat thread.`
 
     function poke() { if (timer) return; timer = setTimeout(run, CFG.throttleMs); }
 
-    window.MTRInspReport = { poke: poke, flush: flush };
+    function runNow() { if (timer) { clearTimeout(timer); timer = null; } run(); }
+    window.MTRInspReport = { poke: poke, flush: flush, runNow: runNow };
     window.addEventListener('maintown_state_updated', poke);
     window.addEventListener('storage', poke);
     window.addEventListener('online', flush);
