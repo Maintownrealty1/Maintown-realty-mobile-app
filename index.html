@@ -6415,13 +6415,7 @@
     </button>
   </div>
 
-  <!-- Signed tenancy agreements forwarded by Sales staff (Legal -> CEO -> Sales -> Client pipeline) -->
-  <div id="ml-enterprise-docs-list"></div>
-
-  <div id="ml-agreements-section" style="display:none; margin-top:6px; margin-bottom:14px;">
-    <p class="s5-section-label"><i data-lucide="file-check" class="w-4 h-4 text-emerald-400"></i>Signed Agreements</p>
-    <div id="ml-agreements-list"></div>
-  </div>
+  <!-- Signed agreements now live inside each property's detail sheet (tap a property above) -->
 
   <!-- Lease Metrics Grid -->
   <p class="s5-section-label"><i data-lucide="layout-grid" class="w-4 h-4 text-purple-400"></i>Lease Metrics</p>
@@ -9745,7 +9739,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { icon: 'file-text', label: 'My Lease', bg: 'bg-blue-500/10', color: 'text-blue-400', action: 'myLease' },
         { icon: 'credit-card', label: 'Wallet', bg: 'bg-fuchsia-500/10', color: 'text-fuchsia-400', action: 'wallet' },
         { icon: 'landmark', label: 'Assets', bg: 'bg-teal-500/10', color: 'text-teal-400', action: 'assetHub' },
-        { icon: 'percent', label: 'Deals', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'deals' }
+        { icon: 'percent', label: 'Deals', bg: 'bg-purple-500/10', color: 'text-purple-400', action: 'deals' },
+        { icon: 'calendar-days', label: 'Bookings', bg: 'bg-cyan-500/10', color: 'text-cyan-400', action: 'myBookings' }
       ],
       activity: [
         { icon: 'receipt', color: 'text-emerald-400', title: 'Rent payment received', sub: 'Aug 1 · ₦180,000' },
@@ -11252,6 +11247,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const guestTile = grid.querySelector('.dash-tile[data-action="guests"]');
       if (guestTile && guestCount > 0) guestTile.insertAdjacentHTML('beforeend', `<span class="dash-tile-count">${guestCount}</span>`);
     }
+    if (role === 'tenant') {
+      try {
+        const bTile = grid.querySelector('.dash-tile[data-action="myBookings"]');
+        const bn = myBookingsAttentionCount();
+        if (bTile && bn > 0) bTile.insertAdjacentHTML('beforeend', `<span class="dash-tile-count">${bn}</span>`);
+      } catch (e) {}
+    }
     if (typeof mgRenderDashReviewCard === 'function') mgRenderDashReviewCard();
     renderDashListings(role);
 
@@ -11344,7 +11346,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // summary card: one tappable card per unread actionable notification that
   // opens the same Notification Detail Modal. For buyers/clients, a nudge card
   // also appears whenever they skipped a Physical Allocation step.
-  const DASH_ACTION_NOTIF_TYPES = /^(ALLOCATION_|DEED_|CONSENT_|PHYSICAL_|DOC_|COUNTERSIGN_|TENANT_SIGNED_AGREEMENT|AGREEMENT_EXECUTED|INSTALLMENT_)/;
+  const DASH_ACTION_NOTIF_TYPES = /^(MOVEIN_|ALLOCATION_|DEED_|CONSENT_|PHYSICAL_|DOC_|COUNTERSIGN_|TENANT_SIGNED_AGREEMENT|AGREEMENT_EXECUTED|INSTALLMENT_)/;
   const DASH_ACTION_NOTIF_SCREENS = ['screen-owner-assets', 'assetHub', 'screen-land-handover', 'handoverReview', 'salesAllocations', 'entLegalReview'];
   let handoverOverrideListing = null;
 
@@ -11353,6 +11355,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const uid = typeof currentDemoUserId === 'function' ? currentDemoUserId() : null;
     return platformNotifications.filter(n => {
       if (!n.unread) return false;
+      if (n.dashSeen) return false; // opened from the dashboard already: it stays in the Notification Center only
       if (!(n.forUserId ? n.forUserId === uid : n.forRole === role)) return false;
       if (n.category === 'inspection') return false; // already on the inspection summary card
       if (n.type === 'RESUME_CHECKOUT') return false; // already on the Continue Payment card
@@ -11425,7 +11428,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
     const card = e.target.closest('.dash-notif-card');
-    if (card) { openNotificationDetailModal(card.dataset.notifId); return; }
+    if (card) {
+      const nf = platformNotifications.find(n => String(n.id) === String(card.dataset.notifId));
+      if (nf) { nf.dashSeen = true; try { savePlatformNotifications(); } catch (er) {} }
+      openNotificationDetailModal(card.dataset.notifId);
+      renderActionSummaryCards();
+      return;
+    }
     if (e.target.closest('.dash-notif-more')) navigateTo('screen-notifications');
   });
 
@@ -11792,6 +11801,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } else if (tile.dataset.action === 'deals') {
       navigateTo('screen-deals');
       openDealsScreen();
+    } else if (tile.dataset.action === 'myBookings') {
+      openMyBookingsSheet();
     } else if (tile.dataset.action === 'myLease') {
       navigateTo('screen-my-lease');
     } else if (tile.dataset.action === 'tenants' || tile.dataset.action === 'clients') {
@@ -14841,6 +14852,56 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!g.listing) { showToast('The listing page is no longer available, but your receipts are saved.'); if (g.txns.length) mlDownloadReceipts(g); return; }
     openListingInfoFor(g.listing, { owned: g });
   }
+  // ---- Move-in date reminder ----
+  // A tenant who paid for a rental but never set a move-in date gets a notification (and a Home card)
+  // asking them to continue. It repeats once a day until the date is set, and clears as soon as it is.
+  function mlPrepareMoveIn(listingId) {
+    const l = listings.find(x => String(x.id) === String(listingId));
+    if (!l) return;
+    checkoutListing = l;
+    if (!activeLease || String(activeLease.listingId) !== String(l.id)) {
+      activeLease = {
+        listingId: l.id, ownerId: l.ownerId || null, agentId: l.agentId || null,
+        listedByRole: l.listedByRole || (l.listedBy === 'agent' ? 'AGENT' : 'LANDLORD'),
+        title: l.title, amountLabel: l.ngn || '', dueLabel: 'Move-in date pending \u2014 schedule below',
+        card: 'MainTown Funded Wallet', monthlyAmount: 0, remainingMonths: 0, autoDebitSchedule: null
+      };
+    }
+  }
+  function checkMoveInReminders() {
+    try {
+      if ((currentUserRole || 'tenant') !== 'tenant') return;
+      const uid = currentDemoUserId(); if (!uid) return;
+      appState = loadAppState();
+      const leases = appState.leases || [];
+      let changed = false;
+      mlPaidProperties().forEach(g => {
+        const l = g.listing;
+        if (!l || l.type !== 'rent' || g.kind !== 'rent') return;
+        const mine = platformNotifications.filter(n => n.type === 'MOVEIN_REMINDER' && n.forUserId === uid && n.route && String(n.route.listingId) === String(l.id));
+        const hasDate = leases.some(x => String(x.listingId) === String(l.id) && x.moveInDate && (!x.tenantId || x.tenantId === uid))
+          || (activeLease && String(activeLease.listingId) === String(l.id) && activeLease.moveInConfirmed);
+        if (hasDate) { mine.forEach(n => { if (n.unread) { n.unread = false; changed = true; } }); return; }
+        // Give the tenant a few minutes after paying to set the date themselves first.
+        let paidAt = g.last || 0;
+        if (g.leaseOnly) {
+          const k = 'mtr_movein_seen_' + uid + '_' + l.id;
+          try { paidAt = Number(localStorage.getItem(k)) || 0; if (!paidAt) { paidAt = Date.now(); localStorage.setItem(k, String(paidAt)); } } catch (e) {}
+        }
+        if (Date.now() - paidAt < 5 * 60 * 1000) return;
+        const lastPush = mine.reduce((m, n) => Math.max(m, n.timestamp || 0), 0);
+        if (lastPush && Date.now() - lastPush < 24 * 3600 * 1000) return;
+        pushPlatformNotification('tenant', 'lease', 'Set Your Move-In Date',
+          `You paid for ${l.title} but have not chosen a move-in date yet. Tap to continue and set it so your landlord can prepare.`,
+          { screen: 'screen-post-lease', listingId: l.id }, 'MOVEIN_REMINDER', null, uid);
+      });
+      if (changed) { savePlatformNotifications(); updateAllBellDots(); }
+    } catch (e) {}
+  }
+  setTimeout(checkMoveInReminders, 4000);
+  setInterval(checkMoveInReminders, 60000);
+  window.addEventListener('maintown_state_updated', () => { setTimeout(checkMoveInReminders, 1500); });
+
   document.getElementById('ml-paid-list').addEventListener('click', (e) => {
     const c = e.target.closest('[data-ml-key]'); if (c) mlOpenPaid(c.dataset.mlKey);
   });
@@ -16376,6 +16437,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const stays = myShortletStays();
     if (!stays.length) { wrap.innerHTML = ''; return; }
     const live = stays.filter(shortletCanCancel);
+    // Once the guest has opened this alert it leaves the dashboard; it comes back only when a stay changes
+    // (new booking, check-in, check-out, a rating to leave). Everything stays reachable under Bookings.
+    const staysSig = stays.map(b => b.id + ':' + shortletPhase(b).key + ':' + (slReviewOf(b.id) ? 1 : 0)).join('|');
+    let seenSig = null; try { seenSig = localStorage.getItem('mtr_dash_stays_seen_' + (currentDemoUserId() || '')); } catch (e) {}
+    if (seenSig === staysSig) { wrap.innerHTML = ''; return; }
     wrap.innerHTML = `
       <div class="dash-summary-card" id="dash-stays-summary-card">
         <div class="dash-summary-icon"><i data-lucide="calendar-days" class="w-4 h-4"></i></div>
@@ -16386,7 +16452,26 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <i data-lucide="chevron-right" class="w-4 h-4" style="color:#64748b;"></i>
       </div>`;
     if (window.lucide) lucide.createIcons();
-    document.getElementById('dash-stays-summary-card').addEventListener('click', openMyStaysSheet);
+    document.getElementById('dash-stays-summary-card').addEventListener('click', () => {
+      try { localStorage.setItem('mtr_dash_stays_seen_' + (currentDemoUserId() || ''), staysSig); } catch (e) {}
+      wrap.innerHTML = '';
+      openMyBookingsSheet();
+    });
+  }
+  // Bookings hub: shortlet stays + event center bookings in one sheet.
+  function myEventBookings() {
+    let uid = null; try { uid = currentDemoUserId(); } catch (e) {}
+    return (eventBookings || []).filter(b => String(b.tenantId) === String(uid) && b.status === 'CONFIRMED');
+  }
+  function myBookingsAttentionCount() {
+    const today = (typeof lagosToday === 'function') ? lagosToday() : '';
+    return myShortletStays().filter(shortletCanCancel).length + myEventBookings().filter(b => b.eventDate >= today).length;
+  }
+  function openMyBookingsSheet() {
+    document.getElementById('cd-title').textContent = 'My Bookings';
+    document.getElementById('cd-subtitle').textContent = 'Shortlet stays and event center bookings: follow up, contact, cancel or rate';
+    renderMyStaysSheet();
+    document.getElementById('closed-deals-modal').classList.add('open');
   }
   function renderMyStaysSheet() {
     const stays = myShortletStays();
@@ -16418,7 +16503,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <button type="button" class="insp-cancel-btn" data-stay-cancel="${b.id}"><i data-lucide="calendar-x" class="w-4 h-4"></i>Cancel Stay</button>` : ''}
       </div>`;
     }).join('');
-    document.getElementById('cd-list').innerHTML = html || '<p class="role-hint" style="text-align:left;">No shortlet stays yet.</p>';
+    const bookingsMode = document.getElementById('cd-title').textContent === 'My Bookings';
+    if (!bookingsMode) {
+      document.getElementById('cd-list').innerHTML = html || '<p class="role-hint" style="text-align:left;">No shortlet stays yet.</p>';
+    } else {
+      let evHtml = '';
+      try { renderHubEventBookings(); const w = document.getElementById('s7-event-bookings'); evHtml = w ? w.innerHTML : ''; } catch (e) {}
+      const head = (icon, t) => `<p class="s5-section-label" style="margin:6px 0 10px;"><i data-lucide="${icon}" class="w-4 h-4 text-purple-400"></i>${t}</p>`;
+      const staysPart = html ? head('calendar-days', 'Your Shortlet Stays') + html : '';
+      document.getElementById('cd-list').innerHTML = (staysPart + evHtml) || '<p class="role-hint" style="text-align:left;">No bookings yet. Shortlet stays and event center bookings you pay for will show here.</p>';
+    }
     if (window.lucide) lucide.createIcons();
   }
   function openMyStaysSheet() {
@@ -22105,6 +22199,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
         notificationDetailModal.classList.remove('open');
         openShortletExtensionModal(notif.route.bookingId);
       };
+    } else if (notif.type === 'MOVEIN_REMINDER' && notif.route && notif.route.listingId != null) {
+      ctaLabel.textContent = 'Set Move-In Date';
+      ctaBtn.style.display = 'flex';
+      ctaBtn.onclick = () => {
+        notificationDetailModal.classList.remove('open');
+        mlPrepareMoveIn(notif.route.listingId);
+        navigateTo('screen-post-lease');
+      };
     } else if (notif.route && notif.route.screen === 'resumeCheckout') {
       // Picks up exactly where the tenant left off: screen-6 was never reset
       // when they stepped away to fund their wallet (openCheckout() isn't
@@ -26159,6 +26261,11 @@ available in the Post-Lease Hub and this chat thread.`
     if (checkoutListing) {
       upsertLeaseMoveIn(checkoutListing, dateVal, formatted, tenantNameForMoveIn, activeLease && activeLease.escrowStatus, activeLease && activeLease.remainingMonths);
       dispatchMoveInNotifications(checkoutListing, tenantNameForMoveIn, formatted);
+      try {
+        const myId = currentDemoUserId();
+        platformNotifications.forEach(n => { if (n.type === 'MOVEIN_REMINDER' && n.forUserId === myId && n.route && String(n.route.listingId) === String(checkoutListing.id)) n.unread = false; });
+        savePlatformNotifications(); updateAllBellDots();
+      } catch (e) {}
     }
 
     // Auto-Debit Schedule: tied to the move-in date. Month 1 was already paid upfront
@@ -29033,15 +29140,18 @@ available in the Post-Lease Hub and this chat thread.`
       };
     }
     let flushing = false;
+    let flushStartedAt = 0, flushTimer = null;
     async function flush() {
-      if (flushing) return; flushing = true;
+      // A request left hanging by a frozen background tab must not block the queue forever.
+      if (flushing && Date.now() - flushStartedAt < 30000) return;
+      flushing = true; flushStartedAt = Date.now();
       let failed = false;
       try {
         const c = RemoteFeed.config; if (!c) return;
         let q = load();
         while (q.length) {
           const batch = q.slice(0, BATCH);
-          let res = await fetch(c.url + '/rest/v1/rpc/report_finance_ledger', { method: 'POST', headers: { apikey: c.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_rows: batch }) });
+          let res = await fetch(c.url + '/rest/v1/rpc/report_finance_ledger', { method: 'POST', headers: { apikey: c.key, 'Content-Type': 'application/json' }, keepalive: true, body: JSON.stringify({ p_rows: batch }) });
           if (res.status === 404) { // function not created yet: fall back to a direct table insert
             res = await fetch(c.url + '/rest/v1/finance_ledger?on_conflict=event_key', { method: 'POST', headers: { apikey: c.key, 'Content-Type': 'application/json', Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify(batch) });
           }
@@ -29056,7 +29166,13 @@ available in the Post-Lease Hub and this chat thread.`
       // Anything queued after the last check, or after a failure, is picked up again shortly.
       try { if (load().length) setTimeout(flush, failed ? 30000 : 400); } catch (e) {}
     }
-    function enqueue(row) { const q = load(); q.push(row); save(q); flush(); }
+    // Rows created in the same moment (the payment, its commission, its fees) leave together, and the queue is
+    // flushed again whenever the tab is hidden or comes back, so switching to another tab right after paying
+    // can no longer strand part of a payment (such as MainTown's fee) on the phone.
+    function enqueue(row) { const q = load(); q.push(row); save(q); clearTimeout(flushTimer); flushTimer = setTimeout(flush, 300); }
+    document.addEventListener('visibilitychange', () => { try { flush(); } catch (e) {} });
+    window.addEventListener('pagehide', () => { try { flush(); } catch (e) {} });
+    window.addEventListener('pageshow', () => { try { flush(); } catch (e) {} });
     function txn(t) { if (t && t.id) enqueue(rowOf(t, 'created')); }
     function status(t, st) { if (t && t.id) enqueue(rowOf(t, 'status', st)); }
     // MainTown's own earnings that have no wallet transaction (commission, legal fee on a settled payment).
