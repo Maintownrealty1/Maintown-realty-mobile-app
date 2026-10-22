@@ -2214,6 +2214,26 @@
     font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s ease;
   }
   .s5-timeslot.selected { background: rgba(147,51,234,0.2); border-color: #a855f7; color: #fff; }
+  /* Slot-based inspections: a slot someone else already booked is greyed out and not tappable. */
+  .s5-timeslot.booked { opacity: 0.42; cursor: not-allowed; pointer-events: none; text-decoration: line-through; background: rgba(30,41,59,0.35); color: #64748b; }
+  .s5-timeslot.booked .slot-booked-tag { text-decoration: none; display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .03em; margin-left: 4px; }
+  .insp-cal-day.full { color: #475569; background: rgba(30,41,59,0.35); border: 1px dashed #334155; cursor: not-allowed; text-decoration: line-through; }
+  body.light-theme .s5-timeslot.booked { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; }
+  body.light-theme .insp-cal-day.full { color: #94a3b8; background: #f1f5f9; border-color: #cbd5e1; }
+  /* 15-minute checkout hold: countdown banner + gate overlay on Secure Checkout. */
+  .s6-hold-banner { display: none; align-items: center; gap: 8px; margin: 0 0 14px; padding: 10px 12px; border-radius: 12px; font-size: 12.5px; font-weight: 600; line-height: 1.35;
+    background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); color: #6ee7b7; }
+  .s6-hold-banner strong { font-variant-numeric: tabular-nums; font-size: 15px; letter-spacing: .02em; }
+  .s6-hold-banner[data-level="warn"] { background: rgba(245,158,11,0.13); border-color: rgba(245,158,11,0.4); color: #fcd34d; }
+  .s6-hold-banner[data-level="crit"] { background: rgba(239,68,68,0.14); border-color: rgba(239,68,68,0.45); color: #fca5a5; }
+  body.light-theme .s6-hold-banner { color: #047857; background: #ecfdf5; border-color: #a7f3d0; }
+  body.light-theme .s6-hold-banner[data-level="warn"] { color: #92400e; background: #fffbeb; border-color: #fde68a; }
+  body.light-theme .s6-hold-banner[data-level="crit"] { color: #b91c1c; background: #fef2f2; border-color: #fecaca; }
+  .s6-hold-overlay { display: none; position: fixed; inset: 0; z-index: 9500; align-items: center; justify-content: center; padding: 24px; background: rgba(2,6,23,0.88); }
+  .s6-hold-overlay .s6-hold-card { max-width: 340px; width: 100%; text-align: center; padding: 22px 20px; border-radius: 16px; background: #0f172a; border: 1px solid #1e293b; color: #e2e8f0; }
+  .s6-hold-overlay .s6-hold-card p { margin: 0 0 14px; font-size: 13.5px; line-height: 1.5; }
+  body.light-theme .s6-hold-overlay { background: rgba(241,245,249,0.92); }
+  body.light-theme .s6-hold-overlay .s6-hold-card { background: #fff; border-color: #e2e8f0; color: #0f172a; }
 
   .s5-hold-preview {
     background: rgba(15,23,42,0.9); border: 1px solid #1e293b; border-radius: 14px; padding: 14px 16px;
@@ -3179,6 +3199,15 @@
   .li-row span { color: #8391a7; flex-shrink: 0; }
   .li-row strong { color: #f1f5f9; font-weight: 600; text-align: right; }
   .li-note { font-size: 11.5px; color: #7c8aa0; margin: 8px 2px 0; line-height: 1.5; }
+  /* My Lease details sheet: rows that carry buttons (receipts, documents) */
+  .li-row.li-row-act { align-items: center; gap: 12px; }
+  .li-row.li-row-act > span { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; line-height: 1.4; }
+  .li-row.li-row-act > strong { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; text-align: right; }
+  .li-row.li-row-act > strong.li-row-btns { flex-direction: row; align-items: center; gap: 6px; }
+  .li-row.li-row-act .lease-doc-btn { flex: 0 0 auto; width: auto; min-height: 34px; padding: 8px 12px; white-space: nowrap; }
+  .li-row.li-row-total { align-items: center; }
+  .li-row.li-row-total > span { flex: 1 1 auto; }
+  .li-row.li-row-total > strong { flex: 0 0 auto; }
   /* Owner preview (Landlord / Agent): tag on the hero + status note */
   .li-preview-tag {
     position: absolute; top: 12px; left: 12px; z-index: 2; display: none; align-items: center; gap: 5px;
@@ -3205,6 +3234,15 @@
     background: linear-gradient(to top, #0d1424 72%, rgba(13,20,36,0));
   }
   .li-actions .s5-action-btn { padding: 13px 10px; font-size: 13px; }
+  /* My Lease: a solid bar so nothing shows through it, with the buttons in an even grid */
+  .li-actions.li-actions-owned {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 14px;
+    background: #0d1424; border-top: 1px solid var(--hairline); box-shadow: 0 -14px 24px -12px rgba(0,0,0,0.55);
+  }
+  .li-actions.li-actions-owned .s5-action-btn { width: 100%; min-width: 0; margin: 0; justify-content: center; text-align: center; line-height: 1.2; }
+  .li-actions.li-actions-owned .s5-action-btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  /* keep the last section clear of the bar */
+  #listing-info-sheet .li-card.li-card-owned .li-body { padding-bottom: 20px; }
   body.light-theme #listing-info-sheet .li-card { background: #fff; border-color: #e2e8f0; }
   body.light-theme .li-hero::after { background: linear-gradient(to top, #fff 2%, rgba(255,255,255,0.05) 62%); }
   body.light-theme .li-title, body.light-theme .li-price, body.light-theme .li-h, body.light-theme .li-row strong { color: #0f172a; }
@@ -3213,6 +3251,7 @@
   body.light-theme .li-chip { color: #334155; background: #f1f5f9; border-color: #e2e8f0; }
   body.light-theme .li-chip.ok { color: #047857; background: #d1fae5; border-color: #6ee7b7; }
   body.light-theme .li-actions { background: linear-gradient(to top, #fff 72%, rgba(255,255,255,0)); }
+  body.light-theme .li-actions.li-actions-owned { background: #fff; border-top-color: #e2e8f0; box-shadow: 0 -14px 24px -12px rgba(15,23,42,0.15); }
 
   /* ---- Enterprise (CEO) command dashboard ---- */
   .ent-role-badge { text-transform: none; letter-spacing: 0; }
@@ -5589,6 +5628,20 @@
     </div>
   </div>
 
+  <div id="s6-hold-banner" class="s6-hold-banner" role="timer" aria-live="off">
+    <i data-lucide="timer" class="w-4 h-4" style="flex-shrink:0;"></i>
+    <span>Complete your booking within <strong id="s6-hold-time">15:00</strong> to secure this reservation</span>
+  </div>
+  <div id="s6-hold-overlay" class="s6-hold-overlay" role="alertdialog" aria-live="assertive">
+    <div class="s6-hold-card">
+      <p id="s6-hold-ov-loading">Securing your reservation&hellip;</p>
+      <div id="s6-hold-ov-blocked" style="display:none;">
+        <p id="s6-hold-ov-msg">Another user is currently completing a checkout for this listing. Please try again in a few minutes.</p>
+        <button type="button" id="s6-hold-ov-back" class="btn-primary" style="margin:0;">Back to Listings</button>
+      </div>
+    </div>
+  </div>
+
   <h1 class="s5-role-title" style="margin-bottom: 18px;">Payment Breakdown</h1>
 
   <!-- Property Summary Card -->
@@ -7565,7 +7618,7 @@
       <div class="row"><span>Net Rent (Night 1 — due now)</span><strong id="sb-net-rent">₦0</strong></div>
       <div class="row" id="sb-caution-row" style="display:none;"><span>Caution Fee (to host)</span><strong id="sb-caution">₦0</strong></div>
       <div class="row" id="sb-service-row" style="display:none;"><span>Service Charge (to host)</span><strong id="sb-service">₦0</strong></div>
-      <div class="row"><span>MainTown Platform Fee (5%)</span><strong id="sb-legal">₦0</strong></div>
+      <div class="row"><span>MainTown Platform Fee (5% of whole stay)</span><strong id="sb-legal">₦0</strong></div>
       <div class="row"><span>Total Due Now</span><strong id="sb-total-now">₦0</strong></div>
     </div>
 
@@ -8073,6 +8126,10 @@
     <div class="s5-notice-box">
       <i data-lucide="lock" class="w-5 h-5"></i>
       <p id="ib-notice-text">Held by <span class="js-provider">Flutterwave</span>, not MainTown. Agent listings: 100% released on satisfaction, or split 50/50 on cancellation.</p>
+    </div>
+    <div class="s5-notice-box" id="ib-taken-note" style="display:none;">
+      <i data-lucide="shield-check" class="w-5 h-5"></i>
+      <p id="ib-taken-note-text"></p>
     </div>
 
     <div class="ib-waiver">
@@ -9267,6 +9324,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (screenId !== 'screen-6' && typeof flagCheckoutResumeIfNeeded === 'function') {
       flagCheckoutResumeIfNeeded();
     }
+    // Coming back to Secure Checkout (e.g. "Continue Your Payment"): make sure the 15-minute hold is still ours.
+    if (screenId === 'screen-6' && window.MTRBooking) { try { MTRBooking.ensureHold(); } catch (e) {} }
 
     // Defense-in-depth: navigateTo() is the router for authenticated app
     // screens only. If a pre-auth screen (Welcome/Register/KYC/Legal/Login —
@@ -9594,7 +9653,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 6: Dispute Resolution — Mediation & Arbitration', body: ADR_CLAUSE_TEXT },
         { title: 'Section 7: In-App Communication Compliance', body: 'Obligation to keep all lease interactions inside the app.' },
         { title: 'Section 8: Payment Default, Legal Escalation & Access Suspension', body: RENT_DEFAULT_SCHEDULE_TEXT + ' Where a court orders recovery of possession, or the tenancy is lawfully terminated for default, your profile converts to DEFAULTED / EVICTED. Upon conversion: (a) all active chat, voice, and video lines with the landlord/agent for that tenancy are locked; (b) digital property access keys/tokens are revoked; (c) profile access to property search, viewing, and rental bookings is suspended and may be reinstated on review once arrears are cleared; (d) a record of the default is stored on the platform ledger. You may dispute the record through the Dispute Centre and request correction of inaccurate personal data.', critical: true },
-        { title: 'Section 9: Fee Transparency', body: 'The Legal Fee for drafting your tenancy agreement is collected by MainTown directly, not your Landlord or Agent, for full transparency. Any Caution Deposit and Service Charge shown on a rental or shortlet listing are set by the Landlord/Agent and paid directly to them alongside your rent or shortlet payments. Shortlet stays carry a MainTown Platform Fee (5% of the nightly rate) in place of a Legal Fee.' },
+        { title: 'Section 9: Fee Transparency', body: 'The Legal Fee for drafting your tenancy agreement is collected by MainTown directly, not your Landlord or Agent, for full transparency. Any Caution Deposit and Service Charge shown on a rental or shortlet listing are set by the Landlord/Agent and paid directly to them alongside your rent or shortlet payments. Shortlet stays carry a MainTown Platform Fee (5% of the whole stay, paid once at checkout) in place of a Legal Fee.' },
         { title: 'Section 10: Site Visit Safety Waiver & Indemnity', body: SITE_WAIVER_TEXT },
         { title: 'Section 11: Title Verification & Due Diligence Notice', body: TITLE_DISCLAIMER_TEXT }
       ]
@@ -9612,7 +9671,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Section 7: Fraud, Dual-Leasing & Zero Tolerance', body: 'Immediate account termination, forfeiture of pending payouts, listing removal, and referral to law enforcement for fake listings, fraudulent titles, or executing side-deals/double-leases.', critical: true },
         { title: 'Section 8: Verification Walkthroughs & Inspection Access', body: "Agreement to allow scheduled virtual or physical walkthrough inspections by authorized MainTown verification agents prior to and during listing activation. This includes facilitating buyer inspections at checkout — for Land &amp; Property sales, buyer checkout remains locked until the buyer logs an in-app Satisfied status. " + SITE_SAFETY_WARRANTY_TEXT },
         { title: 'Section 9: Non-Circumvention & Direct Payment Ban', body: 'Strict prohibition against bypassing the platform\'s payment system to request cash, direct bank transfers, or off-platform renewals from MainTown users. Violations incur platform ban and legal recovery of lost fees.', critical: true },
-        { title: 'Section 10: Fee Transparency & Collection', body: 'MainTown collects the Legal Fee for drafting tenancy agreements directly, for transparency — it is never yours to set or collect. Any Caution Deposit and Service Charge you configure for a rental or shortlet listing (or leave as self-service, with no service charge) are paid directly to you alongside the tenant\'s rent/shortlet payments. For Land &amp; Property Sales, the Deed of Assignment legal/processing fee (5% or 10%, as you select at listing) is paid directly to you together with the buyer\'s first installment payment — MainTown does not collect it. A Land &amp; Property sale separately carries a 10% Agency Commission, made up of a Buyer-paid 5% (always to MainTown) and a Seller-paid 5% (to the agent or company that listed the property on your behalf, or also to MainTown if you listed directly). Shortlet listings carry a MainTown Platform Fee (5% of the nightly rate) instead of a Legal Fee.' },
+        { title: 'Section 10: Fee Transparency & Collection', body: 'MainTown collects the Legal Fee for drafting tenancy agreements directly, for transparency — it is never yours to set or collect. Any Caution Deposit and Service Charge you configure for a rental or shortlet listing (or leave as self-service, with no service charge) are paid directly to you alongside the tenant\'s rent/shortlet payments. For Land &amp; Property Sales, the Deed of Assignment legal/processing fee (5% or 10%, as you select at listing) is paid directly to you together with the buyer\'s first installment payment — MainTown does not collect it. A Land &amp; Property sale separately carries a 10% Agency Commission, made up of a Buyer-paid 5% (always to MainTown) and a Seller-paid 5% (to the agent or company that listed the property on your behalf, or also to MainTown if you listed directly). Shortlet listings carry a MainTown Platform Fee (5% of the whole stay, paid once at checkout) instead of a Legal Fee.' },
         { title: 'Section 11: Dispute Resolution — Mediation & Arbitration', body: ADR_CLAUSE_TEXT },
         { title: 'Section 12: Managed Accounts & Leaving an Agent or Agency', body: 'If an agent or company onboarded you, your account is a managed account. They create and manage your listings and handle deals, requests and offers for you, so those shortcuts stay hidden on your dashboard while you are managed. You review and approve each listing, upload the title documents for that property and confirm your payout account, and your payouts go to your own verified account. While managed you cannot create listings yourself or upgrade to an Enterprise account. You may ask to leave at any time from your dashboard: you choose the reason closest to yours (communication or updates, commission or fees, wanting to manage your properties yourself, moving to another agent or agency, or another reason), and a private chat opens with your agent or company so you can talk it through. If you still want to leave, confirm it in the chat and they can approve your request; they may also decline it with a reason. Once approved, your account becomes a direct Landlord account and Deals, Requests and Offers appear on your dashboard. Before you list on your own you must complete verification and accept this policy again. Properties your agent or company already placed become direct listings: they no longer earn commission on them, MainTown acts as your agent on them, and payments are split automatically as for any direct landlord.' }
       ]
@@ -10940,7 +10999,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } else if (type === 'shortlet') {
       cards = [
         asCard('Nightly rate', 'Night 1 is paid when you book. Remaining nights are debited daily from your wallet until the stay is fully paid.'),
-        asCard('MainTown Platform Fee', '5% of the nightly rate. Shortlets carry this instead of a Legal Fee.'),
+        asCard('MainTown Platform Fee', '5% of the nightly rates for the whole stay, paid once at checkout. Shortlets carry this instead of a Legal Fee.'),
         asCard('Caution Deposit & Service Charge', 'Set by the owner or agent and paid directly to them. Damage claims against the deposit must be raised within 24 hours of checkout, with photo or video proof.')
       ];
     } else {
@@ -11740,6 +11799,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     const st = (d.status === 'live' && d.endsAt <= Date.now()) ? 'Expired' : d.status.charAt(0).toUpperCase() + d.status.slice(1);
     openListingInfoFor(view, { preview: true, statusLabel: `Deal ${st} \u00B7 ${dxPct(d.oldPrice, d.newPrice)}% off` });
+    document.getElementById('li-actions').classList.remove('li-actions-owned');
+    document.getElementById('listing-info-sheet').querySelector('.li-card').classList.remove('li-card-owned');
     document.getElementById('li-actions').innerHTML = `${dxCanDelete(d) ? `<button type="button" class="s5-action-btn" style="color:#ef4444;" data-dx-del="${dxEsc(d.id)}"><i data-lucide="trash-2" class="w-4 h-4"></i>Delete</button>` : ''}<button type="button" class="s5-action-btn primary" data-dx-close>Close</button>`;
     if (window.lucide) lucide.createIcons();
   }
@@ -14925,26 +14986,26 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function mlOwnedSectionsHtml(p, g) {
     const esc = liEsc, money = n => formatMoney(n, 'ngn');
     const fmt = ts => new Date(ts).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const payRows = g.txns.length ? g.txns.map(t => `<div class="li-row" style="align-items:center;">
+    const payRows = g.txns.length ? g.txns.map(t => `<div class="li-row li-row-act">
         <span>${esc(t.title)}<br><small style="color:#64748b;">${esc(fmt(t.timestamp))} \u00b7 ${esc(t.id)}</small></span>
-        <strong>${money(t.amount)}<br><button type="button" class="lease-doc-btn download" data-li-receipt="${esc(t.id)}" style="margin-top:6px;"><i data-lucide="download" class="w-3.5 h-3.5"></i>Receipt</button></strong></div>`).join('')
-      + `<div class="li-row"><span>Total paid</span><strong style="color:#c084fc;">${money(g.total)}</strong></div>`
-      : `<div class="li-row"><span>${esc((activeLease && activeLease.amountLabel) || 'Payment recorded at checkout')}</span><strong><button type="button" class="lease-doc-btn download" data-li-receipt="lease"><i data-lucide="download" class="w-3.5 h-3.5"></i>Receipt</button></strong></div>`;
+        <strong>${money(t.amount)}<button type="button" class="lease-doc-btn download" data-li-receipt="${esc(t.id)}"><i data-lucide="download" class="w-3.5 h-3.5"></i>Receipt</button></strong></div>`).join('')
+      + `<div class="li-row li-row-total"><span>Total paid</span><strong style="color:#c084fc;">${money(g.total)}</strong></div>`
+      : `<div class="li-row li-row-act"><span>${esc((activeLease && activeLease.amountLabel) || 'Payment recorded at checkout')}</span><strong><button type="button" class="lease-doc-btn download" data-li-receipt="lease"><i data-lucide="download" class="w-3.5 h-3.5"></i>Receipt</button></strong></div>`;
     // Documents for this property
     const uid = currentDemoUserId();
     const docs = [];
-    docs.push(`<div class="li-row" style="align-items:center;"><span>Cadastral Survey &amp; GPS Audit Certificate<br><small style="color:#64748b;">Independent title verification record</small></span><strong><button type="button" class="lease-doc-btn preview" data-li-doc="title"><i data-lucide="eye" class="w-3.5 h-3.5"></i>View</button></strong></div>`);
+    docs.push(`<div class="li-row li-row-act"><span>Cadastral Survey &amp; GPS Audit Certificate<br><small style="color:#64748b;">Independent title verification record</small></span><strong><button type="button" class="lease-doc-btn preview" data-li-doc="title"><i data-lucide="eye" class="w-3.5 h-3.5"></i>View</button></strong></div>`);
     (appState.tenantLeaseDocuments || []).filter(d => d.buyerId && d.buyerId === uid && mlCleanTitle(d.listingTitle) === mlCleanTitle(p.title)).forEach(d => {
-      docs.push(`<div class="li-row" style="align-items:center;"><span>${esc(d.fileName)}<br><small style="color:#64748b;">Signed agreement</small></span><strong><button type="button" class="lease-doc-btn preview" data-li-entdoc="${esc(d.id)}"><i data-lucide="eye" class="w-3.5 h-3.5"></i>View</button></strong></div>`);
+      docs.push(`<div class="li-row li-row-act"><span>${esc(d.fileName)}<br><small style="color:#64748b;">Signed agreement</small></span><strong><button type="button" class="lease-doc-btn preview" data-li-entdoc="${esc(d.id)}"><i data-lucide="eye" class="w-3.5 h-3.5"></i>View</button></strong></div>`);
     });
     myAgreements().filter(a => mlCleanTitle(a.listingTitle) === mlCleanTitle(p.title)).forEach(a => {
-      docs.push(`<div class="li-row" style="align-items:center;"><span>${esc(a.fileName)}<br><small style="color:#64748b;">Signed ${esc(a.dateSigned)}</small></span><strong style="display:flex;gap:6px;"><button type="button" class="lease-doc-btn preview" data-agr-action="preview" data-agr-id="${esc(a.id)}"><i data-lucide="eye" class="w-3.5 h-3.5"></i>View</button><button type="button" class="lease-doc-btn download" data-agr-action="download" data-agr-id="${esc(a.id)}"><i data-lucide="download" class="w-3.5 h-3.5"></i></button></strong></div>`);
+      docs.push(`<div class="li-row li-row-act"><span>${esc(a.fileName)}<br><small style="color:#64748b;">Signed ${esc(a.dateSigned)}</small></span><strong class="li-row-btns"><button type="button" class="lease-doc-btn preview" data-agr-action="preview" data-agr-id="${esc(a.id)}"><i data-lucide="eye" class="w-3.5 h-3.5"></i>View</button><button type="button" class="lease-doc-btn download" data-agr-action="download" data-agr-id="${esc(a.id)}"><i data-lucide="download" class="w-3.5 h-3.5"></i></button></strong></div>`);
     });
     return `<details class="li-section li-drawer" open><summary class="li-h">Payment receipts</summary><div class="li-rows">${payRows}</div></details>
       <details class="li-section li-drawer" open><summary class="li-h">Your documents</summary><div class="li-rows">${docs.join('')}</div></details>`;
   }
   function mlOwnedActionsHtml(p, g) {
-    const btn = 'flex:1 1 44%;';
+    const btn = '';
     let h = `<button type="button" class="s5-action-btn primary" style="${btn}" data-li-own="receipt"><i data-lucide="download" class="w-4 h-4"></i>Download receipt</button>`;
     if (p.hasVideo && p.videoUrl) h += `<button type="button" class="s5-action-btn" style="${btn}" data-li-own="video"><i data-lucide="video" class="w-4 h-4"></i>${p.type === 'land' ? 'Site video' : 'Walkthrough'}</button>`;
     if (g.kind === 'rent') {
@@ -15081,7 +15142,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     else if (!isLand) secondary = '<button type="button" class="s5-action-btn" data-li-proxy=".wt-btn"><i data-lucide="video" class="w-4 h-4"></i>Walkthrough</button>';
     if (owned) {
       document.getElementById('li-actions').innerHTML = mlOwnedActionsHtml(p, owned);
-      document.getElementById('li-actions').style.flexWrap = 'wrap';
+      document.getElementById('li-actions').style.flexWrap = '';
     } else if (preview) {
       document.getElementById('li-actions').style.flexWrap = '';
       const pvVideo = (p.hasVideo && p.videoUrl)
@@ -15097,6 +15158,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
     const sheet = document.getElementById('listing-info-sheet');
     sheet.dataset.listingId = String(p.id);
+    document.getElementById('li-actions').classList.toggle('li-actions-owned', !!owned);
+    sheet.querySelector('.li-card').classList.toggle('li-card-owned', !!owned);
     sheet.querySelector('.li-card').scrollTop = 0;
     sheet.classList.add('open');
     if (window.lucide) lucide.createIcons();
@@ -15555,7 +15618,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (serviceRow) { const lb = serviceRow.querySelector('span'); if (lb) lb.textContent = breakdown.cleaningFee > 0 ? 'Service Charge & Cleaning Fee (to host)' : 'Service Charge (to host)'; }
     document.getElementById('sb-total-now').textContent = formatMoney(breakdown.totalPayable, 'ngn');
     document.getElementById('sb-autodebit-note').textContent = breakdown.remainingNights > 0
-      ? `Night 1 (plus Caution Fee & Service Charge, if set) is paid now. Nights 2–${breakdown.nights} auto-debit ${formatMoney(breakdown.dailyDebitAmount, 'ngn')} daily from your wallet until the stay is fully paid.`
+      ? `Night 1, the Platform Fee for all ${breakdown.nights} nights (plus Caution Fee & Service Charge, if set) is paid now. Nights 2–${breakdown.nights} auto-debit ${formatMoney(breakdown.dailyDebitAmount, 'ngn')} daily from your wallet, with no extra fee, until the stay is fully paid.`
       : `This is a single-night stay — nothing further will be charged.`;
     return breakdown;
   }
@@ -15855,10 +15918,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Deposit & Service Charge (if the host set them at listing time) are only
   // added to Night 1 and are paid to the host in full, same as the nightly
   // rate — never to MainTown.
-  function chargeShortletNight(booking, nightNumber) {
+  // Platform Fee: bookings made under the current model (booking.platformFee set)
+  // paid the fee for the whole stay at checkout, so their auto-debited nights carry
+  // the rate only. opts.withFee adds the 5% for a night bought later (a stay
+  // extension). Older bookings (no booking.platformFee) still pay 5% night by night.
+  function chargeShortletNight(booking, nightNumber, opts) {
     const uid = booking.tenantId;
     const rate = booking.nightlyRate;
-    const platformFee = Math.round(rate * 0.05);
+    const feeUpfront = booking.platformFee != null;
+    const platformFee = (!feeUpfront || (opts && opts.withFee)) ? Math.round(rate * 0.05) : 0;
     const listing = listings.find(l => l.id === booking.listingId);
     const isFirstNight = nightNumber === 1;
     const cautionFee = isFirstNight ? (listing && listing.cautionFee || 0) : 0;
@@ -15871,7 +15939,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       userId: uid, direction: 'debit', category: 'SHORTLET_BOOKING',
       title: `Shortlet — Night ${nightNumber} of ${booking.nights} at ${booking.listingTitle}`,
       amount: totalDue, status: 'SUCCESSFUL',
-      meta: { recipient: booking.listingTitle, propertyName: booking.listingTitle, feeType: 'Shortlet Booking' }
+      meta: { recipient: booking.listingTitle, propertyName: booking.listingTitle, feeType: 'Shortlet Booking', platformFee: platformFee, listingId: booking.listingId }
     });
     try { if (window.__mtFinanceFeed) {
       window.__mtFinanceFeed.revenue('shortlet_fee', platformFee, { title: booking.listingTitle });
@@ -15908,13 +15976,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     // Card-funded checkouts never touch the wallet — the charge is simulated
     // as settled on the card, same convention as land/rent card checkouts.
+    // MainTown's whole-stay Platform Fee (5% of every night) is collected here, once.
+    const stayPlatformFee = Math.round(sl.platformFee || (sl.nightlyRate || 0) * (sl.nights || 1) * 0.05);
     recordTransaction({
       userId: uid, direction: 'debit', category: 'SHORTLET_BOOKING',
       title: `Shortlet — Night 1 of ${sl.nights} at ${listing.title}`,
       amount: sl.dueNowAmount, status: 'SUCCESSFUL',
       meta: {
         recipient: listing.title, propertyName: listing.title,
-        feeType: checkoutSource === 'wallet' ? 'Shortlet Booking (Night 1 + Fees)' : 'Shortlet Booking (Night 1 + Fees) — Card'
+        feeType: checkoutSource === 'wallet' ? 'Shortlet Booking (Night 1 + Fees)' : 'Shortlet Booking (Night 1 + Fees) — Card',
+        platformFee: stayPlatformFee, listingId: listing.id
       }
     });
 
@@ -15925,11 +15996,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       status: 'ACTIVE',
       paymentMethod: checkoutSource === 'wallet' ? 'WALLET' : 'DEBIT_CARD',
       cautionFee: sl.cautionFee || 0, cautionHeld: sl.cautionFee || 0, serviceChargeFee: sl.serviceChargeFee || 0,
+      platformFee: stayPlatformFee,   // collected in full at checkout; later nights carry the rate only
       agreementSignedTenant: true, agreementSignedTenantAt: Date.now(),
       inspectionDate: sl.inspectionDate || ''
     };
     try { if (window.__mtFinanceFeed) {
-      window.__mtFinanceFeed.revenue('shortlet_fee', Math.round((sl.nightlyRate || 0) * 0.05), listing);
+      window.__mtFinanceFeed.revenue('shortlet_fee', stayPlatformFee, listing);   // MainTown's full fee, recorded once at checkout
       if ((sl.cautionFee || 0) > 0) window.__mtFinanceFeed.hold('CAU-' + booking.id, sl.cautionFee, listing, 'Guest caution fee held by MainTown');
     } } catch (e) {}
     // The Host's share is held by the payment provider until check-in (see payShortletHost).
@@ -15941,7 +16013,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     try { dispatchAgreementToChat(listing); } catch (e) {}
 
     showToast(sl.remainingNights > 0
-      ? `Night 1 paid — Nights 2–${sl.nights} will auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} daily`
+      ? `Night 1 paid — Nights 2–${sl.nights} will auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} daily (no further fee)`
       : 'Shortlet booked and paid in full');
     pushPlatformNotification('tenant', 'booking', 'Shortlet Booked',
       `Night 1 of your ${sl.nights}-night stay at "${listing.title}" is confirmed.`, null, 'shortlet', null, uid);
@@ -16214,27 +16286,35 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const service = b.serviceChargeFee != null ? b.serviceChargeFee
       : (listing.serviceChargeMode === 'charged' ? (listing.serviceChargeFee || 0) : 0);
     const paidNights = Math.max(1, b.nightsPaid || 1);
-    const paidTotal = paidNights * night + caution + service;
+    // Bookings made under the current model paid the Platform Fee for the whole stay at checkout
+    // (b.platformFee); older ones paid 5% with each night.
+    const feeUpfront = b.platformFee != null;
+    const totalNights = Math.max(1, b.nights || paidNights);
+    const feeCollected = feeUpfront ? b.platformFee : paidNights * fee;
+    const feeKept = n => feeUpfront ? Math.round(feeCollected * Math.min(n, totalNights) / totalNights) : n * fee;
+    const paidTotal = paidNights * rate + feeCollected + caution + service;
     const msToCheckIn = shortletCheckInInstant(b) - Date.now();
     const hours = msToCheckIn / 3600000;
 
-    let tier, refundNights, refundCaution, refundService;
+    let tier, refundNights, refundCaution, refundService, keptNights;
     if (by === 'host') {
-      tier = 'host'; refundNights = paidNights; refundCaution = caution; refundService = service;
+      tier = 'host'; refundNights = paidNights; refundCaution = caution; refundService = service; keptNights = 0;
     } else if (hours >= SHORTLET_FREE_CANCEL_HOURS) {
-      tier = 'free'; refundNights = paidNights; refundCaution = caution; refundService = service;
+      tier = 'free'; refundNights = paidNights; refundCaution = caution; refundService = service; keptNights = 0;
     } else if (hours > 0) {
-      tier = 'late'; refundNights = paidNights - 1; refundCaution = caution; refundService = service;
+      tier = 'late'; refundNights = paidNights - 1; refundCaution = caution; refundService = service; keptNights = 1;
     } else {
       tier = 'started';
       const stayed = Math.min(b.nights || paidNights, Math.max(1, Math.floor(-msToCheckIn / 86400000) + 1));
+      keptNights = stayed;
       refundNights = Math.max(0, paidNights - stayed);
       refundCaution = 0; refundService = 0;   // the Caution Fee is not forfeited: it follows the normal return window
     }
     const escrowed = b.cautionHeld != null;    // older bookings paid the Caution Fee straight to the host
     const cautionDeferred = (tier === 'started' && escrowed) ? caution : 0;
     const rateRefund = refundNights * rate;
-    const feeRefund = refundNights * fee;
+    // Platform Fee comes back for every night not kept, including nights that will now never be debited.
+    const feeRefund = feeUpfront ? Math.max(0, feeCollected - feeKept(keptNights)) : refundNights * fee;
     const refundTotal = rateRefund + feeRefund + refundCaution + refundService;
     return {
       tier, hours, rate, fee, night, caution, service, paidNights, paidTotal,
@@ -16242,7 +16322,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       refundTotal, cautionDeferred, kept: paidTotal - refundTotal - cautionDeferred,
       // what has to come back out of the Host's share (the Platform Fee is MainTown's to refund)
       hostReversal: rateRefund + refundService + (escrowed ? 0 : refundCaution),
-      upfrontCharged: night + caution + service
+      upfrontCharged: rate + (feeUpfront ? feeCollected : fee) + caution + service
     };
   }
 
@@ -16608,13 +16688,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     booking.nights += 1; // extend the commitment by exactly the one night being paid for
     booking.checkOut = newOut; // and move the check-out date so the calendar stays correct
     const nextNight = booking.nightsPaid + 1;
-    const charged = chargeShortletNight(booking, nextNight);
+    const charged = chargeShortletNight(booking, nextNight, { withFee: true });   // an extension night carries its own 5%
     if (!charged) {
       booking.nights -= 1; booking.checkOut = oldOut;
       showToast("Payment failed — fund your wallet and try again");
       return;
     }
     booking.nightsPaid = nextNight;
+    if (booking.platformFee != null) booking.platformFee += Math.round((booking.nightlyRate || 0) * 0.05);   // fee collected for the added night
     booking.status = 'ACTIVE';
     saveShortletBookings();
     shortletExtensionModal.classList.remove('open');
@@ -17037,8 +17118,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // existing engine (chargeShortletNight/scheduleShortletAutoDebit). A
   // single-night stay is simply paid in full now, with nothing left to
   // auto-debit.
-  //   due_now_amount  = night_1_rate + night_1_platform_fee(5%) + caution_fee + service_charge
-  //   daily_debit_amount (nights 2..N) = rate + platform_fee(5%) per night
+  // MainTown's 5% Platform Fee is charged ONCE at checkout, on the whole stay
+  // (every night), so the auto-debited nights carry the nightly rate only.
+  //   stay_platform_fee  = 5% of (nightly_rate x nights)
+  //   due_now_amount     = night_1_rate + stay_platform_fee + caution_fee + service_charge
+  //   daily_debit_amount (nights 2..N) = nightly rate only (no fee)
   //   full_stay_estimate = informational total if every night is paid in full
   // ==================================================================
   function computeShortletBreakdown(listing, checkInIso, checkOutIso) {
@@ -17052,18 +17136,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const cautionFee = (listing && listing.cautionFee) || 0;
     const cleaningFee = Number(listing && listing.cleaningFee) || 0; // one-time, paid to the host with the service charge line
     const serviceChargeFee = ((listing && listing.serviceChargeMode === 'charged') ? (listing.serviceChargeFee || 0) : 0) + cleaningFee;
-    const nightlyPlatformFee = Math.round(rate * 0.05);
+    const nightlyPlatformFee = Math.round(rate * 0.05);   // 5% of one night (used for extensions and refund maths)
+    const stayPlatformFee = Math.round(rate * nights * 0.05); // 5% of the whole stay, charged once at checkout
     const remainingNights = Math.max(0, nights - 1);
-    const dailyDebitAmount = rate + nightlyPlatformFee;
-    const dueNowAmount = rate + nightlyPlatformFee + cautionFee + serviceChargeFee;
-    const fullStayEstimate = (rate * nights) + (nightlyPlatformFee * nights) + cautionFee + serviceChargeFee;
+    const dailyDebitAmount = rate;
+    const dueNowAmount = rate + stayPlatformFee + cautionFee + serviceChargeFee;
+    const fullStayEstimate = (rate * nights) + stayPlatformFee + cautionFee + serviceChargeFee;
     return {
       checkIn: checkInIso, checkOut: checkOutIso, nights, remainingNights,
       nightlyRate: rate, nightlyPlatformFee,
       cautionFee, serviceChargeFee, cleaningFee,
-      // Night 1 figures — what the Checkout Screen's breakdown & PIN gate
-      // actually charge today, regardless of how many nights were selected.
-      netRent: rate, platformFee: nightlyPlatformFee,
+      // What the Checkout Screen's breakdown & PIN gate actually charge today:
+      // Night 1's rate plus the Platform Fee for the WHOLE stay.
+      netRent: rate, platformFee: stayPlatformFee,
       dueNowAmount, dailyDebitAmount, fullStayEstimate,
       totalPayable: dueNowAmount // "Total Payable" on the checkout screen = amount due today, not the full stay
     };
@@ -17182,6 +17267,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
     checkoutListing = listing;
+    if (window.MTRBooking) MTRBooking.gate(listing); // 15-minute payment hold (Shortlets, Event Centers, Rentals)
     { const pn = document.getElementById('s6-protect-note'); if (pn) { if (!pn.dataset.orig) pn.dataset.orig = pn.innerHTML; pn.innerHTML = listing.type === 'land' ? mktSaleProtectionText() : (listing.type === 'event' ? 'Payment is split automatically at the point of charge through <span class="js-provider">' + PAYMENT_PROVIDER + '</span> \u2014 MainTown never holds your funds. The venue owner\u2019s share is paid to them instantly, and MainTown\u2019s 2% service charge is credited at once.' : pn.dataset.orig); } }
     { const vb = document.getElementById('s6-verified-badge-text'); if (vb) vb.textContent = listing.type === 'event' ? 'Event Center' : 'Inspection Verified'; }
     checkoutLandPayment = landPayment || null;
@@ -17364,7 +17450,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <p><strong>Clause 3 — Direct Self-Service Caution Fee Refunds:</strong> The Caution Fee is held with the Host/Landlord’s share until check-in and is then released to the Host/Landlord’s designated sub-account. Upon check-out, you must initiate any Caution Fee refund request directly through your MainTown app. MainTown Realty does not hold, manage, or claim caution fees on behalf of tenants. All refund approvals, damage assessments, and payouts are handled directly between you and the Host/Landlord.</p>
         <p><strong>Clause 4 — Instant Booking Confirmation:</strong> Your booking is confirmed as soon as payment is authorised. No signature or Host countersignature is required; ticking the agreement box below is your binding acceptance. The Host is notified immediately and your Booking Confirmation is sent to your chat.</p>
         <p><strong>Clause 5 — Cancellation &amp; Refund Policy:</strong> ${SHORTLET_CANCEL_CLAUSE_TEXT}</p>
-        ${sl.remainingNights > 0 ? `<p><strong>Clause 6 — Multi-Night Auto-Debit Authorization:</strong> Night 1 (plus any Caution Fee &amp; Service Charge) is charged today. For stays longer than one night, you authorize MainTown to auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} from your chosen payment method for each remaining night (Nights 2–${sl.nights}) until the stay is fully paid or you end the stay early.</p>` : ''}
+        ${sl.remainingNights > 0 ? `<p><strong>Clause 6 — Multi-Night Auto-Debit Authorization:</strong> Night 1, the MainTown Platform Fee (5% of the whole stay) and any Caution Fee &amp; Service Charge are charged today. For stays longer than one night, you authorize MainTown to auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} (the nightly rate, with no further Platform Fee) from your chosen payment method for each remaining night (Nights 2–${sl.nights}) until the stay is fully paid or you end the stay early.</p>` : ''}
         <p><strong>Clause ${sl.remainingNights > 0 ? 7 : 6} — Dispute Resolution (Mediation, then LCA Arbitration):</strong> ${ADR_CLAUSE_TEXT}</p>
       `;
 
@@ -17395,7 +17481,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       document.getElementById('s6-row3').style.display = 'none';
 
       checkoutAiFeeNgn = 0; // no MainTown AI fee on short-let stays — Platform Fee (5%) below covers it
-      document.getElementById('s6-ai-fee-label').innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown Platform Fee (5%) — Night 1';
+      document.getElementById('s6-ai-fee-label').innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5"></i>MainTown Platform Fee (5% of whole stay)';
       document.getElementById('s6-ai-fee-row').style.display = '';
       document.getElementById('s6-ai-fee-amount').textContent = formatMoney(sl.platformFee, 'ngn');
       document.getElementById('s6-total-amount').textContent = formatMoney(sl.dueNowAmount, 'ngn') + ' due now';
@@ -17406,7 +17492,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (sl.remainingNights > 0) {
         autodebitNotice.style.display = 'flex';
         document.getElementById('s6-shortlet-autodebit-text').textContent =
-          `Nights 2–${sl.nights} auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} daily from your wallet/card until the stay is fully paid — est. full stay total ${formatMoney(sl.fullStayEstimate, 'ngn')}.`;
+          `Nights 2–${sl.nights} auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} daily (nightly rate only, the Platform Fee is already paid) from your wallet/card until the stay is fully paid — est. full stay total ${formatMoney(sl.fullStayEstimate, 'ngn')}.`;
       } else {
         autodebitNotice.style.display = 'none';
       }
@@ -18006,7 +18092,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     dispatchAgreementToChat(checkoutListing);
   });
 
-  document.getElementById('s6-back-btn').addEventListener('click', () => navigateTo('screen-5'));
+  document.getElementById('s6-back-btn').addEventListener('click', () => {
+    // Leaving checkout on purpose = cancelling: give the listing back to everyone else.
+    const inv = document.getElementById('s6-invoice-panel');
+    if (window.MTRBooking && !(inv && !inv.classList.contains('hidden'))) MTRBooking.releaseHold('cancelled');
+    navigateTo('screen-5');
+  });
   document.getElementById('s6-pay-wallet').addEventListener('click', () => selectPaySource('wallet'));
   document.getElementById('s6-pay-card').addEventListener('click', () => selectPaySource('card'));
 
@@ -18633,6 +18724,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   }
 
   document.getElementById('s6-authorize-btn').addEventListener('click', () => {
+    if (window.MTRBooking) { try { MTRBooking.ensureHold(true); } catch (e) {} } // re-take the hold if it was released after a failed attempt
     if (!checkoutPreflight()) return;
     checkoutOtpInputs.forEach(i => (i.value = ''));
     checkoutOtpModal.classList.add('open');
@@ -18909,6 +19001,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function approveCheckoutPayment() {
     if (checkoutAuthSubmitting) return;
+    if (window.MTRBooking && !MTRBooking.canPay()) {
+      checkoutOtpModal.classList.remove('open');
+      showToast('Your 15-minute checkout window has ended. Please restart checkout.');
+      return;
+    }
     if (checkoutListing && checkoutListing._deal && checkoutListing._deal.endsAt <= Date.now()) {
       dxApplyDeals();
       showToast('This deal has ended. Go back and restart checkout at the regular price.');
@@ -18929,6 +19026,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (checkoutListing && checkoutListing.type === 'event') {
       // Event centers stay on the feed: availability is decided by the event date, never by a RENTED flag.
       if (!finalizeEventCheckout()) { checkoutAuthSubmitting = false; return; }
+      if (window.MTRBooking) MTRBooking.releaseHold('success');
       checkoutPaymentPending = false;
       saveCheckoutResumeState();
       checkoutAuthSubmitting = false;
@@ -18938,6 +19036,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     if (checkoutListing && checkoutListing.type === 'shortlet') {
       if (!finalizeShortletCheckout()) { checkoutAuthSubmitting = false; return; }
+      if (window.MTRBooking) MTRBooking.releaseHold('success');
       // BUGFIX: this branch used to return before the two steps every other
       // checkout path relies on below (see the Land/Rent flow further down)
       // — it never flipped the listing to RENTED and never cleared
@@ -18967,6 +19066,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (!debitWallet(uid, total)) {
         showToast('Insufficient wallet balance — payment could not be authorized');
         checkoutAuthSubmitting = false;
+        if (window.MTRBooking) MTRBooking.releaseHold('failed');
         return;
       }
       // Wallet Ledger: split the debit into its two constituent transaction
@@ -19020,6 +19120,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // the Public Search Grid / Property Details across every active role.
     if (checkoutListing) {
       markListingUnavailableAfterCheckout(checkoutListing);
+      // The property is now taken: cancel + refund every other guest's inspection for it.
+      try { cancelOtherInspectionsForTakenListing(checkoutListing, getCurrentUserId()); } catch (e) { console.warn('[MainTown] local inspection sweep failed', e); }
+      if (window.MTRBooking) { MTRBooking.propertyTaken(checkoutListing); MTRBooking.releaseHold('success', checkoutListing.type === 'rent' ? 'rented' : null); }
     }
 
     // MainTown AI Model B Revenue: credit the one-time AI processing fee
@@ -19496,6 +19599,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (status === 'Declined') return 'DECLINED';
     if (status === 'Conducted') return 'CONDUCTED';
     if (status === 'Cancelled By Tenant') return 'CANCELLED';
+    if (status === 'Cancelled - Property Taken') return 'PROPERTY TAKEN';
     return (status || '').toUpperCase();
   }
 
@@ -22333,6 +22437,32 @@ This voucher is auto-generated and serves as proof of settlement.`;
   //      host's time windows as selectable chips.
   // ==================================================================
   let ibAvailabilityMap = new Map(); // dateKey -> [slot label, ...]
+  let ibBookedSet = new Set();       // 'YYYY-MM-DD|HH:MM:SS' of slots already booked by someone (from Supabase)
+  // Pre-payment heads-up: other guests can inspect the same property at other times, so say clearly
+  // that the fee is refunded in full if the property is taken before this guest's visit.
+  function ibUpdateTakenNote() {
+    const box = document.getElementById('ib-taken-note'), txt = document.getElementById('ib-taken-note-text');
+    if (!box || !txt) return;
+    const t = inspectionListing && inspectionListing.type;
+    if (t !== 'rent' && t !== 'land') { box.style.display = 'none'; return; } // shortlets & event centers stay open for other dates
+    const others = ibBookedSet && ibBookedSet.size > 0;
+    txt.textContent = (others ? 'Other guests have inspections booked for this property. ' : '') +
+      'If it is taken before your visit, your inspection fee is refunded in full and you are notified.';
+    box.style.display = 'flex';
+  }
+  async function ibRefreshBooked() {
+    if (!window.MTRBooking || !inspectionListing) return;
+    const forListing = inspectionListing;
+    const fresh = await MTRBooking.refreshBooked(forListing);
+    if (!fresh || inspectionListing !== forListing) return; // offline / table missing / modal moved on: leave the calendar as it was
+    ibBookedSet = fresh;
+    ibUpdateTakenNote();
+    if (ibSelectedDate && ibSelectedSlot && MTRBooking.isBooked(ibBookedSet, ibSelectedDate, ibSelectedSlot)) ibSelectedSlot = null;
+    renderInspectionCalendar();
+    renderInspectionSlotChips();
+    updateInspectionSelectionSummary();
+  }
+  setInterval(() => { try { if (document.getElementById('inspection-booking-modal').classList.contains('open')) ibRefreshBooked(); } catch (e) {} }, 20000);
   let ibCalendarViewDate = new Date();
   let ibSelectedDate = null;   // 'YYYY-MM-DD'
   let ibSelectedSlot = null;   // '10:00 AM - 12:00 PM'
@@ -22358,12 +22488,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const cellDate = new Date(year, month, day);
       const key = availDateKey(cellDate);
       const isPast = cellDate < today;
-      const isAvailable = !isPast && ibAvailabilityMap.has(key);
+      const hasSlots = !isPast && ibAvailabilityMap.has(key);
+      const fullyBooked = hasSlots && !!window.MTRBooking && MTRBooking.allBooked(ibBookedSet, key, ibAvailabilityMap.get(key));
+      const isAvailable = hasSlots && !fullyBooked;
       const isToday = cellDate.getTime() === today.getTime();
       const isSelected = key === ibSelectedDate;
       const classes = ['insp-cal-day'];
       if (isPast) classes.push('past');
       if (isAvailable) classes.push('available');
+      if (fullyBooked) classes.push('full');
       if (isToday) classes.push('today');
       if (isSelected) classes.push('selected');
       cells += `<div class="${classes.join(' ')}" ${isAvailable ? `data-date="${key}"` : ''}>${day}</div>`;
@@ -22380,9 +22513,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
     slotsField.style.display = 'block';
-    document.getElementById('ib-slots-grid').innerHTML = slots.map(slot => `
-      <div class="s5-timeslot ${slot === ibSelectedSlot ? 'selected' : ''}" data-slot="${slot}"><i data-lucide="clock" class="w-3.5 h-3.5"></i>${slot}</div>
-    `).join('');
+    document.getElementById('ib-slots-grid').innerHTML = slots.map(slot => {
+      const taken = !!window.MTRBooking && MTRBooking.isBooked(ibBookedSet, ibSelectedDate, slot);
+      return `
+      <div class="s5-timeslot ${slot === ibSelectedSlot && !taken ? 'selected' : ''}${taken ? ' booked' : ''}" data-slot="${slot}"${taken ? ' aria-disabled="true"' : ''}><i data-lucide="clock" class="w-3.5 h-3.5"></i>${slot}${taken ? '<span class="slot-booked-tag">Booked</span>' : ''}</div>
+    `;
+    }).join('');
     if (window.lucide) lucide.createIcons();
   }
 
@@ -22406,11 +22542,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderInspectionCalendar();
     renderInspectionSlotChips();
     updateInspectionSelectionSummary();
+    ibRefreshBooked(); // pick up anything booked since the calendar opened
   });
 
   document.getElementById('ib-slots-grid').addEventListener('click', (e) => {
     const chip = e.target.closest('.s5-timeslot');
-    if (!chip) return;
+    if (!chip || chip.classList.contains('booked')) return;
     ibSelectedSlot = chip.dataset.slot;
     renderInspectionSlotChips();
     updateInspectionSelectionSummary();
@@ -22465,6 +22602,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     })();
     ibSelectedDate = null;
     ibSelectedSlot = null;
+    ibBookedSet = new Set();
+    ibUpdateTakenNote();
     // Site Visit Safety Waiver: rendered from the shared clause text and must
     // be accepted afresh for every booking (never carried over between visits).
     document.getElementById('ib-waiver-body').innerHTML = SITE_WAIVER_CLAUSES.map(c => `<p>${c}</p>`).join('');
@@ -22473,6 +22612,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderInspectionCalendar();
     renderInspectionSlotChips();
     updateInspectionSelectionSummary();
+    ibRefreshBooked(); // grey out slots other guests already booked
 
     // Phase 2 (Inspection Booking & Escrow Release): inspection deposit varies
     // by who actually posted the listing — ₦15,000 for Land/Property Sale site
@@ -22527,7 +22667,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     ));
   }
 
-  document.getElementById('ib-confirm-btn').addEventListener('click', () => {
+  document.getElementById('ib-confirm-btn').addEventListener('click', async () => {
     if (blockIfPrivilegesPaused()) return;
     if (!inspectionListing || !ibSelectedDate || !ibSelectedSlot) return;
     if (ibSubmitting) return;
@@ -22556,6 +22696,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // regardless of owner type — that bug is fixed here).
     const fee = isLand ? 15000 : (isAgent ? 12000 : 5000);
     const inspId = Date.now();
+    // Slot lock: the database books this exact property + date + start time atomically.
+    // If another guest got it first, nothing is created here and the calendar refreshes.
+    let slotRes = { ok: true, skipped: true };
+    if (window.MTRBooking) {
+      slotRes = await MTRBooking.reserve(inspectionListing, date, time, `insp_${inspId}`);
+      if (!slotRes.ok) {
+        ibSubmitting = false;
+        ibSelectedSlot = null;
+        showToast(slotRes.message);
+        ibRefreshBooked();
+        return;
+      }
+    }
     const buyerName = (document.getElementById('reg-fullname')?.value || '').trim() || ((() => { try { const u = (typeof currentDemoUserId === 'function') ? currentDemoUserId() : null; return u ? (((appState && appState.users && appState.users[u]) || (typeof DEMO_USERS !== 'undefined' && DEMO_USERS[u]) || {}).name || '') : ''; } catch (e) { return ''; } })()) || (isLand ? 'Client' : 'Tenant');
 
     // Ledger: Phase 2, Step 2A — hold inspection deposit in escrow.
@@ -22600,7 +22753,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       tenantPhone: (document.getElementById('reg-phone')?.value || '').trim() || null,
       tenantEmail: (document.getElementById('reg-email')?.value || '').trim() || null,
       // ---- Persistence-spec aliases (see Inspection & Walkthrough data model) ----
-      inspection_id: `insp_${inspId}`, property_id: inspectionListing.id, property_title: inspectionListing.title,
+      inspection_id: `insp_${inspId}`, slot_id: slotRes.slotId || null, property_id: inspectionListing.id, property_title: inspectionListing.title,
       address: inspectionListing.location, scheduled_date: date, scheduled_time: time, escrow_amount: fee,
       tenant_id: (typeof currentDemoUserId === 'function' && currentDemoUserId()) || (isLand ? 'user_client_01' : 'user_tenant_01'),
       // Enterprise listings route exclusively to the Sales staff who posted
@@ -22759,6 +22912,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     sched.status = 'Declined';
     sched.chat_unlocked = false;
     saveSchedules();
+    if (window.MTRBooking) MTRBooking.releaseSlot(sched.inspection_id || ('insp_' + sched.inspectionId), false); // free the slot for other guests
 
     const insp = inspections.find(i => i.id === sched.inspectionId);
     if (insp) insp.status = 'declined';
@@ -22924,8 +23078,106 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
   }
 
+  // ---- Property taken: cancel + refund other guests' inspections ----
+  // When a rental/land purchase completes, every other pending or confirmed inspection for that
+  // property is cancelled and the fee refunded (same ledger convention as the Not-Satisfied refund).
+  // The paying phone sweeps its own copy right away; every other phone learns about it from the
+  // database (MTRBooking.syncCancellations) and runs this same routine.
+  const PROPERTY_TAKEN_STATUS = 'Cancelled - Property Taken';
+  function cancelInspectionPropertyTaken(sched) {
+    if (!sched || (sched.status !== 'Pending Approval' && sched.status !== 'Confirmed')) return false;
+    sched.status = PROPERTY_TAKEN_STATUS;
+    sched.chat_unlocked = false;
+    sched.cancellationReason = 'Property taken by another guest';
+    sched.cancelledAt = Date.now();
+    sched.refundStatus = 'REFUNDED';
+    saveSchedules();
+
+    const insp = inspections.find(i => i.id === sched.inspectionId);
+    if (insp) insp.status = 'cancelled'; // re-locks the checkout gate, same as a tenant cancellation
+    saveInspections();
+
+    const conv = (typeof conversations !== 'undefined' ? conversations : []).find(c => c.inspectionId === sched.inspectionId);
+    if (conv) {
+      conv.messages.push({ from: 'system', text: 'This property has been taken, so the inspection was cancelled and your fee refunded in full.' });
+      conv.status = 'archived';
+      saveConversations();
+    }
+
+    // Refund record (the booking-time fee is only ledgered as FUNDS_HELD in this build, so no wallet credit here).
+    logTransaction({
+      listingId: sched.property_id, listingType: sched.feeType === 'agent' ? 'AGENT' : 'DIRECT_LANDLORD',
+      dealStage: 'INSPECTION', escrowStatus: 'REFUNDED', gross: sched.fee || 0, status: 'COMPLETED'
+    });
+
+    if (sched.transactionType === 'LAND_SALE') {
+      try {
+        appState = loadAppState();
+        const mirrored = (appState.inspections || []).find(i => i.inspection_id === `insp_land_${sched.inspectionId}`);
+        if (mirrored) { mirrored.status = 'CANCELLED_PROPERTY_TAKEN'; saveAppState(appState); }
+      } catch (e) {}
+    }
+
+    const feeText = formatMoney(sched.fee || 0, 'ngn');
+    inspectionNotifications.unshift({
+      id: Date.now() + Math.random(), forRole: 'tenant', type: 'tenantAlert', kind: 'cancelled', listingTitle: sched.title,
+      message: `${sched.title} has been taken, so your inspection was cancelled and your ${feeText} inspection fee is refunded in full.`,
+      unread: true
+    });
+    saveInspectionNotifications();
+    updateAllBellDots(true);
+    try {
+      pushPlatformNotification('tenant', 'inspection', 'Inspection Cancelled - Fee Refunded',
+        `${sched.title} has been taken by another guest. Your ${feeText} inspection fee is refunded in full.`,
+        { screen: 'screen-inspections' }, 'INSPECTION_PROPERTY_TAKEN', null, sched.tenant_id || null);
+    } catch (e) {}
+    // Let the host know the slot is free again (the tenant-cancel wording would be wrong here).
+    try {
+      const hostRole = sched.agent_id ? 'agent' : (sched.landlord_id ? 'landlord' : null);
+      if (hostRole) {
+        pushPlatformNotification(hostRole, 'inspection', 'Inspection Cancelled',
+          `The inspection for ${sched.title} on ${sched.date || 'the scheduled date'}${sched.time ? ' at ' + sched.time : ''} was cancelled because the property has been taken.`,
+          { screen: 'screen-inspections' }, 'INSPECTION_PROPERTY_TAKEN', null, sched.agent_id || sched.landlord_id);
+      }
+    } catch (e) {}
+    return true;
+  }
+  // Local sweep on the phone that completed the purchase.
+  function cancelOtherInspectionsForTakenListing(listing, buyerId) {
+    if (!listing) return 0;
+    let n = 0;
+    schedules.slice().forEach(s => {
+      if (String(s.property_id) !== String(listing.id)) return;
+      if (buyerId && String(s.tenant_id) === String(buyerId)) return; // the buyer's own inspection stays
+      if (cancelInspectionPropertyTaken(s)) n++;
+    });
+    if (n) {
+      try { renderSchedulesScreen(); renderInspectionsSummaryCard(); renderLandlordInspectionsManager(); renderAgentInspectionsManager(); } catch (e) {}
+      window.dispatchEvent(new Event('maintown_state_updated'));
+    }
+    return n;
+  }
+  // Server -> this phone: which of my active inspections were cancelled because the property was taken.
+  function applyServerCancellations(refs) {
+    let n = 0;
+    (refs || []).forEach(ref => {
+      const s = schedules.find(x => (x.inspection_id || ('insp_' + x.inspectionId)) === ref);
+      if (s && cancelInspectionPropertyTaken(s)) n++;
+    });
+    if (n) {
+      try { renderSchedulesScreen(); renderInspectionsSummaryCard(); renderLandlordInspectionsManager(); renderAgentInspectionsManager(); } catch (e) {}
+      window.dispatchEvent(new Event('maintown_state_updated'));
+      try { showToast(n === 1 ? 'A property you booked to inspect was taken. Your fee is refunded.' : n + ' properties you booked to inspect were taken. Your fees are refunded.'); } catch (e) {}
+    }
+    return n;
+  }
+  function activeInspectionRefs() {
+    return schedules.filter(s => s && (s.status === 'Pending Approval' || s.status === 'Confirmed')).map(s => s.inspection_id || ('insp_' + s.inspectionId));
+  }
+
   function cancelInspectionByTenant(sched, reason) {
     sched.status = 'Cancelled By Tenant';
+    if (window.MTRBooking) MTRBooking.releaseSlot(sched.inspection_id || ('insp_' + sched.inspectionId), true); // free the slot for other guests
     sched.chat_unlocked = false;
     sched.cancellationReason = reason || null;
     sched.cancelledAt = Date.now();
@@ -23084,7 +23336,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     saveCart();
   });
 
-  document.getElementById('cart-confirm-btn').addEventListener('click', () => {
+  document.getElementById('cart-confirm-btn').addEventListener('click', async () => {
     if (!cart.length) return;
     if (!isScreeningCompleted()) { requireScreening(() => document.getElementById('cart-confirm-btn').click()); return; }
     const missing = cart.some(item => !item.date || !item.time);
@@ -23093,13 +23345,31 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
 
+    // Slot lock for every cart item before anything is created. If one is taken, release the
+    // ones already reserved here and leave the cart untouched so the guest can change the time.
+    if (window.MTRBooking) {
+      const reserved = [];
+      for (const item of cart) {
+        const lst = (listings || []).find(l => String(l.id) === String(item.listingId != null ? item.listingId : item.id)) || item;
+        const ref = 'insp_' + (Date.now() + Math.floor(Math.random() * 1000000));
+        const r = await MTRBooking.reserve(lst, item.date, item.time, ref);
+        if (!r.ok) {
+          reserved.forEach(x => { MTRBooking.releaseSlot(x.ref, true); delete x.item._inspId; delete x.item._slotId; });
+          showToast(item.title + ': ' + r.message);
+          return;
+        }
+        item._inspId = Number(ref.slice(5)); item._slotId = r.slotId || null;
+        reserved.push({ ref: ref, item: item });
+      }
+    }
+
     cart.forEach(item => {
       const { role: itemOwnerRole, ownerId: itemOwnerId } = getListingOwnership(item);
       const isAgent = itemOwnerRole === 'AGENT';
       const salesStaffId = enterpriseSalesStaffIdFor(item);
       const cartFeeType = isAgent ? 'agent' : (salesStaffId ? 'enterprise' : 'landlord');
       const fee = cartFeeFor(item);
-      const inspId = Date.now() + Math.floor(Math.random() * 1000);
+      const inspId = item._inspId || (Date.now() + Math.floor(Math.random() * 1000));
       const convId = inspId + 1;
 
       inspections.unshift({
@@ -23132,7 +23402,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         tenantPhone: (document.getElementById('reg-phone')?.value || '').trim() || null,
         tenantEmail: (document.getElementById('reg-email')?.value || '').trim() || null,
         // ---- Persistence-spec aliases (see Inspection & Walkthrough data model) ----
-        inspection_id: `insp_${inspId}`, property_id: (item.listingId != null ? item.listingId : item.id), property_title: item.title,
+        inspection_id: `insp_${inspId}`, slot_id: item._slotId || null, property_id: (item.listingId != null ? item.listingId : item.id), property_title: item.title,
         category: inspectionCategoryOf((listings || []).find(l => String(l.id) === String(item.listingId != null ? item.listingId : item.id))),
         address: item.location, scheduled_date: item.date, scheduled_time: item.time, escrow_amount: fee,
         tenant_id: (typeof currentDemoUserId === 'function' && currentDemoUserId()) || 'user_tenant_01',
@@ -23197,7 +23467,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     list.innerHTML = visibleSchedules.map(s => {
       const isPending = s.status === 'Pending Approval';
       const isDeclined = s.status === 'Declined';
-      const isCancelled = s.status === 'Cancelled By Tenant';
+      const isCancelled = s.status === 'Cancelled By Tenant' || s.status === 'Cancelled - Property Taken';
+      const isTaken = s.status === 'Cancelled - Property Taken';
       const badgeClass = isPending ? 'insp-status-pending' : isDeclined ? 'insp-status-declined' : isCancelled ? 'insp-status-cancelled' : (s.status === 'Conducted' ? 'insp-status-conducted' : 'insp-status-confirmed');
       const badgeIcon = isPending ? 'clock' : isDeclined ? 'x-circle' : isCancelled ? 'ban' : (s.status === 'Conducted' ? 'clipboard-check' : 'check-circle-2');
       const dateTimeLine = formatInspDateTime(s.date, s.time);
@@ -23223,7 +23494,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // (Pending Approval) or SCHEDULED/CONFIRMED — never once Declined,
       // Conducted, or already Cancelled.
       const cancelBtnHtml = `<button type="button" class="insp-cancel-btn" data-sched-id="${s.id}"><i data-lucide="x-circle" class="w-4 h-4"></i>Cancel Inspection</button>`;
-      const cancelledHtml = `<button type="button" class="insp-secondary-full-btn" disabled><i data-lucide="ban" class="w-4 h-4"></i>Cancelled — Book a New Inspection to Continue</button>`;
+      const cancelledHtml = `<button type="button" class="insp-secondary-full-btn" disabled><i data-lucide="ban" class="w-4 h-4"></i>${isTaken ? 'Property taken — fee refunded in full' : 'Cancelled — Book a New Inspection to Continue'}</button>`;
       const actionsHtml = isLandlordOrAgent
         ? (isPending
             ? hostPendingActionsHtml
@@ -23253,7 +23524,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           </div>
         </div>
         <p class="insp-meta-line"><i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i>${dateTimeLine}</p>
-        <span class="insp-escrow-badge"><i data-lucide="lock" class="w-3 h-3"></i>${formatMoney(s.fee, 'ngn')} Held</span>
+        <span class="insp-escrow-badge"><i data-lucide="lock" class="w-3 h-3"></i>${formatMoney(s.fee, 'ngn')} ${isTaken ? 'Refunded' : 'Held'}</span>
         ${hostInfoHtml ? `<div class="insp-divider"></div>${hostInfoHtml}` : ''}
         <div class="insp-divider"></div>
         <div class="insp-mgmt-actions">${actionsHtml}</div>
@@ -24413,7 +24684,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (has(/\b(fees?|charges?|costs?|commission|deposit|caution|service charge|platform fee|legal fee)\b|what am i paying|pay for/)) {
       if (role !== 'tenant') return { text: "Payments follow the split-payment protection terms agreed on the lease (see Payments and Protection in your profile). Agents' commission terms are in the partnership terms accepted at sign-up. For a specific payout I can connect you with the team.", chips: [personChip] };
       let txt;
-      if (has(/(shortlet|short-let|nightly|night)/)) txt = "For a shortlet: night 1 is paid when you book, and the remaining nights are debited daily from your wallet until the stay is paid. MainTown charges a 5% platform fee on the nightly rate, instead of a legal fee. Caution deposit and service charge are set by the owner or agent and paid directly to them. Damage claims against the deposit must be raised within 24 hours of checkout, with photo or video proof.";
+      if (has(/(shortlet|short-let|nightly|night)/)) txt = "For a shortlet: night 1 is paid when you book, and the remaining nights are debited daily from your wallet until the stay is paid. MainTown charges a 5% platform fee on the whole stay, paid once at checkout, instead of a legal fee. Caution deposit and service charge are set by the owner or agent and paid directly to them. Damage claims against the deposit must be raised within 24 hours of checkout, with photo or video proof.";
       else if (has(/(land|plot|buy|purchase|bungalow|sqm|deed)/)) txt = "For a land or property purchase: the price goes to the seller's own account. The Deed of Assignment fee is set by the owner at 5% or 10% and paid to them with your first installment; MainTown does not collect it. Agency commission is 10%, split in two halves: your 5% goes to MainTown, and the seller's 5% goes to the listing agent, or to MainTown if no agent was involved. A ₦15,000 fee covers preliminary title screening (not legal due diligence) and secure split-payment set-up.";
       else txt = "For a rent listing: your net rent goes straight to the landlord's own account. Caution deposit and service charge are set by the landlord or agent and paid directly to them; MainTown takes no cut. MainTown collects a legal fee for drafting your tenancy agreement. The one-time ₦5,000 screening fee is paid once and is not charged again at checkout. Payment is split automatically at the point of charge.";
       return { text: txt + "\n\nTell me if you meant a different listing type, or open the full breakdown.", chips: [ { l: 'Open fee breakdown', a: 'assist', k: 'fees' }, personChip ] };
@@ -25590,7 +25861,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       out.push({ title: 'Clause 5 \u2014 Cancellation & Refund Policy', body: SHORTLET_CANCEL_CLAUSE_TEXT });
       let n = 6;
       if (m.nights > 1 && m.dailyDebitLabel) {
-        out.push({ title: 'Clause 6 \u2014 Multi-Night Auto-Debit Authorization', body: `Night 1 (plus any Caution Fee & Service Charge) is charged at booking. For stays longer than one night, you authorize MainTown to auto-debit ${m.dailyDebitLabel} from your chosen payment method for each remaining night (Nights 2\u2013${m.nights}) until the stay is fully paid or you end the stay early.` });
+        out.push({ title: 'Clause 6 \u2014 Multi-Night Auto-Debit Authorization', body: `Night 1, the MainTown Platform Fee (5% of the whole stay) and any Caution Fee & Service Charge are charged at booking. For stays longer than one night, you authorize MainTown to auto-debit ${m.dailyDebitLabel} (the nightly rate, with no further Platform Fee) from your chosen payment method for each remaining night (Nights 2\u2013${m.nights}) until the stay is fully paid or you end the stay early.` });
         n = 7;
       }
       out.push({ title: `Clause ${n} \u2014 Dispute Resolution (Mediation, then LCA Arbitration)`, body: ADR_CLAUSE_TEXT });
@@ -29087,7 +29358,7 @@ available in the Post-Lease Hub and this chat thread.`
   const FinanceFeed = (function () {
     const QKEY = 'mtr_finance_feed_queue', MAX_Q = 1500, BATCH = 40, DKEY = 'mtr_finance_feed_diag';
     function fdiag(ok, st, note) { try { localStorage.setItem(DKEY, JSON.stringify({ at: Date.now(), ok: !!ok, status: st == null ? null : st, note: String(note || '').slice(0, 300) })); } catch (e) {} }
-    const META_KEYS = ['held', 'holdKind', 'bookingId', 'companyId', 'salesStaffId', 'escrowStatus'];
+    const META_KEYS = ['held', 'holdKind', 'bookingId', 'companyId', 'salesStaffId', 'escrowStatus', 'platformFee'];
     const load = () => { try { return JSON.parse(localStorage.getItem(QKEY)) || []; } catch (e) { return []; } };
     const save = q => { try { localStorage.setItem(QKEY, JSON.stringify(q.slice(-MAX_Q))); } catch (e) {} };
     const rnd = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -29184,7 +29455,7 @@ available in the Post-Lease Hub and this chat thread.`
         direction: 'credit', category: stream === 'legal_fee' ? 'MAINTOWN_LEGAL_FEE' : stream === 'shortlet_fee' ? 'MAINTOWN_SHORTLET_FEE' : stream === 'event_fee' ? 'MAINTOWN_EVENT_FEE' : 'MAINTOWN_COMMISSION',
         title: (stream === 'legal_fee' ? 'Legal fee' : stream === 'shortlet_fee' ? 'Short-let platform fee' : stream === 'event_fee' ? 'Event center service charge' : 'Commission') + ' - ' + String((listing && listing.title) || 'Property').slice(0, 120),
         amount: amt, status: 'SUCCESSFUL', property_name: (listing && listing.title) ? String(listing.title).slice(0, 160) : null,
-        fee_type: stream === 'legal_fee' ? 'Tenancy / agreement legal fee' : stream === 'shortlet_fee' ? 'Short-let platform fee (5% of nightly rate)' : stream === 'event_fee' ? 'Event center service charge (2% of hire fee)' : 'Agency commission', sender: stream === 'shortlet_fee' ? 'Guest' : stream === 'event_fee' ? 'Client' : 'Tenant / Buyer (auto-split)', recipient: 'MainTown Realty',
+        fee_type: stream === 'legal_fee' ? 'Tenancy / agreement legal fee' : stream === 'shortlet_fee' ? 'Short-let platform fee (5% of the stay, collected at checkout)' : stream === 'event_fee' ? 'Event center service charge (2% of hire fee)' : 'Agency commission', sender: stream === 'shortlet_fee' ? 'Guest' : stream === 'event_fee' ? 'Client' : 'Tenant / Buyer (auto-split)', recipient: 'MainTown Realty',
         stream, meta: (function () { const pt = propType(listing); return pt ? { property_type: pt } : {}; })(), occurred_at: new Date().toISOString()
       });
     }
@@ -33791,6 +34062,290 @@ available in the Post-Lease Hub and this chat thread.`
   })();
 
   // ==================================================================
+  // ---- Slot-based inspections + 15-minute checkout hold (Supabase RPC) ----
+  // Needs inspection_slots_and_checkout_holds_migration.sql to be run once in Supabase.
+  //  * Inspection slots: booking locks ONE property + date + start time in the database
+  //    (book_inspection_slot). Nothing else about the listing is blocked.
+  //  * Checkout hold: "Proceed to Checkout" takes a 15-minute hold on the listing
+  //    (acquire_checkout_hold) for Shortlets, Event Centers and Rentals — not Land/Property sales.
+  // Safety net: if Supabase can't be reached (offline) or the migration has not been run yet,
+  // the app behaves exactly as it did before; only a definite "taken" / "held" answer from the
+  // database blocks the guest.
+  // ==================================================================
+  window.MTRBooking = (function () {
+    const CFG = {
+      url: 'https://obtggomfwvravjcnypid.supabase.co',
+      key: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8', // same public key as the rest of the app
+      lookaheadDays: 180, retryMs: 60000
+    };
+    const LS_HOLD = 'mtr_checkout_hold', LS_REL = 'mtr_slot_release_outbox';
+    const MSG_SLOT = 'This time slot is no longer available. Please select another time.';
+    const MSG_HELD = 'Another user is currently completing a checkout for this listing. Please try again in a few minutes.';
+
+    function rd(k, fb) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? fb : v; } catch (e) { return fb; } }
+    function wr(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+    function rm(k) { try { localStorage.removeItem(k); } catch (e) {} }
+    function deviceId() {
+      try {
+        let d = localStorage.getItem('mtr_device_id');
+        if (!d) { d = 'dev-' + Math.random().toString(36).slice(2, 10); localStorage.setItem('mtr_device_id', d); }
+        return d;
+      } catch (e) { return 'dev-anon'; }
+    }
+    function userId() {
+      try {
+        const u = (typeof getCurrentUserId === 'function' && getCurrentUserId()) || (typeof currentDemoUserId === 'function' && currentDemoUserId());
+        if (u) return String(u);
+      } catch (e) {}
+      return 'guest-' + deviceId();
+    }
+    // One stable text key per listing, identical on every phone: the database id once the
+    // listing is in the shared feed, 'sample-N' for the built-in demo listings.
+    function listingKey(l) {
+      if (!l) return '';
+      if (l.remoteId != null) return String(l.remoteId);
+      try { if (typeof isSampleListing === 'function' && isSampleListing(l)) return 'sample-' + l.id; } catch (e) {}
+      return deviceId() + '-' + l.id;
+    }
+    async function rpc(name, args) {
+      const res = await fetch(CFG.url + '/rest/v1/rpc/' + name, {
+        method: 'POST', headers: { apikey: CFG.key, 'Content-Type': 'application/json' }, body: JSON.stringify(args)
+      });
+      let body = null; try { body = await res.json(); } catch (e) {}
+      return { ok: res.ok, status: res.status, body: body };
+    }
+    // A rejection raised on purpose by the database function (HTTP 400, code P0001).
+    function rejected(r, detail) { return !r.ok && r.body && r.body.code === 'P0001' && r.body.details === detail; }
+
+    // ---------- slot labels -> start_time / end_time ----------
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function minutes(h, m, p) {
+      h = Number(h); m = Number(m || 0);
+      if (p) { p = p.toUpperCase(); if (p === 'PM' && h < 12) h += 12; if (p === 'AM' && h === 12) h = 0; }
+      return (h > 23 || m > 59) ? NaN : h * 60 + m;
+    }
+    function hms(min) { min = Math.max(0, Math.min(1439, min)); return pad(Math.floor(min / 60)) + ':' + pad(min % 60) + ':00'; }
+    // '10:00 AM - 12:00 PM' -> {start:'10:00:00', end:'12:00:00'}; '14:30' -> 1-hour slot; unreadable -> null
+    function parseSlot(label) {
+      const s = String(label || '').replace(/[–—]/g, '-');
+      let m = s.match(/(\d{1,2})(?::(\d{2}))?\s*([AaPp][Mm])?\s*(?:-|to)\s*(\d{1,2})(?::(\d{2}))?\s*([AaPp][Mm])?/);
+      let a, b;
+      if (m) {
+        a = minutes(m[1], m[2], m[3] || m[6]); b = minutes(m[4], m[5], m[6]);
+        if (!m[3] && m[6] && !(a < b)) a = minutes(m[1], m[2], 'AM'); // '11:00 - 1:00 PM'
+      } else {
+        m = s.match(/(\d{1,2})(?::(\d{2}))?\s*([AaPp][Mm])?/);
+        if (!m) return null;
+        a = minutes(m[1], m[2], m[3]); b = a + 60;
+      }
+      if (isNaN(a) || isNaN(b) || !(a < b)) return null;
+      return { start: hms(a), end: hms(b) };
+    }
+
+    // ---------- calendar side ----------
+    async function refreshBooked(listing) {
+      try {
+        const from = new Date(), to = new Date(Date.now() + CFG.lookaheadDays * 864e5);
+        const r = await rpc('get_booked_slots', { p_property_id: listingKey(listing), p_from: availDateKey(from), p_to: availDateKey(to) });
+        if (r.ok && Array.isArray(r.body)) return new Set(r.body.map(x => x.slot_date + '|' + String(x.start_time).slice(0, 8)));
+      } catch (e) {}
+      return null; // unknown: keep whatever the calendar already shows
+    }
+    function isBooked(set, date, label) {
+      const p = parseSlot(label);
+      return !!(p && set && set.has(date + '|' + p.start));
+    }
+    function allBooked(set, date, labels) {
+      return !!(set && set.size && labels && labels.length && labels.every(l => isBooked(set, date, l)));
+    }
+
+    // ---------- booking side ----------
+    async function reserve(listing, date, label, bookingRef) {
+      const p = parseSlot(label);
+      if (!p) return { ok: true, skipped: true };
+      try {
+        const r = await rpc('book_inspection_slot', {
+          p_property_id: listingKey(listing), p_date: date, p_start: p.start, p_end: p.end,
+          p_user_id: userId(), p_device: deviceId(), p_booking_ref: bookingRef
+        });
+        if (r.ok) return { ok: true, slotId: (r.body && r.body.slot_id) || null };
+        if (rejected(r, 'slot_taken')) return { ok: false, taken: true, message: (r.body && r.body.message) || MSG_SLOT };
+        console.warn('[MainTown] slot lock skipped', r.status, r.body);
+      } catch (e) { console.warn('[MainTown] slot lock unreachable', e && e.message); }
+      return { ok: true, skipped: true };
+    }
+    let relBusy = false;
+    async function flushRelease() {
+      if (relBusy) return; relBusy = true;
+      try {
+        for (const job of rd(LS_REL, []).slice()) {
+          let done = true;
+          try {
+            const r = await rpc('release_inspection_slot', { p_booking_ref: job.ref, p_user_id: job.byTenant ? userId() : null });
+            done = r.ok || r.status < 500; // 404 = migration not run yet, 4xx = nothing left to retry; only server errors are retried
+          } catch (e) { done = false; }
+          if (!done) { setTimeout(flushRelease, CFG.retryMs); break; }
+          wr(LS_REL, rd(LS_REL, []).filter(j => j.ref !== job.ref));
+        }
+      } finally { relBusy = false; }
+    }
+    function releaseSlot(ref, byTenant) {
+      if (!ref) return;
+      const box = rd(LS_REL, []);
+      if (!box.some(j => j.ref === ref)) box.push({ ref: ref, byTenant: !!byTenant });
+      wr(LS_REL, box);
+      flushRelease();
+    }
+
+    // ---------- 15-minute checkout hold ----------
+    let holdState = rd(LS_HOLD, null);   // { key, until (ms, this phone's clock), type }
+    let acquiring = null;                // { key, promise }
+    let blocked = false;                 // the database said someone else holds this checkout
+    let timer = null;
+    function needsHold(l) { return !!l && l.type !== 'land'; } // Land / outright sales are excluded by design
+    function secondsLeft() { return holdState ? Math.max(0, Math.round((holdState.until - Date.now()) / 1000)) : 0; }
+    function fmt(s) { return pad(Math.floor(s / 60)) + ':' + pad(s % 60); }
+    function $(id) { return document.getElementById(id); }
+    function hideBanner() { const b = $('s6-hold-banner'); if (b) b.style.display = 'none'; }
+    function showOverlay(mode, msg) {
+      const ov = $('s6-hold-overlay'); if (!ov) return;
+      ov.style.display = 'flex';
+      $('s6-hold-ov-loading').style.display = mode === 'loading' ? 'block' : 'none';
+      $('s6-hold-ov-blocked').style.display = mode === 'blocked' ? 'block' : 'none';
+      if (mode === 'blocked' && msg) $('s6-hold-ov-msg').textContent = msg;
+    }
+    function hideOverlay() { const ov = $('s6-hold-overlay'); if (ov) ov.style.display = 'none'; }
+
+    function tick() {
+      if (!holdState) { stopTimer(); hideBanner(); return; }
+      const s = secondsLeft(), b = $('s6-hold-banner'), t = $('s6-hold-time');
+      if (b) { b.style.display = 'flex'; b.dataset.level = s <= 60 ? 'crit' : (s <= 180 ? 'warn' : 'ok'); }
+      if (t) t.textContent = fmt(s);
+      if (s <= 0) expire();
+    }
+    function startTimer() { if (!timer) { tick(); if (holdState) timer = setInterval(tick, 1000); } }
+    function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+
+    let takenP = Promise.resolve(); // the property-taken call must reach the database BEFORE the hold is released
+    function releaseHold(outcome, markStatus) {
+      const h = holdState;
+      holdState = null; blocked = false; rm(LS_HOLD); stopTimer(); hideBanner();
+      if (!h) return;
+      takenP.then(() => rpc('release_checkout_hold', {
+        p_listing_key: h.key, p_user_id: userId(), p_device: deviceId(), p_outcome: outcome || 'cancelled', p_mark_status: markStatus || null
+      })).catch(() => {}); // if this can't be sent, the 15-minute expiry on the server frees the listing anyway
+    }
+    // A rental/land purchase just completed: tell the database so it cancels the other guests' booked
+    // inspection slots for this property. Their phones pick the cancellation up in syncCancellations().
+    function propertyTaken(l) {
+      if (!l) return;
+      const p = rpc('cancel_inspections_for_taken_property', { p_property_id: listingKey(l), p_user_id: userId(), p_device: deviceId() })
+        .then(r => { if (!r.ok) console.warn('[MainTown] property-taken sync skipped', r.status, r.body); })
+        .catch(() => {});
+      takenP = takenP.then(() => p);
+    }
+    // This phone: ask the database which of my active inspections were cancelled because the property was taken.
+    let syncing = false;
+    async function syncCancellations() {
+      if (syncing || typeof activeInspectionRefs !== 'function') return;
+      syncing = true;
+      try {
+        const refs = activeInspectionRefs();
+        if (!refs.length) return;
+        const r = await rpc('get_inspection_cancellations', { p_booking_refs: refs });
+        if (r.ok && Array.isArray(r.body) && r.body.length) applyServerCancellations(r.body.map(x => (x && typeof x === 'object') ? (x.booking_ref || x.get_inspection_cancellations) : x));
+      } catch (e) {} finally { syncing = false; }
+    }
+    function expire() {
+      const s6 = $('screen-6'), onS6 = !!(s6 && !s6.classList.contains('hidden'));
+      const inv = $('s6-invoice-panel'), paid = !!(inv && !inv.classList.contains('hidden'));
+      releaseHold('expired');
+      if (onS6 && !paid) {
+        showToast('Your 15-minute checkout window has ended. Please start checkout again.');
+        checkoutListing = null; checkoutPaymentPending = false; saveCheckoutResumeState();
+        navigateTo('screen-5');
+      }
+    }
+
+    async function acquire(l) {
+      if (!needsHold(l)) return { ok: true, skipped: true };
+      const key = listingKey(l);
+      if (holdState && holdState.key !== key) releaseHold('cancelled'); // moving to a different listing
+      if (holdState && holdState.key === key && holdState.until > Date.now()) { startTimer(); return { ok: true, held: true }; }
+      if (acquiring && acquiring.key === key) return acquiring.promise;
+      const p = (async () => {
+        let r;
+        try { r = await rpc('acquire_checkout_hold', { p_listing_key: key, p_user_id: userId(), p_device: deviceId(), p_category: l.type || null }); }
+        catch (e) { return { ok: true, skipped: true }; }
+        if (r.ok) {
+          const sec = r.body && r.body.seconds_left != null ? Number(r.body.seconds_left) : 15 * 60; // server clock decides, not the phone's
+          holdState = { key: key, until: Date.now() + sec * 1000, type: l.type };
+          blocked = false; wr(LS_HOLD, holdState); startTimer();
+          return { ok: true, held: true, secondsLeft: sec };
+        }
+        if (rejected(r, 'listing_held')) return { ok: false, held: true, message: (r.body && r.body.message) || MSG_HELD };
+        console.warn('[MainTown] checkout hold skipped', r.status, r.body);
+        return { ok: true, skipped: true };
+      })();
+      acquiring = { key: key, promise: p };
+      p.then(() => { if (acquiring && acquiring.key === key) acquiring = null; });
+      return p;
+    }
+    // Called when Secure Checkout opens for a listing.
+    function gate(l) {
+      if (!needsHold(l)) { hideOverlay(); return; }
+      const key = listingKey(l);
+      if (holdState && holdState.key === key && holdState.until > Date.now()) { startTimer(); hideOverlay(); return; }
+      if (acquiring && acquiring.key === key) return;
+      blocked = false;
+      showOverlay('loading');
+      acquire(l).then(res => {
+        if (res.ok) { hideOverlay(); return; }
+        blocked = true;
+        showOverlay('blocked', res.message);
+      });
+    }
+    // Called when the guest comes back to Secure Checkout or taps Authorize Payment.
+    function ensureHold(force) {
+      if (typeof checkoutListing === 'undefined' || !checkoutListing || !needsHold(checkoutListing)) return;
+      // Only for a checkout that is actually in progress (not a stale, already-completed one).
+      if (!force && !(checkoutPaymentPending || holdState || acquiring)) return;
+      const inv = $('s6-invoice-panel'); if (inv && !inv.classList.contains('hidden')) return; // already paid
+      if (typeof isListingUnavailable === 'function' && isListingUnavailable(checkoutListing)) return;
+      gate(checkoutListing);
+    }
+    // Payment may only be approved while the hold is ours (or when the hold system is unreachable).
+    function canPay() {
+      if (blocked) return false;
+      if (holdState && holdState.until <= Date.now()) return false;
+      return true;
+    }
+
+    const backBtn = $('s6-hold-ov-back');
+    if (backBtn) backBtn.addEventListener('click', () => {
+      blocked = false; hideOverlay();
+      checkoutListing = null; checkoutPaymentPending = false; saveCheckoutResumeState();
+      navigateTo('screen-5');
+    });
+    window.addEventListener('online', flushRelease);
+    window.addEventListener('online', syncCancellations);
+    setTimeout(() => {
+      if (holdState) { if (holdState.until <= Date.now()) releaseHold('expired'); else startTimer(); }
+      flushRelease();
+      syncCancellations();
+    }, 1500);
+    setInterval(() => { if (!document.hidden) syncCancellations(); }, 60000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) syncCancellations(); });
+
+    return {
+      parseSlot: parseSlot, refreshBooked: refreshBooked, isBooked: isBooked, allBooked: allBooked,
+      reserve: reserve, releaseSlot: releaseSlot,
+      gate: gate, ensureHold: ensureHold, releaseHold: releaseHold, canPay: canPay, listingKey: listingKey,
+      propertyTaken: propertyTaken, syncCancellations: syncCancellations
+    };
+  })();
+
+  // ==================================================================
   // ---- Inspection & Schedule Reporter -> Admin (Supabase `inspection_events`) ----
   // Every inspection / schedule / move-in step in the app is mirrored to the admin
   // panel as an append-only event, so MainTown staff can monitor who booked what,
@@ -33881,7 +34436,7 @@ available in the Post-Lease Hub and this chat thread.`
           host_role: s.agent_id ? 'agent' : (s.sales_staff_id ? 'sales_staff' : 'landlord'),
           scheduled_date: s.scheduled_date || s.date || null, scheduled_time: s.scheduled_time || s.time || null,
           status: s.status || null,
-          details: { category: s.category || categoryOfListing(s.property_id), fee: s.fee != null ? s.fee : null, escrow_mode: s.escrowMode || null, cancellation_reason: s.cancellationReason || null },
+          details: { category: s.category || categoryOfListing(s.property_id), slot_id: s.slot_id || null, fee: s.fee != null ? s.fee : null, escrow_mode: s.escrowMode || null, cancellation_reason: s.cancellationReason || null },
           fp: [s.status, s.scheduled_date || s.date, s.scheduled_time || s.time].join('|')
         });
       });
