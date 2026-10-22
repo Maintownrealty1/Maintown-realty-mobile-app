@@ -28818,6 +28818,25 @@ available in the Post-Lease Hub and this chat thread.`
     const load = () => { try { return JSON.parse(localStorage.getItem(QKEY)) || []; } catch (e) { return []; } };
     const save = q => { try { localStorage.setItem(QKEY, JSON.stringify(q.slice(-MAX_Q))); } catch (e) {} };
     const rnd = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    // Property type for the Finance dashboard: residential / commercial rent, land / house sale, shortlet, event hall.
+    function propType(ref) {
+      try {
+        const all = (typeof listings !== 'undefined' && Array.isArray(listings)) ? listings : [];
+        const clean = t => String(t || '').replace(/\s*\(Half plot\)\s*$/i, '');
+        let l = null;
+        if (ref && typeof ref === 'object') {
+          l = (ref.type ? ref : null)
+            || (ref.id != null ? all.find(x => String(x.id) === String(ref.id)) : null)
+            || (ref.title ? all.find(x => x.title === clean(ref.title)) : null);
+        } else if (ref) { l = all.find(x => x.title === clean(ref)); }
+        if (!l) return null;
+        if (l.type === 'rent') return l.usage === 'commercial' ? 'commercial' : 'residential';
+        if (l.type === 'land') return l.propertyKind === 'house' ? 'house_property' : 'land';
+        if (l.type === 'shortlet') return 'shortlet';
+        if (l.type === 'event') return 'event_hall';
+      } catch (e) {}
+      return null;
+    }
     function who(id) {
       let name = null, role = null;
       try { name = resolveUserName(id) || null; } catch (e) {}
@@ -28835,6 +28854,7 @@ available in the Post-Lease Hub and this chat thread.`
     function rowOf(t, type, statusOverride) {
       const m = t.meta || {}, p = who(t.userId), meta = {};
       META_KEYS.forEach(k => { if (m[k] !== undefined) meta[k] = m[k]; });
+      { const pt = propType({ id: m.listingId, title: m.propertyName }); if (pt) meta.property_type = pt; }
       const status = statusOverride || t.status || 'SUCCESSFUL';
       return {
         event_key: 'tx-' + t.id + '-' + (type === 'created' ? 'c' : status + '-' + rnd()),
@@ -28877,7 +28897,7 @@ available in the Post-Lease Hub and this chat thread.`
         title: (stream === 'legal_fee' ? 'Legal fee' : stream === 'shortlet_fee' ? 'Short-let platform fee' : stream === 'event_fee' ? 'Event center service charge' : 'Commission') + ' - ' + String((listing && listing.title) || 'Property').slice(0, 120),
         amount: amt, status: 'SUCCESSFUL', property_name: (listing && listing.title) ? String(listing.title).slice(0, 160) : null,
         fee_type: stream === 'legal_fee' ? 'Tenancy / agreement legal fee' : stream === 'shortlet_fee' ? 'Short-let platform fee (5% of nightly rate)' : stream === 'event_fee' ? 'Event center service charge (2% of hire fee)' : 'Agency commission', sender: stream === 'shortlet_fee' ? 'Guest' : stream === 'event_fee' ? 'Client' : 'Tenant / Buyer (auto-split)', recipient: 'MainTown Realty',
-        stream, meta: {}, occurred_at: new Date().toISOString()
+        stream, meta: (function () { const pt = propType(listing); return pt ? { property_type: pt } : {}; })(), occurred_at: new Date().toISOString()
       });
     }
     // The short-let Caution Fee is held by MainTown itself until the stay ends (returned to the guest unless the
@@ -28888,7 +28908,7 @@ available in the Post-Lease Hub and this chat thread.`
         event_key: 'hold-' + ref, event_type: 'created', txn_ref: ref, user_id: 'maintown', party_name: 'MainTown Realty (holding)', party_role: 'platform',
         direction: 'credit', category: 'SHORTLET_CAUTION_HELD', title: String(title || 'Caution fee held') + ' - ' + String((listing && listing.title) || listing || 'Property').slice(0, 120),
         amount: amt, status: 'PENDING_ESCROW', property_name: (listing && listing.title) ? String(listing.title).slice(0, 160) : (typeof listing === 'string' ? listing.slice(0, 160) : null),
-        fee_type: 'Guest caution fee', sender: 'Guest', recipient: 'MainTown Realty (held for guest)', stream: null, meta: {}, occurred_at: new Date().toISOString()
+        fee_type: 'Guest caution fee', sender: 'Guest', recipient: 'MainTown Realty (held for guest)', stream: null, meta: { property_type: 'shortlet' }, occurred_at: new Date().toISOString()
       });
     }
     function holdClosed(ref) {
