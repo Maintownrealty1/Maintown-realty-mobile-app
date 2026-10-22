@@ -6377,17 +6377,13 @@
 
   <h1 class="s5-role-title" style="margin-bottom: 16px;">My Lease</h1>
 
-  <!-- Property Summary Card -->
-  <div class="dash-card" style="margin-bottom: 14px;">
-    <p class="dash-card-label" id="ml-property-title">—</p>
-    <p class="ml-property-address" id="ml-property-address">—</p>
-    <p class="dash-card-sub" id="ml-property-dates">—</p>
-    <span class="s5-verified-badge" style="margin-top: 10px;"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>Title Documents Screened (Preliminary)</span>
-  </div>
+  <!-- Properties the user has paid for: each card opens the full details, receipts, documents and lease actions -->
+  <p class="s5-section-label" style="margin-top:0;"><i data-lucide="home" class="w-4 h-4 text-purple-400"></i>Properties You Paid For</p>
+  <div id="ml-paid-list" style="margin-bottom: 18px;"></div>
 
   <!-- Assigned Agent & Landlord -->
-  <p class="s5-section-label"><i data-lucide="users" class="w-4 h-4 text-purple-400"></i>Assigned to Your Property</p>
-  <div class="assigned-people-row">
+  <p class="s5-section-label" id="ml-assigned-label"><i data-lucide="users" class="w-4 h-4 text-purple-400"></i>Assigned to Your Property</p>
+  <div class="assigned-people-row" id="ml-assigned-row">
     <div class="assigned-person-card" id="ml-agent-card" role="button" tabindex="0">
       <img id="ml-agent-avatar" class="assigned-person-avatar" alt="Agent" style="display:none;">
       <div id="ml-agent-avatar-fallback" class="assigned-person-avatar" style="display:flex; align-items:center; justify-content:center;">
@@ -6401,7 +6397,7 @@
       <div id="ml-landlord-avatar-fallback" class="assigned-person-avatar" style="display:flex; align-items:center; justify-content:center;">
         <i data-lucide="key-round" class="w-5 h-5 text-slate-500"></i>
       </div>
-      <p class="assigned-person-role">Landlord</p>
+      <p class="assigned-person-role" id="ml-landlord-role">Landlord</p>
       <p class="assigned-person-name" id="ml-landlord-name">—</p>
     </div>
   </div>
@@ -6447,11 +6443,7 @@
     </div>
   </div>
 
-  <!-- Action CTAs -->
-  <div class="ml-actions-row">
-    <button type="button" class="s5-action-btn" id="ml-extension-btn"><i data-lucide="calendar-plus" class="w-4 h-4"></i>Request Extension</button>
-    <button type="button" class="s5-action-btn" id="ml-terminate-btn" style="color:#f87171; border-color: rgba(248,113,113,0.35);"><i data-lucide="log-out" class="w-4 h-4"></i>Terminate Lease</button>
-  </div>
+  <!-- Extension / Terminate now live inside each property's detail sheet -->
 
 </div>
 <!-- ===================== END SCREEN MY-LEASE ===================== -->
@@ -14712,6 +14704,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Owner-preview state (Landlord / Agent tapping "Preview" on their own card).
   let liPreviewListing = null;   // listing shown in preview mode, else null
   let liPreviewStatus = '';
+  let liOwnedGroup = null;       // paid-property group when the sheet is opened from My Lease
   let liReturnCtx = null;        // lets the sheet reopen after the preview video is closed
   let liPhotos = [], liPhotoIdx = 0, liHeroType = 'rent';
 
@@ -14727,7 +14720,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!liReturnCtx) return;
     const c = liReturnCtx;
     liReturnCtx = null;
-    openListingInfoFor(c.p, { preview: true, statusLabel: c.statusLabel });
+    if (c.owned) openListingInfoFor(c.p, { owned: c.owned });
+    else openListingInfoFor(c.p, { preview: true, statusLabel: c.statusLabel });
   }
 
   // Tenant entry point (tap "Details" on a feed card).
@@ -14781,6 +14775,126 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Shared renderer. opts.preview = true is the Landlord/Agent preview: the
   // exact same sheet a tenant sees, with a Preview tag, a status note, direct
   // video playback, and the buy/rent button switched off.
+  // ==================================================================
+  // ---- My Lease: properties the user has paid for (rent + purchases) ----
+  // Each paid property is one card. Tapping it opens the same detail sheet the
+  // listing feed uses (photos, video, details) plus the payment receipts,
+  // the property's documents and the lease actions (extension / terminate).
+  // ==================================================================
+  function mlCleanTitle(t) { return String(t || '').replace(/\s*\(Half plot\)\s*$/i, '').trim().toLowerCase(); }
+  function mlPaidProperties() {
+    appState = loadAppState();
+    const uid = currentDemoUserId();
+    const all = (appState.transactions || []).filter(t => t && t.userId === uid && t.direction === 'debit' && t.status !== 'REFUNDED');
+    const main = all.filter(t => t.category === 'RENT_PAYMENT' || t.category === 'PURCHASE_PAYMENT');
+    const map = new Map();
+    const findListing = (id, title) => listings.find(l => id != null && String(l.id) === String(id)) || listings.find(l => mlCleanTitle(l.title) === mlCleanTitle(title)) || null;
+    main.forEach(t => {
+      const m = t.meta || {};
+      const l = findListing(m.listingId, m.propertyName);
+      const key = l ? String(l.id) : 't:' + mlCleanTitle(m.propertyName || t.title);
+      let g = map.get(key);
+      if (!g) { g = { key, listing: l, title: (l && l.title) || m.propertyName || t.title, kind: t.category === 'PURCHASE_PAYMENT' ? 'land' : 'rent', txns: [], last: 0 }; map.set(key, g); }
+      g.txns.push(t); g.last = Math.max(g.last, t.timestamp || 0);
+    });
+    // Fees paid for the same property (AI assessment) are added to its receipts.
+    map.forEach(g => {
+      all.filter(t => t.category === 'AI_FEE' && mlCleanTitle((t.meta || {}).propertyName) === mlCleanTitle(g.title)).forEach(t => g.txns.push(t));
+      g.txns.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+      g.total = g.txns.reduce((n, t) => n + (t.amount || 0), 0);
+    });
+    // Card-paid checkouts record no wallet row: fall back to the active lease so the property still shows.
+    if (activeLease && activeLease.listingId != null) {
+      const l = findListing(activeLease.listingId, activeLease.title);
+      const key = l ? String(l.id) : 't:' + mlCleanTitle(activeLease.title);
+      if (!map.has(key)) map.set(key, { key, listing: l, title: activeLease.title, kind: (l && l.type === 'land') ? 'land' : 'rent', txns: [], last: Date.now(), total: 0, leaseOnly: true });
+    }
+    return [...map.values()].sort((a, b) => b.last - a.last);
+  }
+  function renderMlPaidList(groups) {
+    const wrap = document.getElementById('ml-paid-list'); if (!wrap) return;
+    const esc = liEsc;
+    if (!groups.length) { wrap.innerHTML = '<div class="s5-list-item"><div class="s5-list-text"><p class="s5-list-title">No paid properties yet</p><p class="s5-list-sub">Properties you rent or buy on MainTown will appear here.</p></div></div>'; return; }
+    wrap.innerHTML = groups.map(g => {
+      const l = g.listing;
+      const isActive = activeLease && String(activeLease.listingId) === String(g.key);
+      const status = g.kind === 'land' ? 'Purchased' : (isActive && activeLease.moveInConfirmed ? `Active tenancy since ${activeLease.moveInDateLabel}` : 'Active tenancy');
+      const noticed = l && g.kind === 'rent' && mlNoticeSent(l);
+      return `<div class="dash-card" data-ml-key="${esc(g.key)}" role="button" tabindex="0" style="margin-bottom:12px; cursor:pointer; display:flex; gap:12px; align-items:center;">
+        ${l && l.img ? `<img src="${esc((l.photos && l.photos[0]) || l.img)}" alt="" style="width:64px;height:64px;border-radius:12px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">` : ''}
+        <div style="flex:1; min-width:0;">
+          <p class="dash-card-label" style="margin:0 0 3px;">${esc(g.title)}</p>
+          ${l && l.location ? `<p class="ml-property-address" style="margin:0 0 3px;"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${esc(l.location)}</p>` : ''}
+          <p class="dash-card-sub" style="margin:0;">${esc(status)}${g.total ? ' \u00b7 Paid ' + esc(formatMoney(g.total, 'ngn')) : ''}</p>
+          ${noticed ? '<p class="dash-card-sub" style="margin:4px 0 0; color:#fbbf24;">Notice to Quit submitted</p>' : ''}
+          <p style="margin:6px 0 0; font-size:11.5px; color:#a78bfa;">Tap for details, receipt and documents</p>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4" style="color:#64748b;flex-shrink:0;"></i>
+      </div>`;
+    }).join('');
+    wrap._groups = groups;
+    if (window.lucide) lucide.createIcons();
+  }
+  function mlOpenPaid(key) {
+    const wrap = document.getElementById('ml-paid-list');
+    const g = (wrap._groups || []).find(x => x.key === key); if (!g) return;
+    if (!g.listing) { showToast('The listing page is no longer available, but your receipts are saved.'); if (g.txns.length) mlDownloadReceipts(g); return; }
+    openListingInfoFor(g.listing, { owned: g });
+  }
+  document.getElementById('ml-paid-list').addEventListener('click', (e) => {
+    const c = e.target.closest('[data-ml-key]'); if (c) mlOpenPaid(c.dataset.mlKey);
+  });
+  document.getElementById('ml-paid-list').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const c = e.target.closest('[data-ml-key]'); if (c) { e.preventDefault(); mlOpenPaid(c.dataset.mlKey); }
+  });
+  function mlLeaseReceiptText(g) {
+    const when = new Date().toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    return ['MAINTOWN REALTY - PAYMENT RECEIPT', '=====================================', `Property: ${g.title}`,
+      `Payment: ${(activeLease && activeLease.amountLabel) || 'Recorded at checkout'}`, `Paid with: ${(activeLease && activeLease.card) || '-'}`,
+      `Generated: ${when}`, '=====================================', 'This receipt is auto-generated by MainTown Realty and serves as proof of this transaction.'].join('\n');
+  }
+  function mlDownloadReceipts(g) {
+    const safe = String(g.title).replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '');
+    if (!g.txns.length) { saveReceiptPdf(mlLeaseReceiptText(g), `MainTown_Receipt_${safe}.pdf`); showToast('Receipt downloaded'); return; }
+    if (g.txns.length === 1) { downloadTxnReceipt(g.txns[0]); return; }
+    saveReceiptPdf(g.txns.map(txnReceiptText).join('\n\n'), `MainTown_Receipts_${safe}.pdf`);
+    showToast('Receipts downloaded');
+  }
+  function mlOwnedSectionsHtml(p, g) {
+    const esc = liEsc, money = n => formatMoney(n, 'ngn');
+    const fmt = ts => new Date(ts).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const payRows = g.txns.length ? g.txns.map(t => `<div class="li-row" style="align-items:center;">
+        <span>${esc(t.title)}<br><small style="color:#64748b;">${esc(fmt(t.timestamp))} \u00b7 ${esc(t.id)}</small></span>
+        <strong>${money(t.amount)}<br><button type="button" class="lease-doc-btn download" data-li-receipt="${esc(t.id)}" style="margin-top:6px;"><i data-lucide="download" class="w-3.5 h-3.5"></i>Receipt</button></strong></div>`).join('')
+      + `<div class="li-row"><span>Total paid</span><strong style="color:#c084fc;">${money(g.total)}</strong></div>`
+      : `<div class="li-row"><span>${esc((activeLease && activeLease.amountLabel) || 'Payment recorded at checkout')}</span><strong><button type="button" class="lease-doc-btn download" data-li-receipt="lease"><i data-lucide="download" class="w-3.5 h-3.5"></i>Receipt</button></strong></div>`;
+    // Documents for this property
+    const uid = currentDemoUserId();
+    const docs = [];
+    docs.push(`<div class="li-row" style="align-items:center;"><span>Cadastral Survey &amp; GPS Audit Certificate<br><small style="color:#64748b;">Independent title verification record</small></span><strong><button type="button" class="lease-doc-btn preview" data-li-doc="title"><i data-lucide="eye" class="w-3.5 h-3.5"></i>View</button></strong></div>`);
+    (appState.tenantLeaseDocuments || []).filter(d => d.buyerId && d.buyerId === uid && mlCleanTitle(d.listingTitle) === mlCleanTitle(p.title)).forEach(d => {
+      docs.push(`<div class="li-row" style="align-items:center;"><span>${esc(d.fileName)}<br><small style="color:#64748b;">Signed agreement</small></span><strong><button type="button" class="lease-doc-btn preview" data-li-entdoc="${esc(d.id)}"><i data-lucide="eye" class="w-3.5 h-3.5"></i>View</button></strong></div>`);
+    });
+    myAgreements().filter(a => mlCleanTitle(a.listingTitle) === mlCleanTitle(p.title)).forEach(a => {
+      docs.push(`<div class="li-row" style="align-items:center;"><span>${esc(a.fileName)}<br><small style="color:#64748b;">Signed ${esc(a.dateSigned)}</small></span><strong style="display:flex;gap:6px;"><button type="button" class="lease-doc-btn preview" data-agr-action="preview" data-agr-id="${esc(a.id)}"><i data-lucide="eye" class="w-3.5 h-3.5"></i>View</button><button type="button" class="lease-doc-btn download" data-agr-action="download" data-agr-id="${esc(a.id)}"><i data-lucide="download" class="w-3.5 h-3.5"></i></button></strong></div>`);
+    });
+    return `<details class="li-section li-drawer" open><summary class="li-h">Payment receipts</summary><div class="li-rows">${payRows}</div></details>
+      <details class="li-section li-drawer" open><summary class="li-h">Your documents</summary><div class="li-rows">${docs.join('')}</div></details>`;
+  }
+  function mlOwnedActionsHtml(p, g) {
+    const btn = 'flex:1 1 44%;';
+    let h = `<button type="button" class="s5-action-btn primary" style="${btn}" data-li-own="receipt"><i data-lucide="download" class="w-4 h-4"></i>Download receipt</button>`;
+    if (p.hasVideo && p.videoUrl) h += `<button type="button" class="s5-action-btn" style="${btn}" data-li-own="video"><i data-lucide="video" class="w-4 h-4"></i>${p.type === 'land' ? 'Site video' : 'Walkthrough'}</button>`;
+    if (g.kind === 'rent') {
+      h += `<button type="button" class="s5-action-btn" style="${btn}" data-li-own="extend"><i data-lucide="calendar-plus" class="w-4 h-4"></i>Request extension</button>`;
+      h += mlNoticeSent(p)
+        ? `<button type="button" class="s5-action-btn" style="${btn} color:#fbbf24; border-color:rgba(251,191,36,0.35);" disabled><i data-lucide="check" class="w-4 h-4"></i>Notice submitted</button>`
+        : `<button type="button" class="s5-action-btn" style="${btn} color:#f87171; border-color:rgba(248,113,113,0.35);" data-li-own="terminate"><i data-lucide="log-out" class="w-4 h-4"></i>Terminate lease</button>`;
+    }
+    return h;
+  }
+
   function openListingInfoFor(p, opts) {
     opts = opts || {};
     const preview = !!opts.preview;
@@ -14789,7 +14903,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const isLand = p.type === 'land';
     const isShortlet = p.type === 'shortlet';
     const isEvent = p.type === 'event';
-    const unavailable = isListingUnavailable(p);
+    const owned = opts.owned || null;
+    liOwnedGroup = owned;
+    const unavailable = owned ? false : isListingUnavailable(p);
     const photos = (p.photos && p.photos.length) ? p.photos : [p.img];
 
     liHeroType = isLand ? 'land' : (isEvent ? 'event' : (isShortlet ? 'shortlet' : 'rent'));
@@ -14885,6 +15001,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <p class="li-price">${liEsc(priceMain)}<small>${liEsc(priceUnit)}</small></p>
       ${sl ? sl.ratingLine : ''}
       <div class="li-chips">${chips.join('')}</div>
+      ${owned ? mlOwnedSectionsHtml(p, owned) : ''}
       ${preview ? `<p class="li-preview-note"><i data-lucide="eye"></i><span>${liEsc(opts.statusLabel || 'Preview')}. This is exactly how tenants see your listing.</span></p>` : ''}
       ${sl ? (sl.offers + sl.ratings + sl.about) : `<details class="li-section li-drawer" open><summary class="li-h">About this listing</summary><p class="li-story">${liEsc(liStory(p))}</p></details>`}
       <details class="li-section li-drawer" open><summary class="li-h">Property details</summary><div class="li-rows">${details.join('')}</div></details>
@@ -14901,12 +15018,17 @@ This voucher is auto-generated and serves as proof of settlement.`;
     let secondary = '';
     if (isLand && p.hasVideo) secondary = '<button type="button" class="s5-action-btn" data-li-proxy=".s5-video-preview-btn"><i data-lucide="video" class="w-4 h-4"></i>Site video</button>';
     else if (!isLand) secondary = '<button type="button" class="s5-action-btn" data-li-proxy=".wt-btn"><i data-lucide="video" class="w-4 h-4"></i>Walkthrough</button>';
-    if (preview) {
+    if (owned) {
+      document.getElementById('li-actions').innerHTML = mlOwnedActionsHtml(p, owned);
+      document.getElementById('li-actions').style.flexWrap = 'wrap';
+    } else if (preview) {
+      document.getElementById('li-actions').style.flexWrap = '';
       const pvVideo = (p.hasVideo && p.videoUrl)
         ? `<button type="button" class="s5-action-btn" data-li-preview-video><i data-lucide="video" class="w-4 h-4"></i>${isLand ? 'Play site video' : 'Play walkthrough'}</button>`
         : '';
       document.getElementById('li-actions').innerHTML = liOwnerPreviewActionsHtml(p);
     } else {
+      document.getElementById('li-actions').style.flexWrap = '';
       const liveOf = (mktOfferKind(p) && mktRole() === 'tenant') ? mktLiveOffer(p) : null;
       const offerBtn = (mktOfferKind(p) && !unavailable && mktRole() === 'tenant') ? (liveOf ? '<button type="button" class="s5-action-btn" data-li-offer="view"><i data-lucide="handshake" class="w-4 h-4"></i>' + (liveOf.status === 'accepted' ? 'Agreed price' : 'My offer') + '</button>' : '<button type="button" class="s5-action-btn" data-li-offer><i data-lucide="handshake" class="w-4 h-4"></i>Offer a price</button>') : '';
       document.getElementById('li-actions').innerHTML = `${secondary}${offerBtn}<button type="button" class="s5-action-btn primary" data-li-proxy="${primarySel}" ${unavailable ? 'disabled' : ''}><i data-lucide="${primaryIcon}" class="w-4 h-4"></i>${primaryLabel}</button>`;
@@ -14925,7 +15047,39 @@ This voucher is auto-generated and serves as proof of settlement.`;
     sheet.addEventListener('click', (e) => { if (e.target === sheet) close(); });
     document.getElementById('li-prev').addEventListener('click', () => liShowPhoto(liPhotoIdx - 1));
     document.getElementById('li-next').addEventListener('click', () => liShowPhoto(liPhotoIdx + 1));
+    const mlBody = document.getElementById('li-body');
+    mlBody.addEventListener('click', (e) => {
+      const g = liOwnedGroup; if (!g) return;
+      const rc = e.target.closest('[data-li-receipt]');
+      if (rc) { if (rc.dataset.liReceipt === 'lease') { mlDownloadReceipts(g); return; } const t = g.txns.find(x => String(x.id) === rc.dataset.liReceipt); if (t) downloadTxnReceipt(t); return; }
+      if (e.target.closest('[data-li-doc="title"]')) { showToast('Opening Cadastral Survey & GPS Audit Certificate (read-only)'); return; }
+      const ed = e.target.closest('[data-li-entdoc]');
+      if (ed) { const d = (appState.tenantLeaseDocuments || []).find(x => String(x.id) === ed.dataset.liEntdoc); if (!d) return; if (d.fileDataUrl) window.open(d.fileDataUrl, '_blank'); else showToast(`Opening ${d.fileName}`); }
+    });
     document.getElementById('li-actions').addEventListener('click', (e) => {
+      const ownBtn = e.target.closest('[data-li-own]');
+      if (ownBtn && liOwnedGroup) {
+        const g = liOwnedGroup, p = g.listing, act = ownBtn.dataset.liOwn;
+        if (act === 'receipt') { mlDownloadReceipts(g); return; }
+        if (act === 'extend') { mlRequestExtension(p); return; }
+        if (act === 'terminate') {
+          if (ownBtn.dataset.armed !== '1') {
+            ownBtn.dataset.armed = '1'; const orig = ownBtn.innerHTML;
+            ownBtn.innerHTML = '<i data-lucide="alert-triangle" class="w-4 h-4"></i>Tap again to confirm';
+            if (window.lucide) lucide.createIcons();
+            setTimeout(() => { if (ownBtn.isConnected) { ownBtn.dataset.armed = ''; ownBtn.innerHTML = orig; if (window.lucide) lucide.createIcons(); } }, 4000);
+            return;
+          }
+          mlTerminateLease(p); close(); populateMyLeaseScreen(); return;
+        }
+        if (act === 'video') {
+          liReturnCtx = { p, owned: g };
+          close();
+          if (p.type === 'land') openSiteVideoModal(p, { preview: true });
+          else openWalkthroughModal(p.title, p, { preview: true });
+          return;
+        }
+      }
       const offBtn = e.target.closest('[data-li-offer]');
       if (offBtn) { const id = sheet.dataset.listingId; close(); if (offBtn.dataset.liOffer === 'view') navigateTo('screen-offers'); else mktOpenOffer(id); return; }
       if (e.target.closest('[data-li-close]')) { close(); return; }
@@ -26725,38 +26879,39 @@ available in the Post-Lease Hub and this chat thread.`
   // ==================================================================
   // ---- SCREEN MY-LEASE: Digital Vault & Title Audit ----
   // ==================================================================
+  let mlAssignedListing = null;
   function populateMyLeaseScreen() {
     renderSignedAgreements('ml-agreements-section', 'ml-agreements-list', 'lease');
-    const listing = checkoutListing || firstRentListing() || null;
-    const lease = activeLease || {};
+    const groups = mlPaidProperties();
+    renderMlPaidList(groups);
+    const listing = (groups[0] && groups[0].listing) || checkoutListing || firstRentListing() || null;
+    mlAssignedListing = listing;
 
-    document.getElementById('ml-property-title').textContent = (lease.title) || (listing && listing.title) || 'Your Active Lease';
-    document.getElementById('ml-property-address').innerHTML = `<i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${(listing && listing.location) || 'Address on file'}`;
-    document.getElementById('ml-property-dates').textContent = lease.moveInConfirmed
-      ? `Active tenancy since ${lease.moveInDateLabel}`
-      : 'Active tenancy — move-in date pending confirmation';
-
+    const agentCard = document.getElementById('ml-agent-card');
+    const landlordCard = document.getElementById('ml-landlord-card');
     const agentAvatar = document.getElementById('ml-agent-avatar');
     const agentAvatarFallback = document.getElementById('ml-agent-avatar-fallback');
     const landlordAvatar = document.getElementById('ml-landlord-avatar');
     const landlordAvatarFallback = document.getElementById('ml-landlord-avatar-fallback');
 
-    if (listing && listing.listedBy === 'agent' && listing.agentName) {
+    // Direct landlord: only the landlord card. Agent-managed: agent and landlord cards.
+    const agentInvolved = !!(listing && (listing.listedByRole ? listing.listedByRole === 'AGENT' : listing.listedBy === 'agent') && listing.agentName);
+    const hasPeople = !!(listing && (listing.landlordName || agentInvolved));
+    document.getElementById('ml-assigned-label').style.display = hasPeople ? '' : 'none';
+    document.getElementById('ml-assigned-row').style.display = hasPeople ? '' : 'none';
+    agentCard.style.display = agentInvolved ? '' : 'none';
+    landlordCard.style.display = (listing && listing.landlordName) ? '' : 'none';
+    document.getElementById('ml-landlord-role').textContent = (listing && listing.type === 'land') ? 'Seller' : 'Landlord';
+
+    if (agentInvolved) {
       document.getElementById('ml-agent-name').textContent = listing.agentName;
       if (listing.agentPhoto) { agentAvatar.src = listing.agentPhoto; agentAvatar.style.display = 'block'; agentAvatarFallback.style.display = 'none'; }
       else { agentAvatar.style.display = 'none'; agentAvatarFallback.style.display = 'flex'; }
-    } else {
-      document.getElementById('ml-agent-name').textContent = 'Direct Listing';
-      agentAvatar.style.display = 'none'; agentAvatarFallback.style.display = 'flex';
     }
-
     if (listing && listing.landlordName) {
       document.getElementById('ml-landlord-name').textContent = listing.landlordName;
       if (listing.landlordPhoto) { landlordAvatar.src = listing.landlordPhoto; landlordAvatar.style.display = 'block'; landlordAvatarFallback.style.display = 'none'; }
       else { landlordAvatar.style.display = 'none'; landlordAvatarFallback.style.display = 'flex'; }
-    } else {
-      document.getElementById('ml-landlord-name').textContent = 'Not assigned';
-      landlordAvatar.style.display = 'none'; landlordAvatarFallback.style.display = 'flex';
     }
 
     // Security Deposit — reuses the same commission figure already shown as
@@ -26802,10 +26957,14 @@ available in the Post-Lease Hub and this chat thread.`
     showToast('Opening Cadastral Survey & GPS Audit Certificate (read-only)');
   });
   document.getElementById('ml-agent-card').addEventListener('click', () => {
-    if (s7PropertyListing) openPeerChatThread(s7PropertyListing, 'agent');
+    const l = mlAssignedListing || s7PropertyListing;
+    if (l) openPeerChatThread(l, 'agent');
   });
   document.getElementById('ml-landlord-card').addEventListener('click', () => {
-    if (typeof openLandlordCard === 'function') openLandlordCard();
+    const l = mlAssignedListing;
+    if (l && s7PropertyListing && String(l.id) === String(s7PropertyListing.id)) { if (typeof openLandlordCard === 'function') openLandlordCard(); }
+    else if (l) openPeerChatThread(l, 'landlord');
+    else if (typeof openLandlordCard === 'function') openLandlordCard();
   });
   // Strict ownerId/agentId routing for lease-lifecycle events (extension
   // requests, termination notices). Mirrors dispatchMoveInNotifications /
@@ -26839,17 +26998,24 @@ available in the Post-Lease Hub and this chat thread.`
     }
   }
 
-  document.getElementById('ml-extension-btn').addEventListener('click', () => {
-    const propertyTitle = (activeLease && activeLease.title) || 'your property';
-    showToast(`Extension request sent for ${propertyTitle} — awaiting Landlord approval`);
-    dispatchLeaseLifecycleNotification(activeLease, 'Lease Extension Requested',
+  function mlLeaseFor(p) {
+    return { listingId: p.id, title: p.title, ownerId: p.ownerId || null, agentId: p.agentId || null,
+      listedByRole: p.listedByRole || (p.listedBy === 'agent' ? 'AGENT' : 'LANDLORD') };
+  }
+  function mlRequestExtension(p) {
+    showToast(`Extension request sent for ${p.title} — awaiting Landlord approval`);
+    dispatchLeaseLifecycleNotification(mlLeaseFor(p), 'Lease Extension Requested',
       (title) => `Tenant has requested a lease extension for ${title}.`, 'LEASE_EXTENSION_REQUESTED');
-  });
-  document.getElementById('ml-terminate-btn').addEventListener('click', () => {
+  }
+  function mlNoticeMap() { try { return JSON.parse(localStorage.getItem('mtr_ml_notice') || '{}') || {}; } catch (e) { return {}; } }
+  function mlNoticeSent(p) { return !!mlNoticeMap()[currentDemoUserId() + ':' + p.id]; }
+  function mlTerminateLease(p) {
+    const m = mlNoticeMap(); m[currentDemoUserId() + ':' + p.id] = Date.now();
+    try { localStorage.setItem('mtr_ml_notice', JSON.stringify(m)); } catch (e) {}
     showToast('30-day Notice to Quit submitted — your Landlord has been notified');
-    dispatchLeaseLifecycleNotification(activeLease, 'Notice to Quit Submitted',
+    dispatchLeaseLifecycleNotification(mlLeaseFor(p), 'Notice to Quit Submitted',
       (title) => `Tenant has submitted a 30-day Notice to Quit for ${title}.`, 'NOTICE_TO_QUIT_SUBMITTED');
-  });
+  }
 
   // ==================================================================
   // ---- SCREEN REPORT-ISSUE: Maintenance Ticketing System ----
