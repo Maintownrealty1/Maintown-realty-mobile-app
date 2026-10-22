@@ -18576,13 +18576,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // pure pass-throughs straight to the Landlord/Owner — MainTown never touches
   // them — added on top of the net rent for the first payment only.
   // ==================================================================
-  function creditPartyWallet(userId, amount, { title, category, propertyName, feeType, companyMeta }) {
+  function creditPartyWallet(userId, amount, { title, category, propertyName, listingId, feeType, companyMeta }) {
     if (!userId || !(amount > 0)) return;
     creditWallet(userId, amount);
     recordTransaction({
       userId, direction: 'credit', category,
       title, amount, status: 'SUCCESSFUL',
-      meta: Object.assign({ sender: 'Buyer / Tenant (auto-split)', recipient: 'You', propertyName, feeType }, companyMeta || {})
+      meta: Object.assign({ sender: 'Buyer / Tenant (auto-split)', recipient: 'You', propertyName, listingId, feeType }, companyMeta || {})
     });
   }
 
@@ -18629,7 +18629,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       creditPartyWallet(listing.agentId, agentTake, {
         title: `Agent Commission Split - ${listing.title || 'Property'}`,
         category: 'AGENT_COMMISSION',
-        propertyName: listing.title,
+        propertyName: listing.title, listingId: listing.id,
         feeType: 'Agent Commission Share'
       });
     }
@@ -18736,7 +18736,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           title: `${isLandTxn ? 'Purchase Payment' : ((checkoutListing && checkoutListing.usage === 'commercial') ? 'Annual Rent' : 'Rent Installment')} - ${propertyTitle}`,
           amount: principalAmt, status: 'SUCCESSFUL',
           meta: {
-            sender: 'You', recipient: 'Owner / Agent / MainTown (auto-split)', propertyName: propertyTitle,
+            sender: 'You', recipient: 'Owner / Agent / MainTown (auto-split)', propertyName: propertyTitle, listingId: checkoutListing ? checkoutListing.id : undefined,
             feeType: isLandTxn ? 'Purchase Installment' : ((checkoutListing && checkoutListing.usage === 'commercial') ? 'Annual Rent (paid in full)' : 'Rent Installment'),
             escrowStatus: 'Split at point of charge',
             // A Company payment is acknowledged (reconciled) by the CEO OR a Finance staff
