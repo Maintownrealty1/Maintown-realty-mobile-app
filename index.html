@@ -28869,6 +28869,7 @@ available in the Post-Lease Hub and this chat thread.`
     let flushing = false;
     async function flush() {
       if (flushing) return; flushing = true;
+      let failed = false;
       try {
         const c = RemoteFeed.config; if (!c) return;
         let q = load();
@@ -28878,11 +28879,16 @@ available in the Post-Lease Hub and this chat thread.`
           if (res.status === 404) { // function not created yet: fall back to a direct table insert
             res = await fetch(c.url + '/rest/v1/finance_ledger?on_conflict=event_key', { method: 'POST', headers: { apikey: c.key, 'Content-Type': 'application/json', Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify(batch) });
           }
-          if (!res.ok) { let t = ''; try { t = await res.clone().text(); } catch (e) {} fdiag(false, res.status, t); break; }
+          if (!res.ok) { failed = true; let t = ''; try { t = await res.clone().text(); } catch (e) {} fdiag(false, res.status, t); break; }
           fdiag(true, res.status, 'sent ' + batch.length);
-          q = q.slice(batch.length); save(q);
+          // Re-read the queue and drop only what was actually sent. Rows added while this request was in flight
+          // (e.g. the commission and legal fee created right after the rent charge) must not be overwritten.
+          const sentKeys = new Set(batch.map(r => r.event_key));
+          q = load().filter(r => !sentKeys.has(r.event_key)); save(q);
         }
-      } catch (e) { fdiag(false, null, (e && e.message) || 'network error'); /* offline: retried later */ } finally { flushing = false; }
+      } catch (e) { failed = true; fdiag(false, null, (e && e.message) || 'network error'); /* offline: retried later */ } finally { flushing = false; }
+      // Anything queued after the last check, or after a failure, is picked up again shortly.
+      try { if (load().length) setTimeout(flush, failed ? 30000 : 400); } catch (e) {}
     }
     function enqueue(row) { const q = load(); q.push(row); save(q); flush(); }
     function txn(t) { if (t && t.id) enqueue(rowOf(t, 'created')); }
