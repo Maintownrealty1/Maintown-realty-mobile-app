@@ -7699,9 +7699,10 @@
 
     <div class="fee-preview-box">
       <div class="row"><span>Next Night Rate</span><strong id="se-next-rate">₦0</strong></div>
-      <div class="row"><span>MainTown Platform Fee (5%)</span><strong id="se-next-fee">₦0</strong></div>
+      <div class="row"><span>MainTown Platform Fee (5% of this night)</span><strong id="se-next-fee">₦0</strong></div>
       <div class="row"><span>Total Due</span><strong id="se-next-total">₦0</strong></div>
     </div>
+    <p class="modal-sub" style="margin:10px 0 0; font-size:12px; color:#94a3b8;">The 5% platform fee applies to every night you add by extending, the same as on the nights you first booked.</p>
 
     <button type="button" id="se-pay-btn" class="btn-primary" style="margin-top:14px; margin-bottom:10px;"><i data-lucide="wallet" class="w-4 h-4"></i>Pay For Another Night</button>
     <button type="button" id="se-terminate-btn" class="btn-secondary" style="color:#f87171; border-color: rgba(248,113,113,0.35);"><i data-lucide="log-out" class="w-4 h-4"></i>Terminate Stay</button>
@@ -10999,7 +11000,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     } else if (type === 'shortlet') {
       cards = [
         asCard('Nightly rate', 'Night 1 is paid when you book. Remaining nights are debited daily from your wallet until the stay is fully paid.'),
-        asCard('MainTown Platform Fee', '5% of the nightly rates for the whole stay, paid once at checkout. Shortlets carry this instead of a Legal Fee.'),
+        asCard('MainTown Platform Fee', '5% of the nightly rates for the nights you book, paid at checkout. Any night you add later by extending your stay carries its own 5%. Shortlets carry this instead of a Legal Fee.'),
         asCard('Caution Deposit & Service Charge', 'Set by the owner or agent and paid directly to them. Damage claims against the deposit must be raised within 24 hours of checkout, with photo or video proof.')
       ];
     } else {
@@ -15618,8 +15619,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (serviceRow) { const lb = serviceRow.querySelector('span'); if (lb) lb.textContent = breakdown.cleaningFee > 0 ? 'Service Charge & Cleaning Fee (to host)' : 'Service Charge (to host)'; }
     document.getElementById('sb-total-now').textContent = formatMoney(breakdown.totalPayable, 'ngn');
     document.getElementById('sb-autodebit-note').textContent = breakdown.remainingNights > 0
-      ? `Night 1, the Platform Fee for all ${breakdown.nights} nights (plus Caution Fee & Service Charge, if set) is paid now. Nights 2–${breakdown.nights} auto-debit ${formatMoney(breakdown.dailyDebitAmount, 'ngn')} daily from your wallet, with no extra fee, until the stay is fully paid.`
-      : `This is a single-night stay — nothing further will be charged.`;
+      ? `Night 1, the Platform Fee for all ${breakdown.nights} nights (plus Caution Fee & Service Charge, if set) is paid now. Nights 2–${breakdown.nights} auto-debit ${formatMoney(breakdown.dailyDebitAmount, 'ngn')} daily from your wallet, with no extra fee, until the stay is fully paid. If you extend later, each added night carries its own 5% platform fee.`
+      : `This is a single-night stay. If you extend it later, each added night is charged at the nightly rate plus its own 5% platform fee, shown before you pay.`;
     return breakdown;
   }
 
@@ -16111,7 +16112,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           // Last night is paid and it is check-out day: let the guest extend or end the stay.
           b.status = 'AWAITING_DECISION'; changed = true;
           pushPlatformNotification('tenant', 'booking', 'Your Stay Is Ending - Action Needed',
-            `Your stay at "${b.listingTitle}" ends today at 12:00 PM. Pay for another night or end your stay.`,
+            `Your stay at "${b.listingTitle}" ends today at 12:00 PM. Pay for another night (the nightly rate plus a 5% platform fee for that night) or end your stay.`,
             { screen: 'shortletExtension', bookingId: b.id }, 'shortlet', null, b.tenantId);
         }
       }
@@ -16836,6 +16837,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // insufficient-balance state, cleared the moment payment settles
   // (see settleCheckoutAndShowInvoice) or a fresh checkout opens.
   let checkoutPaymentPending = false;
+  // True once this checkout has been paid. Leaving the screen after that must never be treated as an abandoned checkout.
+  let checkoutPaymentDone = false;
+  function markCheckoutPaid() {
+    checkoutPaymentDone = true;
+    checkoutPaymentPending = false;
+    checkoutResumeNotifPushed = false;
+    try { // remove any "Continue Your Payment" reminder left over from this checkout
+      platformNotifications = platformNotifications.filter(n => n.type !== 'RESUME_CHECKOUT');
+      savePlatformNotifications();
+      updateAllBellDots();
+    } catch (e) {}
+    saveCheckoutResumeState();
+  }
   // Whether we've already left a "Continue Your Payment" notification behind
   // for the current checkoutListing, so stepping away more than once (back
   // button, then home, then back again) doesn't spam duplicate notifications.
@@ -16857,7 +16871,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
           listingId: checkoutListing.id,
           landPayment: checkoutLandPayment || null,
           event: checkoutEvent || null,
-          notifPushed: checkoutResumeNotifPushed
+          notifPushed: checkoutResumeNotifPushed,
+          savedAt: Date.now()
         }));
       } else {
         localStorage.removeItem('mtr_checkout_resume');
@@ -16871,6 +16886,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const listing = (typeof listingsFeed !== 'undefined' ? listingsFeed : []).find(l => l.id === stored.listingId);
     if (!listing || (typeof isListingUnavailable === 'function' && isListingUnavailable(listing))) {
       try { localStorage.removeItem('mtr_checkout_resume'); } catch (e) {}
+      return;
+    }
+    // Before this fix a PAID shortlet/event checkout could be saved as "pending" (no savedAt stamp). Drop those.
+    if (!stored.savedAt && (listing.type === 'shortlet' || listing.type === 'event')) {
+      try { localStorage.removeItem('mtr_checkout_resume'); } catch (e) {}
+      setTimeout(() => { try { platformNotifications = platformNotifications.filter(n => n.type !== 'RESUME_CHECKOUT'); savePlatformNotifications(); updateAllBellDots(); } catch (e) {} }, 3000);
       return;
     }
     checkoutListing = listing;
@@ -16892,7 +16913,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const screen6 = document.getElementById('screen-6');
     const invoicePanel = document.getElementById('s6-invoice-panel');
     const alreadyPaid = invoicePanel && !invoicePanel.classList.contains('hidden');
-    if (screen6 && !screen6.classList.contains('hidden') && checkoutListing && !alreadyPaid) {
+    if (screen6 && !screen6.classList.contains('hidden') && checkoutListing && !alreadyPaid && !checkoutPaymentDone) {
       checkoutPaymentPending = true;
       if (!checkoutResumeNotifPushed) {
         pushPlatformNotification('tenant', 'payment', 'Continue Your Payment',
@@ -17273,6 +17294,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     checkoutLandPayment = landPayment || null;
     checkoutAuthSubmitting = false;
     checkoutPaymentPending = false;
+    checkoutPaymentDone = false;
     checkoutResumeNotifPushed = false;
     saveCheckoutResumeState();
     selectPaySource('wallet');
@@ -17451,6 +17473,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <p><strong>Clause 4 — Instant Booking Confirmation:</strong> Your booking is confirmed as soon as payment is authorised. No signature or Host countersignature is required; ticking the agreement box below is your binding acceptance. The Host is notified immediately and your Booking Confirmation is sent to your chat.</p>
         <p><strong>Clause 5 — Cancellation &amp; Refund Policy:</strong> ${SHORTLET_CANCEL_CLAUSE_TEXT}</p>
         ${sl.remainingNights > 0 ? `<p><strong>Clause 6 — Multi-Night Auto-Debit Authorization:</strong> Night 1, the MainTown Platform Fee (5% of the whole stay) and any Caution Fee &amp; Service Charge are charged today. For stays longer than one night, you authorize MainTown to auto-debit ${formatMoney(sl.dailyDebitAmount, 'ngn')} (the nightly rate, with no further Platform Fee) from your chosen payment method for each remaining night (Nights 2–${sl.nights}) until the stay is fully paid or you end the stay early.</p>` : ''}
+        <p><strong>Extending Your Stay:</strong> Any night you add after your booked stay is charged at the nightly rate plus its own 5% MainTown Platform Fee, shown to you before you pay.</p>
         <p><strong>Clause ${sl.remainingNights > 0 ? 7 : 6} — Dispute Resolution (Mediation, then LCA Arbitration):</strong> ${ADR_CLAUSE_TEXT}</p>
       `;
 
@@ -19027,8 +19050,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // Event centers stay on the feed: availability is decided by the event date, never by a RENTED flag.
       if (!finalizeEventCheckout()) { checkoutAuthSubmitting = false; return; }
       if (window.MTRBooking) MTRBooking.releaseHold('success');
-      checkoutPaymentPending = false;
-      saveCheckoutResumeState();
+      markCheckoutPaid();
       checkoutAuthSubmitting = false;
       checkoutEvent = null;
       navigateTo('screen-5');
@@ -19037,6 +19059,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (checkoutListing && checkoutListing.type === 'shortlet') {
       if (!finalizeShortletCheckout()) { checkoutAuthSubmitting = false; return; }
       if (window.MTRBooking) MTRBooking.releaseHold('success');
+      markCheckoutPaid();
       // BUGFIX: this branch used to return before the two steps every other
       // checkout path relies on below (see the Land/Rent flow further down)
       // — it never flipped the listing to RENTED and never cleared
@@ -19120,6 +19143,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // the Public Search Grid / Property Details across every active role.
     if (checkoutListing) {
       markListingUnavailableAfterCheckout(checkoutListing);
+      markCheckoutPaid();
       // The property is now taken: cancel + refund every other guest's inspection for it.
       try { cancelOtherInspectionsForTakenListing(checkoutListing, getCurrentUserId()); } catch (e) { console.warn('[MainTown] local inspection sweep failed', e); }
       if (window.MTRBooking) { MTRBooking.propertyTaken(checkoutListing); MTRBooking.releaseHold('success', checkoutListing.type === 'rent' ? 'rented' : null); }
