@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   /* ---- Global viewport / box-sizing reset (applies across every screen) ---- */
   *, ::before, ::after {
@@ -3810,6 +3811,12 @@
   .reel-empty h2 { color: #fff; font-size: 17px; font-weight: 800; margin: 0; }
   .reel-empty p { font-size: 13px; line-height: 1.5; margin: 0 0 8px; max-width: 280px; }
   .reel-empty .reel-cta { flex: none; padding: 0 22px; }
+
+  /* ---- Google sign-in (welcome + login screens) ---- */
+  .mtg-wrap { width: 100%; margin-top: 14px; }
+  .mtg-or { display: flex; align-items: center; gap: 10px; color: rgba(226,232,240,0.7); font-size: 12px; margin: 0 0 12px; }
+  .mtg-or::before, .mtg-or::after { content: ''; flex: 1; height: 1px; background: rgba(148,163,184,0.35); }
+  .mtg-btn { display: flex; justify-content: center; min-height: 44px; }
 </style>
 <style id="mtl-logo-anim">
   /* "M" and roof are written out stroke-by-stroke, then the windows pop in */
@@ -4119,6 +4126,10 @@
   <div class="welcome-actions">
     <button type="button" id="welcome-create-btn" class="btn-welcome-primary">Create New Account</button>
     <button type="button" id="welcome-login-btn" class="btn-welcome-secondary">Log In</button>
+    <div id="mtg-welcome" class="mtg-wrap" style="display:none;">
+      <div class="mtg-or"><span>or</span></div>
+      <div id="mtg-welcome-btn" class="mtg-btn"></div>
+    </div>
   </div>
 
 </div>
@@ -4441,6 +4452,10 @@
   <p class="login-error-msg" id="login-error-msg"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i><span id="login-error-text"></span></p>
 
   <button type="button" id="login-submit-btn" class="btn-primary">Log In</button>
+  <div id="mtg-login" class="mtg-wrap" style="display:none;">
+    <div class="mtg-or"><span>or</span></div>
+    <div id="mtg-login-btn" class="mtg-btn"></div>
+  </div>
 
   <!-- Pre-onboarded demo accounts: type any of these names or emails above, then tap
        Log In. Each routes straight into its role dashboard — no onboarding, no password
@@ -8126,7 +8141,7 @@
 
     <div class="s5-notice-box">
       <i data-lucide="lock" class="w-5 h-5"></i>
-      <p id="ib-notice-text">Held by <span class="js-provider">Flutterwave</span>, not MainTown. Agent listings: 100% released on satisfaction, or split 50/50 on cancellation.</p>
+      <p id="ib-notice-text">Held by <span class="js-provider">Flutterwave</span>, not MainTown. 100% is released on satisfaction; the fee is split 50/50 if you are not satisfied.</p>
     </div>
     <div class="s5-notice-box" id="ib-taken-note" style="display:none;">
       <i data-lucide="shield-check" class="w-5 h-5"></i>
@@ -9220,6 +9235,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Router for the moment Screen 1 (Account Setup) is complete: Agent/Landlord
   // go to Partnership Benefits first; Tenant skips straight to KYC.
   function proceedFromScreen1() {
+    try { if (window.MtGoogleAuth) window.MtGoogleAuth.afterRoleChosen(currentUserRole); } catch (e) {}
     if (isPartnershipRole(currentUserRole)) {
       goToPartnershipScreen();
     } else {
@@ -21661,6 +21677,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
     navigateTo('screen-4'); // populates the dashboard, shows the fixed bottom nav, refreshes icons
     showToast('Agreement signed. Welcome to MainTown Realty!');
+    try { if (window.MtGoogleAuth) window.MtGoogleAuth.afterOnboarding(); } catch (e) {}
   });
 
   // ---- Verify & Proceed to KYC (demo mode: any 6-digit code, or even the button alone, passes) ----
@@ -22642,7 +22659,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // by who actually posted the listing — ₦15,000 for Land/Property Sale site
     // inspections (any owner type), and for rentals: ₦12,000 for Agent-listed,
     // ₦5,000 for Direct-Landlord-listed (see Strict Inspection Fee Split Rules).
-    //   Agent-listed      -> majority share to Agent | remainder to MainTown
+    //   Agent-listed      -> 100% to Agent (MainTown takes no share)
     //   Direct-landlord    -> 100% to MainTown
     const { role: ownerRole } = getListingOwnership(inspectionListing);
     const isAgent = ownerRole === 'AGENT';
@@ -22652,12 +22669,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       : `Inspection Fee: ${formatMoney(fee, 'ngn')}`;
     if (isLand) {
       document.getElementById('ib-notice-text').textContent = isAgent
-        ? 'Held by ' + PAYMENT_PROVIDER + ', not MainTown. If satisfied, ₦12,500 releases to the Agent and ₦2,500 to MainTown Realty, and chat with the Agent/Landlord unlocks. If declined, the full ₦15,000 is refunded to your Wallet.'
-        : 'Held by ' + PAYMENT_PROVIDER + ', not MainTown. Direct Landlord listing — if satisfied, the full ₦15,000 is retained by MainTown Realty and chat unlocks. If declined, the full ₦15,000 is refunded to your Wallet.';
+        ? 'Held by ' + PAYMENT_PROVIDER + ', not MainTown. If satisfied, the full ₦15,000 releases to the Agent (MainTown takes no share), and chat with the Agent/Landlord unlocks. If not satisfied, 50% (₦7,500) is refunded to your Wallet and 50% (₦7,500) goes to the Agent for field transport.'
+        : 'Held by ' + PAYMENT_PROVIDER + ', not MainTown. Direct Landlord listing — if satisfied, the full ₦15,000 is retained by MainTown Realty and chat unlocks. If not satisfied, 50% (₦7,500) is refunded to your Wallet and 50% (₦7,500) is retained by MainTown Realty for inspection logistics.';
     } else {
       document.getElementById('ib-notice-text').textContent = isAgent
-        ? 'Held by ' + PAYMENT_PROVIDER + ', not MainTown. If satisfied, ₦10,000 releases to the Agent and ₦2,000 to MainTown Realty. If not satisfied, 50% (₦6,000) is refunded to your Wallet and 50% (₦6,000) goes to the Agent for field transport.'
-        : 'Held by ' + PAYMENT_PROVIDER + ', not MainTown. Direct Landlord listing — if satisfied, the full ₦5,000 is retained by MainTown Realty (₦0 to Agent). If not satisfied, the full ₦5,000 is refunded to your Wallet.';
+        ? 'Held by ' + PAYMENT_PROVIDER + ', not MainTown. If satisfied, the full ₦12,000 releases to the Agent (MainTown takes no share). If not satisfied, 50% (₦6,000) is refunded to your Wallet and 50% (₦6,000) goes to the Agent for field transport.'
+        : 'Held by ' + PAYMENT_PROVIDER + ', not MainTown. Direct Landlord listing — if satisfied, the full ₦5,000 is retained by MainTown Realty (₦0 to Agent). If not satisfied, 50% (₦2,500) is refunded to your Wallet and 50% (₦2,500) is retained by MainTown Realty for inspection logistics.';
     }
 
     ibSubmitting = false;
@@ -26231,12 +26248,15 @@ available in the Post-Lease Hub and this chat thread.`
     // in escrow for this booking (₦5,000 on the standard rental flow) with
     // ₦0 to any Agent, since no Agent is ever involved in a Direct Landlord
     // inspection.
-    const agentPayout = isAgentFee ? 10000 : 0;
-    const maintownRevenue = isAgentFee ? 2000 : conv.fee;
+    // Owner decision: on agent-listed inspections the Agent receives 100% of the escrowed fee
+    // (₦12,000 rentals, ₦15,000 land); MainTown takes no share. Direct-landlord inspections
+    // are unchanged: the full fee is retained by MainTown and ₦0 goes to any Agent.
+    const agentPayout = isAgentFee ? (Number(conv.fee) || 0) : 0;
+    const maintownRevenue = isAgentFee ? 0 : conv.fee;
     conv.messages.push({
       from: 'system',
       text: isAgentFee
-        ? `Inspection marked satisfied. ${formatMoney(agentPayout, 'ngn')} released to the Agent and ${formatMoney(maintownRevenue, 'ngn')} to MainTown Realty. Proceeding to checkout.`
+        ? `Inspection marked satisfied. The full ${formatMoney(agentPayout, 'ngn')} inspection fee has been released to the Agent. Proceeding to checkout.`
         : `Inspection marked satisfied. Full ${formatMoney(maintownRevenue, 'ngn')} retained by MainTown Realty (Direct Landlord listing, ₦0 to Agent). Proceeding to checkout.`
     });
     logTransaction({
@@ -26344,36 +26364,36 @@ available in the Post-Lease Hub and this chat thread.`
     if (!conv) return;
     inspectionDecisionModal.classList.remove('open');
 
-    // Phase 2, Step 2B — Dispute Handling (NO_SHOW_DISPUTE): Agent-listed
-    // inspections keep the existing 50/50 field-transport split; Direct
-    // Landlord inspections are collected 100% by MainTown, so a "not
-    // satisfied" outcome issues a FULL_REFUND to the renter.
+    // Owner rule: when the guest (tenant or buyer) marks an inspection NOT satisfied, the fee is split 50/50 on
+    // EVERY inspection (rent or land, agent-listed or direct): 50% is refunded to the guest's Wallet and 50% goes
+    // to whoever carried out the inspection to cover field logistics (the Agent, or MainTown Realty on
+    // direct-landlord listings). If the guest is satisfied, 100% goes to that same party.
     let receiptHtml;
     const listingForLedger = rentListings().find(l => l.title === conv.listingTitle) || landListingsList().find(l => l.title === conv.listingTitle);
-    if (conv.feeType === 'agent') {
-      const half = Math.round(conv.fee / 2);
-      receiptHtml = `
-        <div class="receipt-box">
-          <p class="s5-section-label" style="margin:0 0 8px;"><i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Itemized Refund Receipt</p>
-          <div class="s5-hold-row"><span>Total Inspection Deposit</span><strong>${formatMoney(conv.fee, 'ngn')}</strong></div>
-          <div class="s5-hold-row"><span>Refunded to Tenant Wallet</span><strong>${formatMoney(half, 'ngn')}</strong></div>
-          <div class="s5-hold-row"><span>Disbursed to Agent (field transport)</span><strong>${formatMoney(half, 'ngn')}</strong></div>
-        </div>`;
-      logTransaction({
-        listingId: listingForLedger ? listingForLedger.id : null, listingType: 'AGENT',
-        dealStage: 'INSPECTION', escrowStatus: 'REFUNDED', gross: conv.fee,
-        agentPayout: half, status: 'DISPUTED'
-      });
-    } else {
-      receiptHtml = `
-        <div class="receipt-box">
-          <p class="s5-section-label" style="margin:0 0 8px;"><i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Refund Receipt</p>
-          <div class="s5-hold-row"><span>Inspection Deposit</span><strong>${formatMoney(conv.fee, 'ngn')}</strong></div>
-          <div class="s5-hold-row"><span>Refund Status</span><strong>FULL_REFUND to Tenant Wallet</strong></div>
-        </div>`;
-      logTransaction({
-        listingId: listingForLedger ? listingForLedger.id : null, listingType: 'DIRECT_LANDLORD',
-        dealStage: 'INSPECTION', escrowStatus: 'REFUNDED', gross: conv.fee, status: 'DISPUTED'
+    const nsIsAgent = conv.feeType === 'agent';
+    const nsTotal = Number(conv.fee) || 0;
+    const half = Math.round(nsTotal / 2);
+    const payeeRow = nsIsAgent ? 'Disbursed to Agent (field transport)' : 'Retained by MainTown Realty (inspection logistics)';
+    receiptHtml = `
+      <div class="receipt-box">
+        <p class="s5-section-label" style="margin:0 0 8px;"><i data-lucide="receipt" class="w-4 h-4 text-purple-400"></i>Itemized Refund Receipt</p>
+        <div class="s5-hold-row"><span>Total Inspection Deposit</span><strong>${formatMoney(nsTotal, 'ngn')}</strong></div>
+        <div class="s5-hold-row"><span>Refunded to Your Wallet</span><strong>${formatMoney(half, 'ngn')}</strong></div>
+        <div class="s5-hold-row"><span>${payeeRow}</span><strong>${formatMoney(nsTotal - half, 'ngn')}</strong></div>
+      </div>`;
+    logTransaction({
+      listingId: listingForLedger ? listingForLedger.id : null, listingType: nsIsAgent ? 'AGENT' : 'DIRECT_LANDLORD',
+      dealStage: 'INSPECTION', escrowStatus: 'REFUNDED', gross: nsTotal,
+      agentPayout: nsIsAgent ? (nsTotal - half) : 0, maintownRevenue: nsIsAgent ? 0 : (nsTotal - half), status: 'DISPUTED'
+    });
+    // Credit the Agent's half to their wallet, the same way the satisfied path credits the full fee.
+    if (nsIsAgent && (nsTotal - half) > 0 && listingForLedger && listingForLedger.agentId) {
+      recordPayout({ listing: listingForLedger, agentAmount: nsTotal - half, listingTitle: conv.listingTitle });
+      creditPartyWallet(listingForLedger.agentId, nsTotal - half, {
+        title: `Inspection Fee (50% field transport) - ${conv.listingTitle}`,
+        category: 'AGENT_COMMISSION',
+        propertyName: conv.listingTitle,
+        feeType: 'Inspection Fee Share'
       });
     }
 
@@ -26391,7 +26411,7 @@ available in the Post-Lease Hub and this chat thread.`
     renderChatLog(conv);
     document.getElementById('msg-chat-log').innerHTML += receiptHtml;
     document.getElementById('msg-thread-sub').textContent = 'Archived conversation';
-    showToast(conv.feeType === 'agent' ? 'Cancellation processed — 50/50 split executed' : 'Cancellation processed — full refund issued');
+    showToast('Marked not satisfied — inspection fee split 50/50');
     renderInspectionsSummaryCard();
     if (window.lucide) lucide.createIcons();
   });
@@ -28207,6 +28227,7 @@ available in the Post-Lease Hub and this chat thread.`
     // Clear the persistent pre-onboarded demo session so the next load shows the
     // Login screen instead of auto-mounting this account again (see checkAutoRelogin).
     clearCurrentUser();
+    try { if (window.MtGoogleAuth) window.MtGoogleAuth.signOut(); } catch (e) {}
     // Theme preference is per-session: logging out resets the app back to the
     // default Dark Mode background rather than carrying the previous user's
     // Light Mode choice into the next login.
@@ -28226,6 +28247,7 @@ available in the Post-Lease Hub and this chat thread.`
   // Starts a completely fresh 3-step onboarding (a brand-new demo account),
   // reachable only from the Login screen's "Create an account" link.
   function startFreshOnboarding() {
+    if (window.MtGoogleAuth) window.MtGoogleAuth.unlockForm();
     currentUserRole = null;
     currentUserSelfieDataUrl = null;
     document.getElementById('reg-form').reset();
@@ -28440,6 +28462,232 @@ available in the Post-Lease Hub and this chat thread.`
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (window.lucide) lucide.createIcons();
   });
+
+
+  // ==================================================================
+  // Google sign-in (Supabase Auth). The website saves each person's Google login and chosen role when they
+  // join the waitlist. In the app:
+  //   - a person who already finished onboarding goes straight to their dashboard;
+  //   - everyone else is taken into the onboarding for the role they chose (tenant, landlord or agent),
+  //     with their name and email filled in and the role locked (the database does not allow role changes);
+  //   - finishing onboarding marks it complete on the server (complete_onboarding), so next time they skip it.
+  // Everything after the Google step is fail-open: if the server cannot be reached, the app carries on with the
+  // local account (or the onboarding) instead of blocking the person.
+  // ==================================================================
+  window.MtGoogleAuth = (function () {
+    const SB_URL = 'https://obtggomfwvravjcnypid.supabase.co';
+    const SB_KEY = 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8';   // public key, same as the rest of the app
+    const CLIENT_ID = '815905396544-gmb4qnb3hl5k1stjpspplairvkivm40e.apps.googleusercontent.com'; // public by design
+    const SKEY = 'mtr_sb_session';
+    const ROLES = ['tenant', 'landlord', 'agent'];
+    let rawNonce = null, onboarding = false, busy = false;
+
+    const saveSession = (x) => { try { localStorage.setItem(SKEY, JSON.stringify(x)); } catch (e) {} };
+    const loadSession = () => { try { return JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { return null; } };
+    const clearSession = () => { try { localStorage.removeItem(SKEY); } catch (e) {} };
+    const nowSec = () => Math.floor(Date.now() / 1000);
+
+    async function makeNonce() {
+      const raw = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
+      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+      const hashed = Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+      return { raw, hashed };
+    }
+
+    async function exchange(idToken) {
+      const res = await fetch(SB_URL + '/auth/v1/token?grant_type=id_token', {
+        method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider: 'google', id_token: idToken, nonce: rawNonce })
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok || !d.access_token) throw new Error(d.msg || d.error_description || d.error || ('HTTP ' + res.status));
+      return { access_token: d.access_token, refresh_token: d.refresh_token, expires_at: nowSec() + (d.expires_in || 3600), user: d.user };
+    }
+
+    async function freshToken() {
+      let sess = loadSession();
+      if (!sess) throw new Error('no session');
+      if (sess.expires_at - nowSec() > 60) return sess.access_token;
+      const res = await fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', {
+        method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: sess.refresh_token })
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok || !d.access_token) throw new Error('refresh failed');
+      sess = { access_token: d.access_token, refresh_token: d.refresh_token || sess.refresh_token, expires_at: nowSec() + (d.expires_in || 3600), user: d.user || sess.user };
+      saveSession(sess);
+      return sess.access_token;
+    }
+
+    async function rpc(name, body, token) {
+      const res = await fetch(SB_URL + '/rest/v1/rpc/' + name, {
+        method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body || {})
+      });
+      if (!res.ok) throw new Error(name + ' failed (' + res.status + ')');
+      const txt = await res.text();
+      return txt ? JSON.parse(txt) : null;
+    }
+
+    function linkLocal(localId, supabaseId) {
+      try {
+        appState = loadAppState();
+        if (appState.users && appState.users[localId]) {
+          appState.users[localId].supabaseUserId = supabaseId;
+          appState.users[localId].google = true;
+          saveAppState(appState);
+        }
+      } catch (e) {}
+    }
+
+    // ---- role cards / email lock used while a Google user onboards ----
+    function lockForm(role, email) {
+      roleCards.forEach(c => {
+        if (c.dataset.role !== role) { c.style.pointerEvents = 'none'; c.style.opacity = '0.4'; c.dataset.mtgLocked = '1'; }
+      });
+      const em = document.getElementById('reg-email');
+      if (em && email) { em.readOnly = true; em.style.opacity = '0.75'; em.dataset.mtgLocked = '1'; }
+    }
+    function unlockForm() {
+      roleCards.forEach(c => { if (c.dataset.mtgLocked) { c.style.pointerEvents = ''; c.style.opacity = ''; delete c.dataset.mtgLocked; } });
+      const em = document.getElementById('reg-email');
+      if (em && em.dataset.mtgLocked) { em.readOnly = false; em.style.opacity = ''; delete em.dataset.mtgLocked; }
+    }
+
+    function startOnboarding(o) {
+      onboarding = true;
+      screenWelcome.classList.add('hidden-screen');
+      screenLogin.classList.add('hidden-screen');
+      startFreshOnboarding();                       // resets the form first (and unlocks it) ...
+      const nameEl = document.getElementById('reg-fullname'); if (nameEl) nameEl.value = o.name || '';
+      const emailEl = document.getElementById('reg-email'); if (emailEl) emailEl.value = o.email || '';
+      if (o.role && ROLES.includes(o.role)) {
+        const card = Array.from(roleCards).find(c => c.dataset.role === o.role);
+        if (card) card.click();
+        lockForm(o.role, o.email);                  // ... then locks it again for this person
+        showToast('Welcome ' + (o.name || '') + '. Complete your ' + o.role + ' onboarding to continue.');
+      } else {
+        lockForm(null, o.email);
+        showToast('Signed in with Google. Choose your role to continue.');
+      }
+    }
+
+    async function route(sess) {
+      const u = sess.user || {};
+      const meta = u.user_metadata || {};
+      const email = u.email || meta.email || '';
+      const name = String(meta.full_name || meta.name || email.split('@')[0] || '').trim();
+      let prof = null;
+      try { prof = await rpc('get_my_signup', {}, sess.access_token); } catch (e) { console.error('profile lookup failed (continuing):', e); }
+
+      appState = loadAppState();
+      const users = Object.values(appState.users || {});
+      const local = users.find(x => x.supabaseUserId === u.id) ||
+                    users.find(x => email && normalizeContact(x.email) === normalizeContact(email));
+
+      // 1) This phone already has their account: straight in.
+      if (local && ROLES.includes(local.role)) {
+        linkLocal(local.id, u.id);
+        if (prof && prof.onboarding_completed !== true) rpc('complete_onboarding', {}, sess.access_token).catch(() => {});
+        loginAsDemoUser({ id: local.id, name: local.name || name, email: local.email || email, role: local.role });
+        return;
+      }
+      // 2) Finished onboarding before (on another phone): rebuild a local profile and go straight in.
+      if (prof && prof.onboarding_completed === true) {
+        const role = ROLES.includes(prof.role) ? prof.role : 'tenant';
+        const id = role + '_' + Date.now().toString(36);
+        const rec = { status: 'ACTIVE', id, name: prof.full_name || name, email, role, address: '', supabaseUserId: u.id, google: true };
+        appState.users = appState.users || {};
+        appState.users[id] = rec;
+        saveAppState(appState);
+        loginAsDemoUser({ id, name: rec.name, email, role });
+        return;
+      }
+      // 3) First time, or onboarding not finished: onboarding for the role they chose.
+      startOnboarding({ name: (prof && prof.full_name) || name, email, role: prof && prof.role });
+    }
+
+    async function onCredential(resp) {
+      if (busy) return;
+      busy = true;
+      try {
+        showToast('Signing you in with Google…');
+        const sess = await exchange(resp.credential);
+        saveSession(sess);
+        await route(sess);
+      } catch (err) {
+        console.error(err);
+        showToast('Google sign-in did not complete (' + (err.message || 'try again') + ').');
+      } finally {
+        busy = false;
+        init();                                       // fresh nonce for the next sign-in
+      }
+    }
+
+    // Called when the person taps Continue on the role screen: make sure the server knows their role.
+    async function afterRoleChosen(role) {
+      const sess = loadSession();
+      if (!sess || !onboarding || !ROLES.includes(role)) return;
+      try {
+        const t = await freshToken();
+        const meta = (sess.user && sess.user.user_metadata) || {};
+        await rpc('save_waitlist_signup', {
+          p_role: role,
+          p_full_name: ((document.getElementById('reg-fullname') || {}).value || '').trim() || meta.full_name || meta.name || '',
+          p_avatar_url: meta.avatar_url || meta.picture || null,
+          p_provider: 'google'
+        }, t);
+      } catch (e) { console.error('could not save role (continuing):', e); }
+    }
+
+    // Called when the agreement is signed and the dashboard opens: mark onboarding complete on the server.
+    async function afterOnboarding() {
+      const sess = loadSession();
+      if (!sess || !onboarding) return;
+      onboarding = false;
+      try {
+        const cu = loadCurrentUser();
+        if (cu) linkLocal(cu.id, sess.user && sess.user.id);
+        const t = await freshToken();
+        const meta = (sess.user && sess.user.user_metadata) || {};
+        const role = (cu && cu.role) || currentUserRole;
+        if (ROLES.includes(role)) {
+          await rpc('save_waitlist_signup', { p_role: role, p_full_name: (cu && cu.name) || meta.full_name || '', p_avatar_url: meta.avatar_url || meta.picture || null, p_provider: 'google' }, t);
+        }
+        await rpc('complete_onboarding', {}, t);
+      } catch (e) { console.error('could not mark onboarding complete (continuing):', e); }
+    }
+
+    function signOut() {
+      clearSession();
+      onboarding = false;
+      unlockForm();
+      try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); } catch (e) {}
+    }
+
+    async function init() {
+      if (!(window.google && google.accounts && google.accounts.id)) return false;
+      try {
+        const n = await makeNonce();
+        rawNonce = n.raw;
+        google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential, nonce: n.hashed, auto_select: false });
+        const w = Math.max(200, Math.min(320, window.innerWidth - 64));
+        ['mtg-welcome-btn', 'mtg-login-btn'].forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.innerHTML = '';
+          google.accounts.id.renderButton(el, { type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'rectangular', logo_alignment: 'center', width: w });
+        });
+        ['mtg-welcome', 'mtg-login'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; });
+        return true;
+      } catch (e) { console.error('Google sign-in setup failed:', e); return false; }
+    }
+    // Google's script loads asynchronously: keep trying for a few seconds. If it never loads, the buttons stay hidden
+    // and the normal login / onboarding keeps working.
+    (function waitForGoogle(n) { init().then(ok => { if (!ok && n < 24) setTimeout(() => waitForGoogle(n + 1), 250); }); })(0);
+
+    return { unlockForm, afterRoleChosen, afterOnboarding, signOut };
+  })();
 
   // ---- Register screen: "Already have an account? Login" -> Login screen ----
   (function () {
