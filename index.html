@@ -12884,6 +12884,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     async function publishOne(l) {
       if (l._syncing) return;
       l._syncing = true;
+      let step = 'photo/video upload';
       try {
         if (l.remoteId == null) {
           const images = [];
@@ -12895,9 +12896,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
           let video = isHttp(l.videoUrl) ? l.videoUrl : null;
           if (l.videoKey) { const vb = await MediaStore.getBlob(l.videoKey); if (vb) video = await uploadBlob(vb); }
           const row = rowFromListing(l, images, video);
+          step = 'listing insert';
           try {
             await api('/rest/v1/' + CFG.table, { method: 'POST', headers: hdr({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }), body: JSON.stringify(row) });
           } catch (e) { if (!(e.status === 409 || /23505/.test(e.body || ''))) throw e; } // already inserted on a previous attempt
+          step = 'status check';
           const hit = (await fetchOwnStatuses([row.prototype_ref])).find(x => x.prototype_ref === row.prototype_ref);
           if (!hit || hit.id == null) throw new Error('Submitted listing not found on server');
           l.remoteId = hit.id; l.source = LISTING_SOURCE.APP; l.reviewStatus = 'pending'; l.remoteStatus = 'pending';
@@ -12905,11 +12908,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
           if (images.length) { l.photos = images; l.img = images[0]; l.hasPhotos = true; l.mediaRemote = true; }
           if (video) { l.videoUrl = video; l.hasVideo = true; l.mediaRemote = true; }
         }
+        step = 'documents';
         if (!l.submissionSent) await sendSubmission(l);
         delete l.syncError; delete l._nextTry;
         return true;
       } catch (e) {
-        l.syncError = String(e && e.message || e); l._nextTry = Date.now() + CFG.retryMs;
+        l.syncError = '[' + step + '] ' + String(e && e.message || e); l._nextTry = Date.now() + CFG.retryMs;
         warnOnce('submit failed for "' + l.title + '": ' + l.syncError);
         return !!(l.remoteId != null);
       } finally { l._syncing = false; }
@@ -19590,7 +19594,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const rentBtn = (previewListing && previewListing.type === 'rent' && previewListing.usage === 'commercial' && previewListing.ownerId === getCurrentUserId())
         ? `<button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="rentReview" data-listing-id="${previewListing.id}"><i data-lucide="trending-up" class="w-3 h-3"></i>Update rent</button>` : '';
       const delHtml = soldBadge ? '' : `<button type="button" class="s5-list-action-btn s5-list-delete-btn" data-action="delete" data-title="${p.title}" title="Delete listing"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>`;
-      const syncHint = (soldListing && soldListing.syncError && soldListing.remoteId == null) ? ' · Not received by MainTown yet' + ((String(soldListing.syncError).match(/^\d{3}/) || [''])[0] ? ' (code ' + String(soldListing.syncError).match(/^\d{3}/)[0] + ')' : '') + ', retrying' : '';
+      const syncHint = (soldListing && soldListing.syncError && soldListing.remoteId == null) ? ' · Not received by MainTown yet, retrying. ' + String(soldListing.syncError).replace(/[<>"]/g, ' ').replace(/\s+/g, ' ').slice(0, 110) : '';
       return propCard(p.title, p.address + syncHint, badgeHtml, previewHtml + btnHtml + rentBtn, delHtml);
     }).join('');
     // Agent-submitted listings that have passed legal review and are live.
@@ -20011,7 +20015,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       showToast('Sending your documents securely to MainTown Legal...');
       try {
         const ownerRec = (typeof appState !== 'undefined' && appState.users && appState.users[getCurrentUserId()]) || {};
-        legalKey = await LegalBridge.submitPropertyDocs({ id: newId, title, type, ownerId: getCurrentUserId(), agentName: null, listingData: { id: newId } }, titleDocuments, ownerRec);
+        legalKey = await LegalBridge.submitPropertyDocs({ id: newId, title, type, ownerId: getCurrentUserId(), agentName: null, listingData: { id: newId, photoKeys: tvPendingPhotoKeys.slice(), videoKey: tvPendingVideoKey } }, titleDocuments, ownerRec);
       } catch (err) {
         console.warn('[MainTown] legal submit failed', err);
         const em = String(err && err.message || ''), code = em.match(/^([a-z_]+) (\d{3})\b/);
@@ -29593,6 +29597,31 @@ available in the Post-Lease Hub and this chat thread.`
         const path = 'property/' + safe(entry.id) + '/' + key + '/' + safe(d.id) + '-' + safe(d.fileName);
         await upload(path, blob, mime);
         out.push({ label: d.label || d.id, path, mime, size: blob.size });
+      }
+      // Photos and walkthrough video travel with the documents so Legal can review them (best effort: never blocks the documents).
+      const ld = entry.listingData || {};
+      let pn = 0;
+      for (const k of (Array.isArray(ld.photoKeys) ? ld.photoKeys : []).slice(0, 10)) {
+        try {
+          const b = await MediaStore.getBlob(k);
+          if (!b || !b.size || b.size > MAX_BYTES) continue;
+          const m = mimeOf(b, ''); if (!OK_MIME.includes(m) || m === 'application/pdf') continue;
+          pn++;
+          const path = 'property/' + safe(entry.id) + '/' + key + '/photo-' + pn + '.' + (m.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+          await upload(path, b, m);
+          out.push({ kind: 'photo', label: 'Photo ' + pn, path, mime: m, size: b.size });
+        } catch (e) { console.warn('[MainTown] photo for Legal skipped', e && e.message); }
+      }
+      if (ld.videoKey) {
+        try {
+          const vb = await MediaStore.getBlob(ld.videoKey);
+          if (vb && vb.size && vb.size <= 45 * 1024 * 1024) {
+            const vm = vb.type || 'video/mp4';
+            const path = 'property/' + safe(entry.id) + '/' + key + '/walkthrough.' + (/webm/.test(vm) ? 'webm' : /quicktime/.test(vm) ? 'mov' : 'mp4');
+            await upload(path, vb, vm);
+            out.push({ kind: 'video', label: 'Walkthrough video', path, mime: vm, size: vb.size });
+          }
+        } catch (e) { console.warn('[MainTown] video for Legal skipped', e && e.message); }
       }
       const attempt = (entry.legalAttempts || 0) + 1;
       await insertRow('legal_reviews', {
