@@ -4849,6 +4849,11 @@
       </div>
 
       <p id="tv-sale-hold-note" class="dealx-note" style="display:none;margin:0 0 10px;">Property sales: the buyer's payment is split at checkout, but your share is held by our payment partner until the buyer confirms receipt of your original documents (or 7 days after you dispatch them with no complaint). Dispatch within 14 days of full payment. A confirmed problem means a full refund and possible removal from MainTown.</p>
+      <div class="field" id="tv-verified-prop-field" style="display:none;">
+        <label class="field-label">Is this at a property MainTown has already verified for you?</label>
+        <select class="field-input" id="tv-verified-prop"></select>
+        <p class="modal-sub" style="margin:6px 0 0; text-align:left;">Listing another flat, block or shop at the same address? Choose that property and you will not need to upload the title document again. For a different address, choose "No" and upload the document for it.</p>
+      </div>
       <div class="field" id="tv-title-type-field" style="display:none;">
         <p class="s5-section-label" style="margin:0 0 4px;"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i><span id="tv-doc-heading-text">Title Verification Documents</span></p>
         <p class="modal-sub" id="tv-doc-sub" style="margin-bottom:10px; text-align:left;">Select every document that applies to this property, then upload each one. Shown publicly on the listing so buyers can judge title risk before making an offer.</p>
@@ -7585,6 +7590,11 @@
       <input class="field-input" id="lv-bvn" type="text" inputmode="numeric" maxlength="11" placeholder="11-digit BVN" autocomplete="off">
     </div>
 
+    <div class="field" id="lv-verified-prop-field" style="display:none;">
+      <label class="field-label">Is this at a property MainTown has already verified for you?</label>
+      <select class="field-input" id="lv-verified-prop"></select>
+      <p class="modal-sub" style="margin:6px 0 0; text-align:left;">Another flat, block or shop at the same address needs no new title document. A different address needs its own.</p>
+    </div>
     <p id="lv-sale-hold-note" class="dealx-note" style="display:none;margin:0 0 10px;">Property sales: the buyer's payment is split at checkout, but the seller's share is held by our payment partner until the buyer confirms receipt of the original documents (or 7 days after dispatch with no complaint). Dispatch within 14 days of full payment. A confirmed problem means a full refund and possible removal from MainTown.</p>
     <p class="s5-section-label"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i><span id="lv-doc-heading-text">Title Verification Documents</span></p>
     <p class="modal-sub" id="lv-doc-sub" style="margin-bottom:10px; text-align:left;">Select every document that applies to this property, then upload each one.</p>
@@ -12847,7 +12857,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return {
         name: l.landlordName || (u && u.name) || null, role: l.listedByRole || l.listedBy || null,
         phone: (u && u.phone) || null, email: (u && u.email) || null,
-        agentName: l.agentName || null, ownerId: l.ownerId || null
+        agentName: l.agentName || null, ownerId: l.ownerId || null,
+        ...(l.propertyProof && l.propertyProof.reusedFrom ? { verified_property: 'Same property as an already verified listing' } : {})
       };
     }
     async function uploadDoc(blob, ref, name) {
@@ -19812,6 +19823,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('tv-video-upload-meta').textContent = '';
     tvSelectedDocs = {};
     renderTvDocOptions();
+    renderTvVerifiedProps();
     document.getElementById('tv-consent-note').style.display = 'none';
     updateAnnualCalc('tv');
     updateTvTitleTypeVisibility();
@@ -20010,7 +20022,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
     const checkedDocBoxes = Array.from(document.querySelectorAll('.tv-doc-checkbox:checked'));
-    {
+    const reuse = tvReuseProp();   // same property as one already verified: no new title document needed
+    if (!reuse) {
       if (!checkedDocBoxes.length) {
         showToast(type === 'land' ? 'Select at least one title document type that applies to this property' : 'Select the title document you hold for this property (for example a Deed of Assignment or Certificate of Occupancy) and upload it');
         return;
@@ -20021,16 +20034,16 @@ This voucher is auto-generated and serves as proof of settlement.`;
       }
       if (checkedDocBoxes.every(cb => (allDocTypes().find(d => d.id === cb.dataset.docId) || {}).supportingOnly)) { showToast(SUPPORT_ONLY_MSG); return; }
     }
-    const titleDocuments = checkedDocBoxes.map(cb => {
+    const titleDocuments = reuse ? [] : checkedDocBoxes.map(cb => {
       const doc = allDocTypes().find(d => d.id === cb.dataset.docId);
       return { id: doc.id, label: doc.label, ...tvSelectedDocs[doc.id] };
     });
-    const requiresConsent = titleDocuments.some(d => (allDocTypes().find(t => t.id === d.id) || {}).requiresConsent);
+    const requiresConsent = reuse ? reuse.requiresConsent : titleDocuments.some(d => (allDocTypes().find(t => t.id === d.id) || {}).requiresConsent);
     const isPublished = document.getElementById('tv-publish-toggle').checked;
     const newId = Date.now();
     // A listing that carries title documents is NOT live on submit: the documents go to MainTown Legal first,
     // and the property only goes live (app + website) after Legal approves it in the admin.
-    const needsLegal = isPublished && titleDocuments.length > 0;
+    const needsLegal = isPublished && (titleDocuments.length > 0 || !!reuse);
     let legalKey = null;
     if (needsLegal) {
       const sendBtn = document.getElementById('tv-submit-btn');
@@ -20038,7 +20051,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       showToast('Sending your documents securely to MainTown Legal...');
       try {
         const ownerRec = (typeof appState !== 'undefined' && appState.users && appState.users[getCurrentUserId()]) || {};
-        legalKey = await LegalBridge.submitPropertyDocs({ id: newId, title, type, ownerId: getCurrentUserId(), agentName: null, address: composeListingLocation(address, cityId, areaId), listingData: { id: newId, photoKeys: tvPendingPhotoKeys.slice(), videoKey: tvPendingVideoKey } }, titleDocuments, ownerRec);
+        legalKey = await LegalBridge.submitPropertyDocs({ id: newId, title, type, ownerId: getCurrentUserId(), agentName: null, address: composeListingLocation(address, cityId, areaId), verifiedProperty: reuse ? { title: reuse.title, address: reuse.location } : null, listingData: { id: newId, photoKeys: tvPendingPhotoKeys.slice(), videoKey: tvPendingVideoKey } }, titleDocuments, ownerRec);
       } catch (err) {
         console.warn('[MainTown] legal submit failed', err);
         const em = String(err && err.message || ''), code = em.match(/^([a-z_]+) (\d{3})\b/);
@@ -20061,6 +20074,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const baseFields = {
       id: newId, listedAt: Date.now(), title, location: composeListingLocation(address, cityId, areaId), city: cityId, area: areaId, listedBy: 'landlord', source: LISTING_SOURCE.APP, status: (isPublished && !needsLegal) ? 'live' : 'draft',
       ...(needsLegal ? { workflowStatus: 'LEGAL_REVIEW', legalReviewKey: legalKey, reviewStatus: 'pending' } : {}),
+      propertyProof: reuse ? { key: reuse.key, address: reuse.address, cityId: reuse.cityId, areaId: reuse.areaId, reusedFrom: reuse.listingId } : { key: propKey(composeListingLocation(address, cityId, areaId)), address, cityId, areaId },
       hasPhotos: tvPendingPhotoCount > 0, hasVideo: tvPendingHasVideo,
       photos: tvPendingPhotoUrls.slice(), videoUrl: tvPendingVideoUrl,
       photoKeys: tvPendingPhotoKeys.slice(), videoKey: tvPendingVideoKey,
@@ -20097,8 +20111,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         // Title Verification Documents — shown publicly on the listing so
         // buyers can judge title risk/completeness before ever messaging
         // anyone, and drives the Governor's Consent tracker after sale.
-        titleDocuments,
-        titleTypeLabel: titleDocuments.map(d => d.label).join(', '),
+        titleDocuments: reuse ? (reuse.titleDocuments || []) : titleDocuments,
+        titleTypeLabel: reuse ? (reuse.titleTypeLabel || '') : titleDocuments.map(d => d.label).join(', '),
         requiresConsent
       });
     }
@@ -20122,7 +20136,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Agent view's "switch to My Listings after posting" behavior) instead
     // of navigating to a separate screen.
     document.getElementById('s5-tab-landlord-mine').click();
-    showToast(needsLegal ? 'Submitted to MainTown Legal. Your property goes live after it is approved.' : isPublished ? 'Property photos & walkthrough are now live on the Tenant Search Feed' : 'Saved as a private draft — publish anytime from My Properties');
+    showToast(needsLegal ? (reuse ? 'Submitted to MainTown Legal. This property is already verified, so no new document was needed. It goes live after approval.' : 'Submitted to MainTown Legal. Your property goes live after it is approved.') : isPublished ? 'Property photos & walkthrough are now live on the Tenant Search Feed' : 'Saved as a private draft — publish anytime from My Properties');
   });
 
   // ---- Agent view: upload listing form + mandatory landlord mapping ----
@@ -21127,9 +21141,33 @@ This voucher is auto-generated and serves as proof of settlement.`;
     updateTvTitleTypeVisibility();
   });
 
+  let tvVerifiedProps = [];
+  function tvReuseProp() { const sel = document.getElementById('tv-verified-prop'); return (sel && sel.value !== '') ? (tvVerifiedProps[+sel.value] || null) : null; }
+  function applyTvVerifiedChoice() {
+    const p = tvReuseProp(), addr = document.getElementById('tv-address'), city = document.getElementById('tv-city'), area = document.getElementById('tv-area');
+    if (!addr || !city || !area) return;
+    if (p) {
+      city.value = p.cityId; city.dispatchEvent(new Event('change', { bubbles: true }));
+      area.value = p.areaId; addr.value = p.address;
+      addr.disabled = true; city.disabled = true; area.disabled = true;   // the address of a verified property cannot be changed
+    } else {
+      addr.disabled = false; city.disabled = false; area.disabled = !city.value;
+    }
+    updateTvTitleTypeVisibility();
+  }
+  function renderTvVerifiedProps() {
+    const f = document.getElementById('tv-verified-prop-field'), sel = document.getElementById('tv-verified-prop');
+    if (!f || !sel) return;
+    tvVerifiedProps = verifiedPropertiesFor(getCurrentUserId());
+    sel.innerHTML = '<option value="">No, this is a new property</option>' + tvVerifiedProps.map((p, i) => `<option value="${i}">Yes: ${String(p.title).replace(/</g, '&lt;')} (${String(p.location).replace(/</g, '&lt;')})</option>`).join('');
+    sel.value = '';
+    f.style.display = tvVerifiedProps.length ? 'block' : 'none';
+    applyTvVerifiedChoice();
+  }
+  document.getElementById('tv-verified-prop').addEventListener('change', applyTvVerifiedChoice);
   function updateTvTitleTypeVisibility() {
     const isLand = document.getElementById('tv-listing-type').value === 'land';
-    document.getElementById('tv-title-type-field').style.display = 'block';   // every listing needs proof of ownership
+    document.getElementById('tv-title-type-field').style.display = (typeof tvReuseProp === 'function' && tvReuseProp()) ? 'none' : 'block';   // a new property needs proof of ownership
     { const h = document.getElementById('tv-doc-heading-text'), sub = document.getElementById('tv-doc-sub');
       if (h) h.textContent = isLand ? 'Title Verification Documents' : 'Proof of Ownership';
       if (sub) sub.textContent = isLand
@@ -21173,6 +21211,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
   const SUPPORT_DOC = { id: 'UTILITY_BILL', label: 'Utility bill (supporting only)', requiresConsent: false, supportingOnly: true };
   function docTypesFor(type) { return type === 'land' ? TITLE_DOC_TYPES : OWNERSHIP_DOC_TYPES.concat([SUPPORT_DOC]); }
   function allDocTypes() { return TITLE_DOC_TYPES.concat(OWNERSHIP_DOC_TYPES.filter(d => !TITLE_DOC_TYPES.some(t => t.id === d.id)), [SUPPORT_DOC]); }
+  // Proof of ownership belongs to a PROPERTY (an address), not to each listing. Once a landlord's documents for an
+  // address are approved, further flats / shops / blocks at that same address reuse that approval.
+  function propKey(loc) { return String(loc || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+  function verifiedPropertiesFor(ownerId) {
+    const seen = new Map();
+    (listings || []).forEach(l => {
+      if (!l || l.origin === 'remote' || !ownerId || l.ownerId !== ownerId || l.reviewStatus !== 'approved') return;
+      const pp = l.propertyProof || (Array.isArray(l.titleDocuments) && l.titleDocuments.length ? { key: propKey(l.location), address: l.location, cityId: l.city, areaId: l.area } : null);
+      if (!pp || pp.reusedFrom || !pp.key || seen.has(pp.key)) return;
+      seen.set(pp.key, { key: pp.key, title: l.title, location: l.location, address: pp.address || l.location, cityId: pp.cityId || l.city || '', areaId: pp.areaId || l.area || '', listingId: l.id,
+        titleDocuments: l.titleDocuments || null, titleTypeLabel: l.titleTypeLabel || '', requiresConsent: !!l.requiresConsent });
+    });
+    return Array.from(seen.values());
+  }
   const SUPPORT_ONLY_MSG = 'A utility bill is only a supporting document. Please also upload a title document such as a Deed of Assignment, Certificate of Occupancy or Governor\'s Consent.';
   const OWNERSHIP_PROOF_DOC = { id: 'OWNERSHIP_PROOF', label: 'Title document / utility bill', requiresConsent: false };
   const OWNERSHIP_PROOF_PROMPT = 'Upload a copy of title documents or utility bill';
@@ -21483,6 +21535,27 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (window.lucide) lucide.createIcons();
   }
 
+  let lvVerifiedProps = [];
+  function lvReuseProp() { const sel = document.getElementById('lv-verified-prop'); return (sel && sel.value !== '') ? (lvVerifiedProps[+sel.value] || null) : null; }
+  function applyLvVerifiedChoice() {
+    const hide = !!lvReuseProp();
+    const head = document.getElementById('lv-doc-heading-text'), headP = head && head.parentElement;
+    if (headP) headP.style.display = hide ? 'none' : '';
+    document.getElementById('lv-doc-sub').style.display = hide ? 'none' : '';
+    document.getElementById('lv-doc-options').style.display = hide ? 'none' : '';
+  }
+  function renderLvVerifiedProps(entry) {
+    const f = document.getElementById('lv-verified-prop-field'), sel = document.getElementById('lv-verified-prop');
+    if (!f || !sel) return;
+    lvVerifiedProps = verifiedPropertiesFor(entry.ownerId);
+    sel.innerHTML = '<option value="">No, this is a new property</option>' + lvVerifiedProps.map((p, i) => `<option value="${i}">Yes: ${String(p.title).replace(/</g, '&lt;')} (${String(p.location).replace(/</g, '&lt;')})</option>`).join('');
+    const key = propKey((entry.listingData && entry.listingData.location) || entry.address);
+    const auto = lvVerifiedProps.findIndex(p => p.key === key);   // same address as a verified property: preselect it
+    sel.value = auto >= 0 ? String(auto) : '';
+    f.style.display = lvVerifiedProps.length ? 'block' : 'none';
+    applyLvVerifiedChoice();
+  }
+  document.getElementById('lv-verified-prop').addEventListener('change', applyLvVerifiedChoice);
   function openLandlordVerifyModal(agentListingId) {
     const entry = agentListings.find(l => l.id === agentListingId);
     if (!entry) return;
@@ -21507,6 +21580,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     document.getElementById('lv-bvn').value = '';
     document.getElementById('lv-authorize-toggle').checked = false;
     renderLvDocOptions(entry.type);
+    renderLvVerifiedProps(entry);
     document.getElementById('landlord-verify-modal').classList.add('open');
     if (window.lucide) lucide.createIcons();
   }
@@ -21574,12 +21648,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
     const lvSingle = false;
+    const lvReuse = lvReuseProp();   // same property as one already verified: no new title document needed
     if (lvSingle) {
       if (!lvSelectedDocs[OWNERSHIP_PROOF_DOC.id]) {
         showToast('Please upload a copy of your title documents or a utility bill');
         return;
       }
-    } else {
+    } else if (!lvReuse) {
       if (!checkedBoxes.length) {
         showToast('Select at least one title document type that applies to this property');
         return;
@@ -21600,14 +21675,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const pc = await resolvePayoutAccount(bankName, bankAccount, orec.legalName || orec.name || '');
       if (pc.status === 'mismatch') { showToast(PAYOUT_MISMATCH_MSG(pc)); return; }
       if (pc.status === 'error') { showToast('We could not confirm the name on this bank account. Check the account number and bank, then try again.'); return; }
-      entry.payoutCheck = pc; }
+      entry.payoutCheck = pc;
+      entry.verifiedProperty = lvReuse ? { title: lvReuse.title, address: lvReuse.location } : null; }
     // Confirm the Landlord's payout details on their own account record.
     const landlordUser = ensureWalletRecord(entry.ownerId);
     landlordUser.settlementBank = { accountNumber: bankAccount, bankName: bankName };
     if (!bvnOnFile) landlordUser.bvn = bvnTyped;
     saveAppState(appState);
 
-    const titleDocuments = lvSingle
+    const titleDocuments = lvReuse ? [] : lvSingle
       ? [{ id: OWNERSHIP_PROOF_DOC.id, label: OWNERSHIP_PROOF_DOC.label, ...lvSelectedDocs[OWNERSHIP_PROOF_DOC.id] }]
       : checkedBoxes.map(cb => {
           const doc = allDocTypes().find(d => d.id === cb.dataset.docId);
@@ -21637,7 +21713,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     delete entry.legalDecline;
     entry.workflowStatus = 'LEGAL_REVIEW';
     entry.titleDocuments = titleDocuments;
-    if (entry.listingData) entry.listingData.titleDocuments = titleDocuments;
+    if (entry.listingData) {
+      entry.listingData.titleDocuments = lvReuse ? (lvReuse.titleDocuments || []) : titleDocuments;
+      if (lvReuse && lvReuse.titleTypeLabel) entry.listingData.titleTypeLabel = lvReuse.titleTypeLabel;
+      const ll = entry.listingData;
+      ll.propertyProof = lvReuse ? { key: lvReuse.key, address: lvReuse.address, cityId: lvReuse.cityId, areaId: lvReuse.areaId, reusedFrom: lvReuse.listingId }
+                                 : { key: propKey(ll.location), address: ll.location, cityId: ll.city || '', areaId: ll.area || '' };
+    }
     saveListings();
     if (!entry.clientOwned && entry.agentId) {
       pushPlatformNotification('agent', 'listing', 'Landlord Approved Your Listing',
@@ -29721,7 +29803,8 @@ available in the Post-Lease Hub and this chat thread.`
           listed_by: entry.agentName ? { role: 'agent', name: entry.agentName, id: entry.agentId || null, phone: ag.phone || null, email: ag.email || null } : { role: 'landlord', name: null },
           landlord: { name: ow.legalName || ow.name || entry.landlordName || null, id: entry.ownerId || null, phone: ow.phone || entry.landlordPhone || null, email: ow.email || entry.landlordEmail || null },
           landlord_approved_at: new Date().toISOString(), address: entry.address || null,
-          payout: entry.payoutCheck || null
+          payout: entry.payoutCheck || null,
+          verified_property: entry.verifiedProperty || null   // set when the title document was already approved for this address
         });
       } catch (e) {}
       const attempt = (entry.legalAttempts || 0) + 1;
