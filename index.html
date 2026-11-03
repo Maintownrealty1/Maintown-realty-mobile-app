@@ -12956,7 +12956,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
         const note = r ? (r.review_note || '') : 'Removed by MainTown admin';
         const set = (k, v) => { if (l[k] !== v) { l[k] = v; changed = true; } };
         l.remoteStatus = st;
-        if (st === 'pending') { set('reviewStatus', 'pending'); set('adminHidden', false); }
+        const prevReview = l.reviewStatus;
+        if (st === 'pending') {
+          if (prevReview === 'approved') {   // Legal sent a live listing back for another look: it leaves the feed until re-approved
+            try { pushPlatformNotification('landlord', 'listing', 'Listing Back Under Review', `MainTown Legal is reviewing "${l.title}" again, so it is hidden for now.${note ? ' Reason: ' + note + '.' : ''}`, null, 'listing_verification', null, l.ownerId); } catch (e) {}
+          }
+          set('reviewStatus', 'pending'); set('adminHidden', false);
+        }
         else if (st === 'closed') {
           if (l.reviewStatus !== 'closed' && l.workflowStatus !== 'DOCS_DECLINED') {   // first time we learn it was declined: tell the host why
             try {
@@ -12970,12 +12976,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
           set('reviewStatus', 'closed'); set('reviewNote', note); set('adminHidden', false);
         }
         else {
+          if (prevReview === 'pending' && st === 'available') { try { pushPlatformNotification('landlord', 'listing', 'Listing Approved: Now Live', `"${l.title}" was approved by MainTown and is live on the app and website.`, null, 'listing_verification', null, l.ownerId); } catch (e) {} }
           set('reviewStatus', 'approved'); set('reviewNote', '');
           set('adminHidden', st === 'unavailable');
           // Approved while the host's own flow was still "in review": it goes live now.
           if (l.status === 'draft' && inReview(l)) {
             l.status = 'live'; l.workflowStatus = 'LIVE'; l.syncedLocalStatus = 'live'; changed = true;
-            try { pushPlatformNotification('landlord', 'listing', 'Listing Approved: Now Live', `"${l.title}" was approved by MainTown and is now live.`, null, 'listing_verification', null, l.ownerId); } catch (e) {}
+
             try { const ae = agentListings.find(e => e && e.listingData === l); if (ae) { ae.status = 'live'; ae.workflowStatus = 'LIVE'; } } catch (e) {}
           }
           if (st === 'sold' || st === 'rented' || st === 'booked') {
