@@ -19567,7 +19567,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
       } else if (p.status === 'escrow') {
         // Actionable button: routes to the live listing, or lets the landlord publish a private draft in one tap.
         const linkedListing = listings.find(l => l.listedBy === 'landlord' && (p.listingId ? l.id === p.listingId : l.title === p.title));
-        if (linkedListing && linkedListing.status !== 'draft') {
+        const ownSub = !!linkedListing && linkedListing.origin !== 'remote' && !isSampleListing(linkedListing);
+        if (ownSub && linkedListing.workflowStatus === 'DOCS_DECLINED') {
+          badgeHtml = `<span class="s5-status-badge s5-status-vacant" title="${String((linkedListing.legalDecline && linkedListing.legalDecline.reason) || '').replace(/"/g, '&quot;')}">Documents Declined</span>`;
+        } else if (ownSub && linkedListing.reviewStatus === 'closed') {
+          badgeHtml = `<span class="s5-status-badge s5-status-vacant" title="${String(linkedListing.reviewNote || '').replace(/"/g, '&quot;')}">Declined by MainTown</span>`;
+        } else if (ownSub && (linkedListing.workflowStatus === 'LEGAL_REVIEW' || (linkedListing.status !== 'draft' && linkedListing.reviewStatus !== 'approved'))) {
+          badgeHtml = `<span class="s5-status-badge s5-status-escrow">Pending MainTown Review</span>`;
+        } else if (linkedListing && linkedListing.status !== 'draft') {
           btnHtml = liveBtn(p.title);
         } else if (linkedListing) {
           btnHtml = `<button type="button" class="s5-list-action-btn s5-list-publish-btn" data-action="publish" data-title="${p.title}"><i data-lucide="upload-cloud" class="w-3 h-3"></i>Publish</button>`;
@@ -19583,7 +19590,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const rentBtn = (previewListing && previewListing.type === 'rent' && previewListing.usage === 'commercial' && previewListing.ownerId === getCurrentUserId())
         ? `<button type="button" class="s5-list-action-btn s5-list-preview-btn" data-action="rentReview" data-listing-id="${previewListing.id}"><i data-lucide="trending-up" class="w-3 h-3"></i>Update rent</button>` : '';
       const delHtml = soldBadge ? '' : `<button type="button" class="s5-list-action-btn s5-list-delete-btn" data-action="delete" data-title="${p.title}" title="Delete listing"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>`;
-      return propCard(p.title, p.address, badgeHtml, previewHtml + btnHtml + rentBtn, delHtml);
+      const syncHint = (soldListing && soldListing.syncError && soldListing.remoteId == null) ? ' · Not received by MainTown yet' + ((String(soldListing.syncError).match(/^\d{3}/) || [''])[0] ? ' (code ' + String(soldListing.syncError).match(/^\d{3}/)[0] + ')' : '') + ', retrying' : '';
+      return propCard(p.title, p.address + syncHint, badgeHtml, previewHtml + btnHtml + rentBtn, delHtml);
     }).join('');
     // Agent-submitted listings that have passed legal review and are live.
     list.insertAdjacentHTML('beforeend', liveAgentListings.map(l => {
@@ -19941,7 +19949,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // close, so a Landlord/Agent can't dismiss their way into the dashboard
   // without finishing verification.
 
-  document.getElementById('tv-submit-btn').addEventListener('click', () => {
+  document.getElementById('tv-submit-btn').addEventListener('click', async () => {
     const title = document.getElementById('tv-title').value.trim();
     const address = document.getElementById('tv-address').value.trim();
     const cityId = document.getElementById('tv-city').value;
@@ -19993,6 +20001,26 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const requiresConsent = titleDocuments.some(d => (TITLE_DOC_TYPES.find(t => t.id === d.id) || {}).requiresConsent);
     const isPublished = document.getElementById('tv-publish-toggle').checked;
     const newId = Date.now();
+    // A listing that carries title documents is NOT live on submit: the documents go to MainTown Legal first,
+    // and the property only goes live (app + website) after Legal approves it in the admin.
+    const needsLegal = isPublished && titleDocuments.length > 0;
+    let legalKey = null;
+    if (needsLegal) {
+      const sendBtn = document.getElementById('tv-submit-btn');
+      if (sendBtn) sendBtn.disabled = true;
+      showToast('Sending your documents securely to MainTown Legal...');
+      try {
+        const ownerRec = (typeof appState !== 'undefined' && appState.users && appState.users[getCurrentUserId()]) || {};
+        legalKey = await LegalBridge.submitPropertyDocs({ id: newId, title, type, ownerId: getCurrentUserId(), agentName: null, listingData: { id: newId } }, titleDocuments, ownerRec);
+      } catch (err) {
+        console.warn('[MainTown] legal submit failed', err);
+        const em = String(err && err.message || ''), code = em.match(/^([a-z_]+) (\d{3})\b/);
+        showToast(err && err.userMessage ? err.userMessage : code ? ('MainTown could not accept the documents right now (' + code[1] + ' ' + code[2] + '). Please try again, or contact MainTown support if it keeps happening.') : 'We could not send your documents. Check your connection and try again.');
+        if (sendBtn) sendBtn.disabled = false;
+        return;
+      }
+      if (sendBtn) sendBtn.disabled = false;
+    }
     landlordProperties.unshift({ id: newId, title, address: composeListingLocation(address, cityId, areaId), status: 'escrow', listingId: newId, ownerId: getCurrentUserId(), companyId: isEnterpriseCeo(getCurrentUserId()) ? getCurrentUserId() : undefined });
     renderLandlordList();
 
@@ -20004,7 +20032,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const currentUserName = (document.getElementById('reg-fullname')?.value || '').trim() || 'Landlord';
     const feeFields = getFeeFieldsFromForm('tv');
     const baseFields = {
-      id: newId, listedAt: Date.now(), title, location: composeListingLocation(address, cityId, areaId), city: cityId, area: areaId, listedBy: 'landlord', source: LISTING_SOURCE.APP, status: isPublished ? 'live' : 'draft',
+      id: newId, listedAt: Date.now(), title, location: composeListingLocation(address, cityId, areaId), city: cityId, area: areaId, listedBy: 'landlord', source: LISTING_SOURCE.APP, status: (isPublished && !needsLegal) ? 'live' : 'draft',
+      ...(needsLegal ? { workflowStatus: 'LEGAL_REVIEW', legalReviewKey: legalKey, reviewStatus: 'pending' } : {}),
       hasPhotos: tvPendingPhotoCount > 0, hasVideo: tvPendingHasVideo,
       photos: tvPendingPhotoUrls.slice(), videoUrl: tvPendingVideoUrl,
       photoKeys: tvPendingPhotoKeys.slice(), videoKey: tvPendingVideoKey,
@@ -20066,7 +20095,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // Agent view's "switch to My Listings after posting" behavior) instead
     // of navigating to a separate screen.
     document.getElementById('s5-tab-landlord-mine').click();
-    showToast(isPublished ? 'Property photos & walkthrough are now live on the Tenant Search Feed' : 'Saved as a private draft — publish anytime from My Properties');
+    showToast(needsLegal ? 'Submitted to MainTown Legal. Your property goes live after it is approved.' : isPublished ? 'Property photos & walkthrough are now live on the Tenant Search Feed' : 'Saved as a private draft — publish anytime from My Properties');
   });
 
   // ---- Agent view: upload listing form + mandatory landlord mapping ----
@@ -29762,6 +29791,22 @@ available in the Post-Lease Hub and this chat thread.`
     let timer = null;
     async function tick() {
       const waiting = (agentListings || []).filter(l => l && l.workflowStatus === 'LEGAL_REVIEW' && l.legalReviewKey);
+      // Landlord-listed properties wait for Legal on the listing itself (approval itself arrives through the remote listing status).
+      const direct = (listings || []).filter(l => l && l.origin !== 'remote' && l.workflowStatus === 'LEGAL_REVIEW' && l.legalReviewKey && !(agentListings || []).some(e => e && e.listingData === l));
+      if (direct.length && waiting.length === 0) {
+        const drows = await LegalBridge.statuses(direct.map(l => l.legalReviewKey));
+        if (Array.isArray(drows)) {
+          let dch = false;
+          drows.forEach(r => {
+            const l = direct.find(x => x.legalReviewKey === r.event_key); if (!l || r.status !== 'declined') return;
+            l.workflowStatus = 'DOCS_DECLINED'; l.legalDecline = { reason: r.decline_reason || '', at: r.reviewed_at || new Date().toISOString() }; dch = true;
+            pushPlatformNotification('landlord', 'listing', 'Documents Declined by MainTown Legal',
+              `MainTown Legal could not approve the documents for "${l.title}". Reason: ${l.legalDecline.reason}. Delete the listing and submit it again with the correct documents.`,
+              null, 'listing_verification', null, l.ownerId);
+          });
+          if (dch) { saveListings(); try { renderLandlordList(); } catch (e) {} }
+        }
+      }
       if (!waiting.length) return;
       const rows = await LegalBridge.statuses(waiting.map(l => l.legalReviewKey));
       if (!Array.isArray(rows)) return;
