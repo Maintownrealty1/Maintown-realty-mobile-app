@@ -11166,7 +11166,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const available = rentListings().filter(p => !isListingUnavailable(p) && inCurrentMarket(p) && p.title && (p.ngn || p.usd));
     // "Properties" row: residential rentals, commercial leases and land / houses for sale, interleaved so the slide shows variety.
     const rentPool = available.filter(p => p.type === 'rent');
-    const salePool = landListingsList().filter(p => !isListingUnavailable(p) && inCurrentMarket(p) && p.title && Number(p.totalPrice) > 0);
+    const salePool = landListingsList().filter(p => !isListingUnavailable(p) && p.title && Number(p.totalPrice) > 0);   // land is shown from every city
     const rents = [];
     for (let i = 0; i < Math.max(rentPool.length, salePool.length) && rents.length < 10; i++) {
       if (rentPool[i]) rents.push(rentPool[i]);
@@ -14245,7 +14245,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!marketIsLive()) { feed.innerHTML = marketComingSoonHTML(currentMarket(), 'page'); if (window.lucide) lucide.createIcons(); startMarketHeroes(); return; }
     dxApplyDeals();
     const baseRent = rentListings().filter(l => l.type === 'rent' && !isListingUnavailable(l) && inCurrentMarket(l));
-    const baseLand = landListingsList().filter(l => !isListingUnavailable(l) && inCurrentMarket(l));
+    const baseLand = landListingsList().filter(l => !isListingUnavailable(l));   // land is shown from every city
     const rents = applyS5Filters(baseRent, 'rent');
     const lands = applyS5Filters(baseLand, 'land');
     const total = baseRent.length + baseLand.length;
@@ -14328,7 +14328,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     renderS5FilterChips();
     if (!marketIsLive()) { feed.innerHTML = marketComingSoonHTML(currentMarket(), 'page'); if (window.lucide) lucide.createIcons(); startMarketHeroes(); return; }
     dxApplyDeals();
-    const base = landListingsList().filter(l => !isListingUnavailable(l) && inCurrentMarket(l));
+    const base = landListingsList().filter(l => !isListingUnavailable(l));   // land is shown from every city
     const data = applyS5Filters(base, 'land');
     setS5ResultCount(data.length, base.length);
     if (!data.length && base.length) { feed.innerHTML = s5NoMatchHTML(); return; }
