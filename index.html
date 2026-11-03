@@ -13028,7 +13028,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
       window.addEventListener('online', tick);
     }
-    return { start, tick, pull, pushPending, onLocalSave, config: CFG };
+    return { start, tick, pull, pushPending, onLocalSave, config: CFG, refOf };
   })();
   window.MainTownRemoteFeed = RemoteFeed; // handy for debugging: MainTownRemoteFeed.tick()
 
@@ -21540,7 +21540,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         legalKey = await LegalBridge.submitPropertyDocs(entry, titleDocuments, landlordUser);
       } catch (err) {
         console.warn('[MainTown] legal submit failed', err);
-        showToast(err && err.userMessage ? err.userMessage : 'We could not send your documents. Check your connection and try again.');
+        const em = String(err && err.message || ''), code = em.match(/^([a-z_]+) (\d{3})\b/);
+        showToast(err && err.userMessage ? err.userMessage : code ? ('MainTown could not accept the documents right now (' + code[1] + ' ' + code[2] + '). Please try again, or contact MainTown support if it keeps happening.') : 'We could not send your documents. Check your connection and try again.');
         if (sendBtn) sendBtn.disabled = false;
         return;
       }
@@ -29531,7 +29532,7 @@ available in the Post-Lease Hub and this chat thread.`
       const c = cfg();
       const res = await fetch(c.url + '/storage/v1/object/legal-docs/' + path, {
         method: 'POST',
-        headers: { apikey: c.key, Authorization: 'Bearer ' + c.key, 'Content-Type': mime, 'x-upsert': 'false' },
+        headers: { apikey: c.key, 'Content-Type': mime, 'x-upsert': 'false' }, // apikey only, same as the working listing uploads: a publishable key is not a JWT and Storage rejects it as a Bearer token
         body: blob
       });
       if (!res.ok) { let t = ''; try { t = await res.text(); } catch (e) {} throw new Error('upload ' + res.status + ' ' + t.slice(0, 140)); }
@@ -29566,7 +29567,7 @@ available in the Post-Lease Hub and this chat thread.`
       }
       const attempt = (entry.legalAttempts || 0) + 1;
       await insertRow('legal_reviews', {
-        event_key: key, listing_ref: String(entry.id), listing_title: entry.title || null, listing_type: entry.type || null,
+        event_key: key, listing_ref: String((entry.listingData && RemoteFeed.refOf) ? RemoteFeed.refOf(entry.listingData) : entry.id), listing_title: entry.title || null, listing_type: entry.type || null,
         owner_name: (owner && (owner.legalName || owner.name)) || null, submitted_by_id: String(entry.ownerId || ''),
         submitted_by_name: (owner && owner.name) || null, submitted_by_role: 'landlord', agent_name: entry.agentName || null,
         attempt, documents: out
