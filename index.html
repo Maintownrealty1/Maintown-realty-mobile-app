@@ -12957,13 +12957,25 @@ This voucher is auto-generated and serves as proof of settlement.`;
         const set = (k, v) => { if (l[k] !== v) { l[k] = v; changed = true; } };
         l.remoteStatus = st;
         if (st === 'pending') { set('reviewStatus', 'pending'); set('adminHidden', false); }
-        else if (st === 'closed') { set('reviewStatus', 'closed'); set('reviewNote', note); set('adminHidden', false); }
+        else if (st === 'closed') {
+          if (l.reviewStatus !== 'closed' && l.workflowStatus !== 'DOCS_DECLINED') {   // first time we learn it was declined: tell the host why
+            try {
+              const ag = (typeof entryOf === 'function' && entryOf(l)) || null;
+              pushPlatformNotification('landlord', 'listing', 'Listing Declined by MainTown',
+                `MainTown could not approve "${l.title}". Reason: ${note || 'not given'}. Fix the issue and submit the property again.`, null, 'listing_verification', null, l.ownerId);
+              if (ag && ag.agentId) pushPlatformNotification('agent', 'listing', 'Listing Declined by MainTown',
+                `MainTown could not approve "${l.title}". Reason: ${note || 'not given'}.`, null, 'listing_verification', null, ag.agentId);
+            } catch (e) {}
+          }
+          set('reviewStatus', 'closed'); set('reviewNote', note); set('adminHidden', false);
+        }
         else {
           set('reviewStatus', 'approved'); set('reviewNote', '');
           set('adminHidden', st === 'unavailable');
           // Approved while the host's own flow was still "in review": it goes live now.
           if (l.status === 'draft' && inReview(l)) {
             l.status = 'live'; l.workflowStatus = 'LIVE'; l.syncedLocalStatus = 'live'; changed = true;
+            try { pushPlatformNotification('landlord', 'listing', 'Listing Approved: Now Live', `"${l.title}" was approved by MainTown and is now live.`, null, 'listing_verification', null, l.ownerId); } catch (e) {}
             try { const ae = agentListings.find(e => e && e.listingData === l); if (ae) { ae.status = 'live'; ae.workflowStatus = 'LIVE'; } } catch (e) {}
           }
           if (st === 'sold' || st === 'rented' || st === 'booked') {
@@ -29822,7 +29834,7 @@ available in the Post-Lease Hub and this chat thread.`
       const waiting = (agentListings || []).filter(l => l && l.workflowStatus === 'LEGAL_REVIEW' && l.legalReviewKey);
       // Landlord-listed properties wait for Legal on the listing itself (approval itself arrives through the remote listing status).
       const direct = (listings || []).filter(l => l && l.origin !== 'remote' && l.workflowStatus === 'LEGAL_REVIEW' && l.legalReviewKey && !(agentListings || []).some(e => e && e.listingData === l));
-      if (direct.length && waiting.length === 0) {
+      if (direct.length) {
         const drows = await LegalBridge.statuses(direct.map(l => l.legalReviewKey));
         if (Array.isArray(drows)) {
           let dch = false;
