@@ -4850,8 +4850,8 @@
 
       <p id="tv-sale-hold-note" class="dealx-note" style="display:none;margin:0 0 10px;">Property sales: the buyer's payment is split at checkout, but your share is held by our payment partner until the buyer confirms receipt of your original documents (or 7 days after you dispatch them with no complaint). Dispatch within 14 days of full payment. A confirmed problem means a full refund and possible removal from MainTown.</p>
       <div class="field" id="tv-title-type-field" style="display:none;">
-        <p class="s5-section-label" style="margin:0 0 4px;"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i>Title Verification Documents</p>
-        <p class="modal-sub" style="margin-bottom:10px; text-align:left;">Select every document that applies to this property, then upload each one. Shown publicly on the listing so buyers can judge title risk before making an offer.</p>
+        <p class="s5-section-label" style="margin:0 0 4px;"><i data-lucide="scroll-text" class="w-4 h-4 text-purple-400"></i><span id="tv-doc-heading-text">Title Verification Documents</span></p>
+        <p class="modal-sub" id="tv-doc-sub" style="margin-bottom:10px; text-align:left;">Select every document that applies to this property, then upload each one. Shown publicly on the listing so buyers can judge title risk before making an offer.</p>
         <div id="tv-doc-options"><!-- populated dynamically --></div>
         <p class="rent-badge" id="tv-consent-note" style="display:none; margin-top:8px; background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.35); color:#fbbf24;">
           <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i><span>These documents require Governor's Consent to transfer — buyers will see this upfront on the listing.</span>
@@ -19906,7 +19906,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   document.getElementById('va-policy-checkbox').addEventListener('change', (e) => {
     if (e.target.checked) document.getElementById('va-error-msg').classList.remove('show');
   });
-  document.getElementById('va-activate-btn').addEventListener('click', () => {
+  document.getElementById('va-activate-btn').addEventListener('click', async () => {
     const bankName = document.getElementById('va-bank-name').value.trim();
     const bankAccount = document.getElementById('va-bank-account').value.trim();
     const bvnNin = document.getElementById('va-bvn-nin').value.trim();
@@ -19952,6 +19952,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (!vaAddress) { errText.textContent = 'Please enter your home address as it appears on your NIN / ID.'; errEl.classList.add('show'); return; }
     const kycErr = vaKycGateError();
     if (kycErr) { errText.textContent = kycErr; errEl.classList.add('show'); return; }
+    const vaPayout = await resolvePayoutAccount(bankName, bankAccount, (vaKycState && vaKycState.legalName) || resolveUserName(userId));
+    if (vaPayout.status === 'mismatch') { errText.textContent = PAYOUT_MISMATCH_MSG(vaPayout); errEl.classList.add('show'); return; }
+    if (vaPayout.status === 'error') { errText.textContent = 'We could not confirm the name on this bank account. Check the account number and bank, then try again.'; errEl.classList.add('show'); return; }
     const kycFiles = {
       id: (document.getElementById('va-kyc-file-id') || {}).files && document.getElementById('va-kyc-file-id').files[0],
       selfie: (document.getElementById('va-kyc-file-selfie') || {}).files && document.getElementById('va-kyc-file-selfie').files[0]
@@ -19959,7 +19962,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     setVendorActivated(userId, { bankName, bankAccount, bvn: bvnNin, address: vaAddress });
     if (appState.users[userId] && vaKycState) { appState.users[userId].kyc = Object.assign({}, vaKycState); saveAppState(appState); }
     // Report the KYC to MainTown Legal (masked numbers + the photos they chose to upload). Retried in the background.
-    LegalBridge.withRetry(() => LegalBridge.reportKyc(userId, { bankName, bankAccount, bvn: bvnNin, address: vaAddress }, kycFiles))
+    LegalBridge.withRetry(() => LegalBridge.reportKyc(userId, { bankName, bankAccount, bvn: bvnNin, address: vaAddress, payout: vaPayout }, kycFiles))
       .catch(err => console.warn('[MainTown] KYC report not delivered', err));
     document.getElementById('vendor-activation-modal').classList.remove('open');
     showToast('Vendor account activated — dashboard unlocked');
@@ -20007,21 +20010,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
       return;
     }
     const checkedDocBoxes = Array.from(document.querySelectorAll('.tv-doc-checkbox:checked'));
-    if (type === 'land') {
+    {
       if (!checkedDocBoxes.length) {
-        showToast('Select at least one title document type that applies to this property');
+        showToast(type === 'land' ? 'Select at least one title document type that applies to this property' : 'Select the title document you hold for this property (for example a Deed of Assignment or Certificate of Occupancy) and upload it');
         return;
       }
       if (checkedDocBoxes.some(cb => !tvSelectedDocs[cb.dataset.docId])) {
-        showToast('Please upload a file for every title document type you selected');
+        showToast('Please upload a file for every document type you selected');
         return;
       }
+      if (checkedDocBoxes.every(cb => (allDocTypes().find(d => d.id === cb.dataset.docId) || {}).supportingOnly)) { showToast(SUPPORT_ONLY_MSG); return; }
     }
     const titleDocuments = checkedDocBoxes.map(cb => {
-      const doc = TITLE_DOC_TYPES.find(d => d.id === cb.dataset.docId);
+      const doc = allDocTypes().find(d => d.id === cb.dataset.docId);
       return { id: doc.id, label: doc.label, ...tvSelectedDocs[doc.id] };
     });
-    const requiresConsent = titleDocuments.some(d => (TITLE_DOC_TYPES.find(t => t.id === d.id) || {}).requiresConsent);
+    const requiresConsent = titleDocuments.some(d => (allDocTypes().find(t => t.id === d.id) || {}).requiresConsent);
     const isPublished = document.getElementById('tv-publish-toggle').checked;
     const newId = Date.now();
     // A listing that carries title documents is NOT live on submit: the documents go to MainTown Legal first,
@@ -20034,7 +20038,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       showToast('Sending your documents securely to MainTown Legal...');
       try {
         const ownerRec = (typeof appState !== 'undefined' && appState.users && appState.users[getCurrentUserId()]) || {};
-        legalKey = await LegalBridge.submitPropertyDocs({ id: newId, title, type, ownerId: getCurrentUserId(), agentName: null, listingData: { id: newId, photoKeys: tvPendingPhotoKeys.slice(), videoKey: tvPendingVideoKey } }, titleDocuments, ownerRec);
+        legalKey = await LegalBridge.submitPropertyDocs({ id: newId, title, type, ownerId: getCurrentUserId(), agentName: null, address: composeListingLocation(address, cityId, areaId), listingData: { id: newId, photoKeys: tvPendingPhotoKeys.slice(), videoKey: tvPendingVideoKey } }, titleDocuments, ownerRec);
       } catch (err) {
         console.warn('[MainTown] legal submit failed', err);
         const em = String(err && err.message || ''), code = em.match(/^([a-z_]+) (\d{3})\b/);
@@ -20363,10 +20367,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Agent -> Landlord verification flow's TITLE_DOC_TYPES defined below) ----
   let tvSelectedDocs = {}; // docId -> { fileName, fileUrl }
 
-  function renderTvDocOptions() {
+  function renderTvDocOptions(type) {
     const wrap = document.getElementById('tv-doc-options');
     if (!wrap) return;
-    wrap.innerHTML = TITLE_DOC_TYPES.map(d => `
+    const t = type || (document.getElementById('tv-listing-type') || {}).value || 'rent';
+    wrap.innerHTML = docTypesFor(t).map(d => `
       <div class="lv-doc-row" data-doc-id="${d.id}">
         <label class="agree-row" style="margin-bottom:0;">
           <input type="checkbox" class="agree-checkbox tv-doc-checkbox" data-doc-id="${d.id}">
@@ -20390,7 +20395,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       uploadBox.style.display = checkbox.checked ? 'flex' : 'none';
       if (!checkbox.checked) delete tvSelectedDocs[id];
       const anyRequiresConsent = Array.from(document.querySelectorAll('.tv-doc-checkbox:checked'))
-        .some(cb => (TITLE_DOC_TYPES.find(d => d.id === cb.dataset.docId) || {}).requiresConsent);
+        .some(cb => (allDocTypes().find(d => d.id === cb.dataset.docId) || {}).requiresConsent);
       document.getElementById('tv-consent-note').style.display = anyRequiresConsent ? 'inline-flex' : 'none';
     } else if (fileInput && fileInput.files.length) {
       const id = fileInput.dataset.docId;
@@ -21124,7 +21129,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function updateTvTitleTypeVisibility() {
     const isLand = document.getElementById('tv-listing-type').value === 'land';
-    document.getElementById('tv-title-type-field').style.display = isLand ? 'block' : 'none';
+    document.getElementById('tv-title-type-field').style.display = 'block';   // every listing needs proof of ownership
+    { const h = document.getElementById('tv-doc-heading-text'), sub = document.getElementById('tv-doc-sub');
+      if (h) h.textContent = isLand ? 'Title Verification Documents' : 'Proof of Ownership';
+      if (sub) sub.textContent = isLand
+        ? 'Select every document that applies to this property, then upload each one. Shown publicly on the listing so buyers can judge title risk before making an offer.'
+        : 'Select the title document you hold for this property and upload it. MainTown Legal reviews it before the listing goes live. A utility bill is accepted only as a supporting document, never on its own.'; }
+    tvSelectedDocs = {}; renderTvDocOptions();
     { const hn = document.getElementById('tv-sale-hold-note'); if (hn) hn.style.display = isLand ? 'block' : 'none'; }
   }
 
@@ -21149,6 +21160,20 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // Residential/Commercial rent and Shortlet listings don't need the long
   // six-document title checklist (that is for Land & Property sales only).
   // The owner just uploads ONE copy of a title document or a utility bill.
+  // Proof of ownership for Rent / Shortlet / Event center: a real title document is required.
+  // A utility bill can be added as supporting evidence, but is never accepted on its own.
+  const OWNERSHIP_DOC_TYPES = [
+    { id: 'C_OF_O', label: 'Certificate of Occupancy', requiresConsent: true },
+    { id: 'DEED_OF_ASSIGNMENT', label: 'Deed of Assignment', requiresConsent: false },
+    { id: 'GOVERNORS_CONSENT', label: "Governor's Consent", requiresConsent: true },
+    { id: 'SURVEY_PLAN', label: 'Registered Survey Plan', requiresConsent: false },
+    { id: 'REGISTERED_CONVEYANCE', label: 'Registered Conveyance', requiresConsent: false },
+    { id: 'DEED_OF_LEASE', label: 'Deed of Lease', requiresConsent: false }
+  ];
+  const SUPPORT_DOC = { id: 'UTILITY_BILL', label: 'Utility bill (supporting only)', requiresConsent: false, supportingOnly: true };
+  function docTypesFor(type) { return type === 'land' ? TITLE_DOC_TYPES : OWNERSHIP_DOC_TYPES.concat([SUPPORT_DOC]); }
+  function allDocTypes() { return TITLE_DOC_TYPES.concat(OWNERSHIP_DOC_TYPES.filter(d => !TITLE_DOC_TYPES.some(t => t.id === d.id)), [SUPPORT_DOC]); }
+  const SUPPORT_ONLY_MSG = 'A utility bill is only a supporting document. Please also upload a title document such as a Deed of Assignment, Certificate of Occupancy or Governor\'s Consent.';
   const OWNERSHIP_PROOF_DOC = { id: 'OWNERSHIP_PROOF', label: 'Title document / utility bill', requiresConsent: false };
   const OWNERSHIP_PROOF_PROMPT = 'Upload a copy of title documents or utility bill';
   const OWNERSHIP_PROOF_HINT = 'e.g. C of O, Deed, or Electricity/Water Bill';
@@ -21426,12 +21451,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // checklist, wire per-document file uploads, and handle approval/legal-review. ----
   function renderLvDocOptions(listingType) {
     const wrap = document.getElementById('lv-doc-options');
-    const single = usesSingleOwnershipDoc(listingType);
-    document.getElementById('lv-doc-heading-text').textContent = single ? 'Proof of Ownership' : 'Title Verification Documents';
+    const single = false;   // every type now uses the title-document checklist (utility bill = supporting only)
+    document.getElementById('lv-doc-heading-text').textContent = listingType === 'land' ? 'Title Verification Documents' : 'Proof of Ownership';
     { const hn = document.getElementById('lv-sale-hold-note'); if (hn) hn.style.display = (listingType === 'land') ? 'block' : 'none'; }
-    document.getElementById('lv-doc-sub').textContent = single
-      ? 'One document is enough: a copy of your title documents or a recent utility bill for this property.'
-      : 'Select every document that applies to this property, then upload each one.';
+    document.getElementById('lv-doc-sub').textContent = listingType === 'land'
+      ? 'Select every document that applies to this property, then upload each one.'
+      : 'Select the title document you hold for this property and upload it. A utility bill is accepted only as a supporting document, never on its own.';
     if (single) {
       wrap.innerHTML = `
         <div class="s5-upload-box lv-single-upload" style="margin-bottom:6px;">
@@ -21443,7 +21468,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (window.lucide) lucide.createIcons();
       return;
     }
-    wrap.innerHTML = TITLE_DOC_TYPES.map(d => `
+    wrap.innerHTML = docTypesFor(listingType).map(d => `
       <div class="lv-doc-row" data-doc-id="${d.id}">
         <label class="agree-row" style="margin-bottom:0;">
           <input type="checkbox" class="agree-checkbox lv-doc-checkbox" data-doc-id="${d.id}">
@@ -21548,7 +21573,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       showToast('This BVN is already linked to another account.');
       return;
     }
-    const lvSingle = usesSingleOwnershipDoc(entry.type);
+    const lvSingle = false;
     if (lvSingle) {
       if (!lvSelectedDocs[OWNERSHIP_PROOF_DOC.id]) {
         showToast('Please upload a copy of your title documents or a utility bill');
@@ -21563,12 +21588,19 @@ This voucher is auto-generated and serves as proof of settlement.`;
         showToast('Please upload a file for every title document type you selected');
         return;
       }
+      if (checkedBoxes.every(cb => (allDocTypes().find(d => d.id === cb.dataset.docId) || {}).supportingOnly)) { showToast(SUPPORT_ONLY_MSG); return; }
     }
     if (!authorized) {
       showToast('Please confirm and authorize before submitting');
       return;
     }
 
+    // The payout account must be in the landlord's own verified name.
+    { const orec = appState.users[entry.ownerId] || {};
+      const pc = await resolvePayoutAccount(bankName, bankAccount, orec.legalName || orec.name || '');
+      if (pc.status === 'mismatch') { showToast(PAYOUT_MISMATCH_MSG(pc)); return; }
+      if (pc.status === 'error') { showToast('We could not confirm the name on this bank account. Check the account number and bank, then try again.'); return; }
+      entry.payoutCheck = pc; }
     // Confirm the Landlord's payout details on their own account record.
     const landlordUser = ensureWalletRecord(entry.ownerId);
     landlordUser.settlementBank = { accountNumber: bankAccount, bankName: bankName };
@@ -21578,7 +21610,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const titleDocuments = lvSingle
       ? [{ id: OWNERSHIP_PROOF_DOC.id, label: OWNERSHIP_PROOF_DOC.label, ...lvSelectedDocs[OWNERSHIP_PROOF_DOC.id] }]
       : checkedBoxes.map(cb => {
-          const doc = TITLE_DOC_TYPES.find(d => d.id === cb.dataset.docId);
+          const doc = allDocTypes().find(d => d.id === cb.dataset.docId);
           return { id: doc.id, label: doc.label, ...lvSelectedDocs[doc.id] };
         });
     // Send the documents to MainTown Legal. If they cannot be delivered we stop here so the landlord can
@@ -21607,6 +21639,11 @@ This voucher is auto-generated and serves as proof of settlement.`;
     entry.titleDocuments = titleDocuments;
     if (entry.listingData) entry.listingData.titleDocuments = titleDocuments;
     saveListings();
+    if (!entry.clientOwned && entry.agentId) {
+      pushPlatformNotification('agent', 'listing', 'Landlord Approved Your Listing',
+        `${(landlordUser && (landlordUser.legalName || landlordUser.name)) || entry.landlordName || 'The landlord'} uploaded the property documents and approved "${entry.title}". It is now with MainTown Legal. You will be notified when it is decided.`,
+        null, 'listing_verification', null, entry.agentId);
+    }
     if (entry.clientOwned) { mgAfterLandlordApproval(entry, landlordUser); return; }
 
     document.getElementById('landlord-verify-modal').classList.remove('open');
@@ -29143,6 +29180,27 @@ available in the Post-Lease Hub and this chat thread.`
       return { status: 'failed', reason: e && e.name === 'AbortError' ? 'Verification timed out. Please try again.' : 'Could not reach the verification service.' };
     } finally { clearTimeout(timer); }
   }
+  // Payout account name check. Live mode calls YOUR backend (POST {kycBaseUrl}{resolvePath} { bankName, accountNumber }
+  // -> { accountName }), which asks the bank / payment provider. With no backend configured it runs in DEMO mode:
+  // nothing is verified and Legal is told so.
+  async function resolvePayoutAccount(bankName, accountNumber, idName) {
+    const base = { bankName, last4: String(accountNumber || '').slice(-4), idName: idName || '' };
+    if (!KYC_CFG.kycBaseUrl) return Object.assign(base, { status: 'demo', accountName: null, match: null });
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), KYC_CFG.timeoutMs);
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      const tok = typeof KYC_CFG.getAuthToken === 'function' ? KYC_CFG.getAuthToken() : null;
+      if (tok) headers.Authorization = 'Bearer ' + tok;
+      const res = await fetch(KYC_CFG.kycBaseUrl + (KYC_CFG.resolvePath || '/api/bank/resolve'), { method: 'POST', headers, body: JSON.stringify({ bankName, accountNumber }), signal: ctl.signal });
+      if (!res.ok) return Object.assign(base, { status: 'error', accountName: null, match: null });
+      const d = await res.json();
+      if (!d || !d.accountName) return Object.assign(base, { status: 'error', accountName: null, match: null });
+      const match = kycNamesMatch(idName, d.accountName);
+      return Object.assign(base, { status: match ? 'verified' : 'mismatch', accountName: String(d.accountName), match });
+    } catch (e) { return Object.assign(base, { status: 'error', accountName: null, match: null }); }
+    finally { clearTimeout(timer); }
+  }
+  const PAYOUT_MISMATCH_MSG = p => `The account name on this bank account (${p.accountName}) does not match the name on the verified ID (${p.idName}). Payouts must go to an account in the same name.`;
   let vaKycState = null; // { status, mode, reference, bvnLast4, ninLast4, address }
   function vaShowKycResult(kind, text) {
     const box = document.getElementById('va-kyc-result'); if (!box) return;
@@ -29606,6 +29664,19 @@ available in the Post-Lease Hub and this chat thread.`
       if (!b && doc.fileUrl) { try { b = await (await fetch(doc.fileUrl)).blob(); } catch (e) {} }
       return b;
     }
+    // Small visual fingerprint (difference hash) so Legal can spot the same photo used by two different landlords.
+    async function dHash(blob) {
+      try {
+        const bmp = await createImageBitmap(blob);
+        const cv = document.createElement('canvas'); cv.width = 9; cv.height = 8;
+        const ctx = cv.getContext('2d', { willReadFrequently: true }); ctx.drawImage(bmp, 0, 0, 9, 8);
+        const px = ctx.getImageData(0, 0, 9, 8).data, g = i => 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+        let bits = '';
+        for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) bits += g((y * 9 + x) * 4) > g((y * 9 + x + 1) * 4) ? '1' : '0';
+        let hex = ''; for (let i = 0; i < 64; i += 4) hex += parseInt(bits.slice(i, i + 4), 2).toString(16);
+        return hex;
+      } catch (e) { return null; }
+    }
     // Property / title documents -> legal_reviews. Returns the secret key used to check the outcome.
     async function submitPropertyDocs(entry, docs, owner) {
       const key = rid('lr'), out = [];
@@ -29628,7 +29699,7 @@ available in the Post-Lease Hub and this chat thread.`
           pn++;
           const path = 'property/' + safe(entry.id) + '/' + key + '/photo-' + pn + '.' + (m.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
           await upload(path, b, m);
-          out.push({ kind: 'photo', label: 'Photo ' + pn, path, mime: m, size: b.size });
+          out.push({ kind: 'photo', label: 'Photo ' + pn, path, mime: m, size: b.size, hash: await dHash(b) });
         } catch (e) { console.warn('[MainTown] photo for Legal skipped', e && e.message); }
       }
       if (ld.videoKey) {
@@ -29642,6 +29713,17 @@ available in the Post-Lease Hub and this chat thread.`
           }
         } catch (e) { console.warn('[MainTown] video for Legal skipped', e && e.message); }
       }
+      // Who is who: the agent who listed it (if any), the landlord who uploaded and approved, and when.
+      try {
+        const us = (appState && appState.users) || {}, ag = entry.agentId ? (us[entry.agentId] || {}) : {}, ow = owner || {};
+        out.push({
+          kind: 'meta',
+          listed_by: entry.agentName ? { role: 'agent', name: entry.agentName, id: entry.agentId || null, phone: ag.phone || null, email: ag.email || null } : { role: 'landlord', name: null },
+          landlord: { name: ow.legalName || ow.name || entry.landlordName || null, id: entry.ownerId || null, phone: ow.phone || entry.landlordPhone || null, email: ow.email || entry.landlordEmail || null },
+          landlord_approved_at: new Date().toISOString(), address: entry.address || null,
+          payout: entry.payoutCheck || null
+        });
+      } catch (e) {}
       const attempt = (entry.legalAttempts || 0) + 1;
       await insertRow('legal_reviews', {
         event_key: key, listing_ref: String((entry.listingData && RemoteFeed.refOf) ? RemoteFeed.refOf(entry.listingData) : entry.id), listing_title: entry.title || null, listing_type: entry.type || null,
@@ -29675,6 +29757,7 @@ available in the Post-Lease Hub and this chat thread.`
         await upload(path, f, m);
         docs.push({ kind, path, mime: m, size: f.size });
       }
+      if (d.payout) docs.push({ kind: 'meta', payout: d.payout });
       const va = (appState.vendorActivation && appState.vendorActivation[userId]) || {};
       await insertRow('app_kyc_submissions', {
         event_key: key, account_id: String(userId), full_name: rec.legalName || rec.name || null, role: rec.role || null,
