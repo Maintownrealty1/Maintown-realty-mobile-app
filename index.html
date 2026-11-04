@@ -12702,6 +12702,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           fees.push('Property Type: ' + (l.houseType || 'House'));
         } else { beds = 0; fees.push('Property Type: Land (Plot)'); }
         fees.push('Outright Price: ' + naira(l.totalPrice));
+        if (num(l.plotsTotal || l.plotsAvailable) > 1) fees.push('Plots Available: ' + num(l.plotsAvailable != null ? l.plotsAvailable : l.plotsTotal), 'Price Basis: Per plot');
         if (l.installmentOffered !== false) { // legacy app listings always offered installments
           const ip = Math.max(num(l.installmentPrice), num(l.totalPrice));
           fees.push('Installment Price: ' + naira(ip), 'Installment Duration: ' + (num(l.installmentMonths) || 12) + ' months');
@@ -12709,7 +12710,6 @@ This voucher is auto-generated and serves as proof of settlement.`;
         }
         if (l.halfPlotOffered && num(l.halfPlotPrice) > 0) {
           fees.push('Sold In Parts: Full plot, Half plot', 'Price Basis: Per full plot');
-          if (num(l.plotsAvailable) > 0) fees.push('Plots Available: ' + num(l.plotsAvailable));
           fees.push('Half Plot Price: ' + naira(l.halfPlotPrice));
           if (l.installmentOffered !== false && num(l.halfPlotInstallment) > 0) fees.push('Half Plot Installment: ' + naira(l.halfPlotInstallment));
         }
@@ -12748,6 +12748,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           fees.push('Payment Terms: Annual, paid in full upfront');
         }
       }
+      if (l.type === 'rent' && num(l.unitsTotal || l.unitsAvailable) > 1) fees.push('Units Available: ' + num(l.unitsAvailable != null ? l.unitsAvailable : l.unitsTotal));
       if (l.type === 'rent' && l.usage !== 'commercial' && num(l.annualPrice)) {
         fees.push('Agent Fee: 10% (' + naira(num(l.annualPrice) * 0.10) + ')', 'Legal Fee: 5% (' + naira(num(l.annualPrice) * 0.05) + ')');
       }
@@ -12809,7 +12810,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
           halfPlotOffered: /half plot/i.test(fm['Sold In Parts'] || '') && amt(fm['Half Plot Price']) > 0,
           halfPlotPrice: amt(fm['Half Plot Price']) || undefined,
           halfPlotInstallment: amt(fm['Half Plot Installment']) || undefined,
-          plotsAvailable: amt(fm['Plots Available']) || undefined,
+          plotsAvailable: amt(fm['Plots Available']) || undefined, plotsTotal: amt(fm['Plots Available']) || undefined,
           legalFeePct: amt(fm['Legal Fee']) ? (String(fm['Legal Fee']).indexOf('10%') === 0 ? 10 : 5) : 5
         }, house ? { houseType: pt, bedrooms: num(row.beds), bathrooms: amt(fm['Bathrooms']), toilets: amt(fm['Toilets']), parkingSpaces: amt(fm['Parking Spaces']) } : {},
           amt(fm['Plot Size']) ? { sqm: amt(fm['Plot Size']) } : {});
@@ -12844,7 +12845,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const annual = com ? price : (num(row.annual_rent) || price * 12);
       const monthly = com ? Math.round(annual / 12) : price;
       return Object.assign(base, {
-        type: 'rent', annualPrice: annual, bedrooms: num(row.beds),
+        type: 'rent', annualPrice: annual, bedrooms: num(row.beds), unitsAvailable: amt(fm['Units Available']) || undefined, unitsTotal: amt(fm['Units Available']) || undefined,
         ngn: com ? naira(annual) + ' / yr' : naira(monthly) + ' / mo',
         usd: com ? '$' + Math.round(annual / 1600) + ' / yr' : '$' + Math.round(monthly / 1600) + ' / mo'
       }, com ? { usage: 'commercial', flexRent: false, commercialType: fm['Commercial Type'] || 'Commercial', sqm: amt(fm['Commercial Size']), parkingSpaces: amt(fm['Commercial Parking']), powerSupply: fm['Power Supply'] || '' } : {});
@@ -14057,6 +14058,32 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function markListingUnavailableAfterCheckout(listing) {
     if (!listing) return;
     const realL = listings.find(x => String(x.id) === String(listing.id)) || listing;
+    // Several plots for sale: only this buyer's plots are taken. The listing stays live until the last plot goes.
+    if (realL.type === 'land' && plotsRemaining(realL) > 0) {
+      const units = Number(listing._plotUnits) || 1, left = plotsRemaining(realL) - units;
+      realL.plotsTotal = Number(realL.plotsTotal) || Number(realL.plotsAvailable);
+      if (left > 0) {
+        realL.plotsAvailable = left;
+        realL.plotSales = (realL.plotSales || []).concat([{ at: Date.now(), units, amount: Number(listing.totalPrice) || 0, buyerId: (typeof getCurrentUserId === 'function' ? getCurrentUserId() : null) }]);
+        saveListings();
+        window.dispatchEvent(new Event('maintown_state_updated'));
+        return;
+      }
+      realL.plotsAvailable = 0;
+    }
+    // Several units of one kind (rent / commercial): the tenant takes one unit; the listing stays live until the last unit goes.
+    if (realL.type === 'rent' && unitsRemaining(realL) > 0) {
+      const left = unitsRemaining(realL) - 1;
+      realL.unitsTotal = Number(realL.unitsTotal) || Number(realL.unitsAvailable);
+      if (left > 0) {
+        realL.unitsAvailable = left;
+        realL.unitSales = (realL.unitSales || []).concat([{ at: Date.now(), amount: Number(listing.annualPrice) || 0, tenantId: (typeof getCurrentUserId === 'function' ? getCurrentUserId() : null) }]);
+        saveListings();
+        window.dispatchEvent(new Event('maintown_state_updated'));
+        return;
+      }
+      realL.unitsAvailable = 0;
+    }
     realL.status = realL.type === 'land' ? 'SOLD' : 'RENTED';
     listing.status = realL.status;
     if (typeof mktOnPurchase === 'function') mktOnPurchase(listing);
@@ -14392,9 +14419,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
         <div class="s5-card-body">
           <div class="s5-card-titlerow"><p class="s5-card-title">${p.title}</p><button type="button" class="s5-info-btn" data-listing-id="${p.id}" aria-label="View listing details"><i data-lucide="info" class="w-3.5 h-3.5"></i>Details</button></div>
           <p class="s5-card-location"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.location}</p>
-          <p class="s5-card-price">${listingPriceFull(p)} <span>total price</span></p>
+          <p class="s5-card-price">${listingPriceFull(p)} <span>${plotsRemaining(p) > 1 ? 'per plot' : 'total price'}</span></p>
           ${p._deal ? dxMetaHtml(p) : ''}
           ${p.type === 'land' ? `<p class="s5-card-location" style="margin:-4px 0 8px;"><i data-lucide="${listingPropKind(p) === 'house' ? 'home' : 'ruler'}" class="w-3.5 h-3.5"></i>${listingPropSummary(p)}</p>` : (p.sqm ? `<p class="s5-card-location" style="margin:-4px 0 8px;"><i data-lucide="ruler" class="w-3.5 h-3.5"></i>${formatSqm(p.sqm)}</p>` : '')}
+          ${unitsRemaining(p) > 1 ? `<p class="s5-card-location" style="margin:-4px 0 8px;"><i data-lucide="building-2" class="w-3.5 h-3.5"></i>${unitsRemaining(p)} units available</p>` : ''}
           ${p.titleTypeLabel ? `
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin: 2px 0 10px;">
             <span class="s5-status-badge insp-status-conducted" style="white-space:nowrap;"><i data-lucide="scroll-text" class="w-3 h-3"></i>${p.titleTypeLabel}</span>
@@ -14570,7 +14598,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function reelSlideHtml(p) {
     const isLand = p.type === 'land', isShortlet = p.type === 'shortlet';
     const price = listingPriceFull(p);
-    const unit = isLand ? 'total price' : (p.type === 'event' ? 'venue hire' : (isShortlet ? 'shortlet' : (p.usage === 'commercial' ? String(p.commercialType || 'commercial').toLowerCase() : 'rent')));
+    const unit = isLand ? (plotsRemaining(p) > 1 ? 'per plot' : 'total price') : (p.type === 'event' ? 'venue hire' : (isShortlet ? 'shortlet' : (p.usage === 'commercial' ? String(p.commercialType || 'commercial').toLowerCase() : 'rent')));
     const isCommercial = !isLand && !isShortlet && p.usage === 'commercial';
     const ctaLabel = listingCta(p).label;
     const ctaIcon = listingCta(p).icon;
@@ -15096,7 +15124,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const usdMode = currentCurrency === 'usd';
     if (isLand) {
       priceMain = listingPriceFull(p);
-      priceUnit = 'total price' + (usdMode ? ` \u00B7 ${formatMoney(p.totalPrice, 'ngn')}` : '');
+      priceUnit = (plotsRemaining(p) > 1 ? 'per plot \u00B7 ' + plotsRemaining(p) + ' available' : 'total price') + (usdMode ? ` \u00B7 ${formatMoney(p.totalPrice, 'ngn')}` : '');
     } else {
       priceMain = String(listingPriceFull(p)).replace(/\s*\/.*$/, '');
       const per = isEvent ? (p.hourlyRate > 0 ? 'per hour' : 'per event day') : /night/i.test(p.ngn || '') ? 'per night' : (/yr/i.test(p.ngn || '') ? 'per year' : 'per month');
@@ -19194,9 +19222,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (checkoutListing) {
       markListingUnavailableAfterCheckout(checkoutListing);
       markCheckoutPaid();
-      // The property is now taken: cancel + refund every other guest's inspection for it.
-      try { cancelOtherInspectionsForTakenListing(checkoutListing, getCurrentUserId()); } catch (e) { console.warn('[MainTown] local inspection sweep failed', e); }
-      if (window.MTRBooking) { MTRBooking.propertyTaken(checkoutListing); MTRBooking.releaseHold('success', checkoutListing.type === 'rent' ? 'rented' : null); }
+      // Fully taken (not just some plots of several): cancel + refund every other guest's inspection for it.
+      const stillOpen = (checkoutListing.type === 'land' || checkoutListing.type === 'rent') && !isListingUnavailable(listings.find(x => String(x.id) === String(checkoutListing.id)) || checkoutListing);
+      if (stillOpen) { if (window.MTRBooking) MTRBooking.releaseHold('success', null); }
+      else {
+        try { cancelOtherInspectionsForTakenListing(checkoutListing, getCurrentUserId()); } catch (e) { console.warn('[MainTown] local inspection sweep failed', e); }
+        if (window.MTRBooking) { MTRBooking.propertyTaken(checkoutListing); MTRBooking.releaseHold('success', checkoutListing.type === 'rent' ? 'rented' : null); }
+      }
     }
 
     // MainTown AI Model B Revenue: credit the one-time AI processing fee
@@ -19619,6 +19651,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         const s = statusMap[p.status];
         badgeHtml = `<span class="s5-status-badge ${s.cls}">${s.label}</span>`;
       }
+      if (!soldBadge && !badgeHtml) badgeHtml = plotsSoldBadgeHtml(soldListing) || unitsRentedBadgeHtml(soldListing);
       const previewListing = listings.find(l => p.listingId ? l.id === p.listingId : l.title === p.title);
       const previewHtml = previewListing ? previewBtn(previewListing.id) : '';
       const rentBtn = (previewListing && previewListing.type === 'rent' && previewListing.usage === 'commercial' && previewListing.ownerId === getCurrentUserId())
@@ -19629,8 +19662,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }).join('');
     // Agent-submitted listings that have passed legal review and are live.
     list.insertAdjacentHTML('beforeend', liveAgentListings.map(l => {
-      const sb = soldStatusBadgeHtml(listings.find(x => String(x.id) === String(l.listingId)));
-      return propCard(l.title, `${l.address} · Agent: ${l.agentName || 'MainTown Agent'}`, sb, previewBtn(l.listingId) + (sb ? '' : liveBtn(l.title)), '');
+      const ll = listings.find(x => String(x.id) === String(l.listingId));
+      const sb = soldStatusBadgeHtml(ll);
+      return propCard(l.title, `${l.address} · Agent: ${l.agentName || 'MainTown Agent'}`, sb || plotsSoldBadgeHtml(ll) || unitsRentedBadgeHtml(ll), previewBtn(l.listingId) + (sb ? '' : liveBtn(l.title)), '');
     }).join(''));
     // CEO only: listings added by the company's Sales staff.
     list.insertAdjacentHTML('beforeend', salesRows.map(l => {
@@ -20495,9 +20529,23 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <div id="${prefix}-host-half-fields" style="display:none;">
         <div class="field"><label class="field-label">Half plot outright price (NGN)</label><input class="field-input" id="${prefix}-half-out" type="number" min="0" inputmode="numeric" placeholder="Must be lower than the full plot price"></div>
         <div class="field" id="${prefix}-half-inst-wrap"><label class="field-label">Half plot installment price (NGN) — optional</label><input class="field-input" id="${prefix}-half-inst" type="number" min="0" inputmode="numeric" placeholder="Blank = half of the full plot installment price"></div>
-        <div class="field"><label class="field-label">Plots available — optional</label><input class="field-input" id="${prefix}-plots-count" type="number" min="1" inputmode="numeric" placeholder="e.g. 8"></div>
+      </div>
+      <div class="field" id="${prefix}-plots-wrap">
+        <label class="field-label">How many plots do you have for sale? — optional</label>
+        <input class="field-input" id="${prefix}-plots-count" type="number" min="1" max="10000" inputmode="numeric" placeholder="e.g. 10 (leave blank for a single plot)">
+        <p class="hint" style="margin-top:6px;font-size:12px;opacity:.75;">The price above is for ONE plot. Buyers choose how many plots they want and pay outright or by installment for that number.</p>
       </div>`;
     sqm.parentNode.insertBefore(inst, sqm.nextSibling);
+    if (!document.getElementById(`${prefix}-host-units`)) {
+      const units = document.createElement('div');
+      units.id = `${prefix}-host-units`; units.style.display = 'none';
+      units.innerHTML = `<div class="field">
+        <label class="field-label">How many units of this kind are available in the building? — optional</label>
+        <input class="field-input" id="${prefix}-units-count" type="number" min="1" max="500" inputmode="numeric" placeholder="e.g. 5 shops, or 2 (leave blank for one unit)">
+        <p class="hint" style="margin-top:6px;font-size:12px;opacity:.75;">Same building, same kind of unit and the same price? List it once and set the number of units. A different kind (say 3-bedroom flats) is a separate listing at the same address, with no new documents needed. Each tenant takes one unit, and the listing stays live until the last unit is taken.</p>
+      </div>`;
+      inst.parentNode.insertBefore(units, inst);
+    }
     const slBox = document.getElementById(`${prefix}-sl-avail`);
     if (slBox && !document.getElementById(`${prefix}-sl-minstay`)) {
       const sx = document.createElement('div');
@@ -20525,12 +20573,14 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const pay = document.getElementById(`${prefix}-host-payment`);
     const fe = document.getElementById(`${prefix}-host-features`);
     if (pay) pay.style.display = type === 'land' ? 'block' : 'none';
+    { const un = document.getElementById(`${prefix}-host-units`); if (un) un.style.display = type === 'rent' ? 'block' : 'none'; }
     if (fe) fe.style.display = (type === 'rent' || type === 'land') ? 'block' : 'none'; // short-let has its own amenity chips
     const st = hostExtraGet(prefix);
     const fields = document.getElementById(`${prefix}-host-inst-fields`);
     if (fields) fields.style.display = st.instOn ? 'block' : 'none';
     const halfF = document.getElementById(`${prefix}-host-half-fields`);
     if (halfF) halfF.style.display = st.halfOn ? 'block' : 'none';
+    { const pw = document.getElementById(`${prefix}-plots-wrap`); if (pw) pw.style.display = ((typeof propKindState !== 'undefined' && propKindState[prefix]) || 'land') === 'house' ? 'none' : 'block'; }
     const halfI = document.getElementById(`${prefix}-half-inst-wrap`);
     if (halfI) halfI.style.display = st.instOn ? 'block' : 'none';
     document.querySelectorAll(`[data-hx-half="${prefix}"]`).forEach(b => b.classList.toggle('active', (b.dataset.on === '1') === st.halfOn));
@@ -20615,6 +20665,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const all = Array.from(st.feats).concat(st.custom);
       if (all.length) out.amenities = all;
     }
+    if (type === 'rent') {
+      const uc = Number((document.getElementById(`${prefix}-units-count`) || {}).value) || 0;
+      if (uc > 1) { out.unitsAvailable = Math.round(uc); out.unitsTotal = Math.round(uc); }
+    }
     if (type === 'land') {
       out.installmentOffered = !!st.instOn;
       if (st.instOn) {
@@ -20633,10 +20687,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
             const hi = Number((document.getElementById(`${prefix}-half-inst`) || {}).value) || 0;
             out.halfPlotInstallment = hi > 0 ? hi : Math.round(out.installmentPrice / 2);
           }
-          const pc = Number((document.getElementById(`${prefix}-plots-count`) || {}).value) || 0;
-          if (pc > 0) out.plotsAvailable = Math.round(pc);
         }
       }
+      { const pc = Number((document.getElementById(`${prefix}-plots-count`) || {}).value) || 0;
+        if (pc > 1 && ((typeof propKindState !== 'undefined' && propKindState[prefix]) || 'land') !== 'house') { out.plotsAvailable = Math.round(pc); out.plotsTotal = Math.round(pc); } }
     }
     return out;
   }
@@ -20644,11 +20698,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function validateHostExtras(prefix, type) {
     const st = hostExtraGet(prefix), num = (id) => Number((document.getElementById(`${prefix}-${id}`) || {}).value) || 0;
     if (type === 'shortlet') return '';
+    if (type === 'rent') { const uc = num('units-count'); return (uc && (uc < 1 || uc > 500 || !Number.isInteger(uc))) ? 'The number of units must be a whole number.' : ''; }
     if (type !== 'land') return '';
     const total = Number((document.getElementById(`${prefix}-annual`) || document.getElementById(`${prefix}-listing-annual`) || {}).value) || 0;
     const ip = num('inst-price'), dep = num('inst-deposit'), eff = ip > 0 ? ip : total;
     if (st.instOn && ip > 0 && ip < total) return 'The installment price cannot be lower than the outright price.';
     if (st.instOn && dep > 0 && dep >= eff) return 'The initial deposit must be less than the installment price.';
+    { const pc = num('plots-count'); if (pc && (pc < 1 || pc > 10000 || !Number.isInteger(pc))) return 'The number of plots for sale must be a whole number.'; }
     if (st.halfOn) {
       const ho = num('half-out'), hi = num('half-inst');
       if (!ho || ho >= total) return 'The half plot price must be above zero and lower than the full plot price.';
@@ -20660,7 +20716,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     hostExtraState[prefix] = { feats: new Set(), custom: [], instOn: true, halfOn: false };
     document.querySelectorAll(`[data-hx-feat="${prefix}"]`).forEach(b => b.classList.remove('on'));
     renderHostCustomFeats(prefix);
-    ['inst-price', 'inst-deposit', 'half-out', 'half-inst', 'plots-count', 'sl-minstay', 'sl-cleaning'].forEach(k => { const el = document.getElementById(`${prefix}-${k}`); if (el) el.value = ''; });
+    ['inst-price', 'inst-deposit', 'half-out', 'half-inst', 'plots-count', 'units-count', 'sl-minstay', 'sl-cleaning'].forEach(k => { const el = document.getElementById(`${prefix}-${k}`); if (el) el.value = ''; });
     const m = document.getElementById(`${prefix}-inst-months`); if (m) m.value = '12';
   }
   injectHostExtras('tv'); injectHostExtras('s5');
@@ -20769,6 +20825,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (landUse) landUse.style.display = kind === 'land' ? 'block' : 'none';
     const lbl = document.querySelector(`[data-sqm-label="${prefix}"]`);
     if (lbl) lbl.textContent = kind === 'house' ? 'Plot Size (sqm) \u2014 optional' : 'Land Size (sqm) \u2014 optional';
+    const pw = document.getElementById(`${prefix}-plots-wrap`); if (pw) pw.style.display = kind === 'house' ? 'none' : 'block';
   }
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-propkind]');
@@ -21093,6 +21150,30 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (l && l.propertyKind) return l.propertyKind;
     return /\bland\b/i.test((l && l.title) || '') ? 'land' : 'house';
   }
+  // Plots still for sale on a multi-plot listing (0 = not a multi-plot listing). Counts can end in .5 when half plots sell.
+  function plotsRemaining(l) {
+    if (!l || l.type !== 'land') return 0;
+    const total = Number(l.plotsTotal) || Number(l.plotsAvailable) || 0;
+    if (total <= 1) return 0;
+    return l.plotsAvailable == null ? total : Math.max(0, Number(l.plotsAvailable));
+  }
+  // Units still free on a multi-unit rent / commercial listing (0 = single unit).
+  function unitsRemaining(l) {
+    if (!l || l.type !== 'rent') return 0;
+    const total = Number(l.unitsTotal) || Number(l.unitsAvailable) || 0;
+    if (total <= 1) return 0;
+    return l.unitsAvailable == null ? total : Math.max(0, Number(l.unitsAvailable));
+  }
+  function unitsRentedBadgeHtml(l) {
+    const total = Number(l && l.unitsTotal) || 0, rem = unitsRemaining(l);
+    if (!(total > 1) || isListingUnavailable(l) || rem >= total) return '';
+    return `<span class="s5-status-badge s5-status-booked">${total - rem} of ${total} units taken</span>`;
+  }
+  function plotsSoldBadgeHtml(l) {
+    const total = Number(l && l.plotsTotal) || 0, rem = plotsRemaining(l);
+    if (!(total > 1) || isListingUnavailable(l) || rem >= total) return '';
+    return `<span class="s5-status-badge s5-status-booked">${total - rem} of ${total} plots sold</span>`;
+  }
   function listingPropSummary(l) {
     const bits = [];
     if (listingPropKind(l) === 'house') {
@@ -21103,6 +21184,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       bits.push('Land' + (l.landUse ? ` \u00b7 ${l.landUse}` : ''));
     }
     if (l.sqm) bits.push(formatSqm(l.sqm));
+    if (plotsRemaining(l) > 1) bits.push(`${plotsRemaining(l)} plots available`);
     return bits.join(' \u00b7 ');
   }
   function getLandSqm(prefix) {
@@ -21935,7 +22017,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   function dxOutrightOnly(l) { return !!(l && l._agreedOfferId) || !!(l && l.type === 'land' && l._deal && l._deal.dealType === 'distress' && l._deal.endsAt > Date.now()) || !!(l && l.type === 'land' && l.installmentOffered === false); } // last clause: host chose outright-only
   // Half-plot option (host sets it on the listing): buyer picks the size; the modal then prices off the chosen part.
-  function lpPartListing(base, part) {
+  let landModalQty = 1;
+  function lpPartListing(base, part, qty) {
+    qty = Math.max(1, Math.floor(Number(qty) || 1));
+    if (part !== 'half' && base && qty > 1) {   // several full plots: price, installment and deposit scale with the number chosen
+      const hasInst = base.installmentOffered !== false;
+      return Object.assign({}, base, {
+        totalPrice: Number(base.totalPrice) * qty,
+        installmentPrice: hasInst ? installmentBase(base) * qty : undefined,
+        installmentDeposit: base.installmentDeposit ? Math.round(Number(base.installmentDeposit) * qty) : undefined,
+        title: base.title + ' (' + qty + ' plots)', _plotUnits: qty, _unitPrice: Number(base.totalPrice)
+      });
+    }
     if (part !== 'half' || !base || !base.halfPlotOffered) return base;
     const hasInst = base.installmentOffered !== false;
     const instBase = installmentBase(base);
@@ -21943,8 +22036,34 @@ This voucher is auto-generated and serves as proof of settlement.`;
       totalPrice: Number(base.halfPlotPrice),
       installmentPrice: hasInst ? (Number(base.halfPlotInstallment) || Math.round(instBase / 2)) : undefined,
       installmentDeposit: base.installmentDeposit ? Math.round(Number(base.installmentDeposit) / 2) : undefined,
-      title: base.title + ' (Half plot)', _plot: 'half'
+      title: base.title + ' (Half plot)', _plot: 'half', _plotUnits: 0.5
     });
+  }
+  // "How many plots?" stepper for listings with several plots for sale.
+  function lpQtyRow(base) {
+    let row = document.getElementById('lp-qty-row');
+    const rem = plotsRemaining(base), max = Math.floor(rem);
+    const show = !!(base && base.type === 'land' && max > 1 && landModalPlot !== 'half' && !base._agreedOfferId && !(base._deal && base._deal.dealType === 'distress' && base._deal.endsAt > Date.now()));
+    if (!row) {
+      row = document.createElement('div'); row.id = 'lp-qty-row'; row.style.cssText = 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px;';
+      const modeRow = document.getElementById('lp-mode-outright').parentNode;
+      modeRow.parentNode.insertBefore(row, modeRow);
+      row.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-lp-qty]'); if (!b || !landModalBase) return;
+        const mx = Math.max(1, Math.floor(plotsRemaining(landModalBase)));
+        landModalQty = Math.min(mx, Math.max(1, landModalQty + Number(b.dataset.lpQty)));
+        landModalListing = lpPartListing(landModalBase, landModalPlot, landModalQty);
+        lpQtyRow(landModalBase); lpRefreshAmounts();
+      });
+    }
+    row.style.display = show ? 'flex' : 'none';
+    if (!show) return;
+    landModalQty = Math.min(max, Math.max(1, landModalQty));
+    row.innerHTML = `<span style="font-weight:600;font-size:13px;">Number of plots</span>
+      <button type="button" class="toggle-pill" data-lp-qty="-1" aria-label="Fewer plots" style="min-width:36px;">-</button>
+      <b style="min-width:22px;text-align:center;">${landModalQty}</b>
+      <button type="button" class="toggle-pill" data-lp-qty="1" aria-label="More plots" style="min-width:36px;">+</button>
+      <span style="font-size:12px;opacity:.75;">${max} available · ${formatMoney(base.totalPrice, 'ngn')} each</span>`;
   }
   function lpRefreshAmounts() {
     const l = landModalListing, fee = Math.round(l.totalPrice * 0.02);
@@ -21963,8 +22082,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       modeRow.parentNode.insertBefore(row, modeRow);
       row.addEventListener('click', (e) => {
         const b = e.target.closest('[data-lp-plot]'); if (!b || !landModalBase) return;
-        landModalPlot = b.dataset.lpPlot; landModalListing = lpPartListing(landModalBase, landModalPlot);
-        lpPlotChooser(landModalBase); lpRefreshAmounts();
+        landModalPlot = b.dataset.lpPlot; landModalQty = 1; landModalListing = lpPartListing(landModalBase, landModalPlot, 1);
+        lpPlotChooser(landModalBase); lpQtyRow(landModalBase); lpRefreshAmounts();
       });
     }
     row.style.display = show ? 'flex' : 'none';
@@ -21976,9 +22095,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     dxApplyDeals();
     if (mktBlockedByLock(listing)) return;
     listing = mktApplyAgreed(listing);
-    landModalBase = listing; landModalPlot = 'full';
+    landModalBase = listing; landModalPlot = 'full'; landModalQty = 1;
     landModalListing = listing;
     lpPlotChooser(listing);
+    lpQtyRow(listing);
     landModalMode = 'outright';
     (function () {
       const only = dxOutrightOnly(listing);
@@ -22068,6 +22188,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       requireScreening(() => openInspectionModal(landModalListing));
       return;
     }
+    { const rem = plotsRemaining(landModalBase), need = Number(landModalListing._plotUnits) || 1;
+      if (rem > 0 && need > rem) { showToast(`Only ${rem} plot${rem === 1 ? '' : 's'} left. Please choose fewer plots.`); lpQtyRow(landModalBase); return; } }
     const fee = Math.round(landModalListing.totalPrice * 0.02);
     let payload;
     if (landModalMode === 'outright' || dxOutrightOnly(landModalListing)) {
