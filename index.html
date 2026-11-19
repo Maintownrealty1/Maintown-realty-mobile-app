@@ -12859,6 +12859,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         name: l.landlordName || (u && u.name) || null, role: l.listedByRole || l.listedBy || null,
         phone: (u && u.phone) || null, email: (u && u.email) || null,
         agentName: l.agentName || null, ownerId: l.ownerId || null,
+        ownerUid: (typeof uidOf === 'function' ? (uidOf(l.ownerId) !== l.ownerId ? uidOf(l.ownerId) : null) : null),
         ...(l.propertyProof && l.propertyProof.reusedFrom ? { verified_property: 'Same property as an already verified listing' } : {})
       };
     }
@@ -23315,6 +23316,32 @@ This voucher is auto-generated and serves as proof of settlement.`;
   setInterval(mtPullChat, 12000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) mtPullChat(); });
 
+  // ---- Continuity: shared notifications (requests and messages that arrive from other devices or the website) ----
+  // Decisions (confirmed / declined) already raise a local alert when the app applies them, so those are only marked read here.
+  let mtNotifBusy = false;
+  async function mtPullNotifications() {
+    if (mtNotifBusy) return; mtNotifBusy = true;
+    try {
+      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !localStorage.getItem('mtr_sb_session')) return;
+      const tok = await MtGoogleAuth.getToken();
+      const url = 'https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/';
+      const r = await fetch(url + 'my_notifications', { method: 'POST', headers: mtSbHeaders(tok), body: JSON.stringify({ p_unread_only: true }) });
+      if (!r.ok) return;
+      const rows = await r.json();
+      if (!Array.isArray(rows) || !rows.length) return;
+      const role = currentUserRole || 'tenant';
+      const me = getCurrentUserId();
+      rows.slice().reverse().forEach(n => {
+        if (n.kind === 'request') pushPlatformNotification(role, 'inspection', n.title, n.body, { screen: 'screen-inspections' }, 'BACKEND_REQUEST', null, me);
+        else if (n.kind === 'message') pushPlatformNotification(role, 'message', n.title, n.body, { screen: 'screen-messages' }, 'NEW_MESSAGE', null, me);
+      });
+      await fetch(url + 'mark_notifications_read', { method: 'POST', headers: mtSbHeaders(tok), body: JSON.stringify({ p_ids: rows.map(n => n.id) }) });
+    } catch (e) {} finally { mtNotifBusy = false; }
+  }
+  setTimeout(mtPullNotifications, 6000);
+  setInterval(mtPullNotifications, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) mtPullNotifications(); });
+
   // ---- Continuity: load this member's inspection requests from the shared backend ----
   // A request made on one phone appears on the host's phone and on the website; a Confirm / Decline made anywhere
   // (another phone or the website dashboard) is applied here. Real signed-in accounts only. Idempotent: a request that
@@ -28519,6 +28546,7 @@ available in the Post-Lease Hub and this chat thread.`
       if (!document.getElementById('screen-4').classList.contains('hidden')) populateScreen4();
       saveAccountRecord();
       showToast('Profile photo updated');
+      mtSyncProfile(true);
     };
     reader.readAsDataURL(file);
   });
@@ -28553,6 +28581,36 @@ available in the Post-Lease Hub and this chat thread.`
       saveAccountRecord();
     }
   }
+  // Unified profile: copy the member's photo and phone to their account (signups) so the website shows the same profile.
+  // Real signed-in accounts only. The photo is shrunk and uploaded to the member's own folder of the public listing-media bucket.
+  async function mtSyncProfile(withPhoto) {
+    try {
+      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken) return;
+      const raw = localStorage.getItem('mtr_sb_session'); if (!raw) return;
+      const uid = (JSON.parse(raw).user || {}).id; if (!uid) return;
+      const tok = await MtGoogleAuth.getToken();
+      const base = 'https://obtggomfwvravjcnypid.supabase.co';
+      let avatarUrl = null;
+      const src = (typeof currentUserSelfieDataUrl !== 'undefined') ? currentUserSelfieDataUrl : null;
+      if (withPhoto && src && String(src).indexOf('data:image') === 0) {
+        const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+        const side = 400, sc = Math.min(1, side / Math.max(img.width, img.height));
+        const cv = document.createElement('canvas'); cv.width = Math.round(img.width * sc); cv.height = Math.round(img.height * sc);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', 0.82));
+        const path = 'host/' + uid + '/avatar-' + Date.now() + '.jpg';
+        const up = await fetch(base + '/storage/v1/object/listing-media/' + path, { method: 'POST', headers: { apikey: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8', Authorization: 'Bearer ' + tok, 'Content-Type': 'image/jpeg' }, body: blob });
+        if (up.ok) avatarUrl = base + '/storage/v1/object/public/listing-media/' + path;
+      }
+      const phoneEl = document.getElementById('profile-phone-input');
+      const phone = phoneEl && /^[0-9+() \-]{7,30}$/.test(phoneEl.value.trim()) ? phoneEl.value.trim() : null;
+      if (!avatarUrl && !phone) return;
+      await fetch(base + '/rest/v1/rpc/sync_my_profile', { method: 'POST', headers: mtSbHeaders(tok), body: JSON.stringify({ p_avatar_url: avatarUrl, p_phone: phone }) });
+    } catch (e) {}
+  }
+  let mtPhoneSyncT = null;
+  document.getElementById('profile-phone-input').addEventListener('input', () => { clearTimeout(mtPhoneSyncT); mtPhoneSyncT = setTimeout(() => mtSyncProfile(false), 1500); });
+
   document.getElementById('profile-email-input').addEventListener('input', validateEmailLive);
   document.getElementById('profile-phone-input').addEventListener('input', validatePhoneLive);
 
