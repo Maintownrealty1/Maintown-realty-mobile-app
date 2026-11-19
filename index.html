@@ -23263,6 +23263,78 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (window.lucide) lucide.createIcons();
   }
 
+  // ---- Continuity: load this member's inspection requests from the shared backend ----
+  // A request made on one phone appears on the host's phone and on the website; a Confirm / Decline made anywhere
+  // (another phone or the website dashboard) is applied here. Real signed-in accounts only. Idempotent: a request that
+  // is already on this phone is only changed while it still shows 'Pending Approval', using the app's own
+  // acceptSchedule / declineInspectionSchedule, so chat unlock, notifications and slot release behave exactly as before.
+  let mtPullBusy = false;
+  async function mtPullInspectionRequests() {
+    if (mtPullBusy) return; mtPullBusy = true;
+    try {
+      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken) return;
+      if (!localStorage.getItem('mtr_sb_session')) return;
+      const me = getCurrentUserId();
+      if (!me) return;
+      const tok = await MtGoogleAuth.getToken();
+      const res = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/my_inspection_requests', {
+        method: 'POST', headers: { apikey: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8', Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' }, body: '{}'
+      });
+      if (!res.ok) return;
+      const rows = await res.json();
+      if (!Array.isArray(rows) || !rows.length) return;
+      let seen = {}; try { seen = JSON.parse(localStorage.getItem('mtr_insp_reported') || '{}') || {}; } catch (e) {}
+      let changed = false;
+      rows.forEach(r => {
+        if (!r || !r.entity_key || String(r.entity_key).indexOf('sched:') !== 0) return;
+        const key = r.entity_key;
+        const st = String(r.status || '').toLowerCase().replace(/_/g, ' ');
+        const remote = /^pending/.test(st) ? 'Pending Approval' : /^confirm/.test(st) ? 'Confirmed' : /^declin/.test(st) ? 'Declined' : null;
+        if (!remote) return;
+        let sched = schedules.find(s => 'sched:' + (s.inspection_id || s.id) === key);
+        let touched = false;
+        if (!sched) {
+          if (!r.i_am_host && !r.i_am_guest) return;
+          const iid = key.slice(6);                       // 'insp_<id>'
+          const nid = iid.replace(/^insp_/, '');
+          const d = r.details || {};
+          const isLand = r.flow === 'land_inspection';
+          const asAgent = r.i_am_host && String(r.host_role || '').toLowerCase() === 'agent';
+          let img = null; try { const l = (typeof listings !== 'undefined' ? listings : []).find(x => String(x.id) === String(r.listing_id)); if (l) img = l.img || null; } catch (e) {}
+          sched = {
+            id: nid, title: r.listing_title || 'Property', img: img, location: r.location || '',
+            date: r.scheduled_date || '', time: r.scheduled_time || '', feeType: d.fee_type || (asAgent ? 'agent' : 'landlord'), fee: d.fee != null ? d.fee : 0,
+            status: 'Pending Approval', conversationId: null, inspectionId: nid,
+            transactionType: isLand ? 'LAND_SALE' : 'RENTAL', category: d.category || null, escrowMode: d.escrow_mode || null,
+            tenantName: r.guest_name || 'Guest', tenantOccupation: 'Not specified', tenantPhoto: null, tenantPhone: null, tenantEmail: null,
+            inspection_id: iid, slot_id: d.slot_id || null, property_id: r.listing_id, property_title: r.listing_title || 'Property',
+            address: r.location || '', scheduled_date: r.scheduled_date || '', scheduled_time: r.scheduled_time || '', escrow_amount: d.fee != null ? d.fee : 0,
+            tenant_id: r.i_am_guest ? me : (r.guest_id || null),
+            landlord_id: (r.i_am_host && !asAgent) ? me : null,
+            agent_id: asAgent ? me : null,
+            sales_staff_id: null, chat_unlocked: false, fromBackend: true
+          };
+          schedules.unshift(sched);
+          saveSchedules();
+          touched = true;
+        }
+        if (sched.status === 'Pending Approval' && remote === 'Confirmed') { acceptSchedule(sched.id); touched = true; }
+        else if (sched.status === 'Pending Approval' && remote === 'Declined') { declineInspectionSchedule(sched.id); touched = true; }
+        // tell the reporter this phone already knows this state, so it does not send a duplicate event
+        if (touched) changed = true;
+        if (touched) seen[key] = { fp: [sched.status, sched.scheduled_date || sched.date, sched.scheduled_time || sched.time].join('|'), status: sched.status, n: 1 };
+      });
+      if (changed) {
+        try { localStorage.setItem('mtr_insp_reported', JSON.stringify(seen)); } catch (e) {}
+        try { renderSchedulesScreen(); renderInspectionsSummaryCard(); renderLandlordInspectionsManager(); renderAgentInspectionsManager(); } catch (e) {}
+        try { if (window.lucide) lucide.createIcons(); } catch (e) {}
+      }
+    } catch (e) {} finally { mtPullBusy = false; }
+  }
+  setTimeout(mtPullInspectionRequests, 4000);
+  setInterval(mtPullInspectionRequests, 45000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) mtPullInspectionRequests(); });
+
   // ---- Tenant Notifications: Acceptance/Decline Push Alert + Notification Bell ----
   // Fires a simulated push alert (toast) and feeds the unified Notification
   // Bell — deep-links back to the Inspection Schedules feed.
@@ -28980,7 +29052,7 @@ available in the Post-Lease Hub and this chat thread.`
     // and the normal login / onboarding keeps working.
     (function waitForGoogle(n) { init().then(ok => { if (!ok && n < 24) setTimeout(() => waitForGoogle(n + 1), 250); }); })(0);
 
-    return { unlockForm, afterRoleChosen, afterOnboarding, signOut };
+    return { unlockForm, afterRoleChosen, afterOnboarding, signOut, getToken: freshToken };
   })();
 
   // ---- Register screen: "Already have an account? Login" -> Login screen ----
@@ -35042,6 +35114,13 @@ available in the Post-Lease Hub and this chat thread.`
       const u = ((rd('maintown_app_state', {}).users) || {})[id];
       return (u && u.role) ? String(u.role).toLowerCase() : null;
     }
+    // Real accounts: report the member's Supabase account id (same id the website uses) instead of the local profile id,
+    // so one person's activity lines up across the app and the website. Sample/demo users keep their local id.
+    function uidOf(id) {
+      if (!id) return id;
+      try { const u = ((rd('maintown_app_state', {}).users) || {})[id]; if (u && u.supabaseUserId) return String(u.supabaseUserId); } catch (e) {}
+      return id;
+    }
     function categoryOfListing(id) {
       if (id == null) return null;
       try { const l = (typeof listings !== 'undefined' ? listings : []).find(x => String(x.id) === String(id)); return (l && typeof inspectionCategoryOf === 'function') ? inspectionCategoryOf(l) : null; } catch (e) { return null; }
@@ -35169,11 +35248,11 @@ available in the Post-Lease Hub and this chat thread.`
           event_key: r.key + '|' + n + '|' + r.fp,
           entity_key: r.key, flow: r.flow, kind: kind,
           listing_id: r.listing_id, listing_title: r.listing_title, location: r.location,
-          guest_id: r.guest_id, guest_name: r.guest_name,
-          host_id: r.host_id, host_name: r.host_name, host_role: r.host_role,
+          guest_id: uidOf(r.guest_id), guest_name: r.guest_name,
+          host_id: uidOf(r.host_id), host_name: r.host_name, host_role: r.host_role,
           scheduled_date: r.scheduled_date, scheduled_time: r.scheduled_time,
           status: r.status, prev_status: prev ? (prev.status || null) : null,
-          actor_id: firstRun ? null : who.id, actor_name: firstRun ? null : who.name, actor_role: firstRun ? null : who.role,
+          actor_id: firstRun ? null : uidOf(who.id), actor_name: firstRun ? null : who.name, actor_role: firstRun ? null : who.role,
           details: r.details, backfill: firstRun, client_at: nowIso
         });
         seen[r.key] = { fp: r.fp, status: r.status, n: n };
