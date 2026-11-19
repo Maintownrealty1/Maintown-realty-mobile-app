@@ -23263,6 +23263,58 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (window.lucide) lucide.createIcons();
   }
 
+  // ---- Continuity: shared chat for confirmed inspections (text messages) ----
+  // Real signed-in accounts only. Sends each text message to the backend and pulls the other person's replies,
+  // so one conversation shows on the app (any phone) and on the website. Calls and voice stay in the app.
+  function mtSbHeaders(tok) { return { apikey: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8', Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' }; }
+  async function mtChatSend(conv, msg) {
+    try {
+      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !localStorage.getItem('mtr_sb_session')) return;
+      if (!msg || msg.type !== 'text' || !msg.cid) return;
+      const tok = await MtGoogleAuth.getToken();
+      const r = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/chat_send', { method: 'POST', headers: mtSbHeaders(tok),
+        body: JSON.stringify({ p_entity: 'sched:insp_' + conv.inspectionId, p_body: String(msg.text || '').slice(0, 2000), p_cid: msg.cid }) });
+      if (r.ok) { msg.synced = true; saveConversations(); }
+    } catch (e) {}
+  }
+  let mtChatBusy = false;
+  async function mtPullChat() {
+    if (mtChatBusy) return; mtChatBusy = true;
+    try {
+      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !localStorage.getItem('mtr_sb_session')) return;
+      if (typeof conversations === 'undefined' || !conversations.length) return;
+      const tok = await MtGoogleAuth.getToken();
+      let since = null; try { since = localStorage.getItem('mtr_chat_since'); } catch (e) {}
+      const r = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/chat_pull', { method: 'POST', headers: mtSbHeaders(tok), body: JSON.stringify({ p_since: since || null }) });
+      if (!r.ok) return;
+      const rows = await r.json();
+      if (!Array.isArray(rows) || !rows.length) return;
+      let changed = false, latest = since;
+      rows.forEach(m => {
+        if (!latest || m.created_at > latest) latest = m.created_at;
+        const conv = conversations.find(c => c.inspectionId && !c.convType && 'sched:insp_' + c.inspectionId === m.entity_key);
+        if (!conv) return;
+        if (conv.messages.some(x => x.cid && x.cid === m.cid)) return;
+        if (conv.messages.some(x => x.backendId === m.id)) return;
+        if (m.mine) { // sent from another device of mine: show as mine
+          conv.messages.push({ from: 'me', type: 'text', text: shortletEsc(m.body), status: 'sent', cid: m.cid || null, backendId: m.id, synced: true });
+        } else {
+          conv.messages.push({ from: 'them', type: 'text', text: shortletEsc(m.body), by: 'person', byName: m.sender_name || '', cid: m.cid || null, backendId: m.id, synced: true });
+        }
+        changed = true;
+      });
+      if (latest) { try { localStorage.setItem('mtr_chat_since', latest); } catch (e) {} }
+      if (changed) {
+        saveConversations();
+        try { const open = conversations.find(c => c.id === activeThreadId); if (open && document.getElementById('msg-chat-log')) { renderChatLog(open); mtBotScroll(); } } catch (e) {}
+        try { if (typeof renderThreadList === 'function') renderThreadList(); } catch (e) {}
+      }
+    } catch (e) {} finally { mtChatBusy = false; }
+  }
+  setTimeout(mtPullChat, 5000);
+  setInterval(mtPullChat, 12000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) mtPullChat(); });
+
   // ---- Continuity: load this member's inspection requests from the shared backend ----
   // A request made on one phone appears on the host's phone and on the website; a Confirm / Decline made anywhere
   // (another phone or the website dashboard) is applied here. Real signed-in accounts only. Idempotent: a request that
@@ -25782,8 +25834,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const sensitive = conv.convType === 'support' && mtBotSensitive(text);
     const msg = { from: 'me', type: 'text', text: sensitive ? 'Sensitive details hidden for your security' : shortletEsc(text), status: 'sent' };
     if (conv.convType === 'pair') msg.senderId = getCurrentUserId();
+    if (conv.inspectionId && !conv.convType) msg.cid = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
     conv.messages.push(msg);
     saveConversations();
+    if (msg.cid && typeof mtChatSend === 'function') mtChatSend(conv, msg);
     if (conv.convType === 'pair') {
       const meId = getCurrentUserId(), toId = meId === conv.buyerId ? conv.hostId : conv.buyerId;
       mktNotify(toId, 'New message', `${resolveUserName(meId)}: ${text.length > 80 ? text.slice(0, 80) + '...' : text}`, { screen: 'screen-messages', convId: conv.id });
