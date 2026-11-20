@@ -29267,9 +29267,38 @@ available in the Post-Lease Hub and this chat thread.`
           google.accounts.id.renderButton(el, { type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'rectangular', logo_alignment: 'center', width: w });
         });
         ['mtg-welcome', 'mtg-login'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; });
+        showContinueAs();
         return true;
       } catch (e) { console.error('Google sign-in setup failed:', e); return false; }
     }
+    // Already signed in on this phone? Skip Google's account chooser: one tap on "Continue as <name>" goes straight in.
+    async function resume() {
+      if (busy || !loadSession()) return false;
+      busy = true;
+      try {
+        showToast('Signing you in…');
+        await freshToken();
+        await route(loadSession());
+        return true;
+      } catch (e) { console.error('resume failed:', e); clearSession(); showToast('Please sign in again.'); init(); return false; }
+      finally { busy = false; }
+    }
+    function showContinueAs() {
+      const sess = loadSession(); if (!sess || !sess.user) return;
+      const meta = sess.user.user_metadata || {}, email = sess.user.email || meta.email || '';
+      const name = String(meta.full_name || meta.name || email.split('@')[0] || '').trim();
+      ['mtg-welcome-btn', 'mtg-login-btn'].forEach(id => {
+        const el = document.getElementById(id); if (!el) return;
+        el.innerHTML = '<button type="button" class="mtg-continue" style="width:100%;max-width:320px;display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #dadce0;border-radius:6px;background:#fff;color:#1f1f1f;font:500 14px Roboto,Arial,sans-serif;cursor:pointer;text-align:left">' +
+          (meta.avatar_url || meta.picture ? '<img alt="" src="' + String(meta.avatar_url || meta.picture).replace(/"/g, '') + '" referrerpolicy="no-referrer" style="width:28px;height:28px;border-radius:50%;object-fit:cover">' : '<span style="width:28px;height:28px;border-radius:50%;background:#6d28d9;color:#fff;display:grid;place-items:center;font-weight:700">' + (name.charAt(0) || 'M').toUpperCase() + '</span>') +
+          '<span style="flex:1;min-width:0"><span style="display:block;line-height:1.2">Continue as ' + name.replace(/</g, '&lt;') + '</span><span style="display:block;font-size:11px;color:#5f6368;overflow:hidden;text-overflow:ellipsis">' + email.replace(/</g, '&lt;') + '</span></span></button>' +
+          '<a href="#" class="mtg-other" style="display:block;margin-top:8px;font-size:12px;color:#7c3aed;text-align:center">Use a different Google account</a>';
+        el.querySelector('.mtg-continue').addEventListener('click', () => { resume(); });
+        el.querySelector('.mtg-other').addEventListener('click', (e) => { e.preventDefault(); clearSession(); init(); });
+      });
+    }
+    // Reopening the app while still signed in: go straight to the dashboard.
+    setTimeout(() => { try { if (loadSession() && !loadCurrentUser()) resume(); } catch (e) {} }, 1200);
     // Google's script loads asynchronously: keep trying for a few seconds. If it never loads, the buttons stay hidden
     // and the normal login / onboarding keeps working.
     (function waitForGoogle(n) { init().then(ok => { if (!ok && n < 24) setTimeout(() => waitForGoogle(n + 1), 250); }); })(0);
