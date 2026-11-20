@@ -19605,7 +19605,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // They are already live and verified by MainTown, so the landlord only reviews them: Preview / View Live,
     // no document upload, no delete.
     const managedRows = (listings || []).filter(l => l && l.origin === 'remote' && l.ownerId && l.ownerId === getCurrentUserId() && l.status !== 'draft');
-    if (!myProps.length && !liveAgentListings.length && !salesRows.length && !managedRows.length) {
+    const webRows = (window.mtWebListings || []);
+    if (!myProps.length && !liveAgentListings.length && !salesRows.length && !managedRows.length && !webRows.length) {
       list.innerHTML = `<p class="role-hint" style="text-align:left;">No properties or inspection requests yet.</p>`;
       if (window.lucide) lucide.createIcons();
       renderLandlordInspectionsManager();
@@ -19676,6 +19677,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const sb = soldStatusBadgeHtml(l);
       return propCard(l.title, `${l.location || ''} · Listed and managed by MainTown Realty`, sb, previewBtn(l.id) + (sb ? '' : liveBtn(l.title)), '');
     }).join(''));
+    // Listings this member submitted from the website dashboard (same account): review status, then live.
+    list.insertAdjacentHTML('beforeend', webRows.map(mtWebListingCard).join(''));
     if (window.lucide) lucide.createIcons();
     renderLandlordInspectionsManager();
   }
@@ -20214,8 +20217,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     // session by any agent sharing this device.
     const uid = getCurrentUserId();
     const myListings = agentListings.filter(l => l.agentId === uid);
+    const webRows = (window.mtWebListings || []);
     if (!myListings.length) {
-      wrap.innerHTML = `<p class="role-hint" style="text-align:left;">No properties or inspection requests yet.</p>`;
+      wrap.innerHTML = webRows.length ? webRows.map(mtWebListingCard).join('') : `<p class="role-hint" style="text-align:left;">No properties or inspection requests yet.</p>`;
+      if (window.lucide) lucide.createIcons();
       renderAgentInspectionsManager();
       return;
     }
@@ -20252,9 +20257,25 @@ This voucher is auto-generated and serves as proof of settlement.`;
           ${isListingUnavailable(listings.find(x => String(x.id) === String(l.listingId))) ? '' : `<button type="button" class="s5-list-action-btn s5-list-delete-btn" data-action="delete" data-title="${l.title}" title="Delete listing"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>`}
         </div>
       </div>`;
-    }).join('');
+    }).join('') + webRows.map(mtWebListingCard).join('');
     if (window.lucide) lucide.createIcons();
     renderAgentInspectionsManager();
+  }
+  // One card for a listing submitted from the website dashboard. Status follows MainTown review: pending -> declined / live.
+  function mtWebListingCard(w) {
+    const esc = x => String(x == null ? '' : x).replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+    let badge;
+    if (w.status === 'pending') badge = '<span class="s5-status-badge s5-status-escrow">Pending MainTown Review</span>';
+    else if (w.status === 'closed') badge = `<span class="s5-status-badge s5-status-vacant" title="${esc(w.note)}">Declined by MainTown</span>`;
+    else if (w.status === 'sold') badge = '<span class="s5-status-badge s5-status-sold">Sold</span>';
+    else if (w.status === 'rented') badge = '<span class="s5-status-badge s5-status-occupied">Rented</span>';
+    else if (w.status === 'booked') badge = '<span class="s5-status-badge s5-status-booked">Booked</span>';
+    else if (w.status === 'unavailable') badge = '<span class="s5-status-badge s5-status-vacant">Hidden</span>';
+    else badge = '';
+    const live = w.status === 'available' ? `<button type="button" class="s5-list-action-btn s5-list-live-btn" data-action="viewLive" data-title="${esc(w.title)}"><i data-lucide="external-link" class="w-3 h-3"></i>View Live Listing</button>` : '';
+    return `<div class="s5-list-item s5-prop-card"><div class="s5-prop-head"><div class="s5-list-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+      <div class="s5-list-text"><p class="s5-list-title">${esc(w.title)}</p><p class="s5-list-sub">${esc(w.location)} · Submitted on the website${w.ref ? ' · ' + esc(w.ref) : ''}${w.status === 'closed' && w.note ? ' · ' + esc(w.note) : ''}</p></div>${badge}</div>
+      ${live ? `<div class="s5-prop-actions">${live}</div>` : ''}</div>`;
   }
 
   document.getElementById('s5-agent-listings').addEventListener('click', (e) => {
@@ -23342,6 +23363,32 @@ This voucher is auto-generated and serves as proof of settlement.`;
   setInterval(mtPullNotifications, 30000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) mtPullNotifications(); });
 
+  // ---- Continuity: listings the member submitted from the WEBSITE dashboard show in My Properties / My Listings ----
+  // They are kept apart from the public feed (the feed refresh rebuilds that list), with their review status.
+  let mtWebListBusy = false;
+  async function mtPullMyWebListings() {
+    if (mtWebListBusy) return; mtWebListBusy = true;
+    try {
+      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !localStorage.getItem('mtr_sb_session')) return;
+      const tok = await MtGoogleAuth.getToken();
+      const r = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/dashboard_my_listings', { method: 'POST', headers: mtSbHeaders(tok), body: '{}' });
+      if (!r.ok) return;
+      const rows = await r.json();
+      if (!Array.isArray(rows)) return;
+      const mine = rows.filter(x => x && x.source !== 'app_prototype' && /^(Agt|LnLd)-\d+$/.test(String(x.prototype_ref || '')))
+        .map(x => ({ id: x.id, title: x.title, location: x.location, status: x.status, ref: x.prototype_ref, note: x.review_note || '' }));
+      const before = JSON.stringify(window.mtWebListings || []);
+      window.mtWebListings = mine;
+      if (JSON.stringify(mine) !== before) {
+        try { renderLandlordList(); } catch (e) {}
+        try { renderAgentListings(); } catch (e) {}
+      }
+    } catch (e) {} finally { mtWebListBusy = false; }
+  }
+  setTimeout(mtPullMyWebListings, 3000);
+  setInterval(mtPullMyWebListings, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) mtPullMyWebListings(); });
+
   // ---- Continuity: load this member's inspection requests from the shared backend ----
   // A request made on one phone appears on the host's phone and on the website; a Confirm / Decline made anywhere
   // (another phone or the website dashboard) is applied here. Real signed-in accounts only. Idempotent: a request that
@@ -23368,7 +23415,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         if (!r || !r.entity_key || String(r.entity_key).indexOf('sched:') !== 0) return;
         const key = r.entity_key;
         const st = String(r.status || '').toLowerCase().replace(/_/g, ' ');
-        const remote = /^pending/.test(st) ? 'Pending Approval' : /^confirm/.test(st) ? 'Confirmed' : /^declin/.test(st) ? 'Declined' : null;
+        const remote = /^pending/.test(st) ? 'Pending Approval' : /^confirm/.test(st) ? 'Confirmed' : /^declin/.test(st) ? 'Declined' : /^conduct/.test(st) ? 'Conducted' : null;
         if (!remote) return;
         let sched = schedules.find(s => 'sched:' + (s.inspection_id || s.id) === key);
         let touched = false;
@@ -23399,6 +23446,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
         }
         if (sched.status === 'Pending Approval' && remote === 'Confirmed') { acceptSchedule(sched.id); touched = true; }
         else if (sched.status === 'Pending Approval' && remote === 'Declined') { declineInspectionSchedule(sched.id); touched = true; }
+        else if (sched.status === 'Confirmed' && remote === 'Conducted') { markInspectionConducted(sched.id); touched = true; }
         // tell the reporter this phone already knows this state, so it does not send a duplicate event
         if (touched) changed = true;
         if (touched) seen[key] = { fp: [sched.status, sched.scheduled_date || sched.date, sched.scheduled_time || sched.time].join('|'), status: sched.status, n: 1 };
@@ -28540,8 +28588,11 @@ available in the Post-Lease Hub and this chat thread.`
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      currentUserSelfieDataUrl = ev.target.result;
+    reader.onload = async (ev) => {
+      let data = ev.target.result;
+      try { data = await mtShrinkPhoto(data); } catch (e) {}
+      currentUserSelfieDataUrl = data;
+      mtKeepPhoto(data);
       populateProfileScreen();
       if (!document.getElementById('screen-4').classList.contains('hidden')) populateScreen4();
       saveAccountRecord();
@@ -28583,31 +28634,90 @@ available in the Post-Lease Hub and this chat thread.`
   }
   // Unified profile: copy the member's photo and phone to their account (signups) so the website shows the same profile.
   // Real signed-in accounts only. The photo is shrunk and uploaded to the member's own folder of the public listing-media bucket.
+  function mtShrinkPhoto(src) {
+    return new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => { const sc = Math.min(1, 400 / Math.max(i.width, i.height)); const cv = document.createElement('canvas'); cv.width = Math.round(i.width * sc); cv.height = Math.round(i.height * sc); cv.getContext('2d').drawImage(i, 0, 0, cv.width, cv.height); res(cv.toDataURL('image/jpeg', 0.82)); };
+      i.onerror = rej; i.src = src;
+    });
+  }
+  function mtSbUid() { try { return (JSON.parse(localStorage.getItem('mtr_sb_session') || '{}').user || {}).id || null; } catch (e) { return null; } }
+  // The photo is kept per member on this phone (survives log out / log in) and sent to their account so every device and the website show it.
+  function mtKeepPhoto(data) { const uid = mtSbUid(); if (!uid) return; try { localStorage.setItem('mtr_photo_' + uid, data); localStorage.setItem('mtr_photo_pending_' + uid, '1'); } catch (e) {} }
   async function mtSyncProfile(withPhoto) {
     try {
       if (!window.MtGoogleAuth || !MtGoogleAuth.getToken) return;
-      const raw = localStorage.getItem('mtr_sb_session'); if (!raw) return;
-      const uid = (JSON.parse(raw).user || {}).id; if (!uid) return;
+      const uid = mtSbUid(); if (!uid) return;
       const tok = await MtGoogleAuth.getToken();
       const base = 'https://obtggomfwvravjcnypid.supabase.co';
-      let avatarUrl = null;
+      let avatarUrl = null, failed = '';
       const src = (typeof currentUserSelfieDataUrl !== 'undefined') ? currentUserSelfieDataUrl : null;
       if (withPhoto && src && String(src).indexOf('data:image') === 0) {
-        const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
-        const side = 400, sc = Math.min(1, side / Math.max(img.width, img.height));
-        const cv = document.createElement('canvas'); cv.width = Math.round(img.width * sc); cv.height = Math.round(img.height * sc);
-        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-        const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', 0.82));
+        const blob = await (await fetch(await mtShrinkPhoto(src))).blob();
         const path = 'host/' + uid + '/avatar-' + Date.now() + '.jpg';
         const up = await fetch(base + '/storage/v1/object/listing-media/' + path, { method: 'POST', headers: { apikey: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8', Authorization: 'Bearer ' + tok, 'Content-Type': 'image/jpeg' }, body: blob });
-        if (up.ok) avatarUrl = base + '/storage/v1/object/public/listing-media/' + path;
+        if (up.ok) avatarUrl = base + '/storage/v1/object/public/listing-media/' + path; else failed = 'upload';
       }
       const phoneEl = document.getElementById('profile-phone-input');
       const phone = phoneEl && /^[0-9+() \-]{7,30}$/.test(phoneEl.value.trim()) ? phoneEl.value.trim() : null;
-      if (!avatarUrl && !phone) return;
-      await fetch(base + '/rest/v1/rpc/sync_my_profile', { method: 'POST', headers: mtSbHeaders(tok), body: JSON.stringify({ p_avatar_url: avatarUrl, p_phone: phone }) });
+      if (avatarUrl || phone) {
+        const r = await fetch(base + '/rest/v1/rpc/sync_my_profile', { method: 'POST', headers: mtSbHeaders(tok), body: JSON.stringify({ p_avatar_url: avatarUrl, p_phone: phone }) });
+        if (!r.ok) failed = failed || 'save';
+        else if (avatarUrl) { try { localStorage.removeItem('mtr_photo_pending_' + uid); localStorage.setItem('mtr_photo_remote_' + uid, avatarUrl); } catch (e) {} }
+      }
+      if (withPhoto && failed) showToast('Photo saved on this phone. It will sync to your account when the connection allows.');
+    } catch (e) { if (withPhoto) showToast('Photo saved on this phone. It will sync to your account when the connection allows.'); }
+  }
+  // After login: bring the photo back (this phone's copy first, otherwise the account's), and retry any sync that did not finish.
+  async function mtRestorePhoto() {
+    try {
+      const uid = mtSbUid(); if (!uid || !window.MtGoogleAuth || !MtGoogleAuth.getToken) return;
+      let local = null; try { local = localStorage.getItem('mtr_photo_' + uid); } catch (e) {}
+      if (local && !currentUserSelfieDataUrl) { currentUserSelfieDataUrl = local; }
+      else if (!local && !currentUserSelfieDataUrl) {
+        const tok = await MtGoogleAuth.getToken();
+        const r = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/get_my_profile_card', { method: 'POST', headers: mtSbHeaders(tok), body: '{}' });
+        if (r.ok) { const c = await r.json(); if (c && c.avatar_url) { currentUserSelfieDataUrl = c.avatar_url; try { localStorage.setItem('mtr_photo_' + uid, c.avatar_url); } catch (e) {} } }
+      }
+      if (currentUserSelfieDataUrl) {
+        try { populateProfileScreen(); } catch (e) {}
+        try { if (!document.getElementById('screen-4').classList.contains('hidden')) populateScreen4(); } catch (e) {}
+        try { saveAccountRecord(); } catch (e) {}
+      }
+      if (localStorage.getItem('mtr_photo_pending_' + uid) && String(currentUserSelfieDataUrl || '').indexOf('data:image') === 0) mtSyncProfile(true);
     } catch (e) {}
   }
+  { const __mtLogin = loginAsDemoUser; loginAsDemoUser = function () { const r = __mtLogin.apply(this, arguments); setTimeout(mtRestorePhoto, 700); return r; }; }
+  // Photo changed on the website (or another phone)? Bring it here.
+  async function mtPullPhoto() {
+    try {
+      const uid = mtSbUid(); if (!uid || !window.MtGoogleAuth || !MtGoogleAuth.getToken || document.hidden) return;
+      if (localStorage.getItem('mtr_photo_pending_' + uid)) return;                  // our own newer photo is still on its way up
+      const tok = await MtGoogleAuth.getToken();
+      const r = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/get_my_profile_card', { method: 'POST', headers: mtSbHeaders(tok), body: '{}' });
+      if (!r.ok) return; const c = await r.json();
+      if (!c) return;
+      // name / phone changed on the website: bring them here (never while the member is typing)
+      try {
+        const act = document.activeElement && document.activeElement.id;
+        const ph = document.getElementById('reg-phone'), nm = document.getElementById('reg-fullname');
+        let dirty = false;
+        if (c.phone && ph && ph.value.trim() !== c.phone && act !== 'profile-phone-input') { ph.value = c.phone; dirty = true; }
+        if (c.full_name && nm && nm.value.trim() && nm.value.trim() !== c.full_name) { nm.value = c.full_name; dirty = true; try { const st = (typeof appState !== 'undefined' && appState.users) ? Object.values(appState.users).find(x => x.supabaseUserId === uid) : null; if (st) { st.name = c.full_name; saveAppState(appState); } } catch (e) {} }
+        if (dirty) { try { saveAccountRecord(); } catch (e) {} try { populateProfileScreen(); } catch (e) {} }
+      } catch (e) {}
+      if (!c.avatar_url || c.avatar_url === localStorage.getItem('mtr_photo_remote_' + uid)) return;
+      localStorage.setItem('mtr_photo_remote_' + uid, c.avatar_url); localStorage.setItem('mtr_photo_' + uid, c.avatar_url);
+      currentUserSelfieDataUrl = c.avatar_url;
+      try { populateProfileScreen(); } catch (e) {}
+      try { if (!document.getElementById('screen-4').classList.contains('hidden')) populateScreen4(); } catch (e) {}
+      try { saveAccountRecord(); } catch (e) {}
+    } catch (e) {}
+  }
+  setInterval(mtPullPhoto, 60000); document.addEventListener('visibilitychange', () => { if (!document.hidden) mtPullPhoto(); });
+  setTimeout(mtPullPhoto, 4000);
+  setTimeout(mtRestorePhoto, 2500);
+  setInterval(() => { const uid = mtSbUid(); if (uid && localStorage.getItem('mtr_photo_pending_' + uid)) mtRestorePhoto(); }, 60000);
   let mtPhoneSyncT = null;
   document.getElementById('profile-phone-input').addEventListener('input', () => { clearTimeout(mtPhoneSyncT); mtPhoneSyncT = setTimeout(() => mtSyncProfile(false), 1500); });
 
