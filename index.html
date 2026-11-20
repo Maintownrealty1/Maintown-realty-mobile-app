@@ -4232,9 +4232,9 @@
     </div>
 
     <div class="field">
-      <label class="field-label">BVN (Bank Verification Number)</label>
-      <input class="field-input" id="reg-bvn" type="text" inputmode="numeric" maxlength="11" required placeholder="11-digit BVN" autocomplete="off">
-      <p style="font-size:11px; color:#64748b; margin:6px 2px 0;">Required to create your secure MainTown wallet and payout account. Dial *565*0# on your registered phone to get your BVN.</p>
+      <label class="field-label">NIN (National Identification Number)</label>
+      <input class="field-input" id="reg-bvn" type="text" inputmode="numeric" maxlength="11" required placeholder="11-digit NIN" autocomplete="off">
+      <p style="font-size:11px; color:#64748b; margin:6px 2px 0;">Used once to verify who you are. Dial *346# on your registered phone to get your NIN. You add your bank account later, in Profile, or the first time you withdraw.</p>
     </div>
 
     <div class="field">
@@ -7005,6 +7005,8 @@
       <p class="profile-field-status" id="profile-phone-status"></p>
     </div>
     <div class="pf-field pf-sec-row">
+      <button type="button" class="pf-sec-btn" id="pf-open-benefits" style="display:none"><i data-lucide="handshake" class="w-4 h-4"></i><span>Partnership benefits &amp; terms</span><i data-lucide="chevron-right" class="w-4 h-4 pf-sec-chev"></i></button>
+      <button type="button" class="pf-sec-btn" id="pf-open-payout"><i data-lucide="landmark" class="w-4 h-4"></i><span>Payout bank account</span><i data-lucide="chevron-right" class="w-4 h-4 pf-sec-chev"></i></button>
       <button type="button" class="pf-sec-btn" id="pf-open-pin"><i data-lucide="key-round" class="w-4 h-4"></i><span>Change wallet PIN</span><i data-lucide="chevron-right" class="w-4 h-4 pf-sec-chev"></i></button>
       <button type="button" class="pf-sec-btn" id="pf-open-pass"><i data-lucide="lock" class="w-4 h-4"></i><span>Change login password</span><i data-lucide="chevron-right" class="w-4 h-4 pf-sec-chev"></i></button>
     </div>
@@ -7488,30 +7490,21 @@
     <h2 class="modal-title">Vendor Activation Required</h2>
     <p class="modal-sub">Complete both steps below to unlock your dashboard, listings, payouts, and contract execution.</p>
 
-    <p class="s5-section-label" style="margin-top:0;"><i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i>Step 1 · KYC &amp; Identity Verification</p>
-    <div class="kyc-list" id="va-kyc-list" style="margin-bottom:16px;">
+    <p class="s5-section-label" style="margin-top:0;"><i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i>Step 1 · Verify your NIN</p>
+    <div class="kyc-list" id="va-kyc-list" style="display:none;margin-bottom:16px;">
       <!-- Populated by renderVaKycList() in openVendorActivationModal() with two
            tap-to-upload items: National ID/NIN, then a live selfie capture —
            built the same way as the Screen 2 signup KYC list (kyc-file-input,
            capture="user" for the selfie, simulateUpload() progress + preview). -->
     </div>
-    <p class="kyc-item-status" id="va-kyc-hint" style="margin: -8px 0 16px; color:#64748b;">Tap each item above to upload</p>
+    <p class="kyc-item-status" id="va-kyc-hint" style="display:none;margin: -8px 0 16px; color:#64748b;">Tap each item above to upload</p>
 
-    <p class="s5-section-label" style="margin-top:0;"><i data-lucide="landmark" class="w-4 h-4 text-purple-400"></i>Step 1 · Payout Account Details</p>    <div class="field">
+    <p class="s5-section-label" style="margin-top:0;"><i data-lucide="landmark" class="w-4 h-4 text-purple-400"></i>Step 1 · Your NIN</p>    <div class="field" style="display:none">
       <label class="field-label">Home Address (as on your NIN / ID)</label>
       <input class="field-input" id="va-address" type="text" placeholder="House no., street, area, city" autocomplete="street-address">
     </div>
-    <div class="field">
-      <label class="field-label">Settlement Bank Name</label>
-      <input class="field-input" id="va-bank-name" type="text" placeholder="e.g. GTBank, Access Bank">
-    </div>
-    <div class="field">
-      <label class="field-label">Settlement Bank Account Number</label>
-      <input class="field-input" id="va-bank-account" type="text" placeholder="10-digit NUBAN account number" inputmode="numeric" maxlength="10">
-    </div>
-    <div class="field">
-      <label class="field-label">BVN</label>
-      <input class="field-input" id="va-bvn-nin" type="text" placeholder="11-digit BVN" inputmode="numeric" maxlength="11" autocomplete="off">
+    <div style="display:none">
+      <input id="va-bank-name" type="text"><input id="va-bank-account" type="text"><input id="va-bvn-nin" type="text">
     </div>
     <div class="field">
       <label class="field-label">NIN (National Identification Number)</label>
@@ -7523,7 +7516,7 @@
     <div class="rent-badge" id="va-kyc-result" style="display:none; align-items:flex-start; gap:6px; margin-bottom:10px;">
       <i data-lucide="info" class="w-3.5 h-3.5" style="margin-top:2px; flex-shrink:0;"></i><span>—</span>
     </div>
-    <button type="button" id="va-resolve-nuban-btn" class="btn-secondary" style="margin-bottom:10px;">
+    <button type="button" id="va-resolve-nuban-btn" class="btn-secondary" style="display:none;margin-bottom:10px;">
       <i data-lucide="search-check" class="w-3.5 h-3.5"></i> Resolve Account Name
     </button>
     <div class="rent-badge" id="va-nuban-resolved" style="display:none; align-items:center; gap:6px; margin-bottom:10px;">
@@ -8517,6 +8510,38 @@
   </div>
 </div>
 
+<!-- ---- Partnership benefits & terms: read again from Profile ---- -->
+<div id="benefits-modal" class="modal-overlay">
+  <div class="modal-card" style="max-height:88vh;overflow:auto">
+    <div class="modal-icon-wrap"><i data-lucide="handshake" class="w-6 h-6"></i></div>
+    <h2 class="modal-title">Partnership benefits &amp; terms</h2>
+    <p class="modal-sub" id="benefits-role">—</p>
+    <div id="benefits-perks"></div>
+    <div id="benefits-terms" class="partnership-terms" style="margin-top:12px"></div>
+    <button type="button" class="btn-primary" id="benefits-close-btn" style="margin-top:14px">Close</button>
+  </div>
+</div>
+
+<!-- ---- Payout bank account (added in Profile, or the first time the member withdraws) ---- -->
+<div id="payout-account-modal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-icon-wrap"><i data-lucide="landmark" class="w-6 h-6"></i></div>
+    <h2 class="modal-title">Payout bank account</h2>
+    <p class="modal-sub" id="pa-sub">Where we send your money when you withdraw. The account must be in your own name.</p>
+    <div class="field">
+      <label class="field-label">Bank name</label>
+      <input class="field-input" id="pa-bank" type="text" placeholder="e.g. GTBank, Access Bank" autocomplete="off">
+    </div>
+    <div class="field">
+      <label class="field-label">Account number</label>
+      <input class="field-input" id="pa-account" type="text" inputmode="numeric" maxlength="10" placeholder="10-digit account number" autocomplete="off">
+    </div>
+    <p class="wd-error-text" id="pa-error" style="display:none"></p>
+    <button type="button" class="btn-primary" id="pa-save-btn">Save account</button>
+    <button type="button" class="btn-secondary" id="pa-cancel-btn">Cancel</button>
+  </div>
+</div>
+
 <!-- ---- Withdraw / Bank Payout Modal (Landlords/Agents & any wallet holder) ---- -->
 <div id="withdraw-wallet-modal" class="modal-overlay">
   <div class="modal-card">
@@ -8958,12 +8983,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!currentUserRole) return;
     // Flutterwave sub-account creation requires a BVN for every user.
     if (!/^\d{11}$/.test(regBvnInput.value.trim())) {
-      showToast('Enter your 11-digit BVN to continue');
+      showToast('Enter your 11-digit NIN to continue');
       regBvnInput.focus();
       return;
     }
     if (mtBvnTakenByOther(regBvnInput.value.trim(), null)) {
-      showToast('This BVN is already linked to another account.');
+      showToast('This NIN is already linked to another account.');
       regBvnInput.focus();
       return;
     }
@@ -9019,8 +9044,6 @@ document.addEventListener('DOMContentLoaded', () => {
       label: 'Landlord / Property Owner',
       roleIcon: 'key-round',
       items: [
-        { text: 'Personal Identification (NIN, Passport, or BVN)', icon: 'id-card' },
-        { text: 'Bank account details for rent disbursement', icon: 'landmark' },
         { text: 'Physical Portrait Photo (Selfie)', icon: 'camera', selfie: true }
       ]
     },
@@ -9028,8 +9051,6 @@ document.addEventListener('DOMContentLoaded', () => {
       label: 'Real Estate Agent / Broker',
       roleIcon: 'briefcase',
       items: [
-        { text: 'Personal Identification (NIN, Passport, or BVN)', icon: 'id-card' },
-        { text: 'Bank account details for commission payout', icon: 'landmark' },
         { text: 'Physical Portrait Photo (Selfie)', icon: 'camera', selfie: true }
       ]
     }
@@ -19957,40 +19978,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (e.target.checked) document.getElementById('va-error-msg').classList.remove('show');
   });
   document.getElementById('va-activate-btn').addEventListener('click', async () => {
-    const bankName = document.getElementById('va-bank-name').value.trim();
-    const bankAccount = document.getElementById('va-bank-account').value.trim();
-    const bvnNin = document.getElementById('va-bvn-nin').value.trim();
+    const bankName = '', bankAccount = '', bvnNin = '';
     const vaAddress = (document.getElementById('va-address').value || '').trim();
     const errEl = document.getElementById('va-error-msg');
     const errText = document.getElementById('va-error-text');
 
-    // Step 1a: KYC — National ID/NIN + live selfie must both be uploaded.
-    if (!vaKycComplete()) {
-      errText.textContent = 'Please upload your BVN slip/photo and take a live selfie first.';
-      errEl.classList.add('show');
-      return;
-    }
-    // Step 1b: Payout Account Details must be filled and valid.
-    if (!bankName || !bankAccount || !bvnNin) {
-      errText.textContent = 'Please complete Step 1 — payout bank account and BVN — first.';
-      errEl.classList.add('show');
-      return;
-    }
-    if (!/^\d{10}$/.test(bankAccount)) {
-      errText.textContent = 'Bank account number must be exactly 10 digits (NUBAN).';
-      errEl.classList.add('show');
-      return;
-    }
-    if (!/^\d{11}$/.test(bvnNin)) {
-      errText.textContent = 'BVN must be exactly 11 digits.';
-      errEl.classList.add('show');
-      return;
-    }
-    if (mtBvnTakenByOther(bvnNin, getCurrentUserId())) {
-      errText.textContent = 'This BVN is already linked to another account.';
-      errEl.classList.add('show');
-      return;
-    }
+    // Step 1: a verified NIN, nothing else. The bank account is added later, in Profile or at the first withdrawal.
     // Step 2: Legal Policy sign-off.
     if (!document.getElementById('va-policy-checkbox').checked) {
       errText.textContent = 'Please check the box above to continue.';
@@ -19999,14 +19992,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
     }
 
     const userId = getCurrentUserId();
-    if (!vaAddress) { errText.textContent = 'Please enter your home address as it appears on your NIN / ID.'; errEl.classList.add('show'); return; }
     const kycErr = vaKycGateError();
     if (kycErr) { errText.textContent = kycErr; errEl.classList.add('show'); return; }
-    const vaPayout = await resolvePayoutAccount(bankName, bankAccount, (vaKycState && vaKycState.legalName) || resolveUserName(userId));
-    if (vaPayout.status === 'mismatch') { errText.textContent = PAYOUT_MISMATCH_MSG(vaPayout); errEl.classList.add('show'); return; }
-    if (vaPayout.status === 'error') { errText.textContent = 'We could not confirm the name on this bank account. Check the account number and bank, then try again.'; errEl.classList.add('show'); return; }
+    const vaPayout = { status: 'skipped' };
     const kycFiles = {
-      id: (document.getElementById('va-kyc-file-id') || {}).files && document.getElementById('va-kyc-file-id').files[0],
       selfie: (document.getElementById('va-kyc-file-selfie') || {}).files && document.getElementById('va-kyc-file-selfie').files[0]
     };
     setVendorActivated(userId, { bankName, bankAccount, bvn: bvnNin, address: vaAddress });
@@ -28195,6 +28184,7 @@ available in the Post-Lease Hub and this chat thread.`
   // ---- Profile Screen: Bio Data + Account & General Settings ----
   // ==================================================================
   function populateProfileScreen() {
+    try { mtShowBenefitsButton(); } catch (e) {}
     const role = currentUserRole || 'tenant';
     const fullName = (document.getElementById('reg-fullname')?.value || '').trim() || roleDisplayNames[role];
     const occupation = (document.getElementById('reg-occupation')?.value || '').trim();
@@ -29202,6 +29192,7 @@ available in the Post-Lease Hub and this chat thread.`
         showToast('Signing you in with Google…');
         const sess = await exchange(resp.credential);
         saveSession(sess);
+        try { localStorage.removeItem('mtr_logged_out'); } catch (e) {}
         await route(sess);
       } catch (err) {
         console.error(err);
@@ -29246,8 +29237,10 @@ available in the Post-Lease Hub and this chat thread.`
       } catch (e) { console.error('could not mark onboarding complete (continuing):', e); }
     }
 
+    // Logging out keeps this phone's Google login so "Continue as <name>" works in one tap next time.
+    // "Use a different Google account" is what actually forgets it.
     function signOut() {
-      clearSession();
+      try { localStorage.setItem('mtr_logged_out', '1'); } catch (e) {}
       onboarding = false;
       unlockForm();
       try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); } catch (e) {}
@@ -29260,13 +29253,13 @@ available in the Post-Lease Hub and this chat thread.`
         rawNonce = n.raw;
         google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential, nonce: n.hashed, auto_select: false });
         const w = Math.max(200, Math.min(320, window.innerWidth - 64));
-        ['mtg-welcome-btn', 'mtg-login-btn'].forEach(id => {
+        ['mtg-login-btn'].forEach(id => {
           const el = document.getElementById(id);
           if (!el) return;
           el.innerHTML = '';
           google.accounts.id.renderButton(el, { type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'rectangular', logo_alignment: 'center', width: w });
         });
-        ['mtg-welcome', 'mtg-login'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; });
+        ['mtg-login'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; });
         showContinueAs();
         return true;
       } catch (e) { console.error('Google sign-in setup failed:', e); return false; }
@@ -29277,18 +29270,21 @@ available in the Post-Lease Hub and this chat thread.`
       busy = true;
       try {
         showToast('Signing you in…');
+        document.querySelectorAll('.mtg-continue').forEach(b => { b.disabled = true; b.style.opacity = '.7'; });
         await freshToken();
+        try { localStorage.removeItem('mtr_logged_out'); } catch (e) {}
         await route(loadSession());
         return true;
-      } catch (e) { console.error('resume failed:', e); clearSession(); showToast('Please sign in again.'); init(); return false; }
+      } catch (e) { console.error('resume failed:', e); clearSession(); showToast('Please sign in again (' + ((e && e.message) || 'session expired') + ').'); init(); return false; }
       finally { busy = false; }
     }
     function showContinueAs() {
       const sess = loadSession(); if (!sess || !sess.user) return;
       const meta = sess.user.user_metadata || {}, email = sess.user.email || meta.email || '';
       const name = String(meta.full_name || meta.name || email.split('@')[0] || '').trim();
-      ['mtg-welcome-btn', 'mtg-login-btn'].forEach(id => {
+      ['mtg-login-btn'].forEach(id => {
         const el = document.getElementById(id); if (!el) return;
+        el.style.flexDirection = 'column'; el.style.alignItems = 'center';
         el.innerHTML = '<button type="button" class="mtg-continue" style="width:100%;max-width:320px;display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #dadce0;border-radius:6px;background:#fff;color:#1f1f1f;font:500 14px Roboto,Arial,sans-serif;cursor:pointer;text-align:left">' +
           (meta.avatar_url || meta.picture ? '<img alt="" src="' + String(meta.avatar_url || meta.picture).replace(/"/g, '') + '" referrerpolicy="no-referrer" style="width:28px;height:28px;border-radius:50%;object-fit:cover">' : '<span style="width:28px;height:28px;border-radius:50%;background:#6d28d9;color:#fff;display:grid;place-items:center;font-weight:700">' + (name.charAt(0) || 'M').toUpperCase() + '</span>') +
           '<span style="flex:1;min-width:0"><span style="display:block;line-height:1.2">Continue as ' + name.replace(/</g, '&lt;') + '</span><span style="display:block;font-size:11px;color:#5f6368;overflow:hidden;text-overflow:ellipsis">' + email.replace(/</g, '&lt;') + '</span></span></button>' +
@@ -29298,7 +29294,7 @@ available in the Post-Lease Hub and this chat thread.`
       });
     }
     // Reopening the app while still signed in: go straight to the dashboard.
-    setTimeout(() => { try { if (loadSession() && !loadCurrentUser()) resume(); } catch (e) {} }, 1200);
+    setTimeout(() => { try { if (loadSession() && !loadCurrentUser() && !localStorage.getItem('mtr_logged_out')) resume(); } catch (e) {} }, 1200);
     // Google's script loads asynchronously: keep trying for a few seconds. If it never loads, the buttons stay hidden
     // and the normal login / onboarding keeps working.
     (function waitForGoogle(n) { init().then(ok => { if (!ok && n < 24) setTimeout(() => waitForGoogle(n + 1), 250); }); })(0);
@@ -29737,8 +29733,9 @@ available in the Post-Lease Hub and this chat thread.`
   }
   document.addEventListener('click', async (e) => {
     const btn = e.target.closest && e.target.closest('#va-verify-kyc-btn'); if (!btn || btn.disabled) return;
-    const bvn = document.getElementById('va-bvn-nin').value.trim(), nin = document.getElementById('va-nin').value.trim();
-    if (!bvn && !nin) { vaShowKycResult('err', 'Enter your BVN or NIN to verify.'); return; }
+    const bvn = '', nin = document.getElementById('va-nin').value.trim();
+    if (!/^\d{11}$/.test(nin)) { vaShowKycResult('err', 'Enter your 11-digit NIN to verify.'); return; }
+    if (mtBvnTakenByOther(nin, getCurrentUserId())) { vaShowKycResult('err', 'This NIN is already linked to another account.'); return; }
     const fullName = resolveUserName(getCurrentUserId());
     btn.disabled = true; const label = btn.innerHTML; btn.textContent = 'Verifying...';
     try {
@@ -29758,8 +29755,8 @@ available in the Post-Lease Hub and this chat thread.`
     } finally { btn.disabled = false; btn.innerHTML = label; if (window.lucide) lucide.createIcons(); }
   });
   function vaKycGateError() {
-    if (!vaKycState || vaKycState.status === 'pending') return 'Please verify your identity (BVN or NIN) first.';
-    if (vaKycState.status === 'demo' && KYC_CFG.kycBaseUrl) return 'Please verify your identity (BVN or NIN) first.';
+    if (!vaKycState || vaKycState.status === 'pending') return 'Please verify your NIN first.';
+    if (vaKycState.status === 'demo' && KYC_CFG.kycBaseUrl) return 'Please verify your NIN first.';
     return null;
   }
 
@@ -29776,8 +29773,8 @@ available in the Post-Lease Hub and this chat thread.`
     if (accountDetails) {
       const rec = appState.users[userId];
       if (rec) {
-        rec.settlementBank = { bankName: accountDetails.bankName, accountNumber: accountDetails.bankAccount };
-        rec.bvn = accountDetails.bvn;
+        if (accountDetails.bankAccount) rec.settlementBank = { bankName: accountDetails.bankName, accountNumber: accountDetails.bankAccount };
+        if (accountDetails.bvn) rec.bvn = accountDetails.bvn;
         if (accountDetails.address) rec.address = accountDetails.address;
         delete rec.bvnNin;
       }
@@ -29834,10 +29831,7 @@ available in the Post-Lease Hub and this chat thread.`
   // the Screen 2 signup KYC list, but kept fully self-contained (its own
   // counter, its own upload-animation helper) so it never touches Screen 2's
   // own kycUploadedCount/updateKycContinueState state.
-  const VA_KYC_ITEMS = [
-    { key: 'id', text: 'BVN Slip / Photo', icon: 'id-card' },
-    { key: 'selfie', text: 'Live Photo (Selfie)', icon: 'camera', selfie: true }
-  ];
+  const VA_KYC_ITEMS = [];   // the gate only checks the NIN now (no uploads)
   let vaKycUploadedCount = 0;
   function vaKycComplete() { return vaKycUploadedCount >= VA_KYC_ITEMS.length; }
   function updateVaKycHint() {
@@ -29938,9 +29932,10 @@ available in the Post-Lease Hub and this chat thread.`
   // ==================================================================
   function resolveSettlementAccountLabel(userId) {
     const rec = userId ? appState.users[userId] : null;
-    if (rec && rec.settlementBank && rec.settlementBank.accountNumber) {
-      const acct = String(rec.settlementBank.accountNumber);
-      return `${rec.settlementBank.bankName || 'Bank'} •••• ${acct.slice(-4)}`;
+    const sb = (rec && rec.settlementBank && rec.settlementBank.accountNumber) ? rec.settlementBank : (userId && appState.payoutAccounts && appState.payoutAccounts[userId]) || null;
+    if (sb && sb.accountNumber) {
+      const acct = String(sb.accountNumber);
+      return `${sb.bankName || 'Bank'} •••• ${acct.slice(-4)}`;
     }
     return 'Bank account on file';
   }
@@ -31093,8 +31088,59 @@ available in the Post-Lease Hub and this chat thread.`
   });
 
   // ---- Withdraw (simulated bank payout — Landlords/Agents & any wallet holder) ----
+  // ---- Payout bank account: added from Profile, or asked once at the first withdrawal ----
+  let paAfterSave = null;
+  function mtHasPayoutAccount(uid) { appState = loadAppState(); const r = uid ? appState.users[uid] : null; return !!((r && r.settlementBank && r.settlementBank.accountNumber) || (uid && appState.payoutAccounts && appState.payoutAccounts[uid])); }
+  function mtOpenPayoutAccount(after) {
+    const uid = walletTargetUserId(), r = appState.users[uid] || {};
+    paAfterSave = after || null;
+    document.getElementById('pa-bank').value = (r.settlementBank && r.settlementBank.bankName) || '';
+    document.getElementById('pa-account').value = '';
+    document.getElementById('pa-error').style.display = 'none';
+    document.getElementById('pa-sub').textContent = after ? 'Add the bank account for your first withdrawal. The account must be in your own name.' : 'Where we send your money when you withdraw. The account must be in your own name.';
+    document.getElementById('payout-account-modal').classList.add('open');
+  }
+  document.getElementById('pf-open-payout').addEventListener('click', () => mtOpenPayoutAccount(null));
+  // Partnership benefits & terms (landlords and agents only): the same text they agreed to at sign-up, to read again any time.
+  function mtShowBenefitsButton() { const b = document.getElementById('pf-open-benefits'); if (b) b.style.display = (currentUserRole === 'landlord' || currentUserRole === 'agent') ? '' : 'none'; }
+  document.getElementById('pf-open-benefits').addEventListener('click', () => {
+    const role = currentUserRole === 'agent' ? 'agent' : 'landlord', content = partnershipContent[role], roleData = kycContent[role];
+    document.getElementById('benefits-role').textContent = roleData.label;
+    document.getElementById('benefits-perks').innerHTML = content.perks.map(p => `<div class="perk-item"><div class="perk-item-icon-wrap"><i data-lucide="${p.icon}" class="w-4 h-4"></i></div><p class="perk-item-text">${p.text}</p></div>`).join('');
+    document.getElementById('benefits-terms').innerHTML = `<h3><i data-lucide="receipt" class="text-purple-400"></i>Commission &amp; Fee Structure — ${roleData.label}</h3><ul>${content.terms.map(t => `<li><b>${t.label}:</b> ${t.body}</li>`).join('')}</ul>`;
+    document.getElementById('benefits-modal').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  });
+  document.getElementById('benefits-close-btn').addEventListener('click', () => document.getElementById('benefits-modal').classList.remove('open'));
+
+  document.getElementById('pa-cancel-btn').addEventListener('click', () => { paAfterSave = null; document.getElementById('payout-account-modal').classList.remove('open'); });
+  document.getElementById('pa-account').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
+  let paBusy = false;
+  document.getElementById('pa-save-btn').addEventListener('click', async () => {
+    if (paBusy) return;
+    const bank = document.getElementById('pa-bank').value.trim(), acct = document.getElementById('pa-account').value.trim(), err = document.getElementById('pa-error');
+    const fail = m => { err.textContent = m; err.style.display = 'block'; };
+    if (bank.length < 2) return fail('Enter your bank name.');
+    if (!/^\d{10}$/.test(acct)) return fail('Account number must be exactly 10 digits.');
+    paBusy = true;
+    try {
+      const uid = walletTargetUserId();
+      const res = await resolvePayoutAccount(bank, acct, resolveUserName(uid));
+      if (res.status === 'mismatch') return fail(PAYOUT_MISMATCH_MSG(res));
+      if (res.status === 'error') return fail('We could not confirm the name on this account. Check the number and bank, then try again.');
+      appState = loadAppState();
+      appState.payoutAccounts = appState.payoutAccounts || {}; appState.payoutAccounts[uid] = { bankName: bank, accountNumber: acct };
+      if (appState.users[uid]) appState.users[uid].settlementBank = { bankName: bank, accountNumber: acct };
+      saveAppState(appState);
+      document.getElementById('payout-account-modal').classList.remove('open');
+      showToast('Payout account saved');
+      const cont = paAfterSave; paAfterSave = null; if (cont) cont();
+    } finally { paBusy = false; }
+  });
+
   document.getElementById('wallet-withdraw-btn').addEventListener('click', () => {
     const uid = walletTargetUserId();
+    if (!mtHasPayoutAccount(uid)) { mtOpenPayoutAccount(() => document.getElementById('wallet-withdraw-btn').click()); return; }
     document.getElementById('wd-amount').value = '';
     document.getElementById('wd-error').style.display = 'none';
     document.getElementById('wd-balance-sub').textContent = `Available balance: ${formatMoney(getWalletBalance(uid), 'ngn')}`;
