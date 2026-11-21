@@ -7252,57 +7252,32 @@
       <div class="modal-icon-wrap"><i data-lucide="building-2" class="w-8 h-8 text-purple-400"></i></div>
       <h2 class="modal-title" id="ent-upgrade-title">Scale to Developer</h2>
       <p class="modal-sub" id="ent-upgrade-sub">Unlock team roles, bulk CSV property uploads, and your own branded company listings.</p>
-      <div class="ent-metric-card" style="margin-bottom:18px; text-align:center;">
-        <p class="ent-metric-label">One-Time Upgrade Fee</p>
+      <div class="ent-metric-card" style="margin-bottom:14px; text-align:center;">
+        <p class="ent-metric-label">Your first month is free</p>
         <p class="ent-metric-value" style="font-size:22px;" id="ent-upgrade-fee-text">₦150,000</p>
+        <p class="modal-sub" style="margin:4px 0 0;">Upgrade fee, only after your free month</p>
       </div>
-
-      <!-- Payment source: deduct from funded wallet OR pay directly by card -->
       <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
-        <button type="button" class="pay-option selected" id="ent-upgrade-src-wallet" data-source="wallet">
-          <div class="pay-option-icon-wrap bg-purple-500/10"><i data-lucide="wallet" class="w-5 h-5 text-purple-400"></i></div>
+        <button type="button" class="pay-option selected" id="ent-upgrade-plan-spread" data-plan="spread12">
+          <div class="pay-option-icon-wrap bg-purple-500/10"><i data-lucide="calendar-clock" class="w-5 h-5 text-purple-400"></i></div>
           <div class="pay-option-text">
-            <p class="pay-option-label">MainTown Wallet</p>
-            <p class="pay-option-detail">Available balance: <span id="ent-upgrade-wallet-balance">₦0</span></p>
+            <p class="pay-option-label">Spread over 12 months</p>
+            <p class="pay-option-detail"><span id="ent-upgrade-installment">₦12,500</span> / month, auto-debit</p>
           </div>
           <div class="pay-option-check"><i data-lucide="check" class="w-3 h-3"></i></div>
         </button>
-        <button type="button" class="pay-option" id="ent-upgrade-src-card" data-source="card">
-          <div class="pay-option-icon-wrap bg-blue-500/10"><i data-lucide="credit-card" class="w-5 h-5 text-blue-400"></i></div>
+        <button type="button" class="pay-option" id="ent-upgrade-plan-outright" data-plan="outright">
+          <div class="pay-option-icon-wrap bg-blue-500/10"><i data-lucide="banknote" class="w-5 h-5 text-blue-400"></i></div>
           <div class="pay-option-text">
-            <p class="pay-option-label">Pay with Card</p>
-            <p class="pay-option-detail">Debit/Credit card — charged directly</p>
+            <p class="pay-option-label">Pay outright</p>
+            <p class="pay-option-detail">One payment after your free month</p>
           </div>
           <div class="pay-option-check"><i data-lucide="check" class="w-3 h-3"></i></div>
         </button>
       </div>
-
-      <!-- Wallet shortfall notice + Fund Wallet shortcut -->
-      <div id="ent-upgrade-wallet-low" style="display:none; margin-bottom:12px;">
-        <p class="modal-sub" style="color:#f87171; margin:0 0 8px;">Your wallet balance is below the upgrade fee. Fund your wallet, or switch to card payment.</p>
-        <button type="button" id="ent-upgrade-fund-btn" class="btn-secondary" style="margin-bottom:0;"><i data-lucide="arrow-down-circle" class="w-4 h-4" style="display:inline-block; vertical-align:-3px; margin-right:4px;"></i>Fund Wallet</button>
-      </div>
-
-      <!-- Direct card form (never stored — used once for this charge) -->
-      <div id="ent-upgrade-card-form" style="display:none; margin-bottom:12px;">
-        <div class="field">
-          <label class="field-label">Card Number</label>
-          <input class="field-input" id="ent-upgrade-card-number" type="text" inputmode="numeric" autocomplete="cc-number" maxlength="19" placeholder="0000 0000 0000 0000">
-        </div>
-        <div style="display:flex; gap:10px;">
-          <div class="field" style="flex:1;">
-            <label class="field-label">Expiry</label>
-            <input class="field-input" id="ent-upgrade-card-expiry" type="text" inputmode="numeric" autocomplete="cc-exp" maxlength="5" placeholder="MM/YY">
-          </div>
-          <div class="field" style="flex:1;">
-            <label class="field-label">CVV</label>
-            <input class="field-input" id="ent-upgrade-card-cvv" type="password" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="•••">
-          </div>
-        </div>
-        <p class="modal-sub" id="ent-upgrade-card-error" style="display:none; color:#f87171; margin:0;"></p>
-      </div>
-
-      <button type="button" id="ent-upgrade-pay-btn" class="btn-primary"><i data-lucide="credit-card" class="w-4 h-4"></i> Pay from Wallet</button>
+      <p class="modal-sub" id="ent-upgrade-plan-note" style="margin:0 0 12px;">Nothing is charged today. Auto-debit is switched on once your free month ends.</p>
+      <p class="modal-sub" id="ent-upgrade-card-error" style="display:none; color:#f87171; margin:0 0 8px;"></p>
+      <button type="button" id="ent-upgrade-pay-btn" class="btn-primary"><i data-lucide="gift" class="w-4 h-4"></i> Start free month</button>
       <button type="button" id="ent-upgrade-cancel-btn" class="btn-secondary">Cancel</button>
     </div>
 
@@ -31432,139 +31407,63 @@ available in the Post-Lease Hub and this chat thread.`
     ph('ent-setup-company-name', c.namePh); ph('ent-setup-cac', c.regPh); ph('ent-setup-address', c.addrPh);
     document.getElementById('ent-upgrade-step-pay').style.display = 'block';
     document.getElementById('ent-upgrade-step-setup').style.display = 'none';
-    entUpgradePaySource = 'wallet';
+    entUpgradePlan = 'spread12';
     refreshEntUpgradeModal();
     document.getElementById('ent-upgrade-modal').classList.add('open');
   }
 
-  function entUpgradePayLabel() {
-    return entUpgradePaySource === 'card' ? 'Pay by Card' : 'Pay from Wallet';
-  }
+  var entUpgradePlan = 'spread12';
   function refreshEntUpgradeModal() {
-    const uid = getCurrentUserId();
-    const bal = uid ? getWalletBalance(uid) : 0;
-    const enough = bal >= entUpgradeFee();
-    const feeEl = document.getElementById('ent-upgrade-fee-text');
-    if (feeEl) feeEl.textContent = formatMoney(entUpgradeFee(), 'ngn');
-    const balEl = document.getElementById('ent-upgrade-wallet-balance');
-    if (balEl) balEl.textContent = formatMoney(bal, 'ngn');
-    document.getElementById('ent-upgrade-src-wallet')?.classList.toggle('selected', entUpgradePaySource === 'wallet');
-    document.getElementById('ent-upgrade-src-card')?.classList.toggle('selected', entUpgradePaySource === 'card');
-    const low = document.getElementById('ent-upgrade-wallet-low');
-    if (low) low.style.display = (entUpgradePaySource === 'wallet' && !enough) ? 'block' : 'none';
-    const form = document.getElementById('ent-upgrade-card-form');
-    if (form) form.style.display = entUpgradePaySource === 'card' ? 'block' : 'none';
-    const btn = document.getElementById('ent-upgrade-pay-btn');
-    if (btn && !btn.disabled) btn.innerHTML = '<i data-lucide="credit-card" class="w-4 h-4"></i> ' + entUpgradePayLabel();
-    const err = document.getElementById('ent-upgrade-card-error');
-    if (err) err.style.display = 'none';
+    const fee = entUpgradeFee();
+    const set = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+    set('ent-upgrade-fee-text', formatMoney(fee, 'ngn'));
+    set('ent-upgrade-installment', formatMoney(Math.round(fee / 12), 'ngn'));
+    document.getElementById('ent-upgrade-plan-spread')?.classList.toggle('selected', entUpgradePlan === 'spread12');
+    document.getElementById('ent-upgrade-plan-outright')?.classList.toggle('selected', entUpgradePlan === 'outright');
+    set('ent-upgrade-plan-note', entUpgradePlan === 'spread12'
+      ? 'Nothing is charged today. After your free month, ' + formatMoney(Math.round(fee / 12), 'ngn') + ' is auto-debited each month for 12 months.'
+      : 'Nothing is charged today. After your free month, you pay ' + formatMoney(fee, 'ngn') + ' once.');
+    const err = document.getElementById('ent-upgrade-card-error'); if (err) err.style.display = 'none';
     if (window.lucide) lucide.createIcons();
   }
-  document.getElementById('ent-upgrade-src-wallet').addEventListener('click', () => { entUpgradePaySource = 'wallet'; refreshEntUpgradeModal(); });
-  document.getElementById('ent-upgrade-src-card').addEventListener('click', () => { entUpgradePaySource = 'card'; refreshEntUpgradeModal(); });
-
-  // Fund Wallet shortcut — the Fund modal stacks above this one; the balance and
-  // shortfall notice refresh automatically once the top-up lands.
-  document.getElementById('ent-upgrade-fund-btn').addEventListener('click', () => {
-    const uid = getCurrentUserId();
-    const shortfall = Math.max(entUpgradeFee() - (uid ? getWalletBalance(uid) : 0), 0);
-    openFundWalletModal();
-    if (shortfall > 0) document.getElementById('fw-amount').value = String(shortfall);
-  });
-  window.addEventListener('maintown_state_updated', () => {
-    const m = document.getElementById('ent-upgrade-modal');
-    if (m && m.classList.contains('open') && document.getElementById('ent-upgrade-step-pay').style.display !== 'none') refreshEntUpgradeModal();
-  });
-
-  // Card field formatting (digits only, grouped; MM/YY)
-  document.getElementById('ent-upgrade-card-number').addEventListener('input', (e) => {
-    const d = e.target.value.replace(/\D/g, '').slice(0, 16);
-    e.target.value = d.replace(/(.{4})/g, '$1 ').trim();
-  });
-  document.getElementById('ent-upgrade-card-expiry').addEventListener('input', (e) => {
-    const d = e.target.value.replace(/\D/g, '').slice(0, 4);
-    e.target.value = d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d;
-  });
-  document.getElementById('ent-upgrade-card-cvv').addEventListener('input', (e) => {
-    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
-  });
-  function validateEntUpgradeCard() {
-    const num = document.getElementById('ent-upgrade-card-number').value.replace(/\D/g, '');
-    const exp = document.getElementById('ent-upgrade-card-expiry').value;
-    const cvv = document.getElementById('ent-upgrade-card-cvv').value;
-    if (num.length < 16) return 'Enter a valid 16-digit card number.';
-    const m = /^(\d{2})\/(\d{2})$/.exec(exp);
-    if (!m) return 'Enter the expiry date as MM/YY.';
-    const mm = parseInt(m[1], 10), yy = 2000 + parseInt(m[2], 10);
-    if (mm < 1 || mm > 12) return 'Enter a valid expiry month.';
-    const now = new Date();
-    if (yy < now.getFullYear() || (yy === now.getFullYear() && mm < now.getMonth() + 1)) return 'This card has expired.';
-    if (cvv.length < 3) return 'Enter the 3-digit CVV on your card.';
-    return '';
-  }
-
-  document.getElementById('ent-upgrade-pay-btn').addEventListener('click', (e) => {
-    const btn = e.currentTarget;
-    if (btn.disabled) return;
-    const uid = getCurrentUserId();
-    if (!uid) { showToast('Please log in to continue'); return; }
-
-    if (entUpgradePaySource === 'wallet') {
-      if (getWalletBalance(uid) < entUpgradeFee()) {
-        refreshEntUpgradeModal();
-        showToast('Insufficient wallet balance — fund your wallet or pay by card');
-        return;
-      }
-    } else {
-      const cardErr = validateEntUpgradeCard();
-      const errEl = document.getElementById('ent-upgrade-card-error');
-      if (cardErr) { errEl.textContent = cardErr; errEl.style.display = 'block'; return; }
-      errEl.style.display = 'none';
-    }
-
-    btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4"></i> Processing payment…';
+  document.getElementById('ent-upgrade-plan-spread').addEventListener('click', () => { entUpgradePlan = 'spread12'; refreshEntUpgradeModal(); });
+  document.getElementById('ent-upgrade-plan-outright').addEventListener('click', () => { entUpgradePlan = 'outright'; refreshEntUpgradeModal(); });
+  document.getElementById('ent-upgrade-pay-btn').addEventListener('click', () => {
+    if (!getCurrentUserId()) { showToast('Please log in to continue'); return; }
+    document.getElementById('ent-upgrade-step-pay').style.display = 'none';
+    document.getElementById('ent-upgrade-step-setup').style.display = 'block';
+    showToast('Free month started — set up your company');
     if (window.lucide) lucide.createIcons();
-    setTimeout(() => {
-      if (entUpgradePaySource === 'wallet') {
-        // Real deduction — no overdraft.
-        if (!debitWallet(uid, entUpgradeFee())) {
-          btn.disabled = false;
-          refreshEntUpgradeModal();
-          showToast('Insufficient wallet balance — fund your wallet or pay by card');
-          return;
-        }
-        recordTransaction({
-          userId: uid, direction: 'debit', category: 'UPGRADE_FEE',
-          title: entKindCfg(entUpgradeKind).feeTitle,
-          amount: entUpgradeFee(), status: 'SUCCESSFUL',
-          meta: { sender: 'You (MainTown Wallet)', recipient: 'MainTown Realty', feeType: entKindCfg(entUpgradeKind).feeType, escrowStatus: 'Settled immediately' }
-        });
-      } else {
-        // Direct card charge (simulated). Ledger stays consistent with the wallet balance:
-        // logged as an instant card top-up plus the matching fee debit (net wallet change ₦0).
-        recordTransaction({
-          userId: uid, direction: 'credit', category: 'TOPUP',
-          title: entKindCfg(entUpgradeKind).topupTitle,
-          amount: entUpgradeFee(), status: 'SUCCESSFUL',
-          meta: { sender: 'Debit/Credit Card', recipient: 'MainTown Realty', feeType: entKindCfg(entUpgradeKind).feeType }
-        });
-        recordTransaction({
-          userId: uid, direction: 'debit', category: 'UPGRADE_FEE',
-          title: entKindCfg(entUpgradeKind).feeTitle,
-          amount: entUpgradeFee(), status: 'SUCCESSFUL',
-          meta: { sender: 'You (Card)', recipient: 'MainTown Realty', feeType: entKindCfg(entUpgradeKind).feeType, escrowStatus: 'Settled immediately' }
-        });
-        ['ent-upgrade-card-number', 'ent-upgrade-card-expiry', 'ent-upgrade-card-cvv'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-      }
-      btn.disabled = false;
-      btn.innerHTML = '<i data-lucide="credit-card" class="w-4 h-4"></i> ' + entUpgradePayLabel();
-      document.getElementById('ent-upgrade-step-pay').style.display = 'none';
-      document.getElementById('ent-upgrade-step-setup').style.display = 'block';
-      showToast('Payment confirmed — set up your company');
-      if (window.lucide) lucide.createIcons();
-    }, 900);
   });
+  // ---- Shared with the website: the upgrade lives on the account, not on the phone ----
+  async function mtEntRpc(name, body) {
+    if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !localStorage.getItem('mtr_sb_session')) return { skipped: true };
+    const tok = await MtGoogleAuth.getToken();
+    const r = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/' + name, { method: 'POST', headers: mtSbHeaders(tok), body: JSON.stringify(body || {}) });
+    const j = await r.json().catch(() => null);
+    if (!r.ok) throw new Error((j && (j.message || j.hint)) || 'Could not reach MainTown');
+    return { data: j };
+  }
+  async function mtPullEnterprise() {
+    try {
+      if (document.hidden) return;
+      const out = await mtEntRpc('dashboard_my_enterprise'); const e = out.data;
+      if (!e) return;
+      const uid = getCurrentUserId(); if (!uid) return;
+      appState.users[uid] = appState.users[uid] || { id: uid, role: 'landlord' };
+      const cur = appState.users[uid].enterprise || {};
+      const next = Object.assign({}, cur, {
+        companyName: e.company_name, companyAddress: e.address, cacNumber: e.reg_number, kind: e.kind,
+        upgradedAt: cur.upgradedAt || Date.parse(e.created_at || '') || Date.now(), staffIds: cur.staffIds || [],
+        plan: e.plan, installment: e.installment, nextChargeAt: e.next_charge_at, mandateStatus: e.mandate_status, planStatus: e.status
+      });
+      if (JSON.stringify(cur) === JSON.stringify(next)) return;
+      appState.users[uid].enterprise = next; saveAppState(appState);
+      try { renderEnterpriseEntryCard(); } catch (x) {}
+    } catch (x) {}
+  }
+  setInterval(mtPullEnterprise, 60000); document.addEventListener('visibilitychange', () => { if (!document.hidden) mtPullEnterprise(); });
+  setTimeout(mtPullEnterprise, 5000);
   document.getElementById('ent-setup-logo-upload').addEventListener('click', () => document.getElementById('ent-setup-logo-file').click());
   document.getElementById('ent-setup-logo-file').addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -31575,19 +31474,25 @@ available in the Post-Lease Hub and this chat thread.`
     reader.onload = () => { entPendingLogoDataUrl = reader.result; };
     reader.readAsDataURL(file);
   });
-  document.getElementById('ent-setup-finish-btn').addEventListener('click', () => {
+  document.getElementById('ent-setup-finish-btn').addEventListener('click', async () => {
     const companyName = document.getElementById('ent-setup-company-name').value.trim();
     const cac = document.getElementById('ent-setup-cac').value.trim();
     const companyAddress = (document.getElementById('ent-setup-address')?.value || '').trim();
     if (!companyName || !cac) { showToast(entKindCfg(entUpgradeKind).needFields); return; }
     if (!companyAddress) { showToast(entKindCfg(entUpgradeKind).needAddr); return; }
     const uid = getCurrentUserId();
+    const fbtn = document.getElementById('ent-setup-finish-btn');
+    if (fbtn.disabled) return; fbtn.disabled = true;
+    try { await mtEntRpc('dashboard_start_upgrade', { p_plan: entUpgradePlan, p_company: companyName, p_reg: cac, p_address: companyAddress }); }
+    catch (e) { fbtn.disabled = false; showToast(String(e.message || e).slice(0, 120)); return; }
+    fbtn.disabled = false;
     appState.users[uid] = appState.users[uid] || { id: uid, role: 'landlord' };
     appState.users[uid].enterprise = {
       companyName, companyAddress, companyLogo: entPendingLogoDataUrl, cacNumber: cac,
-      upgradedAt: Date.now(), staffIds: [], kind: entUpgradeKind,
+      upgradedAt: Date.now(), staffIds: [], kind: entUpgradeKind, plan: entUpgradePlan, planStatus: 'trial',
     };
     saveAppState(appState);
+    try { mtPullEnterprise(); } catch (e) {}
     document.getElementById('ent-upgrade-modal').classList.remove('open');
     showToast(`${companyName} is now live as ${entKindCfg(entUpgradeKind).live}!`);
     entPendingLogoDataUrl = null;
