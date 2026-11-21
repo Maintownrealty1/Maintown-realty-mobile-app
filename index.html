@@ -13008,8 +13008,9 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const ownIds = new Set();
       listings.forEach(l => { if (l && l.origin !== 'remote' && l.remoteId != null) ownIds.add(String(l.remoteId)); });
       const incoming = rows
-        .filter(r => r && r.id != null && ['available', 'sold', 'rented', 'booked'].indexOf(r.status) >= 0 && !ownIds.has(String(r.id)))
-        .map(listingFromRow);
+        .filter(r => r && r.id != null && ['pending', 'closed', 'unavailable', 'draft', 'rejected', 'declined', 'hidden', ''].indexOf(String(r.status || '').toLowerCase()) < 0 && !ownIds.has(String(r.id)))
+        .map(r => { try { return listingFromRow(r); } catch (e) { console.warn('[MainTown] Could not read listing', r && r.id, e.message); return null; } })
+        .filter(Boolean);
       const sig = JSON.stringify(incoming.map(m => [m.id, m.status, m.title, m.location, m.ngn || m.totalPrice, m.img, m.videoUrl]));
       if (sig === lastSig) return false;
       lastSig = sig;
@@ -18394,6 +18395,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       buyerId: buyerUid || null,
       buyerName: buyerRec.name || null,
       listingTitle: checkoutListing.title,
+      listingId: checkoutListing.id,
       isLand: checkoutListing.type === 'land',
       propertyAddress: checkoutListing.location || checkoutListing.title,
       landlordName: listingPayeeName(checkoutListing) || checkoutListing.landlordName || (checkoutListing.type === 'land' ? 'the Seller' : 'the Landlord'),
@@ -23255,7 +23257,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   function mtSbHeaders(tok) { return { apikey: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8', Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' }; }
   async function mtChatSend(conv, msg) {
     try {
-      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !localStorage.getItem('mtr_sb_session')) return;
+      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !mtSbUid()) return;
       if (!msg || msg.type !== 'text' || !msg.cid) return;
       const tok = await MtGoogleAuth.getToken();
       const r = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/chat_send', { method: 'POST', headers: mtSbHeaders(tok),
@@ -23267,7 +23269,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   async function mtPullChat() {
     if (mtChatBusy) return; mtChatBusy = true;
     try {
-      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !localStorage.getItem('mtr_sb_session')) return;
+      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !mtSbUid()) return;
       if (typeof conversations === 'undefined') return;
       const tok = await MtGoogleAuth.getToken();
       let since = null; try { since = localStorage.getItem('mtr_chat_since'); } catch (e) {}
@@ -23312,7 +23314,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   async function mtPullNotifications() {
     if (mtNotifBusy) return; mtNotifBusy = true;
     try {
-      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !localStorage.getItem('mtr_sb_session')) return;
+      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !mtSbUid()) return;
       const tok = await MtGoogleAuth.getToken();
       const url = 'https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/';
       const r = await fetch(url + 'my_notifications', { method: 'POST', headers: mtSbHeaders(tok), body: JSON.stringify({ p_unread_only: true }) });
@@ -23338,7 +23340,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   async function mtPullMyWebListings() {
     if (mtWebListBusy) return; mtWebListBusy = true;
     try {
-      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !localStorage.getItem('mtr_sb_session')) return;
+      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !mtSbUid()) { if ((window.mtWebListings || []).length) { window.mtWebListings = []; try { window.dispatchEvent(new Event('maintown_state_updated')); } catch (e) {} } return; }
       const tok = await MtGoogleAuth.getToken();
       const r = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/dashboard_my_listings', { method: 'POST', headers: mtSbHeaders(tok), body: '{}' });
       if (!r.ok) return;
@@ -23368,7 +23370,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (mtPullBusy) return; mtPullBusy = true;
     try {
       if (!window.MtGoogleAuth || !MtGoogleAuth.getToken) return;
-      if (!localStorage.getItem('mtr_sb_session')) return;
+      if (!mtSbUid()) return;
       const me = getCurrentUserId();
       if (!me) return;
       const tok = await MtGoogleAuth.getToken();
@@ -28611,7 +28613,20 @@ available in the Post-Lease Hub and this chat thread.`
       i.onerror = rej; i.src = src;
     });
   }
-  function mtSbUid() { try { return (JSON.parse(localStorage.getItem('mtr_sb_session') || '{}').user || {}).id || null; } catch (e) { return null; } }
+  // The signed-in website/Google session belongs to ONE real member. The built-in demo accounts (Frank, John, Angel...)
+  // must never pick up that member's photo, listings, bookings or wallet, so a demo user gets no session at all.
+  function mtSbUid() {
+    try {
+      const uid = (JSON.parse(localStorage.getItem('mtr_sb_session') || '{}').user || {}).id || null;
+      if (!uid) return null;
+      const cu = (typeof loadCurrentUser === 'function') ? loadCurrentUser() : null;
+      if (cu && cu.id) {
+        const rec = ((loadAppState().users) || {})[cu.id];
+        if (String(cu.id) !== String(uid) && !(rec && String(rec.supabaseUserId) === String(uid))) return null;
+      }
+      return uid;
+    } catch (e) { return null; }
+  }
   // The photo is kept per member on this phone (survives log out / log in) and sent to their account so every device and the website show it.
   function mtKeepPhoto(data) { const uid = mtSbUid(); if (!uid) return; try { localStorage.setItem('mtr_photo_' + uid, data); localStorage.setItem('mtr_photo_pending_' + uid, '1'); } catch (e) {} }
   async function mtSyncProfile(withPhoto) {
@@ -28657,7 +28672,20 @@ available in the Post-Lease Hub and this chat thread.`
       if (localStorage.getItem('mtr_photo_pending_' + uid) && String(currentUserSelfieDataUrl || '').indexOf('data:image') === 0) mtSyncProfile(true);
     } catch (e) {}
   }
-  { const __mtLogin = loginAsDemoUser; loginAsDemoUser = function () { const r = __mtLogin.apply(this, arguments); setTimeout(mtRestorePhoto, 700); return r; }; }
+  // Demo accounts must not wear a real member's photo (an earlier build let it leak across accounts): drop it on demo login.
+  function mtDropForeignPhoto() {
+    try {
+      if (!localStorage.getItem('mtr_sb_session') || mtSbUid()) return;
+      const real = [];
+      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('mtr_photo_') === 0) { const v = localStorage.getItem(k); if (v && /^(data:|https?:)/.test(v)) real.push(v); } }
+      if (currentUserSelfieDataUrl && real.indexOf(currentUserSelfieDataUrl) >= 0) {
+        currentUserSelfieDataUrl = null;
+        try { populateProfileScreen(); } catch (e) {} try { saveAccountRecord(); } catch (e) {}
+        try { if (!document.getElementById('screen-4').classList.contains('hidden')) populateScreen4(); } catch (e) {}
+      }
+    } catch (e) {}
+  }
+  { const __mtLogin = loginAsDemoUser; loginAsDemoUser = function () { const r = __mtLogin.apply(this, arguments); setTimeout(mtRestorePhoto, 700); setTimeout(mtDropForeignPhoto, 300); setTimeout(mtDropForeignPhoto, 1200); return r; }; }
   // Photo changed on the website (or another phone)? Bring it here.
   async function mtPullPhoto() {
     try {
@@ -31501,7 +31529,7 @@ available in the Post-Lease Hub and this chat thread.`
   });
   // ---- Shared with the website: the upgrade lives on the account, not on the phone ----
   async function mtEntRpc(name, body) {
-    if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !localStorage.getItem('mtr_sb_session')) return { skipped: true };
+    if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !mtSbUid()) return { skipped: true };
     const tok = await MtGoogleAuth.getToken();
     const r = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/' + name, { method: 'POST', headers: mtSbHeaders(tok), body: JSON.stringify(body || {}) });
     const j = await r.json().catch(() => null);
@@ -31547,7 +31575,7 @@ available in the Post-Lease Hub and this chat thread.`
   async function mtPushBookings() {
     if (mtBkBusy) return; mtBkBusy = true;
     try {
-      const me = mtSbUid(); if (!me || !localStorage.getItem('mtr_sb_session')) return;
+      const me = mtSbUid(); if (!me || !mtSbUid()) return;
       const localMe = getCurrentUserId(); const sent = mtSentMap(); let dirty = false;
       for (const b of (shortletBookings || [])) {
         const pl = mtBookingPayload(b);
@@ -31569,7 +31597,7 @@ available in the Post-Lease Hub and this chat thread.`
     if (!h.syncId) { h.syncId = 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); try { localStorage.setItem('mtr_handover', JSON.stringify(h)); } catch (e) {} }
     const small = (sig) => { try { return JSON.stringify(sig || '').length < 14000 ? (sig || null) : null; } catch (e) { return null; } };
     let ls = h.landlordSignature ? small(h.landlordSignature) : null; if (h.landlordSignature && !ls) ls = { mode: 'type', data: h.landlordName || 'Seller' };
-    return { id: h.syncId, listingTitle: h.listingTitle, isLand: !!h.isLand, buyer: h.buyerName || 'Buyer', tenantUid: mtMapId(h.buyerId), hostUids: [mtMapId(h.sellerId)].filter(Boolean),
+    return { id: h.syncId, listingId: h.listingId == null ? '' : String(h.listingId), listingTitle: h.listingTitle, isLand: !!h.isLand, buyer: h.buyerName || 'Buyer', tenantUid: mtMapId(h.buyerId), hostUids: [mtMapId(h.sellerId)].filter(Boolean),
       priceLabel: h.priceLabel, amount: Number(String(h.priceLabel || '').replace(/[^\d.]/g, '')) || 0, agreementTitle: h.agreementTitle, propertyAddress: h.propertyAddress,
       landlordName: h.landlordName, commercial: !!h.commercial, tenantSignedAt: h.tenantSignedAt, tenantSignature: small(h.tenantSignature),
       status: h.status, landlordSignature: ls, landlordSignedAt: h.landlordSignedAt || null };
@@ -31578,7 +31606,7 @@ available in the Post-Lease Hub and this chat thread.`
   async function mtPushHandover() {
     if (mtHoBusy) return; mtHoBusy = true;
     try {
-      const me = mtSbUid(); if (!me || !localStorage.getItem('mtr_sb_session')) return;
+      const me = mtSbUid(); if (!me || !mtSbUid()) return;
       const h = (typeof handover !== 'undefined') ? handover : null; const pl = mtHandoverPayload(h); if (!pl) return;
       const localMe = getCurrentUserId();
       if (pl.tenantUid !== me && !pl.hostUids.includes(me) && String(h.buyerId) !== String(localMe) && String(h.sellerId) !== String(localMe)) return;
@@ -31602,7 +31630,7 @@ available in the Post-Lease Hub and this chat thread.`
         try { if (p.tenantUid === me) pushPlatformNotification('tenant', 'message', 'Agreement Countersigned', 'The seller countersigned the agreement for ' + (p.listingTitle || 'your purchase') + '.', null, 'COUNTERSIGN_DONE', null, localMe); } catch (e) {}
       }
     } else if (!handover && p.tenantUid !== me && p.status === 'tenant-signed') {
-      handover = { syncId: p.id, buyerId: p.tenantUid, buyerName: p.buyer, listingTitle: p.listingTitle, isLand: !!p.isLand, propertyAddress: p.propertyAddress,
+      handover = { syncId: p.id, listingId: p.listingId || undefined, buyerId: p.tenantUid, buyerName: p.buyer, listingTitle: p.listingTitle, isLand: !!p.isLand, propertyAddress: p.propertyAddress,
         landlordName: p.landlordName, agreementTitle: p.agreementTitle, commercial: !!p.commercial, priceLabel: p.priceLabel, sellerId: localMe,
         companyAddress: '', ceoName: '', tenantSignature: p.tenantSignature || { mode: 'type', data: p.buyer || 'Buyer' }, tenantSignedAt: p.tenantSignedAt,
         landlordSignature: null, landlordSignedAt: null, status: 'tenant-signed' };
@@ -31611,6 +31639,65 @@ available in the Post-Lease Hub and this chat thread.`
     } else return false;
     const cur = mtHandoverPayload(handover); if (cur) sent[key] = { h: JSON.stringify(cur), at: Date.parse(r.updated_at) || Date.now() };
     return changed;
+  }
+  // ---- Sold land (assets): payment progress, deed and the SmartyHub dispatch are shared with the website ----
+  function mtAssetPayload(a) {
+    if (!a || !a.sellerId || !a.ownerId) return null;
+    const l = (typeof listings !== 'undefined' ? listings : []).find(x => String(x.id) === String(a.listingId));
+    const pl = { id: a.id, listingId: a.listingId == null ? '' : String(a.listingId), title: a.title, location: a.location, buyer: resolveUserName(a.ownerId) || 'Buyer',
+      tenantUid: mtMapId(a.ownerId), hostUids: [mtMapId(a.sellerId)].filter(Boolean), paymentMode: a.paymentMode, installmentsPaid: a.installmentsPaid || 1,
+      installmentsTotal: a.installmentsTotal || 1, monthlyAmount: a.monthlyAmount || 0, amountLabel: a.amountLabel, price: Number(l && l.totalPrice) || 0, deedAvailable: !!a.deedAvailable };
+    if (a.dispatch) pl.dispatch = { ref: a.dispatch.ref, pickup: a.dispatch.pickup, delivery: a.dispatch.delivery, pickupPhone: a.dispatch.pickupPhone, deliveryPhone: a.dispatch.deliveryPhone,
+      status: a.dispatch.status, requestedAt: a.dispatch.requestedAt, requestedBy: a.dispatch.requestedBy === 'web' ? 'web' : 'app', pickupWindow: a.dispatch.pickupWindow };
+    return pl;
+  }
+  let mtAsBusy = false, mtAsTimer = null;
+  async function mtPushAssets() {
+    if (mtAsBusy) return; mtAsBusy = true;
+    try {
+      const me = mtSbUid(); if (!me) return;
+      const localMe = getCurrentUserId(); const st = loadAppState(); const sent = mtSentMap(); let dirty = false;
+      for (const a of (st.assets || [])) {
+        const pl = mtAssetPayload(a); if (!pl) continue;
+        if (pl.tenantUid !== me && !pl.hostUids.includes(me) && String(a.ownerId) !== String(localMe) && String(a.sellerId) !== String(localMe)) continue;
+        const key = 'asset:' + a.id, h = JSON.stringify(pl);
+        if (sent[key] && sent[key].h === h) continue;
+        pl.updatedAt = Date.now();
+        try { await mtEntRpc('app_record_put', { p_kind: 'asset', p_key: key, p_payload: pl, p_parties: [pl.tenantUid].concat(pl.hostUids) }); sent[key] = { h: h, at: pl.updatedAt }; dirty = true; } catch (e) {}
+      }
+      if (dirty) mtSaveSent(sent);
+    } catch (e) {} finally { mtAsBusy = false; }
+  }
+  function mtAssetPushSoon() { clearTimeout(mtAsTimer); mtAsTimer = setTimeout(mtPushAssets, 1500); }
+  { const __sa = saveAppState; saveAppState = function () { const r = __sa.apply(this, arguments); try { mtAssetPushSoon(); } catch (e) {} return r; }; }
+  function mtApplyAsset(p, me, localMe, sent, key, r) {
+    const st = loadAppState(); st.assets = st.assets || [];
+    let a = st.assets.find(x => x.id === p.id), changed = false; const iAmBuyer = p.tenantUid === me;
+    if (!a) {
+      a = { id: p.id, ownerId: iAmBuyer ? localMe : p.tenantUid, sellerId: iAmBuyer ? ((p.hostUids || [])[0] || null) : localMe, listingId: /^\d+$/.test(p.listingId) ? Number(p.listingId) : p.listingId,
+        title: p.title, location: p.location, amountLabel: p.amountLabel, paymentMode: p.paymentMode, installmentsPaid: p.installmentsPaid, installmentsTotal: p.installmentsTotal,
+        monthlyAmount: p.monthlyAmount, cofOStatus: 'Not Required for This Title Type', requiresConsent: false, consentStatus: null, deedAvailable: !!p.deedAvailable, purchaseDate: Date.now(), fromServer: true };
+      if (!iAmBuyer && p.tenantUid) { try { if (!st.users[p.tenantUid]) st.users[p.tenantUid] = { id: p.tenantUid, name: p.buyer || 'Buyer', role: 'tenant', supabaseUserId: p.tenantUid }; } catch (e) {} }
+      if (p.dispatch) a.dispatch = Object.assign({}, p.dispatch);
+      st.assets.unshift(a); changed = true;
+    } else {
+      const prev = sent[key] || {};
+      if (prev.at && Date.parse(r.updated_at) <= prev.at) return false;
+      if ((p.installmentsPaid || 0) > (a.installmentsPaid || 0)) { a.installmentsPaid = p.installmentsPaid; changed = true; }
+      if (p.deedAvailable && !a.deedAvailable) { a.deedAvailable = true; changed = true; }
+      if (p.dispatch && !a.dispatch) {
+        a.dispatch = Object.assign({}, p.dispatch); changed = true;
+        try {
+          if (iAmBuyer) pushPlatformNotification('tenant', 'message', 'Physical Documents On The Way', 'SmartyHub Logistics will collect the original title documents for ' + a.title + ' within 24–48 hours and deliver them to you.', { screen: 'assetHub' }, 'DISPATCH_REQUESTED', null, localMe);
+          else pushPlatformNotification('landlord', 'message', 'Dispatch Request Received', 'SmartyHub Logistics has your free dispatch request (' + p.dispatch.ref + ') for ' + a.title + '. Pick-up will happen within 24–48 hours — please have the original documents ready.', { screen: 'screen-owner-assets' }, 'DISPATCH_REQUESTED', null, localMe);
+        } catch (e) {}
+      }
+    }
+    if (!changed) return false;
+    saveAppState(st); appState = st;
+    const cur = mtAssetPayload(a); if (cur) sent[key] = { h: JSON.stringify(cur), at: Date.parse(r.updated_at) || Date.now() };
+    try { populateScreenOwnerAssets(); } catch (e) {}
+    return true;
   }
   function mtEnsureStayThread(b) {
     const me = getCurrentUserId(); const l = listings.find(x => String(x.id) === String(b.listingId));
@@ -31630,6 +31717,7 @@ available in the Post-Lease Hub and this chat thread.`
       rows.forEach(r => {
         if (!latest || r.updated_at > latest) latest = r.updated_at;
         if (!r.payload) return;
+        if (r.kind === 'asset') { try { if (mtApplyAsset(r.payload, me, localMe, sent, r.key, r)) changed = true; } catch (e) {} return; }
         if (r.kind === 'handover') { try { if (mtApplyHandover(r.payload, me, localMe, sent, r.key, r)) changed = true; } catch (e) {} return; }
         if (r.kind !== 'booking') return;
         const p = r.payload; const key = r.key;
@@ -31698,7 +31786,7 @@ available in the Post-Lease Hub and this chat thread.`
 
   // after any sign-in (also a fresh install): bring everything done on the website onto this phone right away
   window.mtSyncAll = function () {
-    [mtPullMyWebListings, mtPullInspectionRequests, mtPullChat, mtPullNotifications, mtPullPhoto, mtPullEnterprise, mtPullBookings, mtPullPayout, mtPushBookings, mtPushHandover]
+    [mtPullMyWebListings, mtPullInspectionRequests, mtPullChat, mtPullNotifications, mtPullPhoto, mtPullEnterprise, mtPullBookings, mtPullPayout, mtPushBookings, mtPushHandover, mtPushAssets]
       .forEach((f, i) => { try { setTimeout(f, 400 + i * 350); } catch (e) {} });
   };
   document.getElementById('ent-setup-logo-upload').addEventListener('click', () => document.getElementById('ent-setup-logo-file').click());
