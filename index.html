@@ -23259,7 +23259,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (!msg || msg.type !== 'text' || !msg.cid) return;
       const tok = await MtGoogleAuth.getToken();
       const r = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/chat_send', { method: 'POST', headers: mtSbHeaders(tok),
-        body: JSON.stringify({ p_entity: 'sched:insp_' + conv.inspectionId, p_body: String(msg.text || '').slice(0, 2000), p_cid: msg.cid }) });
+        body: JSON.stringify({ p_entity: (conv.convType === 'shortlet' ? 'sl:' + conv.bookingId : 'sched:insp_' + conv.inspectionId), p_body: String(msg.text || '').slice(0, 2000), p_cid: msg.cid }) });
       if (r.ok) { msg.synced = true; saveConversations(); }
     } catch (e) {}
   }
@@ -23268,7 +23268,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     if (mtChatBusy) return; mtChatBusy = true;
     try {
       if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !localStorage.getItem('mtr_sb_session')) return;
-      if (typeof conversations === 'undefined' || !conversations.length) return;
+      if (typeof conversations === 'undefined') return;
       const tok = await MtGoogleAuth.getToken();
       let since = null; try { since = localStorage.getItem('mtr_chat_since'); } catch (e) {}
       const r = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/chat_pull', { method: 'POST', headers: mtSbHeaders(tok), body: JSON.stringify({ p_since: since || null }) });
@@ -23278,7 +23278,12 @@ This voucher is auto-generated and serves as proof of settlement.`;
       let changed = false, latest = since;
       rows.forEach(m => {
         if (!latest || m.created_at > latest) latest = m.created_at;
-        const conv = conversations.find(c => c.inspectionId && !c.convType && 'sched:insp_' + c.inspectionId === m.entity_key);
+        let conv = conversations.find(c => c.inspectionId && !c.convType && 'sched:insp_' + c.inspectionId === m.entity_key);
+        if (!conv && String(m.entity_key).indexOf('sl:') === 0) {
+          const bid = String(m.entity_key).slice(3);
+          conv = conversations.find(c => c.convType === 'shortlet' && String(c.bookingId) === bid);
+          if (!conv) { try { const bk = shortletBookings.find(x => String(x.id) === bid); if (bk) conv = mtEnsureStayThread(bk); } catch (e) {} }
+        }
         if (!conv) return;
         if (conv.messages.some(x => x.cid && x.cid === m.cid)) return;
         if (conv.messages.some(x => x.backendId === m.id)) return;
@@ -25873,7 +25878,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     const sensitive = conv.convType === 'support' && mtBotSensitive(text);
     const msg = { from: 'me', type: 'text', text: sensitive ? 'Sensitive details hidden for your security' : shortletEsc(text), status: 'sent' };
     if (conv.convType === 'pair') msg.senderId = getCurrentUserId();
-    if (conv.inspectionId && !conv.convType) msg.cid = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    if ((conv.inspectionId && !conv.convType) || conv.convType === 'shortlet') msg.cid = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
     conv.messages.push(msg);
     saveConversations();
     if (msg.cid && typeof mtChatSend === 'function') mtChatSend(conv, msg);
@@ -28850,10 +28855,66 @@ available in the Post-Lease Hub and this chat thread.`
         document.getElementById('claim-temp-code').value = typedCode.toUpperCase();
         showToast('That is a temp code. Tap Verify to activate your account.');
       } else {
-        showLoginError('Account not found. Use a demo account (John Adam, Frank Hood, or Angel Tiwa).');
+        mtStaffLogin(typed.trim(), document.getElementById('login-password').value || '');
       }
     }
   });
+
+  // ---- Team member (staff) sign-in with a real account: the owner gave them an email + temporary password ----
+  const MT_SB = 'https://obtggomfwvravjcnypid.supabase.co', MT_KEY = 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8';
+  async function mtAuthCall(path, body, token, method) {
+    const res = await fetch(MT_SB + path, { method: method || 'POST', headers: { apikey: MT_KEY, 'Content-Type': 'application/json', Authorization: 'Bearer ' + (token || MT_KEY) }, body: JSON.stringify(body || {}) });
+    const d = await res.json().catch(() => ({}));
+    return { ok: res.ok, d };
+  }
+  function mtAskNewPassword() {
+    return new Promise((resolve) => {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:16px';
+      wrap.innerHTML = '<div style="background:#151518;color:#f4f4f5;border:1px solid #2a2a30;border-radius:16px;padding:20px;width:100%;max-width:360px;font-family:Inter,sans-serif"><h3 style="margin:0 0 4px;font-size:18px">Choose your own password</h3><p style="margin:0 0 12px;font-size:13px;color:#a1a1aa">The temporary password will stop working. At least 8 characters.</p>' +
+        '<input id="mtnp1" type="password" placeholder="New password" autocomplete="new-password" style="width:100%;padding:12px;margin-bottom:8px;border-radius:10px;border:1px solid #2a2a30;background:transparent;color:#fff"><input id="mtnp2" type="password" placeholder="Confirm password" autocomplete="new-password" style="width:100%;padding:12px;margin-bottom:8px;border-radius:10px;border:1px solid #2a2a30;background:transparent;color:#fff">' +
+        '<p id="mtnpe" style="color:#f87171;font-size:12.5px;min-height:18px;margin:0 0 8px"></p><button id="mtnpgo" style="width:100%;padding:12px;border:0;border-radius:10px;background:#7c3aed;color:#fff;font-weight:600">Save and continue</button></div>';
+      document.body.appendChild(wrap);
+      wrap.querySelector('#mtnpgo').onclick = () => {
+        const a = wrap.querySelector('#mtnp1').value, b = wrap.querySelector('#mtnp2').value, e = wrap.querySelector('#mtnpe');
+        if (a.length < 8) { e.textContent = 'Use at least 8 characters.'; return; }
+        if (a !== b) { e.textContent = 'The two passwords do not match.'; return; }
+        wrap.remove(); resolve(a);
+      };
+    });
+  }
+  async function mtStaffLogin(email, password) {
+    if (!/^\S+@\S+\.\S+$/.test(email) || !password) { showLoginError('Account not found. Team members: type your work email and the password your employer gave you.'); return; }
+    const btn = document.getElementById('login-submit-btn'); if (btn) { btn.disabled = true; btn.textContent = 'Signing in…'; }
+    const reset = () => { if (btn) { btn.disabled = false; btn.textContent = 'Log In'; } };
+    try {
+      const t = await mtAuthCall('/auth/v1/token?grant_type=password', { email: email.toLowerCase(), password });
+      if (!t.ok || !t.d.access_token) { showLoginError('Account not found, or the password is wrong.'); return reset(); }
+      let sess = { access_token: t.d.access_token, refresh_token: t.d.refresh_token, expires_at: Math.floor(Date.now() / 1000) + (t.d.expires_in || 3600), user: t.d.user };
+      const rpc = async (name, body) => { const r = await fetch(MT_SB + '/rest/v1/rpc/' + name, { method: 'POST', headers: { apikey: MT_KEY, Authorization: 'Bearer ' + sess.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) }); return r.ok ? r.json() : null; };
+      let ctx = await rpc('staff_context');
+      if (!ctx) { showLoginError('Account not found. Use a demo account, or sign in with Google if you are a landlord or agent.'); return reset(); }
+      if (ctx.must_change) {
+        const np = await mtAskNewPassword();
+        const u = await mtAuthCall('/auth/v1/user', { password: np, data: { must_change_password: false } }, sess.access_token, 'PUT');
+        if (!u.ok) { showLoginError((u.d && (u.d.msg || u.d.error_description)) || 'Could not save the new password.'); return reset(); }
+        await rpc('staff_mark_password_changed');
+      }
+      localStorage.setItem('mtr_sb_session', JSON.stringify(sess)); localStorage.setItem('mtr_staff_session', '1'); localStorage.removeItem('mtr_logged_out');
+      appState = loadAppState();
+      const owner = ctx.owner_uid, uid = sess.user.id;
+      if (!appState.users[owner]) appState.users[owner] = { id: owner, name: ctx.company || 'Company', role: ctx.owner_role || 'landlord', status: 'ACTIVE', supabaseUserId: owner };
+      const o = appState.users[owner];
+      o.enterprise = o.enterprise || { companyName: ctx.company || '', companyAddress: '', kind: ctx.kind, upgradedAt: Date.now() };
+      o.enterprise.staffIds = o.enterprise.staffIds || [];
+      if (o.enterprise.staffIds.indexOf(uid) < 0) o.enterprise.staffIds.push(uid);
+      appState.users[uid] = { id: uid, name: ctx.full_name, email: ctx.email, phone: '', role: 'enterprise_staff', staffRole: ctx.role, companyId: owner, status: 'ACTIVE', hasPassword: true, supabaseUserId: uid };
+      saveAppState(appState);
+      hideLoginError(); reset();
+      loginAsDemoUser({ id: uid, name: ctx.full_name, email: ctx.email, role: 'enterprise_staff' });
+      try { window.mtSyncAll && window.mtSyncAll(); } catch (e) {}
+    } catch (e) { showLoginError('Could not sign in just now. Check your connection and try again.'); reset(); }
+  }
   document.getElementById('login-email').addEventListener('input', () => hideLoginError());
   document.getElementById('login-signup-link').addEventListener('click', () => startFreshOnboarding());
 
@@ -29169,6 +29230,7 @@ available in the Post-Lease Hub and this chat thread.`
         saveSession(sess);
         try { localStorage.removeItem('mtr_logged_out'); } catch (e) {}
         await route(sess);
+        try { window.mtSyncAll && window.mtSyncAll(); } catch (e) {}
       } catch (err) {
         console.error(err);
         showToast('Google sign-in did not complete (' + (err.message || 'try again') + ').');
@@ -29215,7 +29277,7 @@ available in the Post-Lease Hub and this chat thread.`
     // Logging out keeps this phone's Google login so "Continue as <name>" works in one tap next time.
     // "Use a different Google account" is what actually forgets it.
     function signOut() {
-      try { localStorage.setItem('mtr_logged_out', '1'); } catch (e) {}
+      try { localStorage.setItem('mtr_logged_out', '1'); if (localStorage.getItem('mtr_staff_session')) { localStorage.removeItem('mtr_staff_session'); localStorage.removeItem(SKEY); } } catch (e) {}
       onboarding = false;
       unlockForm();
       try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); } catch (e) {}
@@ -29249,6 +29311,7 @@ available in the Post-Lease Hub and this chat thread.`
         await freshToken();
         try { localStorage.removeItem('mtr_logged_out'); } catch (e) {}
         await route(loadSession());
+        try { window.mtSyncAll && window.mtSyncAll(); } catch (e) {}
         return true;
       } catch (e) { console.error('resume failed:', e); clearSession(); showToast('Please sign in again (' + ((e && e.message) || 'session expired') + ').'); init(); return false; }
       finally { busy = false; }
@@ -31107,6 +31170,7 @@ available in the Post-Lease Hub and this chat thread.`
       appState.payoutAccounts = appState.payoutAccounts || {}; appState.payoutAccounts[uid] = { bankName: bank, accountNumber: acct };
       if (appState.users[uid]) appState.users[uid].settlementBank = { bankName: bank, accountNumber: acct };
       saveAppState(appState);
+      try { mtPushPayout(bank, acct, (res && (res.accountName || res.name)) || null); } catch (e) {}
       document.getElementById('payout-account-modal').classList.remove('open');
       showToast('Payout account saved');
       const cont = paAfterSave; paAfterSave = null; if (cont) cont();
@@ -31464,6 +31528,179 @@ available in the Post-Lease Hub and this chat thread.`
   }
   setInterval(mtPullEnterprise, 60000); document.addEventListener('visibilitychange', () => { if (!document.hidden) mtPullEnterprise(); });
   setTimeout(mtPullEnterprise, 5000);
+  // ---- Continuity (2): bookings, stay chat, payout account, and resume-after-install ----
+  function mtMapId(id) { try { const u = (appState.users || {})[id]; if (u && u.supabaseUserId) return String(u.supabaseUserId); } catch (e) {} return id == null ? '' : String(id); }
+  function mtSentMap() { try { return JSON.parse(localStorage.getItem('mtr_rec_sent') || '{}') || {}; } catch (e) { return {}; } }
+  function mtSaveSent(m) { try { localStorage.setItem('mtr_rec_sent', JSON.stringify(m)); } catch (e) {} }
+  function mtBookingPayload(b) {
+    const l = (typeof listings !== 'undefined' ? listings : []).find(x => String(x.id) === String(b.listingId));
+    const hostIds = [l && l.ownerId, l && l.agentId, b.hostId].filter(Boolean);
+    return {
+      id: String(b.id), listingId: b.listingId == null ? '' : String(b.listingId), listingTitle: b.listingTitle || '', location: b.location || '',
+      guest: b.guestName || resolveUserName(b.tenantId) || 'Guest', tenantUid: mtMapId(b.tenantId), hostUids: hostIds.map(mtMapId),
+      nights: b.nights, nightsPaid: b.nightsPaid, nightlyRate: b.nightlyRate, checkIn: b.checkIn, checkOut: b.checkOut, status: b.status,
+      total: (Number(b.nightlyRate) || 0) * (Number(b.nights) || 0) + (Number(b.serviceChargeFee) || 0) + (Number(b.platformFee) || 0) + (Number(b.cautionFee) || 0),
+      startedAt: b.startedAt || null
+    };
+  }
+  let mtBkBusy = false;
+  async function mtPushBookings() {
+    if (mtBkBusy) return; mtBkBusy = true;
+    try {
+      const me = mtSbUid(); if (!me || !localStorage.getItem('mtr_sb_session')) return;
+      const localMe = getCurrentUserId(); const sent = mtSentMap(); let dirty = false;
+      for (const b of (shortletBookings || [])) {
+        const pl = mtBookingPayload(b);
+        if (pl.tenantUid !== me && !pl.hostUids.includes(me) && String(b.tenantId) !== String(localMe)) continue;
+        const h = JSON.stringify(pl); const key = 'booking:' + pl.id;
+        if (sent[key] && sent[key].h === h) continue;
+        pl.updatedAt = Date.now();
+        try {
+          await mtEntRpc('app_record_put', { p_kind: 'booking', p_key: key, p_payload: pl, p_parties: [pl.tenantUid].concat(pl.hostUids) });
+          sent[key] = { h: h, at: pl.updatedAt }; dirty = true;
+        } catch (e) {}
+      }
+      if (dirty) mtSaveSent(sent);
+    } catch (e) {} finally { mtBkBusy = false; }
+  }
+  { const __sv = saveShortletBookings; saveShortletBookings = function () { const r = __sv.apply(this, arguments); setTimeout(mtPushBookings, 300); return r; }; }
+  function mtHandoverPayload(h) {
+    if (!h || h.docId || !h.sellerId) return null;
+    if (!h.syncId) { h.syncId = 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); try { localStorage.setItem('mtr_handover', JSON.stringify(h)); } catch (e) {} }
+    const small = (sig) => { try { return JSON.stringify(sig || '').length < 14000 ? (sig || null) : null; } catch (e) { return null; } };
+    let ls = h.landlordSignature ? small(h.landlordSignature) : null; if (h.landlordSignature && !ls) ls = { mode: 'type', data: h.landlordName || 'Seller' };
+    return { id: h.syncId, listingTitle: h.listingTitle, isLand: !!h.isLand, buyer: h.buyerName || 'Buyer', tenantUid: mtMapId(h.buyerId), hostUids: [mtMapId(h.sellerId)].filter(Boolean),
+      priceLabel: h.priceLabel, amount: Number(String(h.priceLabel || '').replace(/[^\d.]/g, '')) || 0, agreementTitle: h.agreementTitle, propertyAddress: h.propertyAddress,
+      landlordName: h.landlordName, commercial: !!h.commercial, tenantSignedAt: h.tenantSignedAt, tenantSignature: small(h.tenantSignature),
+      status: h.status, landlordSignature: ls, landlordSignedAt: h.landlordSignedAt || null };
+  }
+  let mtHoBusy = false;
+  async function mtPushHandover() {
+    if (mtHoBusy) return; mtHoBusy = true;
+    try {
+      const me = mtSbUid(); if (!me || !localStorage.getItem('mtr_sb_session')) return;
+      const h = (typeof handover !== 'undefined') ? handover : null; const pl = mtHandoverPayload(h); if (!pl) return;
+      const localMe = getCurrentUserId();
+      if (pl.tenantUid !== me && !pl.hostUids.includes(me) && String(h.buyerId) !== String(localMe) && String(h.sellerId) !== String(localMe)) return;
+      const sent = mtSentMap(); const key = 'handover:' + pl.id; const hh = JSON.stringify(pl);
+      if (sent[key] && sent[key].h === hh) return;
+      pl.updatedAt = Date.now();
+      await mtEntRpc('app_record_put', { p_kind: 'handover', p_key: key, p_payload: pl, p_parties: [pl.tenantUid].concat(pl.hostUids) });
+      sent[key] = { h: hh, at: pl.updatedAt }; mtSaveSent(sent);
+    } catch (e) {} finally { mtHoBusy = false; }
+  }
+  { const __sh = saveHandover; saveHandover = function () { const r = __sh.apply(this, arguments); setTimeout(mtPushHandover, 300); return r; }; }
+  function mtApplyHandover(p, me, localMe, sent, key, r) {
+    let changed = false;
+    if (handover && handover.syncId === p.id) {
+      const prev = sent[key] || {};
+      if (prev.at && Date.parse(r.updated_at) <= prev.at) return false;
+      if (p.status === 'completed' && handover.status !== 'completed') {
+        handover.landlordSignature = p.landlordSignature || { mode: 'type', data: p.landlordName || 'Seller' };
+        handover.landlordSignedAt = p.landlordSignedAt || '';
+        handover.status = 'completed'; saveHandover(); changed = true;
+        try { if (p.tenantUid === me) pushPlatformNotification('tenant', 'message', 'Agreement Countersigned', 'The seller countersigned the agreement for ' + (p.listingTitle || 'your purchase') + '.', null, 'COUNTERSIGN_DONE', null, localMe); } catch (e) {}
+      }
+    } else if (!handover && p.tenantUid !== me && p.status === 'tenant-signed') {
+      handover = { syncId: p.id, buyerId: p.tenantUid, buyerName: p.buyer, listingTitle: p.listingTitle, isLand: !!p.isLand, propertyAddress: p.propertyAddress,
+        landlordName: p.landlordName, agreementTitle: p.agreementTitle, commercial: !!p.commercial, priceLabel: p.priceLabel, sellerId: localMe,
+        companyAddress: '', ceoName: '', tenantSignature: p.tenantSignature || { mode: 'type', data: p.buyer || 'Buyer' }, tenantSignedAt: p.tenantSignedAt,
+        landlordSignature: null, landlordSignedAt: null, status: 'tenant-signed' };
+      saveHandover(); changed = true;
+      try { pushPlatformNotification('landlord', 'message', 'Signed Agreement Received', (p.buyer || 'A buyer') + ' signed the agreement for ' + (p.listingTitle || 'your property') + ' and it is waiting for your countersignature.', { screen: 'handoverReview' }, 'TENANT_SIGNED_AGREEMENT', null, localMe); } catch (e) {}
+    } else return false;
+    const cur = mtHandoverPayload(handover); if (cur) sent[key] = { h: JSON.stringify(cur), at: Date.parse(r.updated_at) || Date.now() };
+    return changed;
+  }
+  function mtEnsureStayThread(b) {
+    const me = getCurrentUserId(); const l = listings.find(x => String(x.id) === String(b.listingId));
+    let hostId, hostRole;
+    if (String(b.tenantId) === String(me)) { hostId = shortletHostIdOf(l); hostRole = (l && l.agentId) ? 'agent' : 'landlord'; }
+    else { hostId = me; hostRole = currentUserRole || 'landlord'; }
+    if (!hostId || !b.tenantId) return null;
+    return getOrCreateShortletThread(b, hostId, hostRole);
+  }
+  async function mtPullBookings() {
+    try {
+      const me = mtSbUid(); if (!me || document.hidden) return;
+      const out = await mtEntRpc('app_records_pull', { p_since: localStorage.getItem('mtr_rec_since') || null });
+      const rows = out.data; if (!Array.isArray(rows) || !rows.length) return;
+      const localMe = getCurrentUserId(); if (!localMe) return;
+      const sent = mtSentMap(); let changed = false, latest = null;
+      rows.forEach(r => {
+        if (!latest || r.updated_at > latest) latest = r.updated_at;
+        if (!r.payload) return;
+        if (r.kind === 'handover') { try { if (mtApplyHandover(r.payload, me, localMe, sent, r.key, r)) changed = true; } catch (e) {} return; }
+        if (r.kind !== 'booking') return;
+        const p = r.payload; const key = r.key;
+        let b = shortletBookings.find(x => String(x.id) === String(p.id));
+        const tenantLocal = p.tenantUid === me ? localMe : p.tenantUid;
+        if (!b) {
+          b = { id: /^\d+$/.test(p.id) ? Number(p.id) : p.id, listingId: p.listingId, listingTitle: p.listingTitle, location: p.location, tenantId: tenantLocal,
+                nights: p.nights, nightsPaid: p.nightsPaid, nightlyRate: p.nightlyRate, checkIn: p.checkIn, checkOut: p.checkOut, startedAt: p.startedAt || Date.now(),
+                status: p.status, guestName: p.guest, fromServer: true, agreementSignedTenant: true };
+          if (tenantLocal !== localMe) {
+            try { appState = loadAppState(); if (!appState.users[tenantLocal]) { appState.users[tenantLocal] = { id: tenantLocal, name: p.guest || 'Guest', role: 'tenant', supabaseUserId: p.tenantUid }; saveAppState(appState); } } catch (e) {}
+          }
+          shortletBookings.unshift(b); changed = true;
+          try { if (tenantLocal !== localMe) pushPlatformNotification(currentUserRole || 'landlord', 'booking', 'New short-let booking', (p.guest || 'A guest') + ' booked ' + (p.listingTitle || 'your property') + '.', null, 'shortlet', null, localMe); } catch (e) {}
+        } else {
+          const prev = sent[key] || {};
+          if (prev.at && Date.parse(r.updated_at) <= prev.at) return;       // our own change, already applied
+          // The host cancelled on the website (or in their app): the guest's phone does the refund and confirms it
+          if (String(b.tenantId) === String(localMe) && (p.cancelRequest || /CANCEL/.test(p.status || '')) && !shortletIsCancelled(b)) {
+            let done = false; try { done = cancelShortletBooking(b.id, (p.cancelRequest || /HOST/.test(p.status || '')) ? 'host' : 'guest'); } catch (e) {}
+            if (done) { sent[key] = { h: '', at: Date.parse(r.updated_at) || Date.now() }; changed = true; return; }
+            if (!/CANCEL/.test(p.status || '')) return;
+          }
+          let touched = false;
+          ['status', 'nightsPaid', 'checkIn', 'checkOut'].forEach(f => { if (p[f] != null && b[f] !== p[f]) { b[f] = p[f]; touched = true; } });
+          if (!touched) return; changed = true;
+        }
+        sent[key] = { h: JSON.stringify(mtBookingPayload(b)), at: Date.parse(r.updated_at) || Date.now() };
+      });
+      mtSaveSent(sent);
+      if (latest) { try { localStorage.setItem('mtr_rec_since', latest); } catch (e) {} }
+      if (changed) {
+        try { localStorage.setItem('mtr_shortlet_bookings', JSON.stringify(shortletBookings)); } catch (e) {}
+        try { window.dispatchEvent(new Event('maintown_state_updated')); } catch (e) {}
+        try { shortletBookings.forEach(b => { if (b.fromServer) mtEnsureStayThread(b); }); } catch (e) {}
+      }
+    } catch (e) {}
+  }
+  setInterval(mtPullBookings, 45000); document.addEventListener('visibilitychange', () => { if (!document.hidden) mtPullBookings(); });
+  setTimeout(mtPullBookings, 6000);
+
+  // payout bank account: saved on the account, so the website and every phone have it
+  async function mtPushPayout(bank, acct, name) {
+    const uid = mtSbUid(); if (!uid) return;
+    try { await mtEntRpc('save_my_payout_account', { p_bank: bank, p_number: acct, p_name: name || null }); try { localStorage.removeItem('mtr_payout_pending_' + uid); } catch (e) {} }
+    catch (e) { try { localStorage.setItem('mtr_payout_pending_' + uid, JSON.stringify({ bank: bank, acct: acct, name: name || null })); } catch (x) {} }
+  }
+  async function mtPullPayout() {
+    try {
+      const uid = mtSbUid(); if (!uid || document.hidden) return;
+      const pend = localStorage.getItem('mtr_payout_pending_' + uid);
+      if (pend) { const d = JSON.parse(pend); await mtPushPayout(d.bank, d.acct, d.name); return; }
+      const out = await mtEntRpc('my_payout_account'); const a = out.data;
+      const lu = walletTargetUserId(); if (!lu) return;
+      appState = loadAppState();
+      const have = mtHasPayoutAccount(lu);
+      if (!a) { if (have) { const cur = (appState.payoutAccounts || {})[lu] || (appState.users[lu] || {}).settlementBank; if (cur && cur.accountNumber) mtPushPayout(cur.bankName, cur.accountNumber, null); } return; }
+      const cur = (appState.payoutAccounts || {})[lu];
+      if (cur && cur.accountNumber === a.account_number && cur.bankName === a.bank_name) return;
+      appState.payoutAccounts = appState.payoutAccounts || {}; appState.payoutAccounts[lu] = { bankName: a.bank_name, accountNumber: a.account_number };
+      if (appState.users[lu]) appState.users[lu].settlementBank = { bankName: a.bank_name, accountNumber: a.account_number };
+      saveAppState(appState);
+    } catch (e) {}
+  }
+  setInterval(mtPullPayout, 90000); setTimeout(mtPullPayout, 7000);
+
+  // after any sign-in (also a fresh install): bring everything done on the website onto this phone right away
+  window.mtSyncAll = function () {
+    [mtPullMyWebListings, mtPullInspectionRequests, mtPullChat, mtPullNotifications, mtPullPhoto, mtPullEnterprise, mtPullBookings, mtPullPayout, mtPushBookings, mtPushHandover]
+      .forEach((f, i) => { try { setTimeout(f, 400 + i * 350); } catch (e) {} });
+  };
   document.getElementById('ent-setup-logo-upload').addEventListener('click', () => document.getElementById('ent-setup-logo-file').click());
   document.getElementById('ent-setup-logo-file').addEventListener('change', (e) => {
     const file = e.target.files[0];
