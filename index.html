@@ -22246,6 +22246,22 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // category: 'inspection' | 'payment' | 'message'
   // route: { screen: 'screen-inspections' | 'screen-post-lease' | 'screen-messages' | 'screen-5', convId?: number }
 
+  // ---- Email copy of important notifications (sent through the send-email function / Zoho) ----
+  async function mtEmailNotification(n) {
+    if (!n || n.type === 'NEW_MESSAGE' || !n.title) return;
+    const me = mtSbUid(); if (!me || !window.MtGoogleAuth || !MtGoogleAuth.getToken) return;
+    if (n.forUserId && String(n.forUserId) !== String(getCurrentUserId())) return;
+    let seen = {}; try { seen = JSON.parse(localStorage.getItem('mtr_mail_sent') || '{}'); } catch (e) {}
+    const k = String(n.type || '') + '|' + n.title + '|' + String(n.body || '').slice(0, 80), now = Date.now();
+    if (seen[k] && now - seen[k] < 6 * 3600 * 1000) return;
+    seen[k] = now; Object.keys(seen).forEach(x => { if (now - seen[x] > 86400000) delete seen[x]; });
+    try { localStorage.setItem('mtr_mail_sent', JSON.stringify(seen)); } catch (e) {}
+    try {
+      const tok = await MtGoogleAuth.getToken();
+      await fetch('https://obtggomfwvravjcnypid.supabase.co/functions/v1/send-email', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, mtSbHeaders(tok)),
+        body: JSON.stringify({ type: 'generic', data: { subject: n.title, title: n.title, message: n.body || '' } }) });
+    } catch (e) {}
+  }
   function pushPlatformNotification(forRole, category, title, body, route, type, details, forUserId) {
     const notif = {
       id: Date.now() + Math.random(),
@@ -22268,6 +22284,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     platformNotifications.unshift(notif);
     savePlatformNotifications();
     updateAllBellDots(true);
+    try { mtEmailNotification(notif); } catch (e) {}
     // Simulated real-time push: a toast banner fires immediately whenever the
     // notification's target (specific user id, or role broadcast) matches
     // whoever is currently active in this session — mirroring a background
@@ -28670,6 +28687,12 @@ available in the Post-Lease Hub and this chat thread.`
         try { saveAccountRecord(); } catch (e) {}
       }
       if (localStorage.getItem('mtr_photo_pending_' + uid) && String(currentUserSelfieDataUrl || '').indexOf('data:image') === 0) mtSyncProfile(true);
+      // Self-heal: this phone has a photo but the account has none (web shows only the initial) -> upload it now.
+      else if (String(currentUserSelfieDataUrl || '').indexOf('data:image') === 0) {
+        const tok2 = await MtGoogleAuth.getToken();
+        const r2 = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/get_my_profile_card', { method: 'POST', headers: mtSbHeaders(tok2), body: '{}' });
+        if (r2.ok) { const c2 = await r2.json(); if (c2 && !c2.avatar_url) mtSyncProfile(true); }
+      }
     } catch (e) {}
   }
   // Demo accounts must not wear a real member's photo (an earlier build let it leak across accounts): drop it on demo login.
