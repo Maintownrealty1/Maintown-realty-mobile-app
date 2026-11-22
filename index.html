@@ -7436,7 +7436,7 @@
       <i data-lucide="shield-check" class="w-8 h-8 text-purple-400"></i>
     </div>
     <h2 class="modal-title">Verify your identity</h2>
-    <p class="modal-sub">Enter the 6-digit verification code sent to your Phone & Email</p>
+    <p class="modal-sub">Enter the 6-digit verification code we sent to your email</p>
 
     <div class="otp-boxes" id="otp-boxes">
       <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
@@ -7787,7 +7787,7 @@
     </div>
 
     <p class="s5-section-label"><i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i>Verification Code</p>
-    <p class="modal-sub" style="margin-top: -6px;">Enter the 6-digit code sent to your phone to confirm you agree</p>
+    <p class="modal-sub" style="margin-top: -6px;">Enter the 6-digit code we sent to your email to confirm you agree</p>
     <div id="tp-otp-lock-wrap" class="tp-locked">
       <div class="otp-boxes" id="tp-otp-boxes">
         <input maxlength="1" type="text" inputmode="numeric" class="otp-input">
@@ -8968,7 +8968,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     otpModal.classList.add('open');
+    otpInputs.forEach(i => { i.value = ''; });
     document.querySelector('#otp-modal .otp-input').focus();
+    MtOtp.send(document.getElementById('reg-email').value.trim(), 'register');
   });
 
   closeModal.addEventListener('click', () => otpModal.classList.remove('open'));
@@ -8989,6 +8991,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // ---- Real email codes (email-otp function, sent from info@maintownrealty.com) ----
+  const MtOtp = {
+    url: 'https://obtggomfwvravjcnypid.supabase.co/functions/v1/email-otp',
+    async call(body) {
+      if (body.purpose === 'agreement') { try { const u = loadAppState().users[getCurrentUserId()]; if (u && !u.supabaseUserId) return { notDeployed: true, demo: true }; } catch (e) {} }
+      let r; try { r = await fetch(this.url, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8' }, body: JSON.stringify(body) }); }
+      catch (e) { return { offline: true, error: 'No connection. Check your internet and try again.' }; }
+      if (r.status === 404) return { notDeployed: true };
+      const j = await r.json().catch(() => ({})); return r.ok ? { ok: true } : { error: j.error || 'Something went wrong. Please try again.' };
+    },
+    async send(email, purpose) {
+      const out = await this.call({ action: 'send', email, purpose });
+      if (out.notDeployed) { if (!out.demo) showToast('Email verification is not switched on yet (test mode). Enter any 6 digits.'); return { ok: true, test: true }; }
+      if (out.ok) showToast('We sent a 6-digit code to ' + email); else showToast(out.error);
+      return out;
+    },
+    async verify(email, code, purpose) {
+      const out = await this.call({ action: 'verify', email, code, purpose });
+      if (out.notDeployed) return { ok: true, test: true };
+      return out;
+    }
+  };
+  function mtCurrentEmail() { try { const u = loadAppState().users[getCurrentUserId()]; return (u && u.email) || (document.getElementById('reg-email') || {}).value || ''; } catch (e) { return ''; } }
   // ---- Toast helper ----
   const toast = document.getElementById('toast');
   const toastMessage = document.getElementById('toast-message');
@@ -12855,6 +12880,8 @@ This voucher is auto-generated and serves as proof of settlement.`;
         name: l.landlordName || (u && u.name) || null, role: l.listedByRole || l.listedBy || null,
         phone: (u && u.phone) || null, email: (u && u.email) || null,
         agentName: l.agentName || null, ownerId: l.ownerId || null,
+        companyUid: (function () { try { const c = l.companyId || l.enterpriseId; const cu = c && (loadAppState().users || {})[c]; return (cu && cu.supabaseUserId) ? String(cu.supabaseUserId) : null; } catch (e) { return null; } })(),
+        staffUid: (function () { try { const sId = l.listedByStaffId || l.staffId; const su = sId && (loadAppState().users || {})[sId]; return (su && su.supabaseUserId) ? String(su.supabaseUserId) : null; } catch (e) { return null; } })(),
         ownerUid: (typeof uidOf === 'function' ? (uidOf(l.ownerId) !== l.ownerId ? uidOf(l.ownerId) : null) : null),
         ...(l.propertyProof && l.propertyProof.reusedFrom ? { verified_property: 'Same property as an already verified listing' } : {})
       };
@@ -17764,6 +17791,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     tpOtpLockWrap.classList.toggle('tp-locked', !unlocked);
     tpOtpInputs.forEach(i => { i.disabled = !unlocked; });
     tpAgreeBtn.disabled = !(unlocked && tpSigHasStrokes && tpOtpValue().length === 6);
+    if (unlocked && !window.__tpOtpSent) { window.__tpOtpSent = true; MtOtp.send(mtCurrentEmail(), 'agreement'); }
   }
 
   // Shared bottom-of-box check — used both on manual scroll and right after
@@ -17852,7 +17880,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       <p>${ADR_CLAUSE_TEXT}</p>
 
       <h1>9. Signature</h1>
-      <p>By signing below and confirming with the verification code sent to your phone, both parties acknowledge they have read, understood and agree to be bound by the terms of this Agreement, including ${commercial ? `the annual rent review terms in Clause 1` : `the payment default stages in Clause 5`} and the Dispute Resolution clause in Clause 8. Electronic signatures and the computer-generated records of this Agreement and its execution are intended to be admissible in evidence in line with Section 84 of the Evidence Act 2011.</p>${signatoryName ? `
+      <p>By signing below and confirming with the verification code sent to your email, both parties acknowledge they have read, understood and agree to be bound by the terms of this Agreement, including ${commercial ? `the annual rent review terms in Clause 1` : `the payment default stages in Clause 5`} and the Dispute Resolution clause in Clause 8. Electronic signatures and the computer-generated records of this Agreement and its execution are intended to be admissible in evidence in line with Section 84 of the Evidence Act 2011.</p>${signatoryName ? `
       <p>Countersigned for and on behalf of <strong>${landlordName}</strong> by its Chief Executive Officer, <strong>${signatoryName}</strong>.</p>` : ''}
     `;
   }
@@ -17885,6 +17913,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     tpAgreeBtn.disabled = true;
     tpAgreementBox.scrollTop = 0;
 
+    window.__tpOtpOk = false; window.__tpOtpSent = false;
     tenancyPolicyModal.classList.add('open');
     resizeTpSigCanvas();
     tpSigCtx.clearRect(0, 0, tpSigCanvas.width, tpSigCanvas.height);
@@ -17896,6 +17925,15 @@ This voucher is auto-generated and serves as proof of settlement.`;
     tenancyPolicyModal.classList.remove('open');
   });
 
+  // Email code gate for the land agreement: the code is sent the moment the person finishes reading, and checked before signing.
+  document.getElementById('tp-agree-btn').addEventListener('click', async (ev) => {
+    if (window.__tpOtpOk || tpAgreeBtn.disabled) return;
+    ev.stopImmediatePropagation(); ev.preventDefault();
+    tpAgreeBtn.disabled = true;
+    const out = await MtOtp.verify(mtCurrentEmail(), tpOtpValue(), 'agreement');
+    if (out.ok) { window.__tpOtpOk = true; tpAgreeBtn.disabled = false; tpAgreeBtn.click(); window.__tpOtpOk = false; }
+    else { showToast(out.error || 'That code is not right.'); updateTpAgreeState(); }
+  }, true);
   document.getElementById('tp-agree-btn').addEventListener('click', () => {
     if (tpAgreeBtn.disabled) return;
     checkoutTenantSignature = { mode: 'draw', data: tpSigCanvas.toDataURL('image/png') };
@@ -21922,22 +21960,21 @@ This voucher is auto-generated and serves as proof of settlement.`;
     try { if (window.MtGoogleAuth) window.MtGoogleAuth.afterOnboarding(); } catch (e) {}
   });
 
-  // ---- Verify & Proceed to KYC (demo mode: any 6-digit code, or even the button alone, passes) ----
-  document.getElementById('verify-btn').addEventListener('click', () => {
+  // ---- Verify & Proceed to KYC: the code is checked against the one emailed to the person ----
+  document.getElementById('verify-btn').addEventListener('click', async () => {
     const code = Array.from(otpInputs).map(i => i.value).join('');
-
-    // Demo mode: accept any fully-typed 6-digit code, OR auto-fill remaining boxes so verification always proceeds
-    if (code.length < 6) {
-      otpInputs.forEach(input => { if (!input.value) input.value = String(Math.floor(Math.random() * 10)); });
-    }
-
-    showToast('OTP Verified Successfully!');
-
+    if (code.length < 6) { showToast('Enter the 6-digit code we emailed you.'); return; }
+    const btn = document.getElementById('verify-btn'); btn.disabled = true;
+    const out = await MtOtp.verify(document.getElementById('reg-email').value.trim(), code, 'register');
+    btn.disabled = false;
+    if (!out.ok) { showToast(out.error || 'That code is not right.'); return; }
+    showToast('Email verified!');
     setTimeout(() => {
       otpModal.classList.remove('open');
       proceedFromScreen1();
-    }, 700);
+    }, 600);
   });
+  document.querySelector('#otp-modal .resend-link').addEventListener('click', () => { MtOtp.send(document.getElementById('reg-email').value.trim(), 'register'); });
 
   // ==================================================================
   // ---- Land & Property Installment Selector Modal ----
@@ -22248,7 +22285,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
 
   // ---- Email copy of important notifications (sent through the send-email function / Zoho) ----
   async function mtEmailNotification(n) {
-    if (!n || n.type === 'NEW_MESSAGE' || !n.title) return;
+    if (!n || ['NEW_MESSAGE', 'BACKEND_REQUEST', 'BOOKING_UPDATE'].includes(n.type) || !n.title) return; // server events are already emailed by the database
     const me = mtSbUid(); if (!me || !window.MtGoogleAuth || !MtGoogleAuth.getToken) return;
     if (n.forUserId && String(n.forUserId) !== String(getCurrentUserId())) return;
     let seen = {}; try { seen = JSON.parse(localStorage.getItem('mtr_mail_sent') || '{}'); } catch (e) {}
@@ -23343,6 +23380,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       rows.slice().reverse().forEach(n => {
         if (n.kind === 'request') pushPlatformNotification(role, 'inspection', n.title, n.body, { screen: 'screen-inspections' }, 'BACKEND_REQUEST', null, me);
         else if (n.kind === 'message') pushPlatformNotification(role, 'message', n.title, n.body, { screen: 'screen-messages' }, 'NEW_MESSAGE', null, me);
+        else if (n.kind === 'booking') pushPlatformNotification(role, 'message', n.title, n.body, null, 'BOOKING_UPDATE', null, me);
       });
       await fetch(url + 'mark_notifications_read', { method: 'POST', headers: mtSbHeaders(tok), body: JSON.stringify({ p_ids: rows.map(n => n.id) }) });
     } catch (e) {} finally { mtNotifBusy = false; }
