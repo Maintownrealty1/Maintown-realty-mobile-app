@@ -4219,6 +4219,11 @@
       <input class="field-input" id="reg-email" type="email" required placeholder="you@example.com">
     </div>
 
+    <div class="field" id="reg-password-field">
+      <label class="field-label">Create Password</label>
+      <input class="field-input" id="reg-password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters (you will use it to log in)">
+    </div>
+
     <div class="field">
       <label class="field-label">Phone Number</label>
       <div class="phone-row">
@@ -8967,10 +8972,18 @@ document.addEventListener('DOMContentLoaded', () => {
       regBvnInput.focus();
       return;
     }
+    const regLocked = !!document.getElementById('reg-email').dataset.mtgLocked;
+    if (!regLocked && (document.getElementById('reg-password').value || '').length < 8) {
+      showToast('Create a password of at least 8 characters');
+      document.getElementById('reg-password').focus();
+      return;
+    }
     otpModal.classList.add('open');
     otpInputs.forEach(i => { i.value = ''; });
     document.querySelector('#otp-modal .otp-input').focus();
-    MtOtp.send(document.getElementById('reg-email').value.trim(), 'register');
+    MtOtp.send(document.getElementById('reg-email').value.trim(), regLocked ? 'verify' : 'register').then(out => {
+      if (out && out.exists) { otpModal.classList.remove('open'); const l = document.getElementById('reg-login-link'); if (l) l.click(); setTimeout(() => { const le = document.getElementById('login-email'); if (le) le.value = document.getElementById('reg-email').value.trim(); }, 50); }
+    });
   });
 
   closeModal.addEventListener('click', () => otpModal.classList.remove('open'));
@@ -8999,12 +9012,17 @@ document.addEventListener('DOMContentLoaded', () => {
       let r; try { r = await fetch(this.url, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8' }, body: JSON.stringify(body) }); }
       catch (e) { return { offline: true, error: 'No connection. Check your internet and try again.' }; }
       if (r.status === 404) return { notDeployed: true };
-      const j = await r.json().catch(() => ({})); return r.ok ? { ok: true } : { error: j.error || 'Something went wrong. Please try again.' };
+      const j = await r.json().catch(() => ({})); return r.ok ? { ok: true } : { error: j.error || 'Something went wrong. Please try again.', exists: !!j.exists };
     },
     async send(email, purpose) {
       const out = await this.call({ action: 'send', email, purpose });
       if (out.notDeployed) { if (!out.demo) showToast('Email verification is not switched on yet (test mode). Enter any 6 digits.'); return { ok: true, test: true }; }
       if (out.ok) showToast('We sent a 6-digit code to ' + email); else showToast(out.error);
+      return out;
+    },
+    async register(email, code, password, name, role) {
+      const out = await this.call({ action: 'register', email, code, password, name, role, purpose: 'register' });
+      if (out.notDeployed) return { ok: true, test: true };
       return out;
     },
     async verify(email, code, purpose) {
@@ -21960,14 +21978,32 @@ This voucher is auto-generated and serves as proof of settlement.`;
     try { if (window.MtGoogleAuth) window.MtGoogleAuth.afterOnboarding(); } catch (e) {}
   });
 
-  // ---- Verify & Proceed to KYC: the code is checked against the one emailed to the person ----
+  // ---- Verify & Proceed to KYC: the code is checked against the one emailed to the person.
+  // A new email + password person also gets their real login created here (same login works in the app and on the website). ----
   document.getElementById('verify-btn').addEventListener('click', async () => {
     const code = Array.from(otpInputs).map(i => i.value).join('');
     if (code.length < 6) { showToast('Enter the 6-digit code we emailed you.'); return; }
     const btn = document.getElementById('verify-btn'); btn.disabled = true;
-    const out = await MtOtp.verify(document.getElementById('reg-email').value.trim(), code, 'register');
+    const emailV = document.getElementById('reg-email').value.trim();
+    const locked = !!document.getElementById('reg-email').dataset.mtgLocked;
+    let out;
+    if (locked) out = await MtOtp.verify(emailV, code, 'verify');
+    else out = await MtOtp.register(emailV, code, document.getElementById('reg-password').value, document.getElementById('reg-fullname').value.trim(), currentUserRole);
+    if (!out.ok) {
+      btn.disabled = false;
+      showToast(out.error || 'That code is not right.');
+      if (out.exists) { otpModal.classList.remove('open'); const l = document.getElementById('reg-login-link'); if (l) l.click(); }
+      return;
+    }
+    if (!locked && !out.test) {
+      // log the new account in so their onboarding is saved to it
+      const t = await mtAuthCall('/auth/v1/token?grant_type=password', { email: emailV.toLowerCase(), password: document.getElementById('reg-password').value });
+      if (t.ok && t.d.access_token) {
+        try { localStorage.setItem('mtr_sb_session', JSON.stringify({ access_token: t.d.access_token, refresh_token: t.d.refresh_token, expires_at: Math.floor(Date.now() / 1000) + (t.d.expires_in || 3600), user: t.d.user })); localStorage.removeItem('mtr_logged_out'); localStorage.removeItem('mtr_staff_session'); } catch (e) {}
+        try { window.MtGoogleAuth.beginPasswordOnboarding(); } catch (e) {}
+      }
+    }
     btn.disabled = false;
-    if (!out.ok) { showToast(out.error || 'That code is not right.'); return; }
     showToast('Email verified!');
     setTimeout(() => {
       otpModal.classList.remove('open');
@@ -28978,11 +29014,18 @@ available in the Post-Lease Hub and this chat thread.`
     const reset = () => { if (btn) { btn.disabled = false; btn.textContent = 'Log In'; } };
     try {
       const t = await mtAuthCall('/auth/v1/token?grant_type=password', { email: email.toLowerCase(), password });
-      if (!t.ok || !t.d.access_token) { showLoginError('Account not found, or the password is wrong.'); return reset(); }
+      if (!t.ok || !t.d.access_token) { showLoginError('Wrong email or password. If you signed up with Google, use the Google button.'); return reset(); }
       let sess = { access_token: t.d.access_token, refresh_token: t.d.refresh_token, expires_at: Math.floor(Date.now() / 1000) + (t.d.expires_in || 3600), user: t.d.user };
       const rpc = async (name, body) => { const r = await fetch(MT_SB + '/rest/v1/rpc/' + name, { method: 'POST', headers: { apikey: MT_KEY, Authorization: 'Bearer ' + sess.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) }); return r.ok ? r.json() : null; };
       let ctx = await rpc('staff_context');
-      if (!ctx) { showLoginError('Account not found. Use a demo account, or sign in with Google if you are a landlord or agent.'); return reset(); }
+      if (!ctx) {
+        // Not a team member: an ordinary member (tenant, landlord or agent) logging in with the email and password they created.
+        try { localStorage.setItem('mtr_sb_session', JSON.stringify(sess)); localStorage.removeItem('mtr_logged_out'); localStorage.removeItem('mtr_staff_session'); } catch (e) {}
+        hideLoginError(); reset();
+        await window.MtGoogleAuth.routeSession(sess);
+        try { window.mtSyncAll && window.mtSyncAll(); } catch (e) {}
+        return;
+      }
       if (ctx.must_change) {
         const np = await mtAskNewPassword();
         const u = await mtAuthCall('/auth/v1/user', { password: np, data: { must_change_password: false } }, sess.access_token, 'PUT');
@@ -29250,11 +29293,13 @@ available in the Post-Lease Hub and this chat thread.`
       });
       const em = document.getElementById('reg-email');
       if (em && email) { em.readOnly = true; em.style.opacity = '0.75'; em.dataset.mtgLocked = '1'; }
+      { const pf = document.getElementById('reg-password-field'); if (pf && email) pf.style.display = 'none'; }
     }
     function unlockForm() {
       roleCards.forEach(c => { if (c.dataset.mtgLocked) { c.style.pointerEvents = ''; c.style.opacity = ''; delete c.dataset.mtgLocked; } });
       const em = document.getElementById('reg-email');
       if (em && em.dataset.mtgLocked) { em.readOnly = false; em.style.opacity = ''; delete em.dataset.mtgLocked; }
+      { const pf = document.getElementById('reg-password-field'); if (pf) pf.style.display = ''; }
     }
 
     function startOnboarding(o) {
@@ -29340,7 +29385,7 @@ available in the Post-Lease Hub and this chat thread.`
           p_role: role,
           p_full_name: ((document.getElementById('reg-fullname') || {}).value || '').trim() || meta.full_name || meta.name || '',
           p_avatar_url: meta.avatar_url || meta.picture || null,
-          p_provider: 'google'
+          p_provider: (((sess.user || {}).app_metadata || {}).provider === 'email' ? 'email' : 'google')
         }, t);
       } catch (e) { console.error('could not save role (continuing):', e); }
     }
@@ -29357,7 +29402,7 @@ available in the Post-Lease Hub and this chat thread.`
         const meta = (sess.user && sess.user.user_metadata) || {};
         const role = (cu && cu.role) || currentUserRole;
         if (ROLES.includes(role)) {
-          await rpc('save_waitlist_signup', { p_role: role, p_full_name: (cu && cu.name) || meta.full_name || '', p_avatar_url: meta.avatar_url || meta.picture || null, p_provider: 'google' }, t);
+          await rpc('save_waitlist_signup', { p_role: role, p_full_name: (cu && cu.name) || meta.full_name || '', p_avatar_url: meta.avatar_url || meta.picture || null, p_provider: (((sess.user || {}).app_metadata || {}).provider === 'email' ? 'email' : 'google') }, t);
         }
         await rpc('complete_onboarding', {}, t);
       } catch (e) { console.error('could not mark onboarding complete (continuing):', e); }
@@ -29426,7 +29471,9 @@ available in the Post-Lease Hub and this chat thread.`
     // and the normal login / onboarding keeps working.
     (function waitForGoogle(n) { init().then(ok => { if (!ok && n < 24) setTimeout(() => waitForGoogle(n + 1), 250); }); })(0);
 
-    return { unlockForm, afterRoleChosen, afterOnboarding, signOut, getToken: freshToken };
+    // Email + password people (registered in the app or on the website) use the same server steps as Google people.
+    function beginPasswordOnboarding() { onboarding = true; }
+    return { unlockForm, afterRoleChosen, afterOnboarding, signOut, getToken: freshToken, beginPasswordOnboarding, routeSession: route };
   })();
 
   // ---- Register screen: "Already have an account? Login" -> Login screen ----
@@ -31844,10 +31891,11 @@ available in the Post-Lease Hub and this chat thread.`
     } catch (e) {}
   }
   setInterval(mtPullPayout, 90000); setTimeout(mtPullPayout, 7000);
+  setInterval(mtPullTeam, 60000); setTimeout(mtPullTeam, 9000);
 
   // after any sign-in (also a fresh install): bring everything done on the website onto this phone right away
   window.mtSyncAll = function () {
-    [mtPullMyWebListings, mtPullInspectionRequests, mtPullChat, mtPullNotifications, mtPullPhoto, mtPullEnterprise, mtPullBookings, mtPullPayout, mtPushBookings, mtPushHandover, mtPushAssets]
+    [mtPullMyWebListings, mtPullInspectionRequests, mtPullChat, mtPullNotifications, mtPullPhoto, mtPullEnterprise, mtPullBookings, mtPullPayout, mtPushBookings, mtPushHandover, mtPushAssets, mtPullTeam]
       .forEach((f, i) => { try { setTimeout(f, 400 + i * 350); } catch (e) {} });
   };
   document.getElementById('ent-setup-logo-upload').addEventListener('click', () => document.getElementById('ent-setup-logo-file').click());
@@ -32900,6 +32948,39 @@ available in the Post-Lease Hub and this chat thread.`
   }
 
   // ---- Tab: Team & Access Management ----
+  // ---- Team members are REAL accounts on the server (staff-admin function): created, reset and removed there, the temporary
+  // login is emailed to them, and the same email + password works in the app and on the website. ----
+  function mtTempPassword() { const a = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let o = ''; const r = crypto.getRandomValues(new Uint32Array(10)); for (let i = 0; i < 10; i++) o += a[r[i] % a.length]; return o; }
+  async function mtStaffAdmin(body) {
+    if (!mtSbUid() || !window.MtGoogleAuth) throw new Error('Sign in with your real account to manage your team. Demo accounts cannot create real logins.');
+    const tok = await MtGoogleAuth.getToken();
+    const o = appState.users[getEnterpriseCompanyId()];
+    const res = await fetch(MT_SB + '/functions/v1/staff-admin', { method: 'POST', headers: { apikey: MT_KEY, Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ signinUrl: 'https://maintownrealty.com/staff.html', company: (o && o.enterprise && o.enterprise.companyName) || '' }, body)) });
+    const j = await res.json().catch(() => ({}));
+    if (res.status === 404) throw new Error('The team service is not set up yet. Ask the MainTown admin to deploy it.');
+    if (!res.ok || j.error) throw new Error(j.error || 'Could not reach the team service. Please try again.');
+    return j;
+  }
+  // Pull the real team from the server so staff added on the website show up here, and removals are reflected.
+  async function mtPullTeam() {
+    try {
+      const out = await mtEntRpc('staff_list', {}); if (out.skipped || !Array.isArray(out.data)) return false;
+      const st = loadAppState(); const cid = getEnterpriseCompanyId && st.users[(typeof getEnterpriseCompanyId === 'function' ? getEnterpriseCompanyId() : null)] ? getEnterpriseCompanyId() : null;
+      if (!cid || !st.users[cid] || !st.users[cid].enterprise || String(st.users[cid].supabaseUserId || '') !== String(mtSbUid() || '')) return false; // only the company owner's phone reconciles the team
+      const ent = st.users[cid].enterprise; ent.staffIds = ent.staffIds || []; let changed = false; const seen = {};
+      out.data.forEach(m => {
+        const email = String(m.email || '').toLowerCase(); seen[email] = true;
+        let u = Object.values(st.users).find(x => x.role === 'enterprise_staff' && x.companyId === cid && String(x.email || '').toLowerCase() === email);
+        const status = m.must_change ? 'PENDING_CLAIM' : 'ACTIVE';
+        if (!u) { const id = 'st_' + m.id; u = st.users[id] = { id, name: m.name, email, phone: m.phone || '', role: 'enterprise_staff', staffRole: m.role, companyId: cid, status, serverId: m.id, createdAt: Date.parse(m.created_at) || Date.now() }; ent.staffIds.push(id); changed = true; }
+        else { if (u.serverId !== m.id) { u.serverId = m.id; changed = true; } if (u.status !== status && u.status !== 'DEACTIVATED') { u.status = status; changed = true; } if (u.staffRole !== m.role) { u.staffRole = m.role; changed = true; } }
+      });
+      Object.values(st.users).forEach(u => { if (u.role === 'enterprise_staff' && u.companyId === cid && u.serverId && !seen[String(u.email || '').toLowerCase()] && u.status !== 'DEACTIVATED') { u.status = 'DEACTIVATED'; changed = true; } });
+      if (changed) { saveAppState(st); appState = st; try { renderEntTeam(); } catch (e) {} }
+      return changed;
+    } catch (e) { return false; }
+  }
   function renderEntTeam() {
     const companyId = getEnterpriseCompanyId();
     const team = Object.values(appState.users || {}).filter(u => u.role === 'enterprise_staff' && u.companyId === companyId);
@@ -32914,11 +32995,12 @@ available in the Post-Lease Hub and this chat thread.`
             <p class="ent-list-sub" style="margin-top:4px;">${
               u.status === 'ACTIVE' ? '<span class="status-pill success">Active</span>'
               : u.status === 'DEACTIVATED' ? '<span class="status-pill danger">Deactivated</span>'
-              : `<span class="status-pill warning">Pending · code ${u.tempCode}</span>`
+              : (u.serverId ? `<span class="status-pill warning">Invited · temporary login sent to their email</span>` : `<span class="status-pill warning">Pending · code ${u.tempCode}</span>`)
             }</p>
           </div>
         </div>
         <div class="ent-team-card-actions">
+          ${u.serverId && u.status !== 'DEACTIVATED' ? `<button type="button" class="ent-list-action-btn" data-reset-staff="${u.id}"><i data-lucide="key-round" class="w-3.5 h-3.5"></i>Reset password</button>` : ''}
           ${u.status !== 'DEACTIVATED'
             ? `<button type="button" class="ent-list-action-btn danger" data-deactivate="${u.id}"><i data-lucide="user-x" class="w-3.5 h-3.5"></i>Deactivate</button>`
             : `<button type="button" class="ent-list-action-btn primary" data-reactivate="${u.id}"><i data-lucide="user-check" class="w-3.5 h-3.5"></i>Reactivate</button>`}
@@ -32927,16 +33009,21 @@ available in the Post-Lease Hub and this chat thread.`
       </div>`).join('')
       : `<div class="ent-empty"><i data-lucide="users"></i><p>No team members yet — invite your first Sales, Legal, or Finance staff member above.</p></div>`;
   }
-  document.getElementById('ent-team-list').addEventListener('click', (e) => {
+  document.getElementById('ent-team-list').addEventListener('click', async (e) => {
     const deactivateBtn = e.target.closest('[data-deactivate]');
     const reactivateBtn = e.target.closest('[data-reactivate]');
     const deleteBtn = e.target.closest('[data-delete-staff]');
+    const resetBtn = e.target.closest('[data-reset-staff]');
     if (deleteBtn) { openDeleteStaffModal(deleteBtn.dataset.deleteStaff); return; }
-    const id = deactivateBtn ? deactivateBtn.dataset.deactivate : (reactivateBtn ? reactivateBtn.dataset.reactivate : null);
+    const id = deactivateBtn ? deactivateBtn.dataset.deactivate : (reactivateBtn ? reactivateBtn.dataset.reactivate : (resetBtn ? resetBtn.dataset.resetStaff : null));
     if (!id || !appState.users[id]) return;
-    appState.users[id].status = deactivateBtn ? 'DEACTIVATED' : 'PENDING_CLAIM';
+    const u = appState.users[id];
+    try {
+      if (resetBtn) { const pw = mtTempPassword(); const r = await mtStaffAdmin({ action: 'reset', id: u.serverId, password: pw }); u.status = 'PENDING_CLAIM'; showToast(r.emailed ? 'New temporary password emailed to ' + u.name : 'Password reset. Email could not be sent; their password is ' + pw); }
+      else if (deactivateBtn) { if (u.serverId) await mtStaffAdmin({ action: 'remove', id: u.serverId }); u.status = 'DEACTIVATED'; showToast('Team member access revoked'); }
+      else { if (u.serverId || mtSbUid()) { const pw = mtTempPassword(); const r = await mtStaffAdmin({ action: 'create', name: u.name, email: u.email, phone: u.phone || '', role: u.staffRole, password: pw }); u.serverId = r.id; showToast(r.emailed ? 'Re-invited: new login emailed to ' + u.name : 'Re-invited. Email could not be sent; their password is ' + pw); } u.status = 'PENDING_CLAIM'; }
+    } catch (err) { showToast(err.message); return; }
     saveAppState(appState);
-    showToast(deactivateBtn ? 'Team member access revoked' : 'Team member re-invited');
     renderEntTeam();
   });
 
@@ -32956,8 +33043,9 @@ available in the Post-Lease Hub and this chat thread.`
     deleteStaffModal.classList.remove('open');
     deleteStaffId = null;
   });
-  document.getElementById('del-staff-confirm-btn').addEventListener('click', () => {
+  document.getElementById('del-staff-confirm-btn').addEventListener('click', async () => {
     if (!deleteStaffId || !appState.users[deleteStaffId]) { deleteStaffModal.classList.remove('open'); return; }
+    { const du = appState.users[deleteStaffId]; if (du.serverId && du.status !== 'DEACTIVATED') { try { await mtStaffAdmin({ action: 'remove', id: du.serverId }); } catch (err) { showToast(err.message); return; } } }
     const companyId = getEnterpriseCompanyId();
     const company = appState.users[companyId];
     if (company && company.enterprise && Array.isArray(company.enterprise.staffIds)) {
@@ -32977,24 +33065,27 @@ available in the Post-Lease Hub and this chat thread.`
     document.getElementById('ent-invite-modal').classList.add('open');
   });
   document.getElementById('ent-invite-cancel-btn').addEventListener('click', () => document.getElementById('ent-invite-modal').classList.remove('open'));
-  document.getElementById('ent-invite-send-btn').addEventListener('click', () => {
+  document.getElementById('ent-invite-send-btn').addEventListener('click', async () => {
     const name = document.getElementById('ent-invite-name').value.trim();
     const email = document.getElementById('ent-invite-email').value.trim();
     const phone = document.getElementById('ent-invite-phone').value.trim();
     const staffRole = document.getElementById('ent-invite-role').value;
     if (!name || !email || !phone) { showToast('Please fill in all fields'); return; }
+    if (!/^\S+@\S+\.\S+$/.test(email)) { showToast('Enter a valid email address'); return; }
+    const btn = document.getElementById('ent-invite-send-btn'); btn.disabled = true;
     const companyId = getEnterpriseCompanyId();
-    const id = 'staff_' + Date.now();
-    const tempCode = generateTempCode();
-    appState.users[id] = {
-      id, name, email: normalizeContact(email), phone, role: 'enterprise_staff',
-      staffRole, companyId, status: 'PENDING_CLAIM', tempCode, createdAt: Date.now(),
-    };
+    const pw = mtTempPassword();
+    let r;
+    try { r = await mtStaffAdmin({ action: 'create', name, email, phone, role: staffRole, password: pw }); }
+    catch (err) { btn.disabled = false; showToast(err.message); return; }
+    btn.disabled = false;
+    const id = 'st_' + r.id;
+    appState.users[id] = { id, name, email: normalizeContact(email), phone, role: 'enterprise_staff', staffRole, companyId, status: 'PENDING_CLAIM', serverId: r.id, createdAt: Date.now() };
     appState.users[companyId].enterprise.staffIds = appState.users[companyId].enterprise.staffIds || [];
     appState.users[companyId].enterprise.staffIds.push(id);
     saveAppState(appState);
     document.getElementById('ent-invite-modal').classList.remove('open');
-    showToast(`Invite sent to ${name} via Email/SMS. Temp code ${tempCode}.`);
+    showToast(r.emailed ? 'Login created. We emailed ' + name + ' their temporary password.' : 'Login created, but the email could not be sent. Temporary password: ' + pw);
     renderEntTeam();
     window.dispatchEvent(new Event('maintown_state_updated'));
   });
