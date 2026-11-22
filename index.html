@@ -8972,6 +8972,7 @@ document.addEventListener('DOMContentLoaded', () => {
       regBvnInput.focus();
       return;
     }
+    window.__mtNin = regBvnInput.value.trim();   // kept in memory only, until the identity report is sent
     const regLocked = !!document.getElementById('reg-email').dataset.mtgLocked;
     if (!regLocked && (document.getElementById('reg-password').value || '').length < 8) {
       showToast('Create a password of at least 8 characters');
@@ -29280,7 +29281,7 @@ available in the Post-Lease Hub and this chat thread.`
         appState = loadAppState();
         if (appState.users && appState.users[localId]) {
           appState.users[localId].supabaseUserId = supabaseId;
-          appState.users[localId].google = true;
+          { const pv = ((((loadSession() || {}).user || {}).app_metadata) || {}).provider; if (pv && pv !== 'email') appState.users[localId].google = true; }
           saveAppState(appState);
         }
       } catch (e) {}
@@ -29327,6 +29328,8 @@ available in the Post-Lease Hub and this chat thread.`
       const name = String(meta.full_name || meta.name || email.split('@')[0] || '').trim();
       let prof = null;
       try { prof = await rpc('get_my_signup', {}, sess.access_token); } catch (e) { console.error('profile lookup failed (continuing):', e); }
+      // Someone who finished identity checks on the website is complete even if the signup row's flag lagged behind (server card knows).
+      try { const card = await rpc('get_my_profile_card', {}, sess.access_token); if (card && (card.onboarding_completed === true || card.kyc_done === true)) { prof = Object.assign({}, prof || {}, { onboarding_completed: true }, (prof && prof.role) ? {} : { role: card.role }, (prof && prof.full_name) ? {} : { full_name: card.full_name }); } } catch (e) {}
 
       appState = loadAppState();
       const users = Object.values(appState.users || {});
@@ -29344,7 +29347,7 @@ available in the Post-Lease Hub and this chat thread.`
       if (prof && prof.onboarding_completed === true) {
         const role = ROLES.includes(prof.role) ? prof.role : 'tenant';
         const id = role + '_' + Date.now().toString(36);
-        const rec = { status: 'ACTIVE', id, name: prof.full_name || name, email, role, address: '', supabaseUserId: u.id, google: true };
+        const rec = { status: 'ACTIVE', id, name: prof.full_name || name, email, role, address: '', supabaseUserId: u.id, google: !!(u.app_metadata && u.app_metadata.provider && u.app_metadata.provider !== 'email') };
         appState.users = appState.users || {};
         appState.users[id] = rec;
         saveAppState(appState);
@@ -29374,12 +29377,29 @@ available in the Post-Lease Hub and this chat thread.`
       }
     }
 
+    // Reports the NIN (last 4 digits kept) and live selfie to MainTown admin, tagged as an app sign-up. Never blocks the person; retried at next login.
+    async function reportIdentity(sess, token) {
+      try {
+        const nin = String(window.__mtNin || '').replace(/\D/g, '');
+        const self = (typeof currentUserSelfieDataUrl !== 'undefined') ? currentUserSelfieDataUrl : null;
+        if (!/^\d{11}$/.test(nin) || !self || String(self).indexOf('data:image') !== 0) return;
+        const uid = sess.user && sess.user.id; if (!uid) return;
+        const blob = await (await fetch(self)).blob();
+        const path = uid + '/kyc-selfie-' + Date.now() + '.jpg';
+        const up = await fetch(SB_URL + '/storage/v1/object/listing-docs/' + path, { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + token, 'Content-Type': blob.type || 'image/jpeg', 'x-upsert': 'false' }, body: blob });
+        if (!up.ok) throw new Error('selfie upload ' + up.status);
+        await rpc('member_submit_kyc', { p_nin: nin, p_selfie_path: path, p_source: 'app' }, token);
+        window.__mtNin = '';
+      } catch (e) { console.warn('identity report not delivered (will retry):', e); }
+    }
+
     // Called when the person taps Continue on the role screen: make sure the server knows their role.
     async function afterRoleChosen(role) {
       const sess = loadSession();
       if (!sess || !onboarding || !ROLES.includes(role)) return;
       try {
         const t = await freshToken();
+        rpc('member_mark_source', { p_source: 'app' }, t).catch(() => {});
         const meta = (sess.user && sess.user.user_metadata) || {};
         await rpc('save_waitlist_signup', {
           p_role: role,
@@ -29405,6 +29425,7 @@ available in the Post-Lease Hub and this chat thread.`
           await rpc('save_waitlist_signup', { p_role: role, p_full_name: (cu && cu.name) || meta.full_name || '', p_avatar_url: meta.avatar_url || meta.picture || null, p_provider: (((sess.user || {}).app_metadata || {}).provider === 'email' ? 'email' : 'google') }, t);
         }
         await rpc('complete_onboarding', {}, t);
+        reportIdentity(sess, t);
       } catch (e) { console.error('could not mark onboarding complete (continuing):', e); }
     }
 
