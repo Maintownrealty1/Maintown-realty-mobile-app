@@ -36401,7 +36401,7 @@ available in the Post-Lease Hub and this chat thread.`
       if (/message_too_long/.test(m)) return 'That message is too long. Please shorten it.';
       if (e && (e.status === 404 || e.code === 'PGRST202' || /Could not find the function/.test(m))) return 'Customer Service chat is not switched on yet. Please try again later.';
       if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'You appear to be offline. Your message was not sent.';
-      return 'Something went wrong. Please try again.';
+      return 'Something went wrong. Please try again.' + (m ? ' (' + m.replace(/\s+/g, ' ').slice(0, 140) + ')' : '');
     }
     function banner(msg) { const b = $('sl-banner'); if (!b) return; b.textContent = msg || ''; b.style.display = msg ? 'block' : 'none'; }
     function onScreen() { const s = $('screen-support-live'); return !!s && !s.classList.contains('hidden'); }
