@@ -4223,7 +4223,7 @@
     </div>
     <div class="field">
       <label class="field-label">Residential Address (as on your NIN / ID)</label>
-      <input class="field-input" id="reg-address" type="text" placeholder="House no., street, area, city (used on your agreements)">
+      <input class="field-input" id="reg-address" type="text" required placeholder="House no., street, area, city (used on your agreements)">
     </div>
 
     <div class="field" id="reg-occupation-field" style="display:none;">
@@ -4238,7 +4238,18 @@
 
     <div class="field" id="reg-password-field">
       <label class="field-label">Create Password</label>
-      <input class="field-input" id="reg-password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters (you will use it to log in)">
+      <div class="password-wrap">
+      <input class="field-input" id="reg-password" type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters (you will use it to log in)">
+        <button type="button" class="eye-btn" id="toggle-password">
+          <svg id="eye-open" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          <svg id="eye-closed" style="display:none" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12c1.292 4.338 5.31 7.5 10.066 7.5.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <div class="field">
@@ -4257,22 +4268,6 @@
       <label class="field-label">NIN (National Identification Number)</label>
       <input class="field-input" id="reg-bvn" type="text" inputmode="numeric" maxlength="11" required placeholder="11-digit NIN" autocomplete="off">
       <p style="font-size:11px; color:#64748b; margin:6px 2px 0;">Used once to verify who you are. Dial *346# on your registered phone to get your NIN. You add your bank account later, in Profile, or the first time you withdraw.</p>
-    </div>
-
-    <div class="field">
-      <label class="field-label">Password</label>
-      <div class="password-wrap">
-        <input class="field-input" id="password-input" type="password" required placeholder="Create a password">
-        <button type="button" class="eye-btn" id="toggle-password">
-          <svg id="eye-open" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-          </svg>
-          <svg id="eye-closed" style="display:none" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12c1.292 4.338 5.31 7.5 10.066 7.5.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/>
-          </svg>
-        </button>
-      </div>
     </div>
 
   </form>
@@ -8981,7 +8976,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Password toggle
-  const passwordInput = document.getElementById('password-input');
+  const passwordInput = document.getElementById('reg-password');
   const togglePassword = document.getElementById('toggle-password');
   const eyeOpen = document.getElementById('eye-open');
   const eyeClosed = document.getElementById('eye-closed');
@@ -9004,6 +8999,24 @@ document.addEventListener('DOMContentLoaded', () => {
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     if (!currentUserRole) return;
+    // Every field must be filled before the user can continue.
+    {
+      const lockedNow = !!document.getElementById('reg-email').dataset.mtgLocked;
+      const occ = document.getElementById('reg-occupation'), occVisible = occ && occ.offsetParent !== null;
+      const checks = [
+        ['reg-fullname', v => v.trim().split(/\s+/).filter(Boolean).length >= 2, 'Enter your full name (first and last name)'],
+        ['reg-address', v => v.trim().length >= 6, 'Enter your residential address'],
+        ['reg-email', v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()), 'Enter a valid email address'],
+        ...(lockedNow ? [] : [['reg-password', v => v.length >= 8, 'Create a password of at least 8 characters']]),
+        ['reg-phone', v => v.replace(/\D/g, '').length >= 10, 'Enter your phone number'],
+        ...(occVisible ? [['reg-occupation', v => v.trim().length >= 2, 'Enter your occupation']] : []),
+        ['reg-bvn', v => /^\d{11}$/.test(v.trim()), 'Enter your 11-digit NIN to continue']
+      ];
+      for (const [id, ok, msg] of checks) {
+        const el = document.getElementById(id);
+        if (el && !ok(el.value || '')) { el.style.borderColor = '#ef4444'; el.addEventListener('input', () => { el.style.borderColor = ''; }, { once: true }); showToast(msg); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); return; }
+      }
+    }
     // Flutterwave sub-account creation requires a BVN for every user.
     if (!/^\d{11}$/.test(regBvnInput.value.trim())) {
       showToast('Enter your 11-digit NIN to continue');
@@ -29450,13 +29463,13 @@ available in the Post-Lease Hub and this chat thread.`
       });
       const em = document.getElementById('reg-email');
       if (em && email) { em.readOnly = true; em.style.opacity = '0.75'; em.dataset.mtgLocked = '1'; }
-      { const pf = document.getElementById('reg-password-field'); if (pf && email) pf.style.display = 'none'; }
+      { const pf = document.getElementById('reg-password-field'); if (pf && email) { pf.style.display = 'none'; const pi = document.getElementById('reg-password'); if (pi) pi.required = false; } }
     }
     function unlockForm() {
       roleCards.forEach(c => { if (c.dataset.mtgLocked) { c.style.pointerEvents = ''; c.style.opacity = ''; delete c.dataset.mtgLocked; } });
       const em = document.getElementById('reg-email');
       if (em && em.dataset.mtgLocked) { em.readOnly = false; em.style.opacity = ''; delete em.dataset.mtgLocked; }
-      { const pf = document.getElementById('reg-password-field'); if (pf) pf.style.display = ''; }
+      { const pf = document.getElementById('reg-password-field'); if (pf) { pf.style.display = ''; const pi = document.getElementById('reg-password'); if (pi) pi.required = true; } }
     }
 
     function startOnboarding(o) {
@@ -29597,6 +29610,7 @@ available in the Post-Lease Hub and this chat thread.`
           await rpc('save_waitlist_signup', { p_role: role, p_full_name: (cu && cu.name) || meta.full_name || '', p_avatar_url: meta.avatar_url || meta.picture || null, p_provider: (((sess.user || {}).app_metadata || {}).provider === 'email' ? 'email' : 'google') }, t);
         }
         await rpc('complete_onboarding', {}, t);
+        try { await rpc('member_mark_onboarded', {}, t); } catch (e) { try { localStorage.setItem('mtr_onb_mark', sess.user.id); } catch (_) {} }
         reportIdentity(sess, t);
         try {   // a landlord an agent onboarded keeps their managed limits after finishing onboarding on this phone
           const mg = await rpc('my_agent_link', {}, t);
@@ -32092,7 +32106,17 @@ available in the Post-Lease Hub and this chat thread.`
   setInterval(mtPullTeam, 60000); setTimeout(mtPullTeam, 9000);
 
   // after any sign-in (also a fresh install): bring everything done on the website onto this phone right away
+  // A person who is inside the app proper (past every onboarding screen) is onboarded: tell the server once, so the website never asks again.
+  function mtMarkOnboardedOnce() {
+    try {
+      const inFlow = ['screen-welcome','screen-role','screen-1','screen-partnership','screen-2','screen-login'].some(id => { const el = document.getElementById(id); return el && !el.classList.contains('hidden-screen') && el.offsetParent; });
+      if (inFlow || !window.MtGoogleAuth || !window.MtGoogleAuth.getToken || !mtSbUid()) return;
+      Promise.resolve(window.MtGoogleAuth.getToken()).then(t => { if (!t) return;
+        return fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/member_mark_onboarded', { method: 'POST', headers: { apikey: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8', Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, body: '{}' }); }).catch(() => {});
+    } catch (e) {}
+  }
   window.mtSyncAll = function () {
+    setTimeout(mtMarkOnboardedOnce, 1500);
     [mtPullMyWebListings, mtPullAwaitingListings, () => { try { RemoteFeed.tick(); } catch (e) {} }, mtPullInspectionRequests, mtPullChat, mtPullNotifications, mtPullPhoto, mtPullEnterprise, mtPullBookings, mtPullPayout, mtPushBookings, mtPushHandover, mtPushAssets, mtPullTeam]
       .forEach((f, i) => { try { setTimeout(f, 400 + i * 350); } catch (e) {} });
   };
