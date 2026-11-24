@@ -36381,15 +36381,25 @@ available in the Post-Lease Hub and this chat thread.`
     const pad = n => 'MT-' + String(n).padStart(6, '0');
     const rd = (k, fb) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? fb : v; } catch (e) { return fb; } };
     function rand(bytes) { const a = new Uint8Array(bytes); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach((_, i) => { a[i] = Math.floor(Math.random() * 256); }); return Array.from(a, b => b.toString(16).padStart(2, '0')).join(''); }
-    function currentUid() { try { return (typeof getCurrentUserId === 'function' && getCurrentUserId()) || null; } catch (e) { return null; } }
+    function currentUid() { try { return (typeof mtSbUid === 'function' && mtSbUid()) || (typeof getCurrentUserId === 'function' && getCurrentUserId()) || null; } catch (e) { return null; } }
     function profile(uid) {
       const u = (rd('maintown_app_state', {}).users || {})[uid] || {};
       let role = null; try { role = (typeof currentUserRole !== 'undefined' && currentUserRole) || u.role || null; } catch (e) {}
       let name = u.name || null; try { if (!name && typeof DEMO_USERS !== 'undefined' && DEMO_USERS[uid]) name = DEMO_USERS[uid].name; } catch (e) {}
       return { name: name, role: role, email: u.email || null, phone: u.phone || null };
     }
+    // The server now identifies the person by their sign-in (support_auth_*), the same way for the app and the website,
+    // so one conversation follows them on every device. The old per-device secret is no longer used.
+    const AUTH_FN = { support_open: 'support_auth_open', support_fetch: 'support_auth_fetch', support_send: 'support_auth_send', support_unread: 'support_auth_unread' };
     async function rpc(fn, args) {
-      const r = await fetch(CFG.url + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: CFG.key, 'Content-Type': 'application/json' }, body: JSON.stringify(args) });
+      let tok = null;
+      try { tok = (window.MtGoogleAuth && MtGoogleAuth.getToken) ? await MtGoogleAuth.getToken() : null; } catch (e) {}
+      if (!tok) { const e = new Error('Please sign in again to use Customer Service.'); e.status = 401; throw e; }
+      let a = {};
+      if (fn === 'support_fetch') a = { p_after: args.p_after || null };
+      else if (fn === 'support_send') a = { p_body: args.p_body, p_media: args.p_media || [] };
+      fn = AUTH_FN[fn] || fn;
+      const r = await fetch(CFG.url + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: CFG.key, Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' }, body: JSON.stringify(a) });
       const t = await r.text(); let j = null; try { j = t ? JSON.parse(t) : null; } catch (e) {}
       if (!r.ok) { const e = new Error((j && (j.message || j.hint)) || ('HTTP ' + r.status)); e.status = r.status; e.code = j && j.code; throw e; }
       return j;
