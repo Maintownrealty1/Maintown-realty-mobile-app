@@ -4136,26 +4136,9 @@
 <!-- ===================== END SCREEN WELCOME ===================== -->
 
 <!-- ===================== SCREEN 1: Onboarding & Role Selection ===================== -->
-<div id="screen-1" class="screen hidden-screen">
-
-  <!-- Brand Header -->
-  <div class="brand-row">
-    <svg class="brand-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainTown Realty"><defs><mask id="mtlMaskM2" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-m" pathLength="1" d="M146 412 L146 190 L256 315 L365 190 L365 412" fill="none" stroke="#fff" stroke-width="72" stroke-linejoin="round"/></mask><mask id="mtlMaskR2" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-r" pathLength="1" d="M160 218 L256 126 L352 218" fill="none" stroke="#fff" stroke-width="64" stroke-linejoin="round"/></mask></defs><rect width="512" height="512" rx="112" fill="#0b0b0f"/><polygon points="130,168 130,403 162,403 163,249 256,339 348,249 349,403 381,403 381,168 256,292" fill="#7a24ef" mask="url(#mtlMaskM2)"/><polygon points="172,193 196,215 255,155 316,216 340,193 256,109" fill="#7a24ef" mask="url(#mtlMaskR2)"/><rect class="mtl-w mtl-w1" x="230" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w2" x="261" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w3" x="230" y="381" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w4" x="261" y="381" width="20" height="20" rx="2" fill="#fff"/></svg>
-    <div>
-      <p class="brand-name">MainTown Realty</p>
-      <p class="brand-tag">Own or rent, on your terms.</p>
-    </div>
-  </div>
-
-  <!-- Progress -->
-  <div class="progress-wrap" id="progress-wrap-1">
-    <div class="progress-labels">
-      <span class="progress-step">Step 1 of 3: Account Setup</span>
-      <span class="progress-pct">33%</span>
-    </div>
-    <div class="progress-track"><div class="progress-fill"></div></div>
-  </div>
-
+<!-- ===================== SCREEN 0: Choose your role (its own screen; the details form opens next) ===================== -->
+<div id="screen-role" class="screen hidden-screen">
+  <div class="brand-row" id="role-brand-row"></div>
   <h1 class="title">Create your account</h1>
   <p class="subtitle">Tell us who you are so we can tailor your experience.</p>
 
@@ -4196,6 +4179,40 @@
     </button>
 
   </div>
+
+  <div class="sticky-cta-wrap">
+    <div class="sticky-cta-inner">
+      <button type="button" id="role-continue-btn" class="btn-primary" disabled>Continue</button>
+      <p id="role-select-hint" class="role-hint">Select a role above to continue</p>
+      <p class="role-hint" style="margin-top: 14px;">Already have an account? <span id="reg-login-link" role="link" tabindex="0" style="color:#c084fc; cursor:pointer; font-weight:600;">Login</span></p>
+    </div>
+  </div>
+</div>
+
+<div id="screen-1" class="screen hidden-screen">
+
+  <!-- Brand Header -->
+  <div class="brand-row">
+    <svg class="brand-logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainTown Realty"><defs><mask id="mtlMaskM2" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-m" pathLength="1" d="M146 412 L146 190 L256 315 L365 190 L365 412" fill="none" stroke="#fff" stroke-width="72" stroke-linejoin="round"/></mask><mask id="mtlMaskR2" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><path class="mtl-pen mtl-pen-r" pathLength="1" d="M160 218 L256 126 L352 218" fill="none" stroke="#fff" stroke-width="64" stroke-linejoin="round"/></mask></defs><rect width="512" height="512" rx="112" fill="#0b0b0f"/><polygon points="130,168 130,403 162,403 163,249 256,339 348,249 349,403 381,403 381,168 256,292" fill="#7a24ef" mask="url(#mtlMaskM2)"/><polygon points="172,193 196,215 255,155 316,216 340,193 256,109" fill="#7a24ef" mask="url(#mtlMaskR2)"/><rect class="mtl-w mtl-w1" x="230" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w2" x="261" y="350" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w3" x="230" y="381" width="20" height="20" rx="2" fill="#fff"/><rect class="mtl-w mtl-w4" x="261" y="381" width="20" height="20" rx="2" fill="#fff"/></svg>
+    <div>
+      <p class="brand-name">MainTown Realty</p>
+      <p class="brand-tag">Own or rent, on your terms.</p>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap" id="progress-wrap-1">
+    <div class="progress-labels">
+      <span class="progress-step">Step 1 of 3: Account Setup</span>
+      <span class="progress-pct">33%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill"></div></div>
+  </div>
+
+  <!-- Back + the role they picked (the role cards live on their own screen, #screen-role) -->
+  <button type="button" id="details-back-btn" class="back-link" style="display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:#c084fc;font-weight:600;font-size:14px;padding:0;margin:0 0 14px;cursor:pointer;">&#8592; Change role</button>
+  <h1 class="title">Your details</h1>
+  <p class="subtitle" id="reg-details-sub">Fill in your details to continue.</p>
 
   <!-- Registration Form -->
   <form id="reg-form" class="pb-36">
@@ -4266,8 +4283,7 @@
       <button type="submit" form="reg-form" id="continue-btn" class="btn-primary" disabled>
         Continue to Verification
       </button>
-      <p id="role-hint" class="role-hint">Select a role above to continue</p>
-      <p class="role-hint" style="margin-top: 14px;">Already have an account? <span id="reg-login-link" role="link" tabindex="0" style="color:#c084fc; cursor:pointer; font-weight:600;">Login</span></p>
+      <p id="role-hint" class="role-hint" style="display:none"></p>
     </div>
   </div>
 
@@ -8915,8 +8931,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateContinueState() {
     continueBtn.disabled = !currentUserRole;
-    roleHint.style.display = currentUserRole ? 'none' : 'block';
+    roleHint.style.display = 'none';
+    const rc = document.getElementById('role-continue-btn'), rh = document.getElementById('role-select-hint');
+    if (rc) rc.disabled = !currentUserRole;
+    if (rh) rh.style.display = currentUserRole ? 'none' : 'block';
   }
+  const ROLE_LABELS = { tenant: 'a Tenant', landlord: 'a Landlord / Property Owner', agent: 'a Real Estate Agent' };
+  // Choosing a role opens the details form on its own screen.
+  function openDetailsScreen() {
+    if (!currentUserRole) return;
+    const sub = document.getElementById('reg-details-sub'); if (sub) sub.textContent = 'You are joining as ' + (ROLE_LABELS[currentUserRole] || currentUserRole) + '. Fill in your details to continue.';
+    setProgressStep('progress-wrap-1', 1, 'Account Setup');
+    const sr = document.getElementById('screen-role');
+    document.querySelectorAll('.screen').forEach(el => { if (el.id !== 'screen-1') el.classList.add('hidden-screen'); });
+    document.getElementById('screen-1').classList.remove('hidden-screen');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.lucide) lucide.createIcons();
+  }
+  function openRoleScreen() {
+    document.querySelectorAll('.screen').forEach(el => { if (el.id !== 'screen-role') el.classList.add('hidden-screen'); });
+    document.getElementById('screen-role').classList.remove('hidden-screen');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.lucide) lucide.createIcons();
+  }
+  (function () {
+    const br = document.querySelector('#screen-1 .brand-row'), tgt = document.getElementById('role-brand-row');
+    if (br && tgt) tgt.innerHTML = br.innerHTML;
+    document.getElementById('role-continue-btn').addEventListener('click', openDetailsScreen);
+    document.getElementById('details-back-btn').addEventListener('click', openRoleScreen);
+  })();
 
   roleCards.forEach(card => {
     card.addEventListener('click', () => {
@@ -12899,9 +12942,10 @@ This voucher is auto-generated and serves as proof of settlement.`;
         name: l.landlordName || (u && u.name) || null, role: l.listedByRole || l.listedBy || null,
         phone: (u && u.phone) || null, email: (u && u.email) || null,
         agentName: l.agentName || null, ownerId: l.ownerId || null,
+        ...(l.awaitingLandlord === true ? { verification: 'awaiting_landlord' } : {}),
         companyUid: (function () { try { const c = l.companyId || l.enterpriseId; const cu = c && (loadAppState().users || {})[c]; return (cu && cu.supabaseUserId) ? String(cu.supabaseUserId) : null; } catch (e) { return null; } })(),
         staffUid: (function () { try { const sId = l.listedByStaffId || l.staffId; const su = sId && (loadAppState().users || {})[sId]; return (su && su.supabaseUserId) ? String(su.supabaseUserId) : null; } catch (e) { return null; } })(),
-        ownerUid: (typeof uidOf === 'function' ? (uidOf(l.ownerId) !== l.ownerId ? uidOf(l.ownerId) : null) : null),
+        ownerUid: (u && u.supabaseUserId) ? String(u.supabaseUserId) : (typeof uidOf === 'function' ? (uidOf(l.ownerId) !== l.ownerId ? uidOf(l.ownerId) : null) : null),
         ...(l.propertyProof && l.propertyProof.reusedFrom ? { verified_property: 'Same property as an already verified listing' } : {})
       };
     }
@@ -12973,11 +13017,46 @@ This voucher is auto-generated and serves as proof of settlement.`;
         return !!(l.remoteId != null);
       } finally { l._syncing = false; }
     }
+    // ---- Listings made for a landlord who has a real login: on the server from the first second, hidden until the landlord approves ----
+    async function syncServerFlow() {
+      const es = agentListings.filter(e => e && e.listingData && e.listingData.serverFlow && e.listingData.remoteId != null && ['PENDING_LANDLORD_VERIFICATION', 'LEGAL_REVIEW'].indexOf(e.workflowStatus) >= 0);
+      if (!es.length) return false;
+      const res = await api('/rest/v1/rpc/prototype_listing_progress', { method: 'POST', headers: hdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ p_refs: es.map(e => refOf(e.listingData)) }) });
+      const rows = await res.json(); let changed = false;
+      (Array.isArray(rows) ? rows : []).forEach(r => {
+        const e = es.find(x => refOf(x.listingData) === r.prototype_ref); if (!e) return; const l = e.listingData;
+        const note = (txt, who) => { try { pushPlatformNotification(who, 'listing', txt[0], txt[1], null, 'listing_verification', null, who === 'agent' ? e.agentId : e.ownerId); } catch (x) {} };
+        if (r.status === 'available') {
+          e.workflowStatus = 'LIVE'; e.status = 'live'; l.status = 'live'; l.workflowStatus = 'LIVE'; l.awaitingLandlord = false; l.reviewStatus = 'approved'; l.remoteStatus = 'available'; l.syncedLocalStatus = 'live';
+          if (!listings.some(x => x && x.id === l.id)) listings.unshift(l);
+          note(['Listing Approved: Now Live', `"${l.title}" passed MainTown legal review and is live.`], 'landlord'); if (e.agentId) note(['Listing Approved: Now Live', `"${l.title}" passed MainTown legal review and is live.`], 'agent');
+          changed = true;
+        } else if (r.status === 'closed') {
+          if (e.workflowStatus !== 'DOCS_DECLINED') { e.workflowStatus = 'DOCS_DECLINED'; e.legalDecline = { reason: r.review_note || 'not given' }; l.awaitingLandlord = false;
+            note(['Listing Declined', `"${l.title}" was not approved. Reason: ${r.review_note || 'not given'}.`], 'landlord'); if (e.agentId) note(['Listing Declined', `"${l.title}" was not approved. Reason: ${r.review_note || 'not given'}.`], 'agent'); changed = true; }
+        } else if (r.verification === 'verified' && e.workflowStatus === 'PENDING_LANDLORD_VERIFICATION') {
+          e.workflowStatus = 'LEGAL_REVIEW'; l.awaitingLandlord = false;
+          if (e.agentId) note(['Landlord Approved Your Listing', `The landlord uploaded the title documents and approved "${l.title}". It is now with MainTown Legal.`], 'agent');
+          changed = true;
+        }
+      });
+      if (changed) { try { saveListings(); } catch (x) {} }
+      return changed;
+    }
+    async function pushServerFlow() {
+      let dirty = false;
+      for (const e of agentListings.slice()) {
+        const l = e && e.listingData; if (!l || !l.serverFlow || e.workflowStatus !== 'PENDING_LANDLORD_VERIFICATION') continue;
+        if ((l.remoteId == null || !l.submissionSent) && (!l._nextTry || Date.now() > l._nextTry)) { if (await publishOne(l)) dirty = true; }
+      }
+      return dirty;
+    }
     async function pushPending() {
       if (!CFG.enabled || pushing) return;
       pushing = true;
       let dirty = false;
       try {
+        try { if (await pushServerFlow()) dirty = true; } catch (e) {}
         for (const l of listings.slice()) {
           if (!l || l.origin === 'remote' || isSampleListing(l)) continue;
           const due = !l._nextTry || Date.now() > l._nextTry;
@@ -13070,6 +13149,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       pulling = true;
       try {
         let changed = false;
+        try { if (await syncServerFlow()) changed = true; } catch (e) { console.warn('[MainTown] Landlord approval check failed:', e.message); }
         try {
           const refs = listings.filter(l => l && l.origin !== 'remote' && l.remoteId != null).map(refOf);
           if (refs.length && reconcileOwn(await fetchOwnStatuses(refs))) changed = true;
@@ -21414,7 +21494,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
     window.dispatchEvent(new Event('maintown_state_updated'));
   }
 
-  document.getElementById('s5-listing-form').addEventListener('submit', (e) => {
+  document.getElementById('s5-listing-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const title = document.getElementById('s5-listing-title').value.trim();
     const address = document.getElementById('s5-listing-address').value.trim();
@@ -21532,10 +21612,18 @@ This voucher is auto-generated and serves as proof of settlement.`;
       // account and BVN/NIN are deliberately NOT collected here — the
       // landlord supplies those themselves at the Vendor Activation gate
       // (Step 1) the first time they claim their account.
+      // A real, working login (temporary password emailed to the landlord) when the agent is signed in with a real account.
+      let mgServer = null;
+      if (typeof mtSbUid === 'function' && mtSbUid() && !findLandlordUserByContact(landlordEmail, landlordPhone)) {
+        try { showToast('Creating the landlord\'s login…'); mgServer = await mtCreateManagedLandlord(landlordName, landlordPhone, landlordEmail); }
+        catch (err) { showToast(err.message || 'Could not create the landlord login.'); return; }
+      }
       const landlordProvision = provisionLandlord(landlordName, landlordPhone, landlordEmail);
       landlordUser = landlordProvision.record;
+      if (mgServer) { landlordUser.serverUid = mgServer.landlord_uid; landlordUser.hasServerLogin = true; saveAppState(appState); showToast(mgServer.emailed ? 'Login created. We emailed ' + landlordName + ' their temporary password.' : 'Login created, but the email could not be sent. Tell them to use "Forgot password" on the login page.'); }
       saveAppState(appState);
       if (landlordProvision.isNew) { mgSetManaged(landlordUser, mgSessionManager()); landlordUser = ensureWalletRecord(landlordUser.id); }
+      if (mgServer) { landlordUser.supabaseUserId = mgServer.landlord_uid; saveAppState(appState); }
     }
 
     const agentName = (currentUserRole === 'enterprise_staff') ? (mgSessionManager().name || 'Your agency') : ((document.getElementById('reg-fullname')?.value || '').trim() || 'Agent');
@@ -21573,6 +21661,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       ...getHostExtras('s5', type)
     };
     if (currentUserRole === 'enterprise_staff') { baseFields.clientOwned = true; baseFields.listedBy = 'enterprise'; baseFields.agentId = undefined; baseFields.agentName = undefined; }
+    if (landlordUser.hasServerLogin && landlordUser.supabaseUserId) { baseFields.awaitingLandlord = true; baseFields.serverFlow = true; }   // sent to the server now; the landlord approves there
     let listingData;
     if (type === 'rent') {
       const monthly = Math.round(annual / 12);
@@ -21816,6 +21905,36 @@ This voucher is auto-generated and serves as proof of settlement.`;
           const doc = allDocTypes().find(d => d.id === cb.dataset.docId);
           return { id: doc.id, label: doc.label, ...lvSelectedDocs[doc.id] };
         });
+    // A listing that lives on the server (made by the agent for a landlord with a real login): the documents go to private storage and the
+    // approval is recorded on the server, which is what puts it in front of MainTown Legal. The agent is told straight away.
+    if (entry.serverListingId) {
+      const sendBtn = document.getElementById('lv-submit-btn'); if (sendBtn) sendBtn.disabled = true;
+      showToast('Sending your documents securely to MainTown Legal...');
+      try {
+        const tok = await MtGoogleAuth.getToken(), uid = mtSbUid(); if (!tok || !uid) throw new Error('Please sign in again.');
+        const docs = [];
+        for (const d of titleDocuments) {
+          const blob = d.fileKey ? await MediaStore.getBlob(d.fileKey) : null; if (!blob) throw new Error('Choose the file for "' + (d.label || 'the document') + '" again.');
+          const path = uid + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 6) + '-' + String(d.fileName || 'document').replace(/[^a-zA-Z0-9.\-_]/g, '-');
+          const up = await fetch('https://obtggomfwvravjcnypid.supabase.co/storage/v1/object/listing-docs/' + path, { method: 'POST', headers: { apikey: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8', Authorization: 'Bearer ' + tok, 'Content-Type': blob.type || 'application/octet-stream', 'x-upsert': 'false' }, body: blob });
+          if (!up.ok) throw new Error('Could not upload ' + (d.fileName || 'a document') + '.');
+          docs.push({ path, name: d.fileName || '', label: d.label || 'Title document' });
+        }
+        if (!docs.length) throw new Error('Upload at least one title document.');
+        const rr = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/dashboard_landlord_verify_listing', { method: 'POST', headers: mtSbHeaders(tok), body: JSON.stringify({ p_listing_id: String(entry.serverListingId), p_confirm: true, p_documents: docs, p_reason: null }) });
+        if (!rr.ok) { let m = ''; try { m = (await rr.json()).message || ''; } catch (x) {} throw new Error(m || 'MainTown could not accept this right now.'); }
+      } catch (err) { showToast(String((err && err.message) || 'Could not send. Please try again.')); if (sendBtn) sendBtn.disabled = false; return; }
+      if (sendBtn) sendBtn.disabled = false;
+      agentListings.splice(0, agentListings.length, ...agentListings.filter(e => e !== entry));   // it is with Legal now; progress arrives as notifications
+      saveListings();
+      document.getElementById('landlord-verify-modal').classList.remove('open');
+      showToast("Approved. Your title documents are with MainTown's legal review.");
+      try { pushPlatformNotification('landlord', 'listing', 'Listing Submitted for Legal Review', `You approved "${entry.title}" and uploaded your title documents. MainTown is reviewing them and will tell you the moment it goes live.`, null, 'listing_verification', null, entry.ownerId); } catch (x) {}
+      try { renderLandlordVerificationQueue(); } catch (x) {}
+      window.dispatchEvent(new Event('maintown_state_updated'));
+      setTimeout(mtPullMyWebListings, 1500);
+      return;
+    }
     // Send the documents to MainTown Legal. If they cannot be delivered we stop here so the landlord can
     // retry: nothing is treated as approved on this phone without a real review.
     let legalKey = null;
@@ -23438,7 +23557,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
       if (!r.ok) return;
       const rows = await r.json();
       if (!Array.isArray(rows)) return;
-      const mine = rows.filter(x => x && x.source !== 'app_prototype' && /^(Agt|LnLd)-\d+$/.test(String(x.prototype_ref || '')))
+      const mine = rows.filter(x => x && x.source !== 'app_prototype' && /^(?:(?:Agt|LnLd)-\d+|dev-[a-z0-9]+-\d+)$/.test(String(x.prototype_ref || '')))
         .map(x => ({ id: x.id, title: x.title, location: x.location, status: x.status, ref: x.prototype_ref, note: x.review_note || '' }));
       const before = JSON.stringify(window.mtWebListings || []);
       window.mtWebListings = mine;
@@ -23448,6 +23567,36 @@ This voucher is auto-generated and serves as proof of settlement.`;
       }
     } catch (e) {} finally { mtWebListBusy = false; }
   }
+  // ---- A landlord with a real login: listings their agent / company submitted for them show up here (any phone) ----
+  let mtAwaitBusy = false;
+  async function mtPullAwaitingListings() {
+    if (mtAwaitBusy) return; mtAwaitBusy = true;
+    try {
+      if (!window.MtGoogleAuth || !MtGoogleAuth.getToken || !mtSbUid()) return;
+      const uid = getCurrentUserId(); if (!uid) return;
+      const tok = await MtGoogleAuth.getToken();
+      const r = await fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/dashboard_my_listings', { method: 'POST', headers: mtSbHeaders(tok), body: '{}' });
+      if (!r.ok) return;
+      const rows = await r.json(); if (!Array.isArray(rows)) return;
+      const mine = rows.filter(x => x && x.status === 'pending' && x.verification === 'awaiting_landlord');
+      let changed = false;
+      const kept = agentListings.filter(e => { if (e && e.serverOnly && e.ownerId === uid && !mine.some(m => String(m.id) === String(e.serverListingId))) { changed = true; return false; } return true; });
+      if (kept.length !== agentListings.length) agentListings.splice(0, agentListings.length, ...kept);
+      const me = (appState.users && appState.users[uid]) || {};
+      mine.forEach((m, i) => {
+        if (agentListings.some(e => e && e.serverListingId && String(e.serverListingId) === String(m.id))) return;
+        const typ = m.category === 'land' ? 'land' : m.category === 'short-let' ? 'shortlet' : m.category === 'event-center' ? 'event' : 'rent';
+        agentListings.unshift({ id: Date.now() + i, serverOnly: true, serverListingId: String(m.id), title: m.title, address: m.location, type: typ, annual: Number(m.annual_rent) || 0,
+          landlordName: me.name || '', ownerId: uid, agentName: m.agent_name || 'Your agent', status: 'draft', workflowStatus: 'PENDING_LANDLORD_VERIFICATION', listingId: m.id });
+        changed = true;
+      });
+      if (changed) { try { saveListings(); } catch (e) {} try { renderLandlordVerificationQueue(); } catch (e) {} try { window.dispatchEvent(new Event('maintown_state_updated')); } catch (e) {} }
+    } catch (e) {} finally { mtAwaitBusy = false; }
+  }
+  window.mtPullAwaitingListings = mtPullAwaitingListings;
+  setTimeout(mtPullAwaitingListings, 3500);
+  setInterval(mtPullAwaitingListings, 45000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) mtPullAwaitingListings(); });
   setTimeout(mtPullMyWebListings, 3000);
   setInterval(mtPullMyWebListings, 60000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) mtPullMyWebListings(); });
@@ -28943,7 +29092,8 @@ available in the Post-Lease Hub and this chat thread.`
     screenLogin.classList.add('hidden-screen');
     screenPartnership.classList.add('hidden-screen');
     setProgressStep('progress-wrap-1', 1, 'Account Setup');
-    screen1.classList.remove('hidden-screen');
+    screen1.classList.add('hidden-screen');
+    document.getElementById('screen-role').classList.remove('hidden-screen');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (window.lucide) lucide.createIcons();
   }
@@ -29022,6 +29172,12 @@ available in the Post-Lease Hub and this chat thread.`
       if (!ctx) {
         // Not a team member: an ordinary member (tenant, landlord or agent) logging in with the email and password they created.
         try { localStorage.setItem('mtr_sb_session', JSON.stringify(sess)); localStorage.removeItem('mtr_logged_out'); localStorage.removeItem('mtr_staff_session'); } catch (e) {}
+        if (sess.user && sess.user.user_metadata && sess.user.user_metadata.must_change_password) {
+          const np = await mtAskNewPassword();
+          const u = await mtAuthCall('/auth/v1/user', { password: np, data: { must_change_password: false } }, sess.access_token, 'PUT');
+          if (!u.ok) { showLoginError((u.d && (u.d.msg || u.d.error_description)) || 'Could not save the new password.'); return reset(); }
+          try { sess.user = u.d && u.d.id ? u.d : sess.user; localStorage.setItem('mtr_sb_session', JSON.stringify(sess)); } catch (e) {}
+        }
         hideLoginError(); reset();
         await window.MtGoogleAuth.routeSession(sess);
         try { window.mtSyncAll && window.mtSyncAll(); } catch (e) {}
@@ -29195,7 +29351,7 @@ available in the Post-Lease Hub and this chat thread.`
     document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
     appBottomNav.classList.add('hidden');
     screenWelcome.classList.add('hidden-screen');
-    screen1.classList.remove('hidden-screen');
+    openRoleScreen();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (window.lucide) lucide.createIcons();
   });
@@ -29314,6 +29470,7 @@ available in the Post-Lease Hub and this chat thread.`
         const card = Array.from(roleCards).find(c => c.dataset.role === o.role);
         if (card) card.click();
         lockForm(o.role, o.email);                  // ... then locks it again for this person
+        openDetailsScreen();                        // role already known: open the details screen directly
         showToast('Welcome ' + (o.name || '') + '. Complete your ' + o.role + ' onboarding to continue.');
       } else {
         lockForm(null, o.email);
@@ -29337,6 +29494,21 @@ available in the Post-Lease Hub and this chat thread.`
                     users.find(x => email && normalizeContact(x.email) === normalizeContact(email));
 
       // 1) This phone already has their account: straight in.
+      // A landlord an agent or company onboarded: a managed landlord. They go straight in, restricted to review / title documents / approval.
+      let mg = null; try { mg = await rpc('my_agent_link', {}, sess.access_token); } catch (e) {}
+      if (mg && mg.managed) {
+        appState = loadAppState(); appState.users = appState.users || {};
+        let mrec = Object.values(appState.users).find(x => x && (x.supabaseUserId === u.id || (x.email && normalizeContact(x.email) === normalizeContact(email) && x.role === 'landlord')));
+        if (!mrec) { const mid = 'landlord_' + u.id.slice(0, 8); mrec = appState.users[mid] = { id: mid, name: (prof && prof.full_name) || name, email, role: 'landlord', status: 'ACTIVE', walletBalance: 0, settlementBank: null, walletPin: null, escrowLedger: [], welcomeAlerts: [], createdAt: Date.now(), supabaseUserId: u.id }; }
+        mrec.status = 'ACTIVE'; mrec.supabaseUserId = u.id; mrec.hasPassword = true; mrec.onboarded = true;
+        mrec.managedBy = { type: mg.manager_type === 'enterprise' ? 'enterprise' : 'agent', id: mg.manager_uid || 'maintown', name: mg.manager_name || '', since: Date.now() };
+        saveAppState(appState);
+        // Identity first: a managed landlord still gives their NIN and a live selfie once (it is reported to MainTown admin), then they are in.
+        if (!(prof && prof.onboarding_completed === true)) { startOnboarding({ name: mrec.name || name, email, role: 'landlord' }); return; }
+        rpc('member_mark_source', { p_source: 'app' }, sess.access_token).catch(() => {});
+        loginAsDemoUser({ id: mrec.id, name: mrec.name, email: mrec.email || email, role: 'landlord' });
+        return;
+      }
       if (local && ROLES.includes(local.role)) {
         linkLocal(local.id, u.id);
         if (prof && prof.onboarding_completed !== true) rpc('complete_onboarding', {}, sess.access_token).catch(() => {});
@@ -29426,6 +29598,11 @@ available in the Post-Lease Hub and this chat thread.`
         }
         await rpc('complete_onboarding', {}, t);
         reportIdentity(sess, t);
+        try {   // a landlord an agent onboarded keeps their managed limits after finishing onboarding on this phone
+          const mg = await rpc('my_agent_link', {}, t);
+          if (mg && mg.managed && cu) { appState = loadAppState(); const r = appState.users && appState.users[cu.id];
+            if (r) { r.managedBy = { type: mg.manager_type === 'enterprise' ? 'enterprise' : 'agent', id: mg.manager_uid || 'maintown', name: mg.manager_name || '', since: Date.now() }; saveAppState(appState); } }
+        } catch (e) {}
       } catch (e) { console.error('could not mark onboarding complete (continuing):', e); }
     }
 
@@ -31916,7 +32093,7 @@ available in the Post-Lease Hub and this chat thread.`
 
   // after any sign-in (also a fresh install): bring everything done on the website onto this phone right away
   window.mtSyncAll = function () {
-    [mtPullMyWebListings, mtPullInspectionRequests, mtPullChat, mtPullNotifications, mtPullPhoto, mtPullEnterprise, mtPullBookings, mtPullPayout, mtPushBookings, mtPushHandover, mtPushAssets, mtPullTeam]
+    [mtPullMyWebListings, mtPullAwaitingListings, () => { try { RemoteFeed.tick(); } catch (e) {} }, mtPullInspectionRequests, mtPullChat, mtPullNotifications, mtPullPhoto, mtPullEnterprise, mtPullBookings, mtPullPayout, mtPushBookings, mtPushHandover, mtPushAssets, mtPullTeam]
       .forEach((f, i) => { try { setTimeout(f, 400 + i * 350); } catch (e) {} });
   };
   document.getElementById('ent-setup-logo-upload').addEventListener('click', () => document.getElementById('ent-setup-logo-file').click());
@@ -32972,6 +33149,16 @@ available in the Post-Lease Hub and this chat thread.`
   // ---- Team members are REAL accounts on the server (staff-admin function): created, reset and removed there, the temporary
   // login is emailed to them, and the same email + password works in the app and on the website. ----
   function mtTempPassword() { const a = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let o = ''; const r = crypto.getRandomValues(new Uint32Array(10)); for (let i = 0; i < 10; i++) o += a[r[i] % a.length]; return o; }
+  async function mtCreateManagedLandlord(name, phone, email) {
+    const tok = (window.MtGoogleAuth && MtGoogleAuth.getToken) ? await MtGoogleAuth.getToken() : null;
+    if (!tok) throw new Error('Sign in with your real account to onboard landlords.');
+    const res = await fetch(MT_SB + '/functions/v1/landlord-admin', { method: 'POST', headers: { apikey: MT_KEY, Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create', name, phone, email, password: mtTempPassword(), signinUrl: 'https://maintownrealty.com/login.html' }) });
+    const j = await res.json().catch(() => ({}));
+    if (res.status === 404) throw new Error('The landlord login service is not set up yet. Ask the MainTown admin to deploy it.');
+    if (!res.ok || j.error) throw new Error(j.error || 'Could not reach the landlord login service. Please try again.');
+    return j;
+  }
   async function mtStaffAdmin(body) {
     if (!mtSbUid() || !window.MtGoogleAuth) throw new Error('Sign in with your real account to manage your team. Demo accounts cannot create real logins.');
     const tok = await MtGoogleAuth.getToken();
@@ -33783,6 +33970,7 @@ available in the Post-Lease Hub and this chat thread.`
     screenWelcome.classList.add('hidden-screen');
     screenLogin.classList.add('hidden-screen');
     screen1.classList.add('hidden-screen');
+    { const _sr = document.getElementById('screen-role'); if (_sr) _sr.classList.add('hidden-screen'); }
     screenPartnership.classList.add('hidden-screen');
     screen2.classList.add('hidden-screen');
     screen3.classList.add('hidden-screen');
