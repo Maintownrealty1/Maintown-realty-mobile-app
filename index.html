@@ -32126,7 +32126,19 @@ available in the Post-Lease Hub and this chat thread.`
         return fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/member_mark_onboarded', { method: 'POST', headers: { apikey: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8', Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, body: '{}' }); }).catch(() => {});
     } catch (e) {}
   }
+  // Welcome / welcome-back email: the app often stays signed in without a fresh server login, so ask the server once a day.
+  function mtLoginPingOnce() {
+    try {
+      const uid = mtSbUid(); if (!uid || !window.MtGoogleAuth || !window.MtGoogleAuth.getToken) return;
+      const k = 'mtr_login_ping_' + uid; let last = 0; try { last = parseInt(localStorage.getItem(k) || '0', 10) || 0; } catch (e) {}
+      if (Date.now() - last < 20 * 3600 * 1000) return;
+      Promise.resolve(window.MtGoogleAuth.getToken()).then(t => { if (!t) return;
+        return fetch('https://obtggomfwvravjcnypid.supabase.co/rest/v1/rpc/member_login_ping', { method: 'POST', headers: { apikey: 'sb_publishable_GaTnU4FmPc2slbn8BisXXg_DmxH1vl8', Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, body: '{}' })
+          .then(r => { if (r.ok) { try { localStorage.setItem(k, String(Date.now())); } catch (e) {} } }); }).catch(() => {});
+    } catch (e) {}
+  }
   window.mtSyncAll = function () {
+    setTimeout(mtLoginPingOnce, 2500);
     setTimeout(mtMarkOnboardedOnce, 1500);
     [mtPullMyWebListings, mtPullAwaitingListings, () => { try { RemoteFeed.tick(); } catch (e) {} }, mtPullInspectionRequests, mtPullChat, mtPullNotifications, mtPullPhoto, mtPullEnterprise, mtPullBookings, mtPullPayout, mtPushBookings, mtPushHandover, mtPushAssets, mtPullTeam]
       .forEach((f, i) => { try { setTimeout(f, 400 + i * 350); } catch (e) {} });
