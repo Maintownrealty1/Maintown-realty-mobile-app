@@ -25482,7 +25482,13 @@ This voucher is auto-generated and serves as proof of settlement.`;
       const d = mtDetectLang(n);
       if (d && d !== mtLang(conv)) { conv.lang = d; saveConversations(); }
     }
-    if (inHand) { mtExpertSim(conv, n); return; }
+    if (inHand) {
+      // Old simulated expert chats are retired: send the person to the live chat for that team instead.
+      const t = (conv.handoff && conv.handoff.team) || 'support';
+      conv.handoff.active = false; saveConversations();
+      if (window.MTSupportLive) { mtBotHandoff(conv, t === 'legal' ? 'legal' : 'support'); return; }
+      mtExpertSim(conv, n); return;
+    }
     if (mtBotSensitive(text)) {
       mtBotSay(conv, mtTx(conv, 'sensitive'), null);
       return;
@@ -25508,7 +25514,7 @@ This voucher is auto-generated and serves as proof of settlement.`;
   // file is about with tap options, and points to Talk to a person. Experts see the file in the chat.
   function mtBotOnFiles(conv, n) {
     if (conv.status === 'archived') return;
-    if (conv.handoff && conv.handoff.active) {
+    if (conv.handoff && conv.handoff.active && !window.MTSupportLive) {
       const team = MT_TEAMS[conv.handoff.team] || MT_TEAMS.support;
       mtBotSay(conv, mtTx(conv, 'file_expert') + ' (Prototype: expert replies are simulated.)', null, { by: 'expert', byName: team.name + ' · ' + team.team, delay: 1200 });
       return;
