@@ -6799,7 +6799,7 @@
     <h1 class="s5-role-title" id="sl-title">MainTown Customer Service</h1>
     <span id="sl-ticket-chip" class="sl-chip">New conversation</span>
   </div>
-  <p class="sl-notice">You are chatting with the MainTown Customer Service team. Messages and files you send are saved, and authorised MainTown staff can read them to help you and keep accounts safe. Never share your PIN, password or one-time code, even with us.</p>
+  <p class="sl-notice" id="sl-notice">You are chatting with the MainTown Customer Service team. Messages and files you send are saved, and authorised MainTown staff can read them to help you and keep accounts safe. Never share your PIN, password or one-time code, even with us.</p>
   <div id="sl-banner" class="sl-banner" style="display:none;"></div>
 
   <div id="sl-log"></div>
@@ -36389,7 +36389,7 @@ available in the Post-Lease Hub and this chat thread.`
     const S = { uid: null, secret: null, ticket: null, msgs: [], lastAt: null, files: [], sending: false, polling: null, badge: { unread: 0 }, loading: false };
     const $ = id => document.getElementById(id);
     const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-    const pad = n => 'MT-' + String(n).padStart(6, '0');
+    const pad = n => (DEPT === 'legal' ? 'LG-' : 'MT-') + String(n).padStart(6, '0');
     const rd = (k, fb) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? fb : v; } catch (e) { return fb; } };
     function rand(bytes) { const a = new Uint8Array(bytes); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach((_, i) => { a[i] = Math.floor(Math.random() * 256); }); return Array.from(a, b => b.toString(16).padStart(2, '0')).join(''); }
     function currentUid() { try { return (typeof mtSbUid === 'function' && mtSbUid()) || (typeof getCurrentUserId === 'function' && getCurrentUserId()) || null; } catch (e) { return null; } }
@@ -36477,7 +36477,7 @@ available in the Post-Lease Hub and this chat thread.`
       const chip = $('sl-ticket-chip'), hint = $('sl-hint');
       const t = S.ticket;
       if (chip) {
-        const label = { open: 'Open', pending: 'Support replied', resolved: 'Resolved' };
+        const label = { open: 'Open', pending: (DEPT === 'legal' ? 'Legal replied' : 'Support replied'), resolved: 'Resolved' };
         chip.className = 'sl-chip' + (t ? ' ' + t.status : '');
         chip.textContent = t ? pad(t.ticket_no) + ' · ' + (label[t.status] || t.status) : 'New conversation';
       }
@@ -36495,7 +36495,7 @@ available in the Post-Lease Hub and this chat thread.`
         if (m.ticket_no !== lastTicket) { lastTicket = m.ticket_no; pre = '<div class="sl-divider"><span>Ticket ' + pad(m.ticket_no) + '</span></div>'; }
         if (m.sender_type === 'system') return pre + '<div class="chat-bubble system">' + esc(m.body) + '</div>';
         const mine = m.sender_type === 'user';
-        const who = mine ? '' : '<div class="sl-who">' + esc(m.sender_name || 'Customer Service') + ' · MainTown Customer Service</div>';
+        const who = mine ? '' : '<div class="sl-who">' + esc(m.sender_name || DEPT_NAME[DEPT]) + ' · MainTown ' + (DEPT === 'legal' ? 'Legal team' : 'Customer Service') + '</div>';
         return pre + '<div class="chat-bubble ' + (mine ? 'me' : 'them expert') + '">' + who + (m.body ? '<div style="white-space:pre-wrap;word-break:break-word;">' + esc(m.body) + '</div>' : '') + mediaHtml(m.media) + '<div class="sl-time">' + esc(timeOf(m.created_at)) + '</div></div>';
       }).join('');
       if (window.lucide) lucide.createIcons();
@@ -36521,6 +36521,7 @@ available in the Post-Lease Hub and this chat thread.`
       const t = $('sl-title'), e = $('sl-eyebrow'), i = $('sl-input');
       if (t) t.textContent = d === 'legal' ? 'MainTown Legal Team' : 'MainTown Customer Service';
       if (e) e.textContent = d === 'legal' ? 'Legal Expert' : 'Customer Service';
+      const nt = $('sl-notice'); if (nt) nt.textContent = 'You are chatting with the MainTown ' + (d === 'legal' ? 'Legal team' : 'Customer Service team') + '. Messages and files you send are saved, and authorised MainTown staff can read them to help you and keep accounts safe. Never share your PIN, password or one-time code, even with us.';
       if (i) i.placeholder = 'Write to ' + DEPT_NAME[d] + '...';
     }
     async function open(dept) {
