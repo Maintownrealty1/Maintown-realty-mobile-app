@@ -33211,7 +33211,7 @@ available in the Post-Lease Hub and this chat thread.`
     const tok = await MtGoogleAuth.getToken();
     const o = appState.users[getEnterpriseCompanyId()];
     const res = await fetch(MT_SB + '/functions/v1/staff-admin', { method: 'POST', headers: { apikey: MT_KEY, Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' },
-      body: JSON.stringify(Object.assign({ signinUrl: 'https://maintownrealty.com/staff.html', company: (o && o.enterprise && o.enterprise.companyName) || '' }, body)) });
+      body: JSON.stringify(Object.assign({ signinUrl: 'https://maintownrealty.com/login.html', company: (o && o.enterprise && o.enterprise.companyName) || '' }, body)) });
     const j = await res.json().catch(() => ({}));
     if (res.status === 404) throw new Error('The team service is not set up yet. Ask the MainTown admin to deploy it.');
     if (!res.ok || j.error) throw new Error(j.error || 'Could not reach the team service. Please try again.');
